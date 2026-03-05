@@ -1,0 +1,10 @@
+services:
+  bitcoin-api:
+    build: .
+    ports:
+      - "8333:8333"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
