@@ -6,7 +6,7 @@ from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_status
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, HealthData, NetworkData, envelope
 
 router = APIRouter(tags=["Status"])
 
@@ -92,7 +92,7 @@ _NETWORK_EXAMPLE = {
 }
 
 
-@router.get("/health", responses=_HEALTH_EXAMPLE)
+@router.get("/health", response_model=ApiResponse[HealthData], responses=_HEALTH_EXAMPLE)
 def health(rpc: BitcoinRPC = Depends(get_rpc)):
     """Ping the node. No auth required."""
     info = cached_blockchain_info(rpc)
@@ -103,7 +103,7 @@ def health(rpc: BitcoinRPC = Depends(get_rpc)):
     )
 
 
-@router.get("/status", responses=_STATUS_EXAMPLE)
+@router.get("/status", response_model=ApiResponse[dict], responses=_STATUS_EXAMPLE)
 def status(rpc: BitcoinRPC = Depends(get_rpc)):
     """Full node status with sync progress, peers, disk usage."""
     node = cached_status(rpc)
@@ -111,7 +111,7 @@ def status(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(node.model_dump(), height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/network", responses=_NETWORK_EXAMPLE)
+@router.get("/network", response_model=ApiResponse[NetworkData], responses=_NETWORK_EXAMPLE)
 def network(rpc: BitcoinRPC = Depends(get_rpc)):
     """Network info: version, subversion, connections, relay fee."""
     net = rpc.call("getnetworkinfo")

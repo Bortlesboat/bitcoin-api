@@ -105,6 +105,10 @@ class DecodedTransaction(BaseModel):
     vout: list[dict]
 
 
+class DecodeRequest(BaseModel):
+    hex: str
+
+
 # --- Helper functions ---
 
 

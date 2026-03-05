@@ -11,7 +11,7 @@ from bitcoinlib_rpc.blocks import analyze_block
 
 from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, envelope
 
 router = APIRouter(prefix="/blocks", tags=["Blocks"])
 
@@ -27,6 +27,7 @@ def _serialize_block(data: dict) -> dict:
 
 @router.get(
     "/latest",
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "Latest block analysis",
@@ -60,6 +61,7 @@ def latest_block(rpc: BitcoinRPC = Depends(get_rpc)):
 
 @router.get(
     "/{height_or_hash}",
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "Block analysis by height or hash",
@@ -119,6 +121,7 @@ def get_block(
 
 @router.get(
     "/{height}/stats",
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "Raw block statistics from getblockstats",

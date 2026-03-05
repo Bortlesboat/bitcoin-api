@@ -9,7 +9,7 @@ from bitcoinlib_rpc.transactions import analyze_transaction
 
 from ..cache import cached_blockchain_info
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, DecodeRequest, envelope
 
 _TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
@@ -18,6 +18,7 @@ router = APIRouter(tags=["Transactions"])
 
 @router.get(
     "/tx/{txid}",
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "Full transaction analysis",
@@ -59,6 +60,7 @@ def get_transaction(
 
 @router.get(
     "/tx/{txid}/raw",
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "Raw decoded transaction",
@@ -101,6 +103,7 @@ def get_raw_transaction(
 
 @router.get(
     "/utxo/{txid}/{vout}",
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "UTXO lookup result",
@@ -177,14 +180,7 @@ _DECODE_EXAMPLE = {
 }
 
 
-from pydantic import BaseModel
-
-
-class DecodeRequest(BaseModel):
-    hex: str
-
-
-@router.post("/decode", responses=_DECODE_EXAMPLE)
+@router.post("/decode", response_model=ApiResponse[dict], responses=_DECODE_EXAMPLE)
 def decode_transaction(
     body: DecodeRequest,
     rpc: BitcoinRPC = Depends(get_rpc),

@@ -160,10 +160,13 @@ def clear_caches():
 def use_temp_db(tmp_path):
     """Use a temporary database for each test."""
     from bitcoin_api import db
-    db._conn = None
+    # Reset thread-local state and initialization flag
+    db._initialized = False
+    db._local = __import__("threading").local()
     db.get_db(tmp_path / "test.db")
     yield
-    db._conn = None
+    db._initialized = False
+    db._local = __import__("threading").local()
 
 
 @pytest.fixture

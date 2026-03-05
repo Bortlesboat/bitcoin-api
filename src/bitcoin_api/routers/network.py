@@ -6,7 +6,7 @@ from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, envelope
 
 router = APIRouter(prefix="/network", tags=["Network"])
 
@@ -42,7 +42,7 @@ _FORKS_EXAMPLE = {
 }
 
 
-@router.get("/forks", responses=_FORKS_EXAMPLE)
+@router.get("/forks", response_model=ApiResponse[list[dict]], responses=_FORKS_EXAMPLE)
 def chain_forks(rpc: BitcoinRPC = Depends(get_rpc)):
     """Chain tips from getchaintips — shows active chain and any forks/orphans."""
     tips = rpc.call("getchaintips")

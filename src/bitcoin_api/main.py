@@ -3,7 +3,8 @@
 import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -183,6 +184,47 @@ async def connection_error_handler(request: Request, exc: ConnectionError):
                 status=502,
                 title="Node Unreachable",
                 detail="Cannot connect to Bitcoin Core. Is the node running?",
+                request_id=request_id,
+            )
+        ).model_dump(),
+    )
+    if request_id:
+        resp.headers["X-Request-ID"] = request_id
+    return resp
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    request_id = getattr(request.state, "request_id", None)
+    details = "; ".join(
+        f"{'.'.join(str(l) for l in e['loc'])}: {e['msg']}" for e in exc.errors()
+    )
+    resp = JSONResponse(
+        status_code=422,
+        content=ErrorResponse(
+            error=ErrorDetail(
+                status=422,
+                title="Validation Error",
+                detail=details,
+                request_id=request_id,
+            )
+        ).model_dump(),
+    )
+    if request_id:
+        resp.headers["X-Request-ID"] = request_id
+    return resp
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    request_id = getattr(request.state, "request_id", None)
+    resp = JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(
+            error=ErrorDetail(
+                status=exc.status_code,
+                title="Error",
+                detail=str(exc.detail),
                 request_id=request_id,
             )
         ).model_dump(),

@@ -1,11 +1,15 @@
 """SQLite database for API keys and usage tracking."""
 
 import sqlite3
+import threading
 from pathlib import Path
 
 from .config import settings
 
-_conn: sqlite3.Connection | None = None
+_local = threading.local()
+_db_path: Path | None = None
+_initialized = False
+_init_lock = threading.Lock()
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS api_keys (
@@ -31,15 +35,34 @@ CREATE INDEX IF NOT EXISTS idx_usage_key_ts ON usage_log(key_hash, ts);
 """
 
 
+def _make_conn(path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(str(path), check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 def get_db(db_path: Path | None = None) -> sqlite3.Connection:
-    global _conn
-    if _conn is None:
-        path = db_path or settings.api_db_path
-        _conn = sqlite3.connect(str(path), check_same_thread=False)
-        _conn.execute("PRAGMA journal_mode=WAL")
-        _conn.row_factory = sqlite3.Row
-        _conn.executescript(SCHEMA)
-    return _conn
+    global _db_path, _initialized
+
+    # First call initializes the path and schema
+    if not _initialized:
+        with _init_lock:
+            if not _initialized:
+                _db_path = db_path or settings.api_db_path
+                _db_path.parent.mkdir(parents=True, exist_ok=True)
+                conn = _make_conn(_db_path)
+                conn.executescript(SCHEMA)
+                conn.close()
+                _initialized = True
+
+    # Each thread gets its own connection
+    conn = getattr(_local, "conn", None)
+    if conn is None:
+        _local.conn = _make_conn(_db_path)
+        conn = _local.conn
+    return conn
 
 
 def log_usage(key_hash: str | None, endpoint: str, status_code: int) -> None:

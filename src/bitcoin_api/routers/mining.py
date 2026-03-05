@@ -6,7 +6,7 @@ from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_next_block
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, MiningData, envelope
 
 router = APIRouter(prefix="/mining", tags=["Mining"])
 
@@ -68,7 +68,7 @@ _NEXT_BLOCK_EXAMPLE = {
 }
 
 
-@router.get("", responses=_MINING_SUMMARY_EXAMPLE)
+@router.get("", response_model=ApiResponse[MiningData], responses=_MINING_SUMMARY_EXAMPLE)
 def mining_summary(rpc: BitcoinRPC = Depends(get_rpc)):
     """Mining summary: hashrate, difficulty, next retarget estimate."""
     info = cached_blockchain_info(rpc)
@@ -84,10 +84,10 @@ def mining_summary(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/nextblock", responses=_NEXT_BLOCK_EXAMPLE)
+@router.get("/nextblock", response_model=ApiResponse[dict], responses=_NEXT_BLOCK_EXAMPLE)
 def next_block(rpc: BitcoinRPC = Depends(get_rpc)):
     """Analyze the current block template — what the next block would look like if mined now."""
-    data = cached_next_block(rpc)
+    data = dict(cached_next_block(rpc))
     info = cached_blockchain_info(rpc)
     # Convert top_5 tuples to dicts for JSON
     if data.get("top_5"):

@@ -7,7 +7,7 @@ from bitcoinlib_rpc.utils import fee_recommendation
 
 from ..cache import cached_blockchain_info, cached_fee_estimates
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, FeeRecommendationData, envelope
 
 router = APIRouter(prefix="/fees", tags=["Fees"])
 
@@ -34,7 +34,7 @@ _FEES_EXAMPLE = {
 }
 
 
-@router.get("", responses=_FEES_EXAMPLE)
+@router.get("", response_model=ApiResponse[list[dict]], responses=_FEES_EXAMPLE)
 def fees(rpc: BitcoinRPC = Depends(get_rpc)):
     """Fee estimates for standard confirmation targets (1, 3, 6, 25, 144 blocks)."""
     estimates = cached_fee_estimates(rpc)
@@ -97,7 +97,7 @@ _FEE_TARGET_EXAMPLE = {
 }
 
 
-@router.get("/recommended", responses=_FEES_RECOMMENDED_EXAMPLE)
+@router.get("/recommended", response_model=ApiResponse[FeeRecommendationData], responses=_FEES_RECOMMENDED_EXAMPLE)
 def fees_recommended(rpc: BitcoinRPC = Depends(get_rpc)):
     """Human-readable fee recommendation."""
     estimates = cached_fee_estimates(rpc)
@@ -114,7 +114,7 @@ def fees_recommended(rpc: BitcoinRPC = Depends(get_rpc)):
     )
 
 
-@router.get("/{target}", responses=_FEE_TARGET_EXAMPLE)
+@router.get("/{target}", response_model=ApiResponse[dict], responses=_FEE_TARGET_EXAMPLE)
 def fee_for_target(
     target: int = Path(description="Confirmation target in blocks", ge=1, le=1008),
     rpc: BitcoinRPC = Depends(get_rpc),

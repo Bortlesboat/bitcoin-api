@@ -1,14 +1,15 @@
 """Mempool endpoints: /mempool, /mempool/info, /mempool/tx/{txid}."""
 
 import math
+import re
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_mempool_analysis
 from ..dependencies import get_rpc
-from ..models import envelope
+from ..models import ApiResponse, envelope
 
 router = APIRouter(prefix="/mempool", tags=["Mempool"])
 
@@ -110,6 +111,9 @@ _MEMPOOL_ENTRY_EXAMPLE = {
 }
 
 
+_TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
+
+
 def _sanitize_for_json(obj):
     """Replace inf/nan floats that JSON can't serialize."""
     if isinstance(obj, dict):
@@ -121,7 +125,7 @@ def _sanitize_for_json(obj):
     return obj
 
 
-@router.get("", responses=_MEMPOOL_ANALYSIS_EXAMPLE)
+@router.get("", response_model=ApiResponse[dict], responses=_MEMPOOL_ANALYSIS_EXAMPLE)
 def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
     """Full mempool analysis: fee buckets, congestion level, next-block minimum fee."""
     summary = cached_mempool_analysis(rpc)
@@ -130,7 +134,7 @@ def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/info", responses=_MEMPOOL_INFO_EXAMPLE)
+@router.get("/info", response_model=ApiResponse[dict], responses=_MEMPOOL_INFO_EXAMPLE)
 def mempool_info(rpc: BitcoinRPC = Depends(get_rpc)):
     """Raw mempool info from getmempoolinfo RPC."""
     mpi = rpc.call("getmempoolinfo")
@@ -138,12 +142,14 @@ def mempool_info(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(mpi, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/tx/{txid}", responses=_MEMPOOL_ENTRY_EXAMPLE)
+@router.get("/tx/{txid}", response_model=ApiResponse[dict], responses=_MEMPOOL_ENTRY_EXAMPLE)
 def mempool_entry(
     txid: str = Path(description="Transaction ID currently in the mempool"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Get mempool entry for a specific transaction."""
+    if not _TXID_RE.match(txid):
+        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
     entry = rpc.call("getmempoolentry", txid)
     info = cached_blockchain_info(rpc)
     return envelope(entry, height=info["blocks"], chain=info["chain"])
