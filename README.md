@@ -1,129 +1,136 @@
-# Bitcoin API
+# Satoshi API
 
-Developer-friendly REST API for Bitcoin node data. Powered by [bitcoinlib-rpc](https://github.com/Bortlesboat/bitcoinlib-rpc) -- analyzed data, not raw RPC dumps.
+The thinnest REST layer over your Bitcoin node. One `pip install`, instant API.
 
-## Why?
+Powered by [bitcoinlib-rpc](https://github.com/Bortlesboat/bitcoinlib-rpc) for analyzed data (fees, mempool congestion, block stats) rather than raw RPC dumps. Part of the AI agent pipeline: **bitcoinlib-rpc** -> **satoshi-api** -> [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp).
 
-- **Mempool.space** is free but rate-limited and not self-hostable
-- **BlockCypher** jumps to $100/mo for serious use
-- **Bitcoin API** gives you a clean REST interface to your own node with generous rate limits
-
-## Quickstart
+## Quick Start
 
 ```bash
-# Install
 pip install bitcoin-api
 
-# Point at your node (or use .env file)
+# Point at your node
 export BITCOIN_RPC_USER=your_user
 export BITCOIN_RPC_PASSWORD=your_password
 
 # Run
 bitcoin-api
-# -> http://localhost:8333/docs
+# -> http://localhost:9332/docs
 ```
 
 ### Docker
 
 ```bash
-cp .env.example .env
-# Edit .env with your node credentials
+# Create .env with your node credentials
+echo "BITCOIN_RPC_USER=your_user" > .env
+echo "BITCOIN_RPC_PASSWORD=your_password" >> .env
+
 docker compose up -d
 ```
 
 ## Endpoints
 
-All endpoints are under `/api/v1/`. Full OpenAPI docs at `/docs`.
-
-### Free Tier (no key required for anonymous, 30 req/min)
+All endpoints are under `/api/v1/`. Interactive docs at `/docs`.
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /health` | Node ping |
-| `GET /status` | Sync progress, peers, disk |
+| `GET /health` | Node ping (no auth required) |
+| `GET /status` | Sync progress, peers, disk usage |
 | `GET /network` | Version, connections, relay fee |
+| `GET /network/forks` | Chain tips / fork detection |
 | `GET /blocks/latest` | Latest block analysis |
 | `GET /blocks/{height_or_hash}` | Block by height or hash |
 | `GET /blocks/{height}/stats` | Raw block statistics |
-| `GET /tx/{txid}` | Transaction analysis (fees, SegWit, inscriptions) |
+| `GET /tx/{txid}` | Transaction analysis (fees, SegWit, Taproot, inscriptions) |
 | `GET /tx/{txid}/raw` | Raw decoded transaction |
-| `GET /utxo/{txid}/{vout}` | UTXO spent check |
+| `GET /utxo/{txid}/{vout}` | UTXO lookup |
 | `GET /mempool` | Mempool analysis (fee buckets, congestion) |
 | `GET /mempool/info` | Raw mempool stats |
 | `GET /mempool/tx/{txid}` | Mempool entry for a transaction |
 | `GET /fees` | Fee estimates (1, 3, 6, 25, 144 blocks) |
 | `GET /fees/recommended` | Human-readable fee recommendation |
 | `GET /fees/{target}` | Fee estimate for specific block target |
+| `GET /mining` | Hashrate, difficulty, retarget estimate |
+| `GET /mining/nextblock` | Block template analysis |
+| `POST /decode` | Decode raw transaction hex |
 
 ## Examples
 
 ```bash
 # Health check
-curl http://localhost:8333/api/v1/health
+curl http://localhost:9332/api/v1/health
 
-# Fee estimates
-curl http://localhost:8333/api/v1/fees
+# Fee recommendation
+curl http://localhost:9332/api/v1/fees/recommended
 
 # Analyze a transaction
-curl http://localhost:8333/api/v1/tx/abc123...
+curl http://localhost:9332/api/v1/tx/a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d
 
 # Latest block
-curl http://localhost:8333/api/v1/blocks/latest
+curl http://localhost:9332/api/v1/blocks/latest
 
-# With API key
-curl -H "X-API-Key: btc_your_key_here" http://localhost:8333/api/v1/mempool
+# With API key (higher rate limits)
+curl -H "X-API-Key: your_key_here" http://localhost:9332/api/v1/mempool
 ```
 
 ## API Keys
 
-```bash
-# Create a free-tier key (100 req/min)
-python scripts/create_api_key.py --tier free --label "my-app"
+Anonymous access works out of the box. For higher rate limits, create a key:
 
-# Create a pro key (500 req/min)
+```bash
+python scripts/create_api_key.py --tier free --label "my-app"
 python scripts/create_api_key.py --tier pro --label "production"
 ```
 
+Pass the key via `X-API-Key` header or `?api_key=` query parameter.
+
 ## Rate Limits
 
-| Tier | Req/min | Req/day | Price |
-|------|---------|---------|-------|
-| Anonymous | 30 | 1,000 | Free |
-| Free (API key) | 100 | 10,000 | Free |
-| Pro | 500 | 100,000 | $9/mo |
-| Enterprise | 2,000 | Unlimited | $29/mo |
+| Tier | Req/min | Req/day |
+|------|---------|---------|
+| Anonymous | 30 | 1,000 |
+| Free (API key) | 100 | 10,000 |
+| Pro | 500 | 100,000 |
+| Enterprise | 2,000 | Unlimited |
 
-Rate limit info is included in response headers:
-- `X-RateLimit-Limit`
-- `X-RateLimit-Remaining`
-- `X-RateLimit-Reset`
+Rate limit info in response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `X-RateLimit-Daily-Limit`, `X-RateLimit-Daily-Remaining`.
+
+Every response includes `X-Request-ID` (UUID) and `X-Auth-Tier` headers.
 
 ## Response Format
 
-All endpoints return a standard envelope:
+Standard envelope on all endpoints:
 
 ```json
 {
   "data": { ... },
   "meta": {
     "timestamp": "2026-03-05T12:00:00+00:00",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
     "node_height": 880000,
     "chain": "main"
   }
 }
 ```
 
-Errors follow RFC 7807:
+Errors:
 
 ```json
 {
   "error": {
     "status": 404,
     "title": "Not Found",
-    "detail": "Transaction not found"
+    "detail": "Transaction not found",
+    "request_id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
+
+## Input Validation
+
+- Transaction IDs and block hashes must be exactly 64 hex characters
+- Invalid formats return 422 immediately (no wasted RPC calls)
+- Invalid API keys return 401 (not silent downgrade to anonymous)
 
 ## Development
 

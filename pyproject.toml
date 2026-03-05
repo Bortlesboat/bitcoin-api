@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "bitcoin-api"
 version = "0.1.0"
-description = "Developer-friendly Bitcoin REST API powered by your own node"
+description = "Satoshi API — developer-friendly Bitcoin REST API powered by your own node"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -30,6 +30,7 @@ dependencies = [
 dev = ["pytest", "httpx", "pytest-asyncio"]
 
 [project.scripts]
+satoshi-api = "bitcoin_api.main:cli"
 bitcoin-api = "bitcoin_api.main:cli"
 
 [tool.hatch.build.targets.wheel]

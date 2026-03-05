@@ -2,9 +2,15 @@ services:
   bitcoin-api:
     build: .
     ports:
-      - "8333:8333"
+      - "9332:9332"
     env_file:
       - .env
     volumes:
       - ./data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9332/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

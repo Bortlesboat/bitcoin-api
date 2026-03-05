@@ -35,7 +35,7 @@ def authenticate(request: Request) -> ApiKeyInfo:
     record = lookup_key(key_hash)
 
     if record is None or not record["active"]:
-        return ApiKeyInfo(tier="anonymous")
+        return ApiKeyInfo(tier="invalid")
 
     return ApiKeyInfo(
         tier=record["tier"],
