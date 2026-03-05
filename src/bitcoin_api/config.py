@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     api_port: int = 9332
     api_db_path: Path = Path("data/bitcoin_api.db")
 
+    # CORS (comma-separated origins, or "*" for all)
+    cors_origins: str = "*"
+
     # Rate limits (requests per minute)
     rate_limit_anonymous: int = 30
     rate_limit_free: int = 100

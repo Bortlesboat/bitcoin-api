@@ -456,3 +456,64 @@ def test_decode_invalid_hex(client):
     """POST /decode with non-hex should return 422."""
     resp = client.post("/api/v1/decode", json={"hex": "not-hex!"})
     assert resp.status_code == 422
+
+
+# --- Sprint 4 tests ---
+
+
+def test_negative_block_height(client):
+    """Negative block height should return 422."""
+    resp = client.get("/api/v1/blocks/-1")
+    assert resp.status_code == 422
+
+
+def test_negative_block_stats_height(client):
+    """Negative height on stats should return 422."""
+    resp = client.get("/api/v1/blocks/-1/stats")
+    assert resp.status_code == 422
+
+
+def test_query_param_api_key_deprecation(client, mock_rpc):
+    """API key via query param should return deprecation headers."""
+    import hashlib
+    from bitcoin_api.db import get_db
+
+    raw_key = "deprecation-test-key"
+    key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO api_keys (key_hash, prefix, tier, label, active) VALUES (?, ?, ?, ?, ?)",
+        (key_hash, "dep-", "free", "Deprecation Test", 1),
+    )
+    conn.commit()
+
+    resp = client.get(f"/api/v1/network?api_key={raw_key}")
+    assert resp.status_code == 200
+    assert resp.headers.get("Deprecation") == "true"
+    assert "X-Deprecation-Notice" in resp.headers
+
+
+def test_mempool_tx_invalid_txid(client):
+    """Invalid txid on mempool entry should return 422."""
+    resp = client.get("/api/v1/mempool/tx/bad-txid")
+    assert resp.status_code == 422
+
+
+def test_unified_error_format_422(client):
+    """FastAPI validation errors should use our ErrorResponse format."""
+    resp = client.get("/api/v1/fees/notanumber")
+    assert resp.status_code == 422
+    body = resp.json()
+    assert "error" in body
+    assert body["error"]["status"] == 422
+    assert body["error"]["title"] == "Validation Error"
+    assert "request_id" in body["error"]
+
+
+def test_version_in_root(client):
+    """Root endpoint should show version."""
+    resp = client.get("/")
+    body = resp.json()
+    assert "version" in body
+    assert body["version"]  # not empty

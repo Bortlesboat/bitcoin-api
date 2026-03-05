@@ -15,6 +15,7 @@ from .config import settings
 from .db import get_db, log_usage, prune_old_logs
 from .models import ErrorResponse, ErrorDetail
 from .rate_limit import check_rate_limit, check_daily_limit
+from . import __version__
 from .routers import status, blocks, transactions, mempool, fees, mining, network
 
 
@@ -31,15 +32,16 @@ app = FastAPI(
     title="Satoshi API",
     description="Developer-friendly REST API for Bitcoin node data. "
     "Powered by bitcoinlib-rpc — analyzed data, not raw RPC.",
-    version="0.1.0",
+    version=__version__,
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
+_cors_origins = [o.strip() for o in settings.cors_origins.split(",")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_methods=["GET", "POST"],
     allow_headers=["X-API-Key"],
 )
@@ -129,6 +131,12 @@ async def auth_and_rate_limit(request: Request, call_next):
     # Add request ID and auth tier headers
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Auth-Tier"] = key_info.tier
+
+    # Deprecation warning for query param API key
+    if key_info.query_param_used:
+        response.headers["Deprecation"] = "true"
+        response.headers["Sunset"] = "2026-09-01"
+        response.headers["X-Deprecation-Notice"] = "Pass API key via X-API-Key header instead of ?api_key= query param"
 
     # Add per-minute rate limit headers
     response.headers["X-RateLimit-Limit"] = str(result.limit)
@@ -252,7 +260,7 @@ app.include_router(network.router, prefix=PREFIX)
 def root():
     return {
         "name": "Satoshi API",
-        "version": "0.1.0",
+        "version": __version__,
         "docs": "/docs",
         "api": "/api/v1/health",
     }

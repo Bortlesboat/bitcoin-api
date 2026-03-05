@@ -105,6 +105,8 @@ def get_block(
     except ValueError:
         identifier = height_or_hash
 
+    if isinstance(identifier, int) and identifier < 0:
+        raise HTTPException(status_code=422, detail="Block height must be non-negative")
     if isinstance(identifier, str) and not _HASH_RE.match(identifier):
         raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
 
@@ -154,7 +156,7 @@ def get_block(
     },
 )
 def block_stats(
-    height: int = Path(description="Block height"),
+    height: int = Path(description="Block height", ge=0),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Raw block statistics from getblockstats RPC."""
