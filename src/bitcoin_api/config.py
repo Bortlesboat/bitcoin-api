@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # API server
     api_host: str = "0.0.0.0"
-    api_port: int = 8333
+    api_port: int = 9332
     api_db_path: Path = Path("bitcoin_api.db")
 
     # Rate limits (requests per minute)

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Dashboard — powered by bitcoin-api</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'SF Mono', 'Fira Code', monospace; background: #0d1117; color: #e6edf3; padding: 24px; }
+  h1 { font-size: 1.4em; margin-bottom: 4px; color: #f7931a; }
+  .subtitle { color: #8b949e; font-size: 0.85em; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+  .card h2 { font-size: 1em; color: #8b949e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #21262d; }
+  .stat:last-child { border-bottom: none; }
+  .stat .label { color: #8b949e; }
+  .stat .value { color: #e6edf3; font-weight: 600; }
+  .stat .value.green { color: #3fb950; }
+  .stat .value.orange { color: #f7931a; }
+  .stat .value.red { color: #f85149; }
+  .bucket-bar { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+  .bucket-bar .bar { height: 16px; background: #f7931a; border-radius: 3px; min-width: 2px; transition: width 0.3s; }
+  .bucket-bar .bar-label { font-size: 0.8em; color: #8b949e; min-width: 90px; }
+  .bucket-bar .bar-count { font-size: 0.8em; color: #e6edf3; min-width: 40px; text-align: right; }
+  .fee-box { text-align: center; padding: 16px; background: #0d1117; border-radius: 6px; margin: 4px; }
+  .fee-box .fee-val { font-size: 2em; color: #f7931a; font-weight: 700; }
+  .fee-box .fee-label { font-size: 0.75em; color: #8b949e; margin-top: 4px; }
+  .fee-row { display: flex; flex-wrap: wrap; }
+  .rec { background: #1a2332; border: 1px solid #1f6feb44; border-radius: 6px; padding: 14px; margin-top: 12px; color: #58a6ff; font-size: 0.9em; line-height: 1.5; }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .status-dot.ok { background: #3fb950; }
+  .status-dot.warn { background: #d29922; }
+  .status-dot.err { background: #f85149; }
+  #last-update { color: #484f58; font-size: 0.8em; margin-top: 16px; text-align: center; }
+  .loading { color: #484f58; font-style: italic; }
+  .top-tx { font-size: 0.8em; padding: 4px 0; border-bottom: 1px solid #21262d; }
+  .top-tx .txid { color: #58a6ff; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<h1>Bitcoin Dashboard</h1>
+<p class="subtitle">Live data from your node via bitcoin-api &middot; <span id="chain-info"></span></p>
+
+<div class="grid">
+  <!-- Node Status -->
+  <div class="card">
+    <h2><span class="status-dot ok" id="status-dot"></span> Node Status</h2>
+    <div id="status-content" class="loading">Connecting...</div>
+  </div>
+
+  <!-- Fee Estimates -->
+  <div class="card">
+    <h2>Fee Estimates</h2>
+    <div class="fee-row" id="fee-boxes"></div>
+    <div class="rec" id="fee-rec"></div>
+  </div>
+
+  <!-- Mempool -->
+  <div class="card">
+    <h2>Mempool</h2>
+    <div id="mempool-stats"></div>
+    <div id="mempool-buckets" style="margin-top: 12px;"></div>
+  </div>
+
+  <!-- Latest Block -->
+  <div class="card">
+    <h2>Latest Block</h2>
+    <div id="block-content" class="loading">Loading...</div>
+  </div>
+</div>
+
+<div id="last-update"></div>
+
+<script>
+const API = 'http://127.0.0.1:8335/api/v1';
+
+async function fetchJSON(endpoint) {
+  const resp = await fetch(API + endpoint);
+  if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+  return resp.json();
+}
+
+function stat(label, value, cls = '') {
+  return `<div class="stat"><span class="label">${label}</span><span class="value ${cls}">${value}</span></div>`;
+}
+
+async function loadStatus() {
+  try {
+    const { data } = await fetchJSON('/status');
+    const synced = data.verification_progress > 0.9999;
+    document.getElementById('status-dot').className = `status-dot ${synced ? 'ok' : 'warn'}`;
+    document.getElementById('status-content').innerHTML = [
+      stat('Chain', data.chain),
+      stat('Height', data.blocks.toLocaleString(), 'orange'),
+      stat('Sync', (data.verification_progress * 100).toFixed(2) + '%', synced ? 'green' : 'red'),
+      stat('Peers', data.connections),
+      stat('Disk', (data.size_on_disk / 1e9).toFixed(1) + ' GB'),
+      stat('Version', data.subversion),
+    ].join('');
+  } catch (e) {
+    document.getElementById('status-dot').className = 'status-dot err';
+    document.getElementById('status-content').innerHTML = `<div class="stat"><span class="label">Error</span><span class="value red">${e.message}</span></div>`;
+  }
+}
+
+async function loadFees() {
+  try {
+    const { data } = await fetchJSON('/fees');
+    const labels = { 1: 'Next Block', 3: '~30 min', 6: '~1 hr', 25: '~4 hr', 144: '~1 day' };
+    document.getElementById('fee-boxes').innerHTML = data.map(e =>
+      `<div class="fee-box"><div class="fee-val">${e.fee_rate_sat_vb.toFixed(1)}</div><div class="fee-label">${labels[e.conf_target] || e.conf_target + ' blocks'}<br>sat/vB</div></div>`
+    ).join('');
+
+    const { data: rec } = await fetchJSON('/fees/recommended');
+    document.getElementById('fee-rec').textContent = rec.recommendation;
+  } catch (e) {
+    document.getElementById('fee-boxes').innerHTML = `<span class="value red">${e.message}</span>`;
+  }
+}
+
+async function loadMempool() {
+  try {
+    const { data } = await fetchJSON('/mempool');
+    document.getElementById('mempool-stats').innerHTML = [
+      stat('Unconfirmed TXs', data.size.toLocaleString(), 'orange'),
+      stat('Size', (data.total_bytes / 1e6).toFixed(2) + ' MB'),
+      stat('Total Fees', data.total_fee_btc.toFixed(4) + ' BTC'),
+      stat('Congestion', data.congestion, data.congestion === 'low' ? 'green' : data.congestion === 'high' ? 'red' : 'orange'),
+    ].join('');
+
+    const maxCount = Math.max(...data.buckets.map(b => b.count), 1);
+    document.getElementById('mempool-buckets').innerHTML = data.buckets.map(b =>
+      `<div class="bucket-bar">
+        <span class="bar-label">${b.label}</span>
+        <div class="bar" style="width: ${Math.max((b.count / maxCount) * 200, b.count > 0 ? 2 : 0)}px"></div>
+        <span class="bar-count">${b.count}</span>
+      </div>`
+    ).join('');
+  } catch (e) {
+    document.getElementById('mempool-stats').innerHTML = `<span class="value red">${e.message}</span>`;
+  }
+}
+
+async function loadBlock() {
+  try {
+    const { data, meta } = await fetchJSON('/blocks/latest');
+    document.getElementById('chain-info').textContent = `Block ${data.height.toLocaleString()}`;
+    document.getElementById('block-content').innerHTML = [
+      stat('Height', data.height.toLocaleString(), 'orange'),
+      stat('Transactions', data.tx_count.toLocaleString()),
+      stat('Size', (data.size / 1e6).toFixed(2) + ' MB'),
+      stat('Weight', (data.weight_utilization_pct).toFixed(1) + '% full'),
+      stat('Pool', data.pool_name),
+      stat('Revenue', data.total_revenue_btc.toFixed(4) + ' BTC'),
+      stat('Fees', data.total_fee_btc.toFixed(4) + ' BTC'),
+      stat('SegWit', data.segwit_pct.toFixed(1) + '%', 'green'),
+      stat('Taproot', data.taproot_pct.toFixed(1) + '%', 'green'),
+      stat('Fee Range', `${data.fee_rate_min}-${data.fee_rate_max} sat/vB`),
+    ].join('');
+  } catch (e) {
+    document.getElementById('block-content').innerHTML = `<span class="value red">${e.message}</span>`;
+  }
+}
+
+async function refresh() {
+  await Promise.all([loadStatus(), loadFees(), loadMempool(), loadBlock()]);
+  document.getElementById('last-update').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+}
+
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>
