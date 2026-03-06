@@ -4,6 +4,10 @@
 
 BASE_URL="${1:-http://localhost:9332}"
 API="/api/v1"
+API_KEY="${SATOSHI_API_KEY:-}"
+if [ -z "$API_KEY" ]; then
+    echo "WARNING: SATOSHI_API_KEY not set. Test 2 (oversized payload) will fail."
+fi
 PASS=0
 FAIL=0
 
@@ -35,7 +39,7 @@ tmpfile=$(mktemp)
 python3 -c "import json; print(json.dumps({'hex': 'aa' * 1100000}))" > "$tmpfile"
 code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL$API/decode" \
     -H "Content-Type: application/json" \
-    -H "X-API-Key: btc_05b44ab2d6443e31705644f43a89638a" \
+    -H "X-API-Key: ${API_KEY}" \
     -d @"$tmpfile")
 rm -f "$tmpfile"
 check "2.2MB payload rejected" "422" "$code"
