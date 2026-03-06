@@ -8,7 +8,7 @@ COPY src/ src/
 RUN apt-get update && apt-get install -y --no-install-recommends git && \
     pip install --no-cache-dir git+https://github.com/Bortlesboat/bitcoinlib-rpc.git && \
     pip install --no-cache-dir . && \
-    apt-get purge -y git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*
 
 COPY scripts/ scripts/
 
