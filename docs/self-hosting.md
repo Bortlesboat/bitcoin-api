@@ -56,14 +56,16 @@ git clone https://github.com/Bortlesboat/bitcoin-api.git
 cd bitcoin-api
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install git+https://github.com/Bortlesboat/bitcoinlib-rpc.git
+pip install .
 
 # Configure
 cp .env.production.example .env.production
 # Edit .env.production with your RPC credentials
 
 # Run
-python -m uvicorn app.main:app --host 0.0.0.0 --port 9332
+bitcoin-api
+# -> http://localhost:9332/docs
 ```
 
 ### Option B: Docker
