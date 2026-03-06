@@ -2,7 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from bitcoin_api.main import app
 from bitcoin_api.dependencies import get_rpc

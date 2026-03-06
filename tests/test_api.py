@@ -1,9 +1,7 @@
 """Tests for bitcoin-api endpoints."""
 
 from unittest.mock import patch, MagicMock
-from datetime import datetime
 
-import pytest
 
 
 def test_root(client):

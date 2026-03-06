@@ -247,7 +247,7 @@ async def connection_error_handler(request: Request, exc: ConnectionError):
 async def validation_error_handler(request: Request, exc: RequestValidationError):
     request_id = getattr(request.state, "request_id", None)
     details = "; ".join(
-        f"{'.'.join(str(l) for l in e['loc'])}: {e['msg']}" for e in exc.errors()
+        f"{'.'.join(str(loc) for loc in e['loc'])}: {e['msg']}" for e in exc.errors()
     )
     resp = JSONResponse(
         status_code=422,

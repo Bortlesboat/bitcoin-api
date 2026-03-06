@@ -3,14 +3,13 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Path
-
-_HASH_RE = re.compile(r"^[a-fA-F0-9]{64}$")
-
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis, cached_block_by_hash
 from ..dependencies import get_rpc
 from ..models import ApiResponse, BlockAnalysisData, envelope
+
+_HASH_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
 router = APIRouter(prefix="/blocks", tags=["Blocks"])
 
