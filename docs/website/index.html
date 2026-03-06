@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satoshi API — REST API for Your Bitcoin Node</title>
+<meta name="description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; font-size: 0.85em; line-height: 1.7; }
+  pre code { background: none; padding: 0; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 80px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* Nav */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  nav .logo { font-weight: 700; font-size: 1.1em; color: var(--accent); }
+  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
+  nav .links a { color: var(--muted); }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 100px 0 80px; }
+  .hero h1 { font-size: 3em; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle { font-size: 1.25em; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+  .hero .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .hero .cta a { display: inline-block; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 1em; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #e8890f; text-decoration: none; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+  .btn-secondary:hover { border-color: var(--muted); text-decoration: none; }
+  .hero-code { margin-top: 48px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+  .feature { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+  .feature h3 { color: var(--accent); margin-bottom: 8px; font-size: 1.05em; }
+  .feature p { color: var(--muted); font-size: 0.95em; }
+
+  /* Endpoints */
+  .endpoint-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .endpoint-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 2px solid var(--border); }
+  .endpoint-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9em; }
+  .endpoint-table .method { font-weight: 700; font-size: 0.8em; padding: 2px 8px; border-radius: 4px; }
+  .method-get { color: var(--green); background: #3fb95015; }
+  .method-post { color: var(--accent); background: #f7931a15; }
+
+  /* Use cases */
+  .use-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+  .use-case { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; }
+  .use-case h3 { margin-bottom: 12px; font-size: 1.1em; }
+  .use-case p { color: var(--muted); font-size: 0.95em; margin-bottom: 12px; }
+  .use-case pre { font-size: 0.8em; margin-top: 12px; }
+
+  /* Pricing */
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 48px; }
+  .price-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; text-align: center; }
+  .price-card.featured { border-color: var(--accent); }
+  .price-card h3 { margin-bottom: 8px; }
+  .price-card .price { font-size: 2em; font-weight: 800; color: var(--accent); margin: 12px 0; }
+  .price-card .price span { font-size: 0.4em; color: var(--muted); font-weight: 400; }
+  .price-card ul { list-style: none; text-align: left; margin: 16px 0; }
+  .price-card li { padding: 6px 0; color: var(--muted); font-size: 0.9em; }
+  .price-card li::before { content: "- "; color: var(--green); margin-right: 4px; }
+
+  /* Stack diagram */
+  .stack { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 48px 0; }
+  .stack-layer { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 48px; text-align: center; width: 100%; max-width: 400px; }
+  .stack-layer.active { border-color: var(--accent); }
+  .stack-arrow { color: var(--muted); font-size: 1.5em; }
+
+  /* CTA bottom */
+  .bottom-cta { text-align: center; padding: 80px 0; }
+  .bottom-cta h2 { font-size: 2em; margin-bottom: 12px; }
+  .bottom-cta p { color: var(--muted); margin-bottom: 24px; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  /* Section headings */
+  .section-title { font-size: 1.8em; font-weight: 700; margin-bottom: 8px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 16px; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2em; }
+    .hero .subtitle { font-size: 1em; }
+    section { padding: 48px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Satoshi API</div>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#use-cases">Use Cases</a>
+    <a href="#endpoints">Endpoints</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api">GitHub</a>
+    <a href="/docs">API Docs</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>REST API for your <span>Bitcoin node</span></h1>
+    <p class="subtitle">One pip install. Analyzed data, not raw RPC dumps. Open source, self-hosted, zero vendor lock-in.</p>
+    <div class="cta">
+      <a href="#quickstart" class="btn-primary">Get Started</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary">View on GitHub</a>
+    </div>
+    <div class="hero-code">
+<pre><code><span style="color: var(--muted)">$ </span>pip install bitcoin-api
+<span style="color: var(--muted)">$ </span>bitcoin-api
+<span style="color: var(--green)">INFO</span>  Satoshi API running at http://localhost:9332
+<span style="color: var(--green)">INFO</span>  Interactive docs at http://localhost:9332/docs
+
+<span style="color: var(--muted)">$ </span>curl localhost:9332/api/v1/fees/recommended | jq .data
+{
+  "recommendation": "Fees are moderate. Next-block: 25 sat/vB. 1 hour: 12 sat/vB.",
+  "estimates": { "high": 25.0, "medium": 12.0, "low": 5.0 }
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- What is it -->
+<section id="about">
+  <div class="container">
+    <h2 class="section-title">What is Satoshi API?</h2>
+    <p class="section-subtitle">A thin REST layer between your Bitcoin Core node and your applications.</p>
+    <p style="color: var(--muted); max-width: 700px; margin-bottom: 24px;">
+      Bitcoin Core's JSON-RPC is powerful but awkward. Raw responses, no caching, no rate limiting, no input validation.
+      Satoshi API wraps it in a clean REST interface with typed responses, smart caching, and analyzed data.
+      Instead of calling <code>estimatesmartfee</code> five times and doing math, you get a single endpoint with human-readable recommendations in sat/vB.
+    </p>
+    <p style="color: var(--muted); max-width: 700px;">
+      It's part of a three-layer stack for Bitcoin developers:
+    </p>
+    <div class="stack">
+      <div class="stack-layer"><strong>bitcoin-mcp</strong><br><span style="color: var(--muted); font-size: 0.85em;">AI agent interface (Claude, GPT)</span></div>
+      <div class="stack-arrow">&#8595;</div>
+      <div class="stack-layer active"><strong style="color: var(--accent);">Satoshi API</strong><br><span style="color: var(--muted); font-size: 0.85em;">REST API (this project)</span></div>
+      <div class="stack-arrow">&#8595;</div>
+      <div class="stack-layer"><strong>bitcoinlib-rpc</strong><br><span style="color: var(--muted); font-size: 0.85em;">Typed Python RPC client</span></div>
+      <div class="stack-arrow">&#8595;</div>
+      <div class="stack-layer"><strong>Bitcoin Core</strong><br><span style="color: var(--muted); font-size: 0.85em;">Your full node</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <h2 class="section-title">Why not just use RPC directly?</h2>
+    <p class="section-subtitle">Everything Bitcoin Core is missing as an API server.</p>
+    <div class="features">
+      <div class="feature">
+        <h3>Analyzed Data</h3>
+        <p>Fee recommendations in sat/vB. Mempool congestion scores. Block weight utilization percentages. Not raw hex and BTC/kVB.</p>
+      </div>
+      <div class="feature">
+        <h3>Smart Caching</h3>
+        <p>Reorg-aware TTL caching. Deep blocks cached 1 hour. Tip blocks cached 30 seconds. Fees refresh every 10 seconds. Zero stale data risk.</p>
+      </div>
+      <div class="feature">
+        <h3>Rate Limiting</h3>
+        <p>Four tiers with sliding-window per-minute and daily limits. Expose your API safely without worrying about abuse.</p>
+      </div>
+      <div class="feature">
+        <h3>API Key Auth</h3>
+        <p>Optional API keys via X-API-Key header. SHA256 hashed storage. Tiered access control. Anonymous read access for public use.</p>
+      </div>
+      <div class="feature">
+        <h3>Input Validation</h3>
+        <p>Txids validated as 64-hex before hitting RPC. Block heights checked for bounds. RPC errors mapped to proper HTTP status codes (404, 400, 502).</p>
+      </div>
+      <div class="feature">
+        <h3>Standard Envelope</h3>
+        <p>Every response: <code>{ data, meta }</code>. Every error: <code>{ error: { status, title, detail } }</code>. Request IDs on everything. No guessing.</p>
+      </div>
+      <div class="feature">
+        <h3>AI-Agent Ready</h3>
+        <p>Pair with <a href="https://github.com/Bortlesboat/bitcoin-mcp">bitcoin-mcp</a> to give Claude or GPT direct access to your node via MCP tool calls.</p>
+      </div>
+      <div class="feature">
+        <h3>Self-Hosted</h3>
+        <p>Your node, your data, your API. No third party sees your queries. No vendor lock-in. No surprise pricing changes. MIT licensed.</p>
+      </div>
+      <div class="feature">
+        <h3>Production Ready</h3>
+        <p>59 tests. Docker support. Cloudflare Tunnel deployment. Structured access logging. Graceful shutdown. Tested under load.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Use Cases -->
+<section id="use-cases">
+  <div class="container">
+    <h2 class="section-title">Who is this for?</h2>
+    <p class="section-subtitle">Anyone who runs a Bitcoin node and wants to build on top of it.</p>
+    <div class="use-cases">
+      <div class="use-case">
+        <h3>Node Operators</h3>
+        <p>You run a node already. You want to check fees, monitor the mempool, or build a dashboard. pip install, point at your node, done.</p>
+<pre><code>curl localhost:9332/api/v1/mempool
+# Congestion level, fee buckets,
+# next-block minimum fee</code></pre>
+      </div>
+      <div class="use-case">
+        <h3>Wallet & App Developers</h3>
+        <p>Building a wallet, payment processor, or Bitcoin app? Get fee estimates, broadcast transactions, look up UTXOs. All validated and typed.</p>
+<pre><code>curl -X POST /api/v1/broadcast \
+  -H "X-API-Key: sk_..." \
+  -d '{"hex": "0200000001..."}'
+# Returns txid on success</code></pre>
+      </div>
+      <div class="use-case">
+        <h3>AI Agent Builders</h3>
+        <p>Give your AI assistant real-time Bitcoin data. "What are current fees?" "Analyze the latest block." Your node answers directly via MCP.</p>
+<pre><code># claude desktop config
+"bitcoin": {
+  "command": "bitcoin-mcp",
+  "args": ["--api-url",
+    "http://localhost:9332"]
+}</code></pre>
+      </div>
+      <div class="use-case">
+        <h3>Data & Analytics</h3>
+        <p>Pull block stats, mining data, and fee trends into your analytics pipeline. JSON responses, consistent format, easy to ingest.</p>
+<pre><code>curl localhost:9332/api/v1/mining
+# Difficulty, hashrate, next
+# retarget height, blocks until</code></pre>
+      </div>
+      <div class="use-case">
+        <h3>Privacy-Focused Users</h3>
+        <p>Third-party APIs correlate your address lookups with your IP. Self-hosted = zero data leakage. Query your own node, keep your privacy.</p>
+      </div>
+      <div class="use-case">
+        <h3>Educators & Researchers</h3>
+        <p>Teaching Bitcoin internals? The interactive docs at /docs let students explore blocks, transactions, and the mempool with live data.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Endpoints -->
+<section id="endpoints">
+  <div class="container">
+    <h2 class="section-title">19 Endpoints</h2>
+    <p class="section-subtitle">Blocks, transactions, fees, mempool, mining, network, status.</p>
+    <table class="endpoint-table">
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/health</code></td><td>Node reachability check</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/status</code></td><td>Full node status (sync, peers, disk)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/blocks/latest</code></td><td>Latest block analysis</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/blocks/{height_or_hash}</code></td><td>Block by height or hash</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/blocks/{height}/stats</code></td><td>Detailed block statistics</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/tx/{txid}</code></td><td>Transaction analysis (fees, SegWit, Taproot)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/tx/{txid}/raw</code></td><td>Raw decoded transaction</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/utxo/{txid}/{vout}</code></td><td>UTXO lookup (spent/unspent)</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/decode</code></td><td>Decode raw transaction hex</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/broadcast</code></td><td>Broadcast signed transaction</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees</code></td><td>Fee estimates (all targets)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/recommended</code></td><td>Human-readable fee recommendation</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/{target}</code></td><td>Fee for specific confirmation target</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/mempool</code></td><td>Mempool analysis (congestion, fee buckets)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/mempool/info</code></td><td>Raw mempool info</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/mempool/tx/{txid}</code></td><td>Single mempool entry</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/mining</code></td><td>Mining stats (difficulty, hashrate, retarget)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/mining/nextblock</code></td><td>Next block template analysis</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/network</code></td><td>Network info (connections, relay fee)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/network/forks</code></td><td>Chain tips and fork detection</td></tr>
+      </tbody>
+    </table>
+    <p style="color: var(--muted); margin-top: 16px; font-size: 0.9em;">All endpoints prefixed with <code>/api/v1</code>. Interactive docs at <code>/docs</code> (Swagger UI) and <code>/redoc</code>.</p>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section id="quickstart">
+  <div class="container">
+    <h2 class="section-title">Quick Start</h2>
+    <p class="section-subtitle">Three lines from node to API.</p>
+
+    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 1: pip install</h3>
+<pre><code><span style="color: var(--muted)"># Install</span>
+pip install bitcoin-api
+
+<span style="color: var(--muted)"># Configure (point at your node)</span>
+export BITCOIN_RPC_USER=your_user
+export BITCOIN_RPC_PASSWORD=your_password
+
+<span style="color: var(--muted)"># Run</span>
+bitcoin-api
+<span style="color: var(--green)"># API at http://localhost:9332</span>
+<span style="color: var(--green)"># Docs at http://localhost:9332/docs</span></code></pre>
+
+    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 2: Docker</h3>
+<pre><code><span style="color: var(--muted)"># Create env file</span>
+echo "BITCOIN_RPC_USER=your_user" > .env
+echo "BITCOIN_RPC_PASSWORD=your_password" >> .env
+
+<span style="color: var(--muted)"># Run</span>
+docker compose up -d</code></pre>
+
+    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 3: Create API Keys (optional)</h3>
+<pre><code><span style="color: var(--muted)"># Generate a key for your app</span>
+python scripts/create_api_key.py --tier pro --label "my-wallet"
+<span style="color: var(--green)"># Key: sk_abc123... (save this, it won't be shown again)</span>
+
+<span style="color: var(--muted)"># Use it</span>
+curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
+
+    <h3 style="margin-top: 32px; margin-bottom: 12px;">Prerequisites</h3>
+    <ul style="color: var(--muted); padding-left: 20px; line-height: 2;">
+      <li>Bitcoin Core running with <code>server=1</code> in bitcoin.conf</li>
+      <li>Python 3.10+ (for pip install) or Docker</li>
+      <li><code>txindex=1</code> recommended (required for transaction lookups by txid)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+  <div class="container">
+    <h2 class="section-title">Pricing</h2>
+    <p class="section-subtitle">Self-host for free. Or use our hosted instance.</p>
+    <div class="pricing-grid">
+      <div class="price-card featured">
+        <h3>Open Source</h3>
+        <div class="price">Free<span> forever</span></div>
+        <ul>
+          <li>Self-hosted on your node</li>
+          <li>All 19 endpoints</li>
+          <li>Unlimited requests</li>
+          <li>No rate limits (your hardware)</li>
+          <li>Full source code (MIT)</li>
+          <li>Docker + pip install</li>
+        </ul>
+        <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">View on GitHub</a>
+      </div>
+      <div class="price-card">
+        <h3>Free Tier</h3>
+        <div class="price">$0<span>/mo</span></div>
+        <ul>
+          <li>Hosted API access</li>
+          <li>1,000 requests/day</li>
+          <li>30 requests/min</li>
+          <li>Read-only (GET endpoints)</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#" class="btn-secondary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Get Free Key</a>
+      </div>
+      <div class="price-card">
+        <h3>Builder</h3>
+        <div class="price">$9<span>/mo</span></div>
+        <ul>
+          <li>10,000 requests/day</li>
+          <li>100 requests/min</li>
+          <li>POST access (decode, broadcast)</li>
+          <li>Email support</li>
+        </ul>
+        <a href="#" class="btn-secondary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Coming Soon</a>
+      </div>
+      <div class="price-card">
+        <h3>Pro</h3>
+        <div class="price">$29<span>/mo</span></div>
+        <ul>
+          <li>100,000 requests/day</li>
+          <li>500 requests/min</li>
+          <li>Priority support</li>
+          <li>Usage dashboard</li>
+        </ul>
+        <a href="#" class="btn-secondary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Coming Soon</a>
+      </div>
+    </div>
+    <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">
+      Enterprise needs? <a href="mailto:nexusaiconsult@gmail.com">Get in touch</a> for custom limits, SLAs, and dedicated instances.
+    </p>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section id="comparison">
+  <div class="container">
+    <h2 class="section-title">How it compares</h2>
+    <p class="section-subtitle">You have options. Here's why Satoshi API exists.</p>
+    <table class="endpoint-table" style="margin-top: 32px;">
+      <thead>
+        <tr><th>Feature</th><th>Satoshi API</th><th>Raw RPC</th><th>Hosted APIs</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Setup time</td><td style="color: var(--green);">3 lines</td><td>Already there</td><td>Sign up + API key</td></tr>
+        <tr><td>Self-hosted</td><td style="color: var(--green);">Yes</td><td>Yes</td><td>No</td></tr>
+        <tr><td>Privacy</td><td style="color: var(--green);">Your node, your data</td><td style="color: var(--green);">Your node</td><td>They see your queries</td></tr>
+        <tr><td>Analyzed data</td><td style="color: var(--green);">Fee recs, congestion, analysis</td><td>Raw values only</td><td>Varies</td></tr>
+        <tr><td>Caching</td><td style="color: var(--green);">Reorg-aware TTL</td><td>None</td><td>Varies</td></tr>
+        <tr><td>Rate limiting</td><td style="color: var(--green);">Built-in, tiered</td><td>None</td><td>Yes (their limits)</td></tr>
+        <tr><td>Input validation</td><td style="color: var(--green);">Before RPC call</td><td>None</td><td>Yes</td></tr>
+        <tr><td>Cost at scale</td><td style="color: var(--green);">$0 (self-host)</td><td>$0</td><td>$50-500+/mo</td></tr>
+        <tr><td>AI agent support</td><td style="color: var(--green);">MCP ready</td><td>No</td><td>No</td></tr>
+        <tr><td>Vendor lock-in</td><td style="color: var(--green);">None (MIT)</td><td>None</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Bottom CTA -->
+<section class="bottom-cta">
+  <div class="container">
+    <h2>Your node already has the data. Give it a voice.</h2>
+    <p>pip install bitcoin-api and start building.</p>
+    <div class="cta">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary">Get Started</a>
+      <a href="/docs" class="btn-secondary">API Reference</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the MIT License. Built by <a href="https://github.com/Bortlesboat">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api">GitHub</a> &middot;
+      <a href="https://pypi.org/project/bitcoin-api/">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp">MCP Server</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

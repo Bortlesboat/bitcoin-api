@@ -1,0 +1,22 @@
+services:
+  bitcoin-api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9332:9332"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env.production
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9332/healthz')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

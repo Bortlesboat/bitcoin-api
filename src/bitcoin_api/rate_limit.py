@@ -49,7 +49,7 @@ def check_rate_limit(bucket_key: str, tier: str) -> RateLimitResult:
             TIER_LIMITS = _load_tier_limits()
 
         limit = TIER_LIMITS.get(tier, TIER_LIMITS["anonymous"])
-        now = time.monotonic()
+        now = time.time()
         cutoff = now - WINDOW_SECONDS
 
         # Prune expired timestamps
@@ -64,9 +64,9 @@ def check_rate_limit(bucket_key: str, tier: str) -> RateLimitResult:
 
         timestamps.append(now)
 
-        # Clean up empty buckets to prevent memory leak (prune stale keys)
+        # Clean up stale buckets to prevent memory leak
         if len(_windows) > 10000:
-            stale = [k for k, v in _windows.items() if not v]
+            stale = [k for k, v in _windows.items() if not v or v[-1] < cutoff]
             for k in stale:
                 del _windows[k]
 

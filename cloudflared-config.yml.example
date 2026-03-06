@@ -1,0 +1,12 @@
+# Cloudflare Tunnel config for Satoshi API
+# See: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
+
+tunnel: YOUR_TUNNEL_ID
+credentials-file: /home/user/.cloudflared/YOUR_TUNNEL_ID.json
+
+ingress:
+  - hostname: api.yourdomain.dev
+    service: http://localhost:9332
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404

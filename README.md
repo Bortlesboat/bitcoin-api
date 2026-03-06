@@ -1,20 +1,36 @@
 # Satoshi API
 
+[![CI](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 The thinnest REST layer over your Bitcoin node. One `pip install`, instant API.
 
 Powered by [bitcoinlib-rpc](https://github.com/Bortlesboat/bitcoinlib-rpc) for analyzed data (fees, mempool congestion, block stats) rather than raw RPC dumps. Part of the AI agent pipeline: **bitcoinlib-rpc** -> **satoshi-api** -> [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp).
 
+## Prerequisites
+
+- **Bitcoin Core** running with `server=1` in `bitcoin.conf` (RPC enabled)
+- Python 3.10+
+
+**Node configuration notes:**
+- Transaction lookups (`/tx/{txid}`, `/tx/{txid}/raw`) for confirmed transactions require `txindex=1`
+- Block template (`/mining/nextblock`) requires at least one connected peer on mainnet
+- Block stats (`/blocks/{height}/stats`) is unavailable for pruned blocks below the prune height
+
 ## Quick Start
 
 ```bash
-pip install bitcoin-api
+pip install bitcoin-api  # or: pip install -e . for local dev
 
 # Point at your node
 export BITCOIN_RPC_USER=your_user
 export BITCOIN_RPC_PASSWORD=your_password
+# For testnet: export BITCOIN_RPC_PORT=18332
+# For signet:  export BITCOIN_RPC_PORT=38332
 
 # Run
-bitcoin-api
+bitcoin-api  # or: satoshi-api
 # -> http://localhost:9332/docs
 ```
 
@@ -53,6 +69,7 @@ All endpoints are under `/api/v1/`. Interactive docs at `/docs`.
 | `GET /mining` | Hashrate, difficulty, retarget estimate |
 | `GET /mining/nextblock` | Block template analysis |
 | `POST /decode` | Decode raw transaction hex |
+| `POST /broadcast` | Broadcast signed transaction |
 
 ## Examples
 
@@ -82,7 +99,7 @@ python scripts/create_api_key.py --tier free --label "my-app"
 python scripts/create_api_key.py --tier pro --label "production"
 ```
 
-Pass the key via `X-API-Key` header or `?api_key=` query parameter.
+Pass the key via `X-API-Key` header. Query parameter `?api_key=` is deprecated (sunset: 2026-09-01).
 
 ## Rate Limits
 

@@ -235,9 +235,9 @@ def test_blocks_by_height(client, mock_rpc):
 
 
 def test_blocks_by_hash(client, mock_rpc):
-    """Block by hash should call analyze_block directly."""
+    """Block by hash should use cached_block_by_hash."""
     block_hash = "a" * 64
-    with patch("bitcoin_api.routers.blocks.analyze_block") as mock_ab:
+    with patch("bitcoin_api.routers.blocks.cached_block_by_hash") as mock_ab:
         mock_analysis = MagicMock()
         mock_analysis.model_dump.return_value = {
             "height": 800000, "hash": block_hash,
@@ -444,17 +444,17 @@ def test_network_forks(client):
     assert body["data"][0]["status"] == "active"
 
 
-def test_decode_transaction(client):
+def test_decode_transaction(authed_client):
     """POST /decode should decode raw tx hex."""
-    resp = client.post("/api/v1/decode", json={"hex": "0200000001"})
+    resp = authed_client.post("/api/v1/decode", json={"hex": "0200000001"})
     assert resp.status_code == 200
     body = resp.json()
     assert "txid" in body["data"]
 
 
-def test_decode_invalid_hex(client):
+def test_decode_invalid_hex(authed_client):
     """POST /decode with non-hex should return 422."""
-    resp = client.post("/api/v1/decode", json={"hex": "not-hex!"})
+    resp = authed_client.post("/api/v1/decode", json={"hex": "not-hex!"})
     assert resp.status_code == 422
 
 
@@ -517,3 +517,133 @@ def test_version_in_root(client):
     body = resp.json()
     assert "version" in body
     assert body["version"]  # not empty
+
+
+# --- Sprint 5 tests ---
+
+
+def test_healthz_no_rpc(client):
+    """Process-alive healthcheck should work without RPC."""
+    resp = client.get("/healthz")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"
+
+
+def test_catch_all_500(client, mock_rpc):
+    """Unhandled exceptions should return 500 with standard error envelope."""
+    mock_rpc.call.side_effect = RuntimeError("unexpected")
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 500
+    body = resp.json()
+    assert body["error"]["status"] == 500
+    assert body["error"]["title"] == "Internal Server Error"
+    assert "request_id" in body["error"]
+
+
+def test_429_has_request_id(client):
+    """Rate limit 429 responses should include request_id in error body."""
+    for _ in range(30):
+        client.get("/api/v1/fees/6")
+    resp = client.get("/api/v1/fees/6")
+    assert resp.status_code == 429
+    body = resp.json()
+    assert body["error"]["request_id"] is not None
+    assert "X-Request-ID" in resp.headers
+
+
+def test_broadcast_transaction(authed_client):
+    """POST /broadcast should return txid."""
+    resp = authed_client.post("/api/v1/broadcast", json={"hex": "0200000001"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "txid" in body["data"]
+
+
+def test_broadcast_invalid_hex(authed_client):
+    """POST /broadcast with non-hex should return 422."""
+    resp = authed_client.post("/api/v1/broadcast", json={"hex": "not-hex!"})
+    assert resp.status_code == 422
+
+
+def test_vout_negative(client):
+    """Negative vout should return 422."""
+    txid = "a" * 64
+    resp = client.get(f"/api/v1/utxo/{txid}/-1")
+    assert resp.status_code == 422
+
+
+def test_blocks_latest_has_chain(client, mock_rpc):
+    """Latest block should have chain in meta (not None)."""
+    with patch("bitcoin_api.routers.blocks.cached_block_analysis") as mock_ba:
+        mock_analysis = MagicMock()
+        mock_analysis.model_dump.return_value = {
+            "height": 880000, "hash": "a" * 64,
+            "tx_count": 3500, "size": 1500000, "weight": 3993000,
+            "top_fee_txids": [],
+        }
+        mock_ba.return_value = mock_analysis
+        resp = client.get("/api/v1/blocks/latest")
+        assert resp.status_code == 200
+        assert resp.json()["meta"]["chain"] == "main"
+
+
+def test_network_moved_to_network_router(client):
+    """GET /network should work (moved from status to network router)."""
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["data"]["connections"] == 125
+
+
+def test_daily_rate_limit_uses_bucket(client, mock_rpc):
+    """Anonymous users should have daily limits enforced via IP bucket."""
+    from bitcoin_api.db import get_db
+    # Make a request (anonymous, so bucket = IP)
+    client.get("/api/v1/fees/6")
+    conn = get_db()
+    rows = conn.execute("SELECT key_hash FROM usage_log").fetchall()
+    # Anonymous users should log with IP (bucket), not NULL
+    assert len(rows) >= 1
+    # At least one row should have a non-NULL key_hash (the IP)
+    hashes = [dict(r)["key_hash"] for r in rows]
+    assert any(h is not None for h in hashes)
+
+
+# --- Phase 1 Security Tests ---
+
+def test_anonymous_post_broadcast_rejected(client):
+    """Anonymous users cannot broadcast transactions."""
+    resp = client.post("/api/v1/broadcast", json={"hex": "0200000001"})
+    assert resp.status_code == 403
+    assert "API key required" in resp.json()["error"]["detail"]
+
+def test_anonymous_post_decode_rejected(client):
+    """Anonymous users cannot decode transactions."""
+    resp = client.post("/api/v1/decode", json={"hex": "0200000001"})
+    assert resp.status_code == 403
+    assert "API key required" in resp.json()["error"]["detail"]
+
+def test_anonymous_network_redacts_version(client):
+    """Anonymous users don't see node version info."""
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data.get("version") is None or data.get("version") == "[redacted]"
+    assert data.get("subversion") is None or data.get("subversion") == "[redacted]"
+    assert data.get("protocol_version") is None or data.get("protocol_version") == "[redacted]"
+
+def test_authenticated_network_includes_version(client, use_temp_db):
+    """Authenticated users see full node version info."""
+    import hashlib
+    from bitcoin_api.db import get_db
+    key = "test-net-key-123"
+    key_hash = hashlib.sha256(key.encode()).hexdigest()
+    db = get_db()
+    db.execute("INSERT OR REPLACE INTO api_keys (key_hash, prefix, tier, label, active) VALUES (?, ?, 'free', 'test', 1)", (key_hash, key[:8]))
+    db.commit()
+    resp = client.get("/api/v1/network", headers={"X-API-Key": key})
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    # Authenticated users should see version fields (not redacted)
+    assert data.get("subversion") is not None
+    assert data.get("subversion") != "[redacted]"

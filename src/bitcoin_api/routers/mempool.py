@@ -9,7 +9,7 @@ from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_mempool_analysis
 from ..dependencies import get_rpc
-from ..models import ApiResponse, envelope
+from ..models import ApiResponse, MempoolAnalysisData, envelope
 
 router = APIRouter(prefix="/mempool", tags=["Mempool"])
 
@@ -125,12 +125,18 @@ def _sanitize_for_json(obj):
     return obj
 
 
-@router.get("", response_model=ApiResponse[dict], responses=_MEMPOOL_ANALYSIS_EXAMPLE)
+@router.get("", response_model=ApiResponse[MempoolAnalysisData], responses=_MEMPOOL_ANALYSIS_EXAMPLE)
 def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
     """Full mempool analysis: fee buckets, congestion level, next-block minimum fee."""
     summary = cached_mempool_analysis(rpc)
     info = cached_blockchain_info(rpc)
-    data = _sanitize_for_json(summary.model_dump(mode="json"))
+    raw = summary.model_dump(mode="json")
+    # Map bitcoinlib-rpc field names to API field names
+    if "total_bytes" in raw:
+        raw.setdefault("bytes", raw.pop("total_bytes"))
+    if "buckets" in raw:
+        raw.setdefault("fee_buckets", raw.pop("buckets"))
+    data = _sanitize_for_json(raw)
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 

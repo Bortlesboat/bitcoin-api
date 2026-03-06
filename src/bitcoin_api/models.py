@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 T = TypeVar("T")
 
@@ -41,9 +41,9 @@ class HealthData(BaseModel):
 
 
 class NetworkData(BaseModel):
-    version: int
-    subversion: str
-    protocol_version: int
+    version: int | None = None
+    subversion: str | None = None
+    protocol_version: int | None = None
     connections: int
     connections_in: int
     connections_out: int
@@ -105,8 +105,67 @@ class DecodedTransaction(BaseModel):
     vout: list[dict]
 
 
+class BlockAnalysisData(BaseModel):
+    hash: str
+    height: int
+    tx_count: int
+    size: int
+    weight: int
+    median_fee_rate: float | None = None
+    total_fee: float | None = None
+    top_fee_txids: list[dict] = []
+
+
+class TransactionAnalysisData(BaseModel):
+    txid: str
+    version: int | None = None
+    size: int | None = None
+    vsize: int | None = None
+    weight: int | None = None
+    fee_sats: int | None = None
+    fee_rate_sat_vb: float | None = None
+    is_segwit: bool | None = None
+    is_taproot: bool | None = None
+    has_inscription: bool | None = None
+    input_count: int | None = None
+    output_count: int | None = None
+
+    model_config = {"extra": "ignore"}
+
+
+class MempoolAnalysisData(BaseModel):
+    size: int
+    bytes: int | None = None
+    congestion: str | None = None
+    next_block_min_fee: float | None = None
+    fee_buckets: list[dict] = []
+
+    model_config = {"extra": "ignore"}
+
+
+class NextBlockData(BaseModel):
+    height: int | None = None
+    tx_count: int | None = None
+    total_fees_btc: float | None = None
+    total_weight: int | None = None
+    min_fee_rate: float | None = None
+    max_fee_rate: float | None = None
+    median_fee_rate: float | None = None
+    top_5: list[dict] = []
+
+    model_config = {"extra": "ignore"}
+
+
+class BroadcastRequest(BaseModel):
+    hex: str = Field(max_length=2_000_000)
+
+
+class BroadcastData(BaseModel):
+    txid: str
+
+
 class DecodeRequest(BaseModel):
-    hex: str
+    hex: str = Field(max_length=2_000_000)
 
 
 # --- Helper functions ---

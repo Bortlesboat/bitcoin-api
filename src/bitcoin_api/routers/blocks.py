@@ -7,16 +7,20 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 _HASH_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
 from bitcoinlib_rpc import BitcoinRPC
-from bitcoinlib_rpc.blocks import analyze_block
 
-from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis
+from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis, cached_block_by_hash
 from ..dependencies import get_rpc
-from ..models import ApiResponse, envelope
+from ..models import ApiResponse, BlockAnalysisData, envelope
 
 router = APIRouter(prefix="/blocks", tags=["Blocks"])
 
 
 def _serialize_block(data: dict) -> dict:
+    # Map bitcoinlib-rpc field names to API field names
+    if "fee_rate_median" in data:
+        data.setdefault("median_fee_rate", data.pop("fee_rate_median"))
+    if "total_fee_btc" in data:
+        data.setdefault("total_fee", data.pop("total_fee_btc"))
     if data.get("top_fee_txids"):
         data["top_fee_txids"] = [
             {"txid": t[0], "fee_rate": t[1]} if isinstance(t, (list, tuple)) else t
@@ -27,7 +31,7 @@ def _serialize_block(data: dict) -> dict:
 
 @router.get(
     "/latest",
-    response_model=ApiResponse[dict],
+    response_model=ApiResponse[BlockAnalysisData],
     responses={
         200: {
             "description": "Latest block analysis",
@@ -44,7 +48,7 @@ def _serialize_block(data: dict) -> dict:
                             "total_fee": 0.28431562,
                             "top_fee_txids": [],
                         },
-                        "meta": {"height": 881234, "chain": None},
+                        "meta": {"height": 881234, "chain": "main"},
                     }
                 }
             },
@@ -56,12 +60,13 @@ def latest_block(rpc: BitcoinRPC = Depends(get_rpc)):
     height = cached_block_count(rpc)
     analysis = cached_block_analysis(rpc, height)
     data = _serialize_block(analysis.model_dump())
-    return envelope(data, height=height, chain=None)
+    info = cached_blockchain_info(rpc)
+    return envelope(data, height=height, chain=info["chain"])
 
 
 @router.get(
     "/{height_or_hash}",
-    response_model=ApiResponse[dict],
+    response_model=ApiResponse[BlockAnalysisData],
     responses={
         200: {
             "description": "Block analysis by height or hash",
@@ -88,7 +93,12 @@ def latest_block(rpc: BitcoinRPC = Depends(get_rpc)):
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Invalid block hash: must be 64 hex characters"
+                        "error": {
+                            "status": 422,
+                            "title": "Error",
+                            "detail": "Invalid block hash: must be 64 hex characters",
+                            "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                        }
                     }
                 }
             },
@@ -110,11 +120,11 @@ def get_block(
     if isinstance(identifier, str) and not _HASH_RE.match(identifier):
         raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
 
-    # Use cache for integer heights, direct call for hashes
+    # Use cache for both height and hash lookups
     if isinstance(identifier, int):
         analysis = cached_block_analysis(rpc, identifier)
     else:
-        analysis = analyze_block(rpc, identifier)
+        analysis = cached_block_by_hash(rpc, identifier)
 
     data = _serialize_block(analysis.model_dump())
     info = cached_blockchain_info(rpc)

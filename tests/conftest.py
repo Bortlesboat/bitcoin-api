@@ -111,6 +111,7 @@ def make_mock_rpc():
             "vin": [],
             "vout": [],
         },
+        "sendrawtransaction": "abc" * 21 + "a",
     }.get(method, {})
 
     # getblocktemplate is called via rpc.getblocktemplate() not rpc.call()
@@ -144,7 +145,7 @@ def clear_caches():
     from bitcoin_api.cache import (
         _fee_cache, _mempool_cache, _status_cache,
         _blockchain_info_cache, _block_count_cache, _block_cache,
-        _recent_block_cache, _nextblock_cache,
+        _recent_block_cache, _nextblock_cache, _hash_to_height,
     )
     _fee_cache.clear()
     _mempool_cache.clear()
@@ -154,6 +155,7 @@ def clear_caches():
     _block_cache.clear()
     _recent_block_cache.clear()
     _nextblock_cache.clear()
+    _hash_to_height.clear()
 
 
 @pytest.fixture(autouse=True)
@@ -173,5 +175,26 @@ def use_temp_db(tmp_path):
 def client(mock_rpc):
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
     with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authed_client(mock_rpc, use_temp_db):
+    """Client with a valid free-tier API key pre-seeded."""
+    import hashlib
+    from bitcoin_api.db import get_db
+
+    key = "test-authed-key-fixture"
+    key_hash = hashlib.sha256(key.encode()).hexdigest()
+    db = get_db()
+    db.execute(
+        "INSERT OR REPLACE INTO api_keys (key_hash, prefix, tier, label, active) VALUES (?, ?, 'free', 'test', 1)",
+        (key_hash, key[:8]),
+    )
+    db.commit()
+
+    app.dependency_overrides[get_rpc] = lambda: mock_rpc
+    with TestClient(app, headers={"X-API-Key": key}) as c:
         yield c
     app.dependency_overrides.clear()

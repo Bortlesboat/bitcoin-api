@@ -3,13 +3,16 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Path
-
+from starlette.requests import Request
 from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.transactions import analyze_transaction
 
 from ..cache import cached_blockchain_info
 from ..dependencies import get_rpc
-from ..models import ApiResponse, DecodeRequest, envelope
+from ..models import (
+    ApiResponse, BroadcastData, BroadcastRequest, DecodeRequest,
+    TransactionAnalysisData, envelope,
+)
 
 _TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
@@ -18,7 +21,7 @@ router = APIRouter(tags=["Transactions"])
 
 @router.get(
     "/tx/{txid}",
-    response_model=ApiResponse[dict],
+    response_model=ApiResponse[TransactionAnalysisData],
     responses={
         200: {
             "description": "Full transaction analysis",
@@ -131,7 +134,7 @@ def get_raw_transaction(
 )
 def get_utxo(
     txid: str = Path(description="Transaction ID (hex)"),
-    vout: int = Path(description="Output index"),
+    vout: int = Path(description="Output index", ge=0),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Check if a UTXO is unspent (gettxout)."""
@@ -182,12 +185,49 @@ _DECODE_EXAMPLE = {
 
 @router.post("/decode", response_model=ApiResponse[dict], responses=_DECODE_EXAMPLE)
 def decode_transaction(
+    request: Request,
     body: DecodeRequest,
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Decode a raw transaction hex string without broadcasting."""
+    tier = getattr(request.state, "tier", "anonymous")
+    if tier == "anonymous":
+        raise HTTPException(status_code=403, detail="API key required for POST endpoints. Get a free key at /docs")
     if not _HEX_RE.match(body.hex):
         raise HTTPException(status_code=422, detail="Invalid hex string")
     decoded = rpc.call("decoderawtransaction", body.hex)
     info = cached_blockchain_info(rpc)
     return envelope(decoded, height=info["blocks"], chain=info["chain"])
+
+
+_BROADCAST_EXAMPLE = {
+    200: {
+        "description": "Transaction broadcast successfully",
+        "content": {
+            "application/json": {
+                "example": {
+                    "data": {"txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"},
+                    "meta": {"height": 883000, "chain": "main"},
+                }
+            }
+        },
+    },
+    422: {"description": "Invalid hex"},
+}
+
+
+@router.post("/broadcast", response_model=ApiResponse[BroadcastData], responses=_BROADCAST_EXAMPLE)
+def broadcast_transaction(
+    request: Request,
+    body: BroadcastRequest,
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Broadcast a signed raw transaction to the network."""
+    tier = getattr(request.state, "tier", "anonymous")
+    if tier == "anonymous":
+        raise HTTPException(status_code=403, detail="API key required for POST endpoints. Get a free key at /docs")
+    if not _HEX_RE.match(body.hex):
+        raise HTTPException(status_code=422, detail="Invalid hex string")
+    txid = rpc.call("sendrawtransaction", body.hex)
+    info = cached_blockchain_info(rpc)
+    return envelope({"txid": txid}, height=info["blocks"], chain=info["chain"])

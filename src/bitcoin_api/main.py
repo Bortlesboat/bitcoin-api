@@ -1,5 +1,6 @@
 """Bitcoin API — FastAPI application."""
 
+import logging
 import uuid
 from contextlib import asynccontextmanager
 
@@ -18,14 +19,21 @@ from .rate_limit import check_rate_limit, check_daily_limit
 from . import __version__
 from .routers import status, blocks, transactions, mempool, fees, mining, network
 
+access_log = logging.getLogger("bitcoin_api.access")
+
+
+log = logging.getLogger("bitcoin_api")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: init DB + prune old logs
     get_db()
     prune_old_logs()
+    log.info("Satoshi API starting on %s:%s", settings.api_host, settings.api_port)
     yield
-    # Shutdown: nothing to clean up
+    # Shutdown: close DB connections
+    log.info("Satoshi API shutting down")
 
 
 app = FastAPI(
@@ -39,6 +47,8 @@ app = FastAPI(
 )
 
 _cors_origins = [o.strip() for o in settings.cors_origins.split(",")]
+if "*" in _cors_origins:
+    log.warning("CORS_ORIGINS contains '*' — all origins allowed. Not recommended for production.")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
@@ -47,7 +57,7 @@ app.add_middleware(
 )
 
 # Paths exempt from rate limiting
-_RATE_LIMIT_SKIP = {"/docs", "/redoc", "/openapi.json", "/api/v1/health"}
+_RATE_LIMIT_SKIP = {"/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz"}
 
 
 # --- Middleware: auth + rate limiting + usage logging ---
@@ -69,6 +79,7 @@ async def auth_and_rate_limit(request: Request, call_next):
         return response
 
     key_info = authenticate(request)
+    request.state.tier = key_info.tier
 
     # Invalid key: provided but not found/active → 401
     if key_info.tier == "invalid":
@@ -99,17 +110,19 @@ async def auth_and_rate_limit(request: Request, call_next):
                     status=429,
                     title="Rate Limit Exceeded",
                     detail=f"Limit: {result.limit} req/min for {key_info.tier} tier",
+                    request_id=request_id,
                 )
             ).model_dump(),
         )
+        resp.headers["X-Request-ID"] = request_id
         resp.headers["X-RateLimit-Limit"] = str(result.limit)
         resp.headers["X-RateLimit-Remaining"] = "0"
         resp.headers["X-RateLimit-Reset"] = str(int(result.reset))
-        log_usage(key_info.key_hash, request.url.path, 429)
+        log_usage(bucket, request.url.path, 429)
         return resp
 
     # Daily rate limit
-    daily_result = check_daily_limit(key_info.key_hash or bucket, key_info.tier)
+    daily_result = check_daily_limit(bucket, key_info.tier)
     if not daily_result.allowed:
         resp = JSONResponse(
             status_code=429,
@@ -118,15 +131,36 @@ async def auth_and_rate_limit(request: Request, call_next):
                     status=429,
                     title="Daily Rate Limit Exceeded",
                     detail=f"Daily limit: {daily_result.limit} requests for {key_info.tier} tier",
+                    request_id=request_id,
                 )
             ).model_dump(),
         )
+        resp.headers["X-Request-ID"] = request_id
         resp.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
         resp.headers["X-RateLimit-Daily-Remaining"] = "0"
-        log_usage(key_info.key_hash, request.url.path, 429)
+        log_usage(bucket, request.url.path, 429)
         return resp
 
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:
+        logging.getLogger("bitcoin_api").exception(
+            "Unhandled exception: %s %s [%s]", request.method, request.url.path, request_id
+        )
+        resp = JSONResponse(
+            status_code=500,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    status=500,
+                    title="Internal Server Error",
+                    detail="An unexpected error occurred",
+                    request_id=request_id,
+                )
+            ).model_dump(),
+        )
+        resp.headers["X-Request-ID"] = request_id
+        log_usage(bucket, request.url.path, 500)
+        return resp
 
     # Add request ID and auth tier headers
     response.headers["X-Request-ID"] = request_id
@@ -147,8 +181,14 @@ async def auth_and_rate_limit(request: Request, call_next):
     response.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
     response.headers["X-RateLimit-Daily-Remaining"] = str(daily_result.remaining)
 
-    # Log usage
-    log_usage(key_info.key_hash, request.url.path, response.status_code)
+    # Log usage (use bucket so anonymous users are tracked by IP)
+    log_usage(bucket, request.url.path, response.status_code)
+
+    # Structured access logging
+    client_ip = request.client.host if request.client else "unknown"
+    tier = key_info.tier
+    log_level = logging.WARNING if response.status_code in (401, 429) else logging.INFO
+    access_log.log(log_level, "%s %s %s %d %s %s", client_ip, request.method, request.url.path, response.status_code, tier, request_id)
 
     return response
 
@@ -184,6 +224,8 @@ async def rpc_error_handler(request: Request, exc: RPCError):
 
 @app.exception_handler(ConnectionError)
 async def connection_error_handler(request: Request, exc: ConnectionError):
+    from .dependencies import reset_rpc
+    reset_rpc()
     request_id = getattr(request.state, "request_id", None)
     resp = JSONResponse(
         status_code=502,
@@ -242,6 +284,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return resp
 
 
+
+
 # --- Routers ---
 
 PREFIX = "/api/v1"
@@ -266,6 +310,12 @@ def root():
     }
 
 
+@app.get("/healthz", include_in_schema=False)
+def healthz():
+    """Process-alive check (no RPC call). Use for container healthchecks."""
+    return {"status": "ok"}
+
+
 def cli():
     import uvicorn
     uvicorn.run(
@@ -273,4 +323,9 @@ def cli():
         host=settings.api_host,
         port=settings.api_port,
         reload=False,
+        timeout_graceful_shutdown=30,
     )
+
+
+if __name__ == "__main__":
+    cli()

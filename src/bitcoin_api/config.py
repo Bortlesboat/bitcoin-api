@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
 
@@ -10,7 +11,7 @@ class Settings(BaseSettings):
     bitcoin_rpc_host: str = "127.0.0.1"
     bitcoin_rpc_port: int = 8332
     bitcoin_rpc_user: str | None = None
-    bitcoin_rpc_password: str | None = None
+    bitcoin_rpc_password: SecretStr | None = None
     bitcoin_datadir: str | None = None
 
     # API server
@@ -18,8 +19,8 @@ class Settings(BaseSettings):
     api_port: int = 9332
     api_db_path: Path = Path("data/bitcoin_api.db")
 
-    # CORS (comma-separated origins, or "*" for all)
-    cors_origins: str = "*"
+    # CORS (comma-separated origins, or "*" for all — use "*" only for local/dev)
+    cors_origins: str = "http://localhost:3000,http://localhost:9332"
 
     # Rate limits (requests per minute)
     rate_limit_anonymous: int = 30

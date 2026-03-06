@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 authors = [{ name = "Andy Barnes" }]
 keywords = ["bitcoin", "api", "rest", "node", "blockchain"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Framework :: FastAPI",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -26,12 +26,20 @@ dependencies = [
     "cachetools>=5.3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Bortlesboat/bitcoin-api"
+Repository = "https://github.com/Bortlesboat/bitcoin-api"
+Issues = "https://github.com/Bortlesboat/bitcoin-api/issues"
+
 [project.optional-dependencies]
-dev = ["pytest", "httpx", "pytest-asyncio"]
+dev = ["pytest", "httpx", "pytest-asyncio", "ruff", "pytest-cov", "locust"]
 
 [project.scripts]
 satoshi-api = "bitcoin_api.main:cli"
 bitcoin-api = "bitcoin_api.main:cli"
+
+[tool.pytest.ini_options]
+markers = ["e2e: end-to-end tests against running API"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/bitcoin_api"]
