@@ -1,4 +1,4 @@
-"""Transaction endpoints: /tx/{txid}, /tx/{txid}/raw, /utxo/{txid}/{vout}."""
+"""Transaction endpoints: /tx/{txid}, /tx/{txid}/raw, /tx/{txid}/status, /utxo/{txid}/{vout}."""
 
 import re
 
@@ -102,6 +102,48 @@ def get_raw_transaction(
     raw = rpc.call("getrawtransaction", txid, True)
     info = cached_blockchain_info(rpc)
     return envelope(raw, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/tx/{txid}/status",
+    response_model=ApiResponse[dict],
+    responses={
+        200: {
+            "description": "Transaction confirmation status",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": {
+                            "confirmed": True,
+                            "block_height": 881234,
+                            "block_hash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+                            "confirmations": 5000,
+                        },
+                        "meta": {"node_height": 886234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid txid format"},
+    },
+)
+def get_tx_status(
+    txid: str = Path(description="Transaction ID (hex)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Check confirmation status of a transaction."""
+    if not _TXID_RE.match(txid):
+        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    raw = rpc.call("getrawtransaction", txid, True)
+    info = cached_blockchain_info(rpc)
+    confirmed = "blockhash" in raw
+    data = {
+        "confirmed": confirmed,
+        "block_height": raw.get("blockheight"),
+        "block_hash": raw.get("blockhash"),
+        "confirmations": raw.get("confirmations", 0),
+    }
+    return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
 @router.get(

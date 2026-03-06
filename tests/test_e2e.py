@@ -100,3 +100,55 @@ def test_mining_info():
     assert r.status_code == 200
     data = r.json()["data"]
     assert data["difficulty"] > 0
+
+
+@skip_if_no_api
+def test_tip_height():
+    r = httpx.get(f"{BASE_URL}/blocks/tip/height")
+    assert r.status_code == 200
+    assert r.json()["data"] > 880000
+
+
+@skip_if_no_api
+def test_tip_hash():
+    r = httpx.get(f"{BASE_URL}/blocks/tip/hash")
+    assert r.status_code == 200
+    assert len(r.json()["data"]) == 64
+
+
+@skip_if_no_api
+def test_mempool_txids():
+    r = httpx.get(f"{BASE_URL}/mempool/txids")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data, list)
+
+
+@skip_if_no_api
+def test_mempool_recent():
+    r = httpx.get(f"{BASE_URL}/mempool/recent?count=5")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data, list)
+    if len(data) > 0:
+        assert "txid" in data[0]
+        assert "fee_rate" in data[0]
+
+
+@skip_if_no_api
+def test_difficulty_adjustment():
+    r = httpx.get(f"{BASE_URL}/network/difficulty")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert data["difficulty"] > 0
+    assert 0 <= data["progress_percent"] <= 100
+
+
+@skip_if_no_api
+def test_tx_status():
+    pizza_txid = "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"
+    r = httpx.get(f"{BASE_URL}/tx/{pizza_txid}/status")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert data["confirmed"] is True
+    assert data["confirmations"] > 0

@@ -1,4 +1,7 @@
-"""Network endpoints: /network, /network/forks."""
+"""Network endpoints: /network, /network/forks, /network/difficulty."""
+
+import time
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
@@ -106,3 +109,55 @@ def chain_forks(rpc: BitcoinRPC = Depends(get_rpc)):
     tips = rpc.call("getchaintips")
     info = cached_blockchain_info(rpc)
     return envelope(tips, height=info["blocks"], chain=info["chain"])
+
+
+_DIFFICULTY_EXAMPLE = {
+    200: {
+        "description": "Current difficulty adjustment progress and estimate",
+        "content": {
+            "application/json": {
+                "example": {
+                    "data": {
+                        "difficulty": 119126831040958.3,
+                        "current_epoch_start_height": 881280,
+                        "blocks_in_epoch": 1954,
+                        "blocks_remaining": 62,
+                        "progress_percent": 96.9,
+                        "estimated_retarget_date": "2026-03-08T14:00:00+00:00",
+                        "previous_retarget_percent": 3.2,
+                    },
+                    "meta": {"node_height": 883234, "chain": "main"},
+                }
+            }
+        },
+    }
+}
+
+
+@router.get("/difficulty", response_model=ApiResponse[dict], responses=_DIFFICULTY_EXAMPLE)
+def difficulty_adjustment(rpc: BitcoinRPC = Depends(get_rpc)):
+    """Current difficulty epoch progress, estimated adjustment, and retarget timing."""
+    info = cached_blockchain_info(rpc)
+    height = info["blocks"]
+    difficulty = info["difficulty"]
+
+    # Difficulty adjusts every 2016 blocks
+    epoch_start = (height // 2016) * 2016
+    blocks_in_epoch = height - epoch_start
+    blocks_remaining = 2016 - blocks_in_epoch
+    progress = round(blocks_in_epoch / 2016 * 100, 1)
+
+    # Estimate retarget date: blocks_remaining * 10 min avg block time
+    estimated_seconds_remaining = blocks_remaining * 600
+    estimated_retarget_ts = int(time.time()) + estimated_seconds_remaining
+    estimated_retarget = datetime.fromtimestamp(estimated_retarget_ts, tz=timezone.utc).isoformat()
+
+    data = {
+        "difficulty": difficulty,
+        "current_epoch_start_height": epoch_start,
+        "blocks_in_epoch": blocks_in_epoch,
+        "blocks_remaining": blocks_remaining,
+        "progress_percent": progress,
+        "estimated_retarget_date": estimated_retarget,
+    }
+    return envelope(data, height=height, chain=info["chain"])

@@ -17,6 +17,8 @@ def make_mock_rpc():
             "chain": "main",
             "blocks": 880000,
             "headers": 880000,
+            "bestblockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+            "difficulty": 110_000_000_000_000,
             "verificationprogress": 0.9999,
             "size_on_disk": 650_000_000_000,
             "pruned": False,
@@ -67,6 +69,9 @@ def make_mock_rpc():
             "locktime": 0,
             "vin": [{"txid": "def" * 21 + "d", "vout": 0}],
             "vout": [{"value": 0.5, "n": 0}],
+            "blockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+            "blockheight": 879000,
+            "confirmations": 1000,
         },
         "gettxout": (
             {
@@ -92,6 +97,45 @@ def make_mock_rpc():
             "avgfee": 7142,
             "avgfeerate": 15,
         },
+        "getrawmempool": (
+            # verbose=True returns dict, verbose=False returns list
+            {
+                "aaa" * 21 + "a": {
+                    "fees": {"base": 0.0001},
+                    "vsize": 200,
+                    "weight": 800,
+                    "time": 1709654500,
+                    "height": 880000,
+                },
+                "bbb" * 21 + "b": {
+                    "fees": {"base": 0.00005},
+                    "vsize": 141,
+                    "weight": 561,
+                    "time": 1709654400,
+                    "height": 880000,
+                },
+            }
+            if args and args[0] is True
+            else ["aaa" * 21 + "a", "bbb" * 21 + "b"]
+        ),
+        "getblock": (
+            # verbosity=2 returns full txs, verbosity=1 returns txids as strings
+            {
+                "hash": "abc" * 21 + "a",
+                "height": 880000,
+                "tx": (
+                    [
+                        {"txid": "tx1" + "0" * 61, "size": 200, "vsize": 150, "vin": [], "vout": [{"value": 50.0, "n": 0}]},
+                        {"txid": "tx2" + "0" * 61, "size": 300, "vsize": 250, "vin": [], "vout": [{"value": 0.5, "n": 0}]},
+                    ]
+                    if args and len(args) > 1 and args[1] == 2
+                    else ["tx1" + "0" * 61, "tx2" + "0" * 61]
+                ),
+                "size": 1500,
+                "weight": 4000,
+                "nTx": 2,
+            }
+        ),
         "getchaintips": [
             {
                 "height": 880000,

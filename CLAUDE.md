@@ -52,5 +52,5 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/auth.py` | API key auth |
 | `src/bitcoin_api/rate_limit.py` | Rate limiting |
 | `src/bitcoin_api/cache.py` | TTL + LRU caching |
-| `tests/test_api.py` | Unit tests (59) |
+| `tests/test_api.py` | Unit tests (71) |
 | `tests/test_e2e.py` | E2E tests (9) |

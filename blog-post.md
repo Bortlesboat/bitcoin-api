@@ -4,7 +4,7 @@ I run a Bitcoin full node. I wanted to query it programmatically -- check fees b
 
 RPC works, but it's clunky. Authentication is HTTP basic auth over plaintext. The responses are raw and inconsistent. There's no input validation, no caching, no rate limiting if you want to expose it to other apps on your network. So I built a thin REST layer on top of it.
 
-The result is **Satoshi API** -- 19 endpoints, FastAPI, typed responses, and analyzed data instead of raw RPC dumps. It's [open source](https://github.com/Bortlesboat/bitcoin-api) and on PyPI as `bitcoin-api`.
+The result is **Satoshi API** -- 27 endpoints, FastAPI, typed responses, and analyzed data instead of raw RPC dumps. It's [open source](https://github.com/Bortlesboat/bitcoin-api) and on PyPI as `bitcoin-api`.
 
 ## What It Does
 
@@ -182,7 +182,7 @@ If you need address queries, pair it with Electrs or Fulcrum. Satoshi API is com
 - **More analysis endpoints** -- UTXO set stats, peer geographic distribution, historical fee trends
 - **WebSocket support** -- real-time mempool fee updates
 
-The codebase is 59 tests, CI pipeline, MIT licensed. If you run a node and want a clean API on top of it, give it a try: [github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api).
+The codebase is 71 tests, CI pipeline, MIT licensed. If you run a node and want a clean API on top of it, give it a try: [github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api).
 
 Feedback welcome -- open an issue or find me on Nostr.
 

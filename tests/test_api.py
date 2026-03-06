@@ -645,3 +645,101 @@ def test_authenticated_network_includes_version(client, use_temp_db):
     # Authenticated users should see version fields (not redacted)
     assert data.get("subversion") is not None
     assert data.get("subversion") != "[redacted]"
+
+
+# --- v0.2 endpoints ---
+
+
+def test_mempool_txids(client):
+    resp = client.get("/api/v1/mempool/txids")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], list)
+    assert len(body["data"]) == 2
+
+
+def test_mempool_recent(client):
+    resp = client.get("/api/v1/mempool/recent?count=5")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert isinstance(data, list)
+    assert len(data) == 2  # only 2 in mock mempool
+    # Should be sorted by time descending
+    assert data[0]["time"] >= data[1]["time"]
+    assert "fee_rate" in data[0]
+    assert "vsize" in data[0]
+
+
+def test_mempool_recent_max_count(client):
+    resp = client.get("/api/v1/mempool/recent?count=200")
+    assert resp.status_code == 200
+    # Should cap at 100, but we only have 2 in mock
+
+
+def test_block_tip_height(client):
+    resp = client.get("/api/v1/blocks/tip/height")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["data"] == 880000
+
+
+def test_block_tip_hash(client):
+    resp = client.get("/api/v1/blocks/tip/hash")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["data"] == "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670"
+
+
+def test_block_txids(client):
+    block_hash = "abc" * 21 + "a"
+    resp = client.get(f"/api/v1/blocks/{block_hash}/txids")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], list)
+    assert len(body["data"]) == 2
+
+
+def test_block_txids_invalid_hash(client):
+    resp = client.get("/api/v1/blocks/not-a-hash/txids")
+    assert resp.status_code == 422
+
+
+def test_block_txs(client):
+    block_hash = "abc" * 21 + "a"
+    resp = client.get(f"/api/v1/blocks/{block_hash}/txs?start=0&limit=10")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], list)
+
+
+def test_block_txs_invalid_hash(client):
+    resp = client.get("/api/v1/blocks/xyz/txs")
+    assert resp.status_code == 422
+
+
+def test_tx_status(client):
+    txid = "abc" * 21 + "a"
+    resp = client.get(f"/api/v1/tx/{txid}/status")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["data"]["confirmed"] is True
+    assert body["data"]["confirmations"] == 1000
+    assert body["data"]["block_height"] == 879000
+
+
+def test_tx_status_invalid_txid(client):
+    resp = client.get("/api/v1/tx/not-a-txid/status")
+    assert resp.status_code == 422
+
+
+def test_difficulty_adjustment(client):
+    resp = client.get("/api/v1/network/difficulty")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert "difficulty" in data
+    assert "blocks_in_epoch" in data
+    assert "blocks_remaining" in data
+    assert "progress_percent" in data
+    assert data["blocks_in_epoch"] + data["blocks_remaining"] == 2016

@@ -1,8 +1,8 @@
-"""Block endpoints: /blocks/latest, /blocks/{id}, /blocks/{id}/stats."""
+"""Block endpoints: /blocks/latest, /blocks/{id}, /blocks/{id}/stats, /blocks/{hash}/txids, /blocks/{hash}/txs, /blocks/tip/*."""
 
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis, cached_block_by_hash
@@ -61,6 +61,53 @@ def latest_block(rpc: BitcoinRPC = Depends(get_rpc)):
     data = _serialize_block(analysis.model_dump())
     info = cached_blockchain_info(rpc)
     return envelope(data, height=height, chain=info["chain"])
+
+
+@router.get(
+    "/tip/height",
+    response_model=ApiResponse[int],
+    responses={
+        200: {
+            "description": "Current chain tip height",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": 881234,
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        }
+    },
+)
+def tip_height(rpc: BitcoinRPC = Depends(get_rpc)):
+    """Current chain tip height."""
+    height = cached_block_count(rpc)
+    info = cached_blockchain_info(rpc)
+    return envelope(height, height=height, chain=info["chain"])
+
+
+@router.get(
+    "/tip/hash",
+    response_model=ApiResponse[str],
+    responses={
+        200: {
+            "description": "Current chain tip block hash",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        }
+    },
+)
+def tip_hash(rpc: BitcoinRPC = Depends(get_rpc)):
+    """Current chain tip block hash."""
+    info = cached_blockchain_info(rpc)
+    return envelope(info["bestblockhash"], height=info["blocks"], chain=info["chain"])
 
 
 @router.get(
@@ -172,3 +219,77 @@ def block_stats(
     stats = rpc.call("getblockstats", height)
     info = cached_blockchain_info(rpc)
     return envelope(stats, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/{block_hash}/txids",
+    response_model=ApiResponse[list[str]],
+    responses={
+        200: {
+            "description": "Transaction IDs in a block",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": [
+                            "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+                            "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+                        ],
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid block hash format"},
+    },
+)
+def block_txids(
+    block_hash: str = Path(description="Block hash (64 hex characters)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """List all transaction IDs in a block."""
+    if not _HASH_RE.match(block_hash):
+        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    block = rpc.call("getblock", block_hash, 1)
+    info = cached_blockchain_info(rpc)
+    return envelope(block["tx"], height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/{block_hash}/txs",
+    response_model=ApiResponse[list[dict]],
+    responses={
+        200: {
+            "description": "Full transactions in a block (paginated)",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": [
+                            {
+                                "txid": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+                                "size": 204,
+                                "vsize": 177,
+                                "vin": [],
+                                "vout": [{"value": 50.0, "n": 0}],
+                            }
+                        ],
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid block hash format"},
+    },
+)
+def block_txs(
+    block_hash: str = Path(description="Block hash (64 hex characters)"),
+    start: int = Query(0, ge=0, description="Start index for pagination"),
+    limit: int = Query(25, ge=1, le=100, description="Number of transactions to return"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Full transactions in a block, paginated. Default 25 per page, max 100."""
+    if not _HASH_RE.match(block_hash):
+        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    block = rpc.call("getblock", block_hash, 2)
+    txs = block.get("tx", [])[start:start + limit]
+    info = cached_blockchain_info(rpc)
+    return envelope(txs, height=info["blocks"], chain=info["chain"])

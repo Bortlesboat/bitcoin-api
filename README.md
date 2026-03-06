@@ -54,15 +54,23 @@ All endpoints are under `/api/v1/`. Interactive docs at `/docs`.
 | `GET /status` | Sync progress, peers, disk usage |
 | `GET /network` | Version, connections, relay fee |
 | `GET /network/forks` | Chain tips / fork detection |
+| `GET /network/difficulty` | Difficulty epoch progress, retarget estimate |
 | `GET /blocks/latest` | Latest block analysis |
+| `GET /blocks/tip/height` | Chain tip height |
+| `GET /blocks/tip/hash` | Chain tip block hash |
 | `GET /blocks/{height_or_hash}` | Block by height or hash |
 | `GET /blocks/{height}/stats` | Raw block statistics |
+| `GET /blocks/{hash}/txids` | Transaction IDs in a block |
+| `GET /blocks/{hash}/txs` | Full transactions in a block (paginated) |
 | `GET /tx/{txid}` | Transaction analysis (fees, SegWit, Taproot, inscriptions) |
 | `GET /tx/{txid}/raw` | Raw decoded transaction |
+| `GET /tx/{txid}/status` | Confirmation status |
 | `GET /utxo/{txid}/{vout}` | UTXO lookup |
 | `GET /mempool` | Mempool analysis (fee buckets, congestion) |
 | `GET /mempool/info` | Raw mempool stats |
 | `GET /mempool/tx/{txid}` | Mempool entry for a transaction |
+| `GET /mempool/txids` | All transaction IDs in the mempool |
+| `GET /mempool/recent` | Most recent mempool entries |
 | `GET /fees` | Fee estimates (1, 3, 6, 25, 144 blocks) |
 | `GET /fees/recommended` | Human-readable fee recommendation |
 | `GET /fees/{target}` | Fee estimate for specific block target |

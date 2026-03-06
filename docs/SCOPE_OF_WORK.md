@@ -65,17 +65,22 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (19 total)
+### 3.1 Endpoints (27 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
 | **Status** | `/api/v1/health` | GET | No |
 | | `/api/v1/status` | GET | No |
 | **Blocks** | `/api/v1/blocks/latest` | GET | No |
+| | `/api/v1/blocks/tip/height` | GET | No |
+| | `/api/v1/blocks/tip/hash` | GET | No |
 | | `/api/v1/blocks/{height_or_hash}` | GET | No |
 | | `/api/v1/blocks/{height}/stats` | GET | No |
+| | `/api/v1/blocks/{hash}/txids` | GET | No |
+| | `/api/v1/blocks/{hash}/txs` | GET | No |
 | **Transactions** | `/api/v1/tx/{txid}` | GET | No |
 | | `/api/v1/tx/{txid}/raw` | GET | No |
+| | `/api/v1/tx/{txid}/status` | GET | No |
 | | `/api/v1/utxo/{txid}/{vout}` | GET | No |
 | | `/api/v1/decode` | POST | Yes (free+) |
 | | `/api/v1/broadcast` | POST | Yes (free+) |
@@ -85,10 +90,13 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Mempool** | `/api/v1/mempool` | GET | No |
 | | `/api/v1/mempool/info` | GET | No |
 | | `/api/v1/mempool/tx/{txid}` | GET | No |
+| | `/api/v1/mempool/txids` | GET | No |
+| | `/api/v1/mempool/recent` | GET | No |
 | **Mining** | `/api/v1/mining` | GET | No |
 | | `/api/v1/mining/nextblock` | GET | No |
 | **Network** | `/api/v1/network` | GET | No (redacted) |
 | | `/api/v1/network/forks` | GET | No |
+| | `/api/v1/network/difficulty` | GET | No |
 
 ### 3.2 Rate Limits
 
@@ -142,7 +150,7 @@ Errors follow the same structure:
 | **Rate Limiting** | Per-minute + daily | Sliding window (memory) + DB-backed daily counts |
 | **Input Validation** | Regex + Pydantic | 64-hex txid, non-negative heights, hex-only bodies |
 | **Body Size** | 2MB limit | Pydantic `Field(max_length=2_000_000)` on hex inputs |
-| **Node Protection** | RPC whitelist | Only 16 safe commands allowed via `rpcwhitelist` |
+| **Node Protection** | RPC whitelist | Only 17 safe commands allowed via `rpcwhitelist` |
 | **Network** | Localhost-only RPC | `rpcbind=127.0.0.1`, `rpcallowip=127.0.0.1` |
 | **Information Hiding** | Version redaction | Node version/subversion hidden from anonymous users |
 | **Secrets** | SecretStr for RPC password | Pydantic SecretStr prevents accidental logging |
@@ -234,7 +242,8 @@ Errors follow the same structure:
 | 5 | Thread safety, usage logging, Docker, CI | 10 |
 | 6 | Security hardening, production deployment, docs | 4 |
 | 7 | Architecture review: 11 fixes (3 critical, 4 high, 4 medium) | 0 |
-| **Total** | **19 endpoints, 7 routers** | **59 unit + 9 e2e** |
+| 8 | v0.2 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
+| **Total** | **27 endpoints, 7 routers** | **71 unit + 9 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -413,22 +422,33 @@ twine upload dist/*
 
 ## 10. Future Roadmap
 
-### v0.2 (Scalability & Observability)
-- Prometheus `/metrics` endpoint
-- Batch usage log writes (flush every 100 or 10s)
-- Cache daily limit counts in memory
-- Idempotency key support for POST
-- Alembic schema migrations
+### v0.2 (Feature Parity — COMPLETE)
+- Mempool: `/mempool/txids`, `/mempool/recent`
+- Blocks: `/blocks/tip/height`, `/blocks/tip/hash`, `/blocks/{hash}/txids`, `/blocks/{hash}/txs`
+- Transactions: `/tx/{txid}/status`
+- Network: `/network/difficulty`
+- RPC whitelist: added `getrawmempool`
 
-### v0.3 (Real-Time)
+### v0.3 (Medium Effort — Next)
+- `GET /fees/mempool-blocks` — projected mempool blocks (simulate block filling)
+- `GET /tx/{txid}/outspends` — output spending status
+- Historical mempool statistics (background collector + time-series storage)
+- `GET /prices` — BTC price (cached from CoinGecko/Coinbase)
+- Prometheus `/metrics` endpoint
+- Idempotency key support for POST
+
+### v0.4 (Real-Time + Infrastructure)
 - WebSocket endpoint for mempool fee updates
 - Webhook subscriptions for new blocks
 - Server-Sent Events for chain tip changes
+- Alembic schema migrations
+- Batch usage log writes
 
-### v0.4 (Multi-Node)
+### v0.5 (Address Lookups — Requires Electrs/Fulcrum)
+- `GET /address/{addr}` — address summary
+- `GET /address/{addr}/txs` — address transaction history
+- `GET /address/{addr}/utxo` — address UTXOs
 - PostgreSQL backend option
-- Multi-node load balancing
-- Read replicas for GET endpoints
 
 ---
 

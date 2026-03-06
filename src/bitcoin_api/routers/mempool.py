@@ -1,4 +1,4 @@
-"""Mempool endpoints: /mempool, /mempool/info, /mempool/tx/{txid}."""
+"""Mempool endpoints: /mempool, /mempool/info, /mempool/tx/{txid}, /mempool/txids, /mempool/recent."""
 
 import math
 import re
@@ -159,3 +159,82 @@ def mempool_entry(
     entry = rpc.call("getmempoolentry", txid)
     info = cached_blockchain_info(rpc)
     return envelope(entry, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/txids",
+    response_model=ApiResponse[list[str]],
+    responses={
+        200: {
+            "description": "All transaction IDs currently in the mempool",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": [
+                            "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+                            "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+                        ],
+                        "meta": {"node_height": 939462, "chain": "main"},
+                    }
+                }
+            },
+        }
+    },
+)
+def mempool_txids(rpc: BitcoinRPC = Depends(get_rpc)):
+    """List all transaction IDs in the mempool."""
+    txids = rpc.call("getrawmempool", False)
+    info = cached_blockchain_info(rpc)
+    return envelope(txids, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/recent",
+    response_model=ApiResponse[list[dict]],
+    responses={
+        200: {
+            "description": "Most recent transactions entering the mempool",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": [
+                            {
+                                "txid": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+                                "vsize": 141,
+                                "fee_rate": 12.5,
+                                "time": 1741176000,
+                            }
+                        ],
+                        "meta": {"node_height": 939462, "chain": "main"},
+                    }
+                }
+            },
+        }
+    },
+)
+def mempool_recent(
+    count: int = 10,
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Most recent transactions entering the mempool, sorted by entry time (newest first).
+
+    Query parameter `count` controls how many to return (default 10, max 100).
+    """
+    if count > 100:
+        count = 100
+    # getrawmempool with verbose=True returns dict of txid -> entry details
+    raw = rpc.call("getrawmempool", True)
+    # Sort by entry time descending, take most recent
+    entries = sorted(raw.items(), key=lambda x: x[1].get("time", 0), reverse=True)[:count]
+    result = []
+    for txid, entry in entries:
+        fee_sat = entry.get("fees", {}).get("base", 0) * 1e8
+        vsize = entry.get("vsize", 0)
+        result.append({
+            "txid": txid,
+            "vsize": vsize,
+            "fee_rate": round(fee_sat / vsize, 2) if vsize > 0 else 0,
+            "time": entry.get("time", 0),
+        })
+    info = cached_blockchain_info(rpc)
+    return envelope(result, height=info["blocks"], chain=info["chain"])

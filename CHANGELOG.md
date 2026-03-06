@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.0] - 2026-03-06
+
+### Added
+- `GET /mempool/txids` — all transaction IDs in the mempool
+- `GET /mempool/recent` — most recent mempool entries sorted by time (configurable count, max 100)
+- `GET /blocks/tip/height` — chain tip height
+- `GET /blocks/tip/hash` — chain tip block hash
+- `GET /blocks/{hash}/txids` — transaction IDs in a block
+- `GET /blocks/{hash}/txs` — full transactions in a block (paginated, default 25, max 100)
+- `GET /tx/{txid}/status` — transaction confirmation status
+- `GET /network/difficulty` — difficulty epoch progress, blocks remaining, estimated retarget date
+- Competitive analysis document (vs mempool.space — 161 endpoints mapped)
+- 12 new unit tests + 6 new e2e tests (71 unit + 15 e2e total)
+
+### Changed
+- RPC whitelist: added `getrawmempool` (now 17 commands)
+- Total endpoints: 19 → 27
+
 ## [0.1.0] - 2026-03-05
 
 ### Added
