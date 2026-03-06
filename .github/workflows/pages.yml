@@ -2,7 +2,7 @@ name: Deploy Landing Page
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths: ["docs/website/**"]
   workflow_dispatch:
 
