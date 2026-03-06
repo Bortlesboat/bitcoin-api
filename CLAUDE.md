@@ -30,7 +30,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 - Run tests: `python -m pytest tests/test_api.py -q`
 - E2E (requires running API): `python -m pytest tests/test_e2e.py -m e2e`
 - Load test: `locust -f tests/locustfile.py --host http://localhost:9332`
-- Security check: `bash scripts/security_check.sh`
+- Security check: `SATOSHI_API_KEY=<key> bash scripts/security_check.sh`
 - `authed_client` fixture for POST endpoint tests (requires API key in DB)
 - `client` fixture is anonymous -- use for GET tests and auth rejection tests
 

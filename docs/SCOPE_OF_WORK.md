@@ -158,7 +158,7 @@ Errors follow the same structure:
 | Node fingerprinting | Version redaction for anon | Low -- authenticated users see it |
 | RPC command injection | Whitelist + parameterized calls | Very low |
 | SQL injection | Parameterized SQLite queries | Very low |
-| API key theft | SHA256 hashing, no plaintext storage | Medium -- rotate on compromise |
+| API key theft | SHA256 hashing, no plaintext storage, no keys in scripts | Medium -- rotate on compromise |
 | Database leak | Keys are hashed, not reversible | Low |
 
 ---
@@ -204,6 +204,9 @@ Errors follow the same structure:
 15. **Block hash cache miss** -- `cached_block_by_hash` now checks both `_block_cache` and `_recent_block_cache`
 16. **E2E fee test no-op** -- Test checked for "high"/"medium"/"low" keys that don't exist; now validates actual integer-keyed estimates
 17. **Dockerfile invalid flag** -- Removed `--limit-max-request-size` (not a valid uvicorn CLI/API param); body limits enforced by Pydantic model validation
+
+**Post-launch (Mar 6):**
+18. **Hardcoded API key in security_check.sh** -- Flagged by GitGuardian. Replaced with `$SATOSHI_API_KEY` env var. Exposed key deactivated, new key generated. Committed key is in git history but was for local use only (no third-party exposure).
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
@@ -263,7 +266,7 @@ Errors follow the same structure:
 
 **Scripts (3 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
-- `scripts/security_check.sh`
+- `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
 
 **Website (1 file):**
 - `docs/website/index.html` -- Landing page with product info, use cases, endpoints, pricing, comparison table
