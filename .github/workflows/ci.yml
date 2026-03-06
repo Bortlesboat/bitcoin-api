@@ -22,7 +22,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: |
+          pip install git+https://github.com/Bortlesboat/bitcoinlib-rpc.git
+          pip install -e ".[dev]"
 
       - name: Lint
         run: ruff check src/ tests/
