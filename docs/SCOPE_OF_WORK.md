@@ -253,10 +253,13 @@ Errors follow the same structure:
 - `README.md`, `CHANGELOG.md`, `blog-post.md`
 - `docs/self-hosting.md`, `docs/bitcoin-conf-example.conf`
 
-**CI/CD (2 files):**
+**CI/CD (3 files):**
 - `.github/workflows/ci.yml` -- Tests + lint on push
 - `.github/workflows/publish.yml` -- PyPI publish on release
 - `.github/workflows/pages.yml` -- GitHub Pages deployment for landing page
+
+**Project config (1 file):**
+- `CLAUDE.md` -- Project instructions for AI-assisted development
 
 **Scripts (3 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
@@ -291,16 +294,17 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [ ] All 59 unit tests pass
-- [ ] Security check script passes all 8 checks
-- [ ] E2E tests pass against live node
-- [ ] Load test: 50 users, 0 errors, p95 < 500ms
-- [ ] HTTPS verified via Cloudflare
-- [ ] Anonymous POST /broadcast returns 403
-- [ ] Anonymous GET /network redacts version
+- [x] All 59 unit tests pass
+- [x] Security check script passes all 9 checks
+- [x] E2E tests pass against live node
+- [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
+- [x] Quick tunnel HTTPS verified via Cloudflare
+- [ ] Permanent domain + named Cloudflare Tunnel
+- [x] Anonymous POST /broadcast returns 403
+- [x] Anonymous GET /network redacts version
 - [ ] UptimeRobot confirms /healthz reachable
-- [ ] API key created for personal use
-- [ ] Bitcoin Core RPC whitelist configured
+- [x] API key created for personal use
+- [x] Bitcoin Core RPC whitelist configured (17 commands)
 
 ---
 

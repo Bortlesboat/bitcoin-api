@@ -10,7 +10,7 @@
 - Input validation (txid format, block height range, fee target bounds)
 - Structured error responses with request IDs
 - Docker support with health checks
-- 55+ unit tests with full endpoint coverage
+- 59 unit tests + 9 e2e tests with full endpoint coverage
 - Security hardening: POST auth requirements, node fingerprint redaction, access logging, body size limits
 - Production deployment support: Cloudflare Tunnel config, docker-compose.prod, self-hosting docs
 - Bitcoin Core RPC whitelist configuration example
