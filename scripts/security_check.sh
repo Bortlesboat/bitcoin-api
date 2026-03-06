@@ -26,54 +26,69 @@ echo ""
 echo "[1] SQL injection attempts"
 code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/tx/1'OR'1'='1")
 check "SQLi in txid" "422" "$code"
-code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/blocks/1;DROP TABLE blocks")
-check "SQLi in block height" "422" "$code"
+code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/blocks/abc'OR'1")
+check "SQLi in block hash" "422" "$code"
 
 # 2. Oversized payload
 echo "[2] Oversized payload"
+tmpfile=$(mktemp)
+python3 -c "import json; print(json.dumps({'hex': 'aa' * 1100000}))" > "$tmpfile"
 code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL$API/decode" \
     -H "Content-Type: application/json" \
-    -d "{\"raw_tx\": \"$(python3 -c 'print("aa" * 600000)')\"}")
-check "1.2MB payload rejected" "422" "$code"
+    -H "X-API-Key: btc_05b44ab2d6443e31705644f43a89638a" \
+    -d @"$tmpfile")
+rm -f "$tmpfile"
+check "2.2MB payload rejected" "422" "$code"
 
-# 3. Rate limit exhaustion
-echo "[3] Rate limit exhaustion"
-for i in $(seq 1 35); do
-    curl -s -o /dev/null "$BASE_URL$API/health" &
-done
-wait
-code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/health")
-check "Rate limited after burst" "429" "$code"
-
-# 4. Invalid API key
-echo "[4] Invalid API key"
+# 3. Invalid API key
+echo "[3] Invalid API key"
 code=$(curl -s -o /dev/null -w "%{http_code}" \
-    -H "X-API-Key: definitely-not-a-valid-key" "$BASE_URL$API/health")
-check "Invalid key → 401" "401" "$code"
+    -H "X-API-Key: definitely-not-a-valid-key" "$BASE_URL$API/fees")
+check "Invalid key -> 401" "401" "$code"
 
-# 5. Path traversal
-echo "[5] Path traversal"
-code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/tx/../../etc/passwd")
-check "Path traversal rejected" "422" "$code"
+# 4. Path traversal
+echo "[4] Path traversal"
+code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/blocks/..%2F..%2Fetc%2Fpasswd")
+# 404 or 422 both mean the traversal was blocked (404 = router rejected, 422 = validation rejected)
+if [ "$code" = "422" ] || [ "$code" = "404" ]; then
+    echo "  PASS: Path traversal rejected (got $code)"
+    ((PASS++))
+else
+    echo "  FAIL: Path traversal rejected (expected 404 or 422, got $code)"
+    ((FAIL++))
+fi
 
-# 6. CORS from evil origin
-echo "[6] CORS check"
-acao=$(curl -s -o /dev/null -w "%{http_code}" \
-    -H "Origin: https://evil.example.com" "$BASE_URL$API/health" \
-    -D - 2>/dev/null | grep -i "access-control-allow-origin" | grep "evil" | wc -l)
+# 5. CORS from evil origin
+echo "[5] CORS check"
+acao=$(curl -s -D - -o /dev/null \
+    -H "Origin: https://evil.example.com" "$BASE_URL$API/fees" 2>/dev/null \
+    | grep -ci "access-control-allow-origin.*evil")
 check "Evil origin not reflected" "0" "$acao"
 
-# 7. Node version not leaked
-echo "[7] Node version redaction"
+# 6. Node version not leaked
+echo "[6] Node version redaction"
 body=$(curl -s "$BASE_URL$API/network")
-leaked=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin).get('data',{}); print(1 if d.get('subversion') and d['subversion'] != '[redacted]' else 0)" 2>/dev/null)
+leaked=$(echo "$body" | python3 -c "
+import sys, json
+d = json.load(sys.stdin).get('data', {})
+print(1 if d.get('subversion') and d['subversion'] != '[redacted]' else 0)
+" 2>/dev/null)
 check "Anonymous: node version redacted" "0" "$leaked"
 
-# 8. POST without API key
-echo "[8] POST auth requirement"
+# 7. POST without API key
+echo "[7] POST auth requirement"
 code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL$API/broadcast" \
-    -H "Content-Type: application/json" -d '{"raw_tx": "0200000001"}')
+    -H "Content-Type: application/json" -d '{"hex": "0200000001"}')
 check "Anonymous broadcast rejected" "403" "$code"
+
+# 8. Rate limit exhaustion (LAST — exhausts the window)
+echo "[8] Rate limit exhaustion"
+for i in $(seq 1 35); do
+    curl -s -o /dev/null "$BASE_URL$API/fees" &
+done
+wait
+code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/fees")
+check "Rate limited after burst" "429" "$code"
 
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
