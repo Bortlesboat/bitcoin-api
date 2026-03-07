@@ -54,7 +54,8 @@ When a change of the given type occurs, the listed agents should be triggered fo
 | Test count change | Marketing, Coder |
 | New static page | Marketing (sitemap), Coder (CSP whitelist) |
 | DB schema change | Security, Coder |
-| Config/env var change | Coder, Security |
+| Config/env var change | Coder, Security, **update OPERATIONS.md** |
+| Deployment/process change | Coder, **update OPERATIONS.md** |
 | Customer journey change | Product, Marketing |
 | Infrastructure cost change | Finance, Coder |
 | Competitive landscape shift | Product, Marketing |

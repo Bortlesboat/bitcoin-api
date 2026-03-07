@@ -42,11 +42,16 @@ The SOW is the single source of truth for what this project is, what it does, an
 - Node version info redacted for anonymous users on `/network`
 - Secrets: never log, never commit. RPC password uses `SecretStr`.
 
+## Operations (MANDATORY READ for deployment/config changes)
+
+**`docs/OPERATIONS.md` is the human-facing operations guide.** It covers how to start/stop/restart the API, configure `.env`, use analytics, run agents, publish to PyPI, and complete pending setup (Cloudflare, Bing, social preview). **Any agent making deployment, config, or operational changes MUST update OPERATIONS.md to match.**
+
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `docs/SCOPE_OF_WORK.md` | Living project document (KEEP UPDATED) |
+| `docs/OPERATIONS.md` | How to run, restart, configure, use analytics, run agents |
 | `src/bitcoin_api/main.py` | App creation, lifespan, router registration (~89 lines) |
 | `src/bitcoin_api/middleware.py` | Security headers, CORS, auth + rate limiting |
 | `src/bitcoin_api/exceptions.py` | All exception handlers |

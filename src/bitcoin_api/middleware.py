@@ -165,7 +165,19 @@ def register_middleware(app: FastAPI):
         client_ip = request.client.host if request.client else "unknown"
         tier = key_info.tier
         log_level = logging.WARNING if response.status_code in (401, 429) else logging.INFO
-        access_log.log(log_level, "%s %s %s %d %s %s", client_ip, request.method, request.url.path, response.status_code, tier, request_id)
+        if settings.log_format == "json":
+            import json
+            access_log.log(log_level, json.dumps({
+                "client_ip": client_ip,
+                "method": request.method,
+                "path": request.url.path,
+                "status": response.status_code,
+                "tier": tier,
+                "request_id": request_id,
+                "latency_ms": round(elapsed_ms, 1),
+            }))
+        else:
+            access_log.log(log_level, "%s %s %s %d %s %s", client_ip, request.method, request.url.path, response.status_code, tier, request_id)
 
         return response
 

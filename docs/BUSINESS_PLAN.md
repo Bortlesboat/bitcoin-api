@@ -304,7 +304,7 @@ Highest-potential adjacencies if the core product gains traction:
 - Cloud infrastructure ($50-80/mo)
 - Stripe integration for billing
 - Part-time contributor for maintenance
-- Legal: Terms of service, privacy policy
+- ~~Legal: Terms of service, privacy policy~~ DONE (v0.3.1)
 
 ---
 

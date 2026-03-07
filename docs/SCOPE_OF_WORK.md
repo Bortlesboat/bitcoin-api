@@ -344,9 +344,10 @@ Errors follow the same structure:
 - `.env.example`, `.env.production.example`
 - `cloudflared-config.yml.example`
 
-**Documentation (5 files):**
+**Documentation (6 files):**
 - `README.md`, `CHANGELOG.md`, `blog-post.md`
 - `docs/self-hosting.md`, `docs/bitcoin-conf-example.conf`
+- `docs/OPERATIONS.md` -- How to run, restart, configure, use analytics, run agents
 
 **CI/CD (3 files):**
 - `.github/workflows/ci.yml` -- Tests + lint on push
