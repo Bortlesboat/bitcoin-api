@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satoshi API vs BlockCypher — Self-Hosted vs SaaS Bitcoin API</title>
+<meta name="description" content="Detailed comparison of Satoshi API and BlockCypher. Self-hosted Bitcoin Core REST API vs hosted multi-chain API service. Feature table, pricing, privacy, and migration guide.">
+<meta name="keywords" content="blockcypher alternatives, bitcoin api alternatives, blockcypher vs self-hosted, bitcoin api comparison, blockcypher pricing, self-hosted bitcoin api">
+<link rel="canonical" href="https://bitcoinsapi.com/vs-blockcypher">
+<meta property="og:title" content="Satoshi API vs BlockCypher — Self-Hosted vs SaaS Bitcoin API">
+<meta property="og:description" content="Detailed comparison of Satoshi API and BlockCypher. Self-hosted Bitcoin Core REST API vs hosted multi-chain API service.">
+<meta property="og:url" content="https://bitcoinsapi.com/vs-blockcypher">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Satoshi API vs BlockCypher — Self-Hosted vs SaaS Bitcoin API">
+<meta name="twitter:description" content="Detailed comparison of Satoshi API and BlockCypher. Self-hosted Bitcoin Core REST API vs hosted multi-chain API service.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
+
+<!-- JSON-LD FAQPage Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between Satoshi API and BlockCypher?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "BlockCypher is a hosted multi-chain API service that supports Bitcoin, Ethereum, Litecoin, and Dogecoin. Satoshi API is a self-hosted REST API that connects directly to your own Bitcoin Core node. BlockCypher manages infrastructure and provides address indexing, while Satoshi API gives full control over your node with privacy-preserving queries and AI agent support via MCP."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Satoshi API a free alternative to BlockCypher?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Satoshi API is MIT-licensed and free to self-host on your own Bitcoin Core node with no rate limits or usage fees. BlockCypher offers a free tier (3 requests/second, 200 requests/hour) with paid plans from $75 to $475 per month. However, BlockCypher includes address balance lookups and multi-chain support that Satoshi API does not provide."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I migrate from BlockCypher to Satoshi API?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Migration is straightforward for block, transaction, and fee endpoints. Install Satoshi API on a machine running Bitcoin Core, then update API calls to point to the new host. Address balance and transaction history endpoints require an additional indexing service like Electrs or Fulcrum, as Satoshi API queries your node directly without wallet indexing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Satoshi API support webhooks like BlockCypher?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Satoshi API uses Server-Sent Events (SSE) for real-time streaming of new blocks and transactions instead of webhooks. SSE provides a persistent connection with automatic reconnection, which avoids the complexity of managing webhook endpoints and callback URLs. BlockCypher offers traditional webhook notifications for transaction confirmations and address activity."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* Nav */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  nav .logo { font-weight: 700; font-size: 1.1em; color: var(--accent); }
+  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
+  nav .links a { color: var(--muted); }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+
+  /* Page header */
+  .page-header { text-align: center; padding: 80px 0 40px; }
+  .page-header h1 { font-size: 2.4em; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.5px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+  /* Section headings */
+  .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .compare-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+  .compare-table th:not(:first-child) { text-align: center; }
+  .compare-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.92em; }
+  .compare-table td:not(:first-child) { text-align: center; }
+  .compare-table td:first-child { color: var(--text); font-weight: 600; }
+  .compare-table tr:hover { background: var(--surface); }
+  .check { color: var(--green); }
+  .cross { color: #f85149; }
+  .neutral { color: var(--muted); }
+
+  /* Content blocks */
+  .content-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; margin-top: 24px; }
+  .content-block h3 { color: var(--accent); margin-bottom: 12px; font-size: 1.1em; }
+  .content-block p { color: var(--muted); font-size: 0.95em; margin-bottom: 12px; }
+  .content-block p:last-child { margin-bottom: 0; }
+  .content-block ul { list-style: none; margin: 12px 0; }
+  .content-block li { padding: 6px 0; color: var(--muted); font-size: 0.93em; }
+  .content-block li::before { content: "- "; color: var(--green); margin-right: 4px; }
+
+  /* Two-column grid */
+  .when-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  @media (max-width: 640px) { .when-grid { grid-template-columns: 1fr; } }
+
+  /* Migration steps */
+  .migration-step { display: flex; gap: 16px; margin-bottom: 20px; }
+  .step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #000; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.9em; }
+  .step-content h4 { margin-bottom: 4px; font-size: 1em; }
+  .step-content p { color: var(--muted); font-size: 0.92em; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+  footer .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  footer .footer-links a { color: var(--muted); }
+  footer .footer-links a:hover { color: var(--text); }
+
+  /* Prose */
+  .prose { color: var(--muted); font-size: 0.95em; line-height: 1.7; max-width: 720px; }
+  .prose p { margin-bottom: 16px; }
+  .prose strong { color: var(--text); }
+
+  /* Responsive nav */
+  @media (max-width: 640px) {
+    nav { flex-direction: column; gap: 12px; }
+    nav .links { flex-wrap: wrap; justify-content: center; }
+    .page-header h1 { font-size: 1.8em; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Satoshi API</a>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/docs">API Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="/best-bitcoin-api-for-developers">Compare</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- Header -->
+<div class="page-header">
+  <h1><span>Satoshi API</span> vs BlockCypher</h1>
+  <p class="subtitle">Self-hosted Bitcoin Core REST API compared to hosted multi-chain API service. Two different approaches to building on Bitcoin.</p>
+</div>
+
+<!-- Overview -->
+<section>
+  <div class="prose">
+    <p><strong>BlockCypher</strong> is a hosted, multi-chain API service that provides REST endpoints for Bitcoin, Ethereum, Litecoin, and Dogecoin. It handles infrastructure, offers address balance lookups, transaction history, and webhook notifications. Developers send queries to BlockCypher's servers, which maintain their own indexed copies of each blockchain.</p>
+    <p><strong>Satoshi API</strong> is an open-source, self-hosted REST API that sits on top of a developer's own Bitcoin Core node. It exposes analyzed endpoints for fees, mempool, mining, and network data. All queries stay local. Satoshi API is Bitcoin-only and does not index addresses or wallet balances.</p>
+    <p>These are fundamentally different architectures solving overlapping problems. BlockCypher abstracts away node management entirely. Satoshi API assumes the developer wants to run their own node and need a clean API layer on top of it.</p>
+  </div>
+</section>
+
+<!-- Comparison Table -->
+<section>
+  <h2 class="section-title">Feature Comparison</h2>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>BlockCypher</th>
+        <th>Satoshi API</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hosting model</td>
+        <td>SaaS (managed)</td>
+        <td>Self-hosted + hosted Pro</td>
+      </tr>
+      <tr>
+        <td>Multi-chain</td>
+        <td><span class="check">BTC / ETH / LTC / DOGE</span></td>
+        <td><span class="neutral">Bitcoin only</span></td>
+      </tr>
+      <tr>
+        <td>Query privacy</td>
+        <td><span class="cross">BlockCypher sees all queries</span></td>
+        <td><span class="check">Fully local, no third party</span></td>
+      </tr>
+      <tr>
+        <td>Vendor lock-in</td>
+        <td><span class="cross">Proprietary, dependent on service</span></td>
+        <td><span class="check">MIT licensed, no lock-in</span></td>
+      </tr>
+      <tr>
+        <td>Address balance / TX history</td>
+        <td><span class="check">Full address indexing</span></td>
+        <td><span class="cross">UTXO + validation only</span></td>
+      </tr>
+      <tr>
+        <td>Webhooks</td>
+        <td><span class="check">Transaction & address webhooks</span></td>
+        <td><span class="neutral">SSE real-time streams</span></td>
+      </tr>
+      <tr>
+        <td>AI agent support (MCP)</td>
+        <td><span class="cross">No</span></td>
+        <td><span class="check">Built-in MCP server</span></td>
+      </tr>
+      <tr>
+        <td>Fee analysis</td>
+        <td><span class="neutral">Basic estimates</span></td>
+        <td><span class="check">Multi-target, congestion scoring</span></td>
+      </tr>
+      <tr>
+        <td>Mempool analysis</td>
+        <td><span class="neutral">Limited</span></td>
+        <td><span class="check">Deep: distribution, age, weight</span></td>
+      </tr>
+      <tr>
+        <td>Free tier rate limit</td>
+        <td>3 req/sec, 200 req/hr</td>
+        <td>Unlimited (self-hosted)</td>
+      </tr>
+      <tr>
+        <td>Paid plans</td>
+        <td>$75 - $475/mo</td>
+        <td>$19/mo hosted Pro</td>
+      </tr>
+      <tr>
+        <td>Source code</td>
+        <td><span class="cross">Closed source</span></td>
+        <td><span class="check">Open source (MIT)</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- When to use each -->
+<section>
+  <h2 class="section-title">When to Use Each</h2>
+  <div class="when-grid">
+    <div class="content-block">
+      <h3>When to use BlockCypher</h3>
+      <ul>
+        <li>Multi-chain support is required (ETH, LTC, DOGE alongside BTC)</li>
+        <li>Address balance and transaction history lookups are core to the application</li>
+        <li>Webhook-driven architecture is already in place</li>
+        <li>Running and maintaining a Bitcoin Core node is not feasible</li>
+        <li>Rapid prototyping across multiple blockchains</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <h3>When to use Satoshi API</h3>
+      <ul>
+        <li>Bitcoin-focused application with no multi-chain requirements</li>
+        <li>Privacy-critical queries that cannot leave the local network</li>
+        <li>AI agent integration via MCP is needed</li>
+        <li>Cost-sensitive at scale (no per-request fees when self-hosted)</li>
+        <li>Full control over infrastructure, caching, and rate limits</li>
+        <li>Analyzed fee and mempool data beyond raw blockchain reads</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Migration Path -->
+<section>
+  <h2 class="section-title">Migration Path from BlockCypher</h2>
+  <p class="prose" style="margin-bottom: 24px;">For developers currently using BlockCypher who want to move to a self-hosted setup, the migration depends on which endpoints are in use.</p>
+
+  <div class="content-block">
+    <div class="migration-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Set up Bitcoin Core</h4>
+        <p>Install and sync a Bitcoin Core node. Satoshi API requires a fully synced node with RPC enabled. Initial sync takes 1-3 days depending on hardware.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Install Satoshi API</h4>
+        <p>Run <code>pip install satoshi-api</code> and configure RPC credentials. The API starts immediately and exposes all endpoints on port 9332 by default.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Map BlockCypher endpoints</h4>
+        <p>Block and transaction endpoints map directly. Fee estimation, mempool, and network info endpoints have Satoshi API equivalents with richer analysis. Replace webhook listeners with SSE stream consumers.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Address endpoints: add an indexer</h4>
+        <p>If the application uses BlockCypher's address balance or transaction history endpoints, those require an additional indexing layer. <a href="https://github.com/romanz/electrs">Electrs</a> or <a href="https://github.com/cculianu/Fulcrum">Fulcrum</a> can provide address lookups alongside Satoshi API. This is the only non-trivial step.</p>
+      </div>
+    </div>
+    <div class="migration-step" style="margin-bottom: 0;">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Cut over</h4>
+        <p>Point application traffic to the self-hosted instance. There are no API keys to rotate on the Satoshi API side (unless using the hosted Pro tier). Monitor via the built-in <code>/health</code> endpoint.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/">Satoshi API</a>
+    <a href="/docs">API Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api">GitHub</a>
+    <a href="/best-bitcoin-api-for-developers">All Comparisons</a>
+  </div>
+  <p>Satoshi API is open-source software (MIT License).</p>
+</footer>
+
+</body>
+</html>

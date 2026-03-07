@@ -49,6 +49,7 @@
   nav .links { display: flex; gap: 24px; font-size: 0.9em; }
   nav .links a { color: var(--muted); }
   nav .links a:hover { color: var(--text); text-decoration: none; }
+  .nav-toggle { display: none; }
 
   /* Hero */
   .hero { text-align: center; padding: 100px 0 80px; }
@@ -133,10 +134,61 @@
   .uptime-badge { font-size: 0.75em; background: #3fb95018; color: var(--green); padding: 2px 8px; border-radius: 10px; border: 1px solid #3fb95030; }
 
   @media (max-width: 600px) {
-    .hero h1 { font-size: 2em; }
+    .hero h1 { font-size: 1.75em; letter-spacing: -0.5px; }
     .hero .subtitle { font-size: 1em; }
+    .hero { padding: 60px 0 48px; }
     section { padding: 48px 0; }
-    .trust-badges { gap: 8px; }
+
+    /* Nav: collapsible menu */
+    nav { padding: 12px 16px; flex-wrap: wrap; }
+    nav .links { display: none; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
+    nav .links.open { display: flex; }
+    .nav-toggle { display: block; background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+    .container { padding: 0 16px; }
+
+    /* CTA buttons stack vertically */
+    .hero .cta { flex-direction: column; align-items: center; gap: 10px; }
+    .hero .cta a { width: 100%; max-width: 300px; text-align: center; padding: 14px 20px; }
+
+    /* Code blocks: smaller font, don't overflow */
+    pre { font-size: 0.78em; padding: 14px; line-height: 1.6; word-break: break-word; }
+
+    /* Trust badges wrap nicely */
+    .trust-badges { gap: 8px; padding: 16px 0; }
+    .trust-badge { font-size: 0.8em; padding: 5px 12px; }
+
+    /* Feature/use-case grids: single column */
+    .features, .use-cases { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+    .feature, .use-case { padding: 20px; }
+
+    /* Pricing: single column */
+    .pricing-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+    .price-card { padding: 24px; }
+    .price-card .price { font-size: 1.6em; }
+
+    /* Tables: horizontal scroll wrapper */
+    .endpoint-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .endpoint-table th, .endpoint-table td { white-space: nowrap; padding: 8px; font-size: 0.82em; }
+
+    /* Stack diagram */
+    .stack-layer { padding: 14px 20px; font-size: 0.9em; }
+
+    /* Section titles */
+    .section-title { font-size: 1.4em; }
+    .section-subtitle { font-size: 0.95em; }
+
+    /* Registration form: stack on very small screens */
+    #register-form > div:first-child { flex-direction: column; }
+    #register-form input, #register-form button { width: 100%; }
+    #register-form button { padding: 12px; }
+
+    /* Bottom CTA */
+    .bottom-cta h2 { font-size: 1.4em; }
+    .bottom-cta .cta { flex-direction: column; align-items: center; gap: 10px; }
+    .bottom-cta .cta a { width: 100%; max-width: 300px; text-align: center; }
+
+    /* Footer links wrap */
+    footer p { line-height: 2; }
   }
 </style>
 <script type="application/ld+json">
@@ -265,6 +317,7 @@
 
 <nav>
   <div class="logo">Satoshi API</div>
+  <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="links">
     <a href="#features">Features</a>
     <a href="#use-cases">Use Cases</a>

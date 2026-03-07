@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Hosted Bitcoin API — Run Your Own REST API on Your Node</title>
+<meta name="description" content="Run your own Bitcoin REST API with Satoshi API. Self-hosted, privacy-preserving, zero rate limits. One pip install turns your Bitcoin Core node into a full API server.">
+<meta name="keywords" content="self-hosted bitcoin api, run your own bitcoin api, bitcoin api self host, bitcoin node rest api, private bitcoin api, bitcoin core api server, self hosted bitcoin node api">
+<link rel="canonical" href="https://bitcoinsapi.com/self-hosted-bitcoin-api">
+<meta property="og:title" content="Self-Hosted Bitcoin API — Run Your Own REST API on Your Node">
+<meta property="og:description" content="Run your own Bitcoin REST API. Self-hosted, privacy-preserving, zero rate limits. One pip install turns your Bitcoin Core node into a full API server.">
+<meta property="og:url" content="https://bitcoinsapi.com/self-hosted-bitcoin-api">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Self-Hosted Bitcoin API — Run Your Own REST API on Your Node">
+<meta name="twitter:description" content="Run your own Bitcoin REST API. Self-hosted, privacy-preserving, zero rate limits. One pip install turns your Bitcoin Core node into a full API server.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; font-size: 0.85em; line-height: 1.7; }
+  pre code { background: none; padding: 0; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 80px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* Nav */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  nav .logo { font-weight: 700; font-size: 1.1em; color: var(--accent); }
+  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
+  nav .links a { color: var(--muted); }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 100px 0 60px; }
+  .hero h1 { font-size: 2.6em; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle { font-size: 1.15em; color: var(--muted); max-width: 680px; margin: 0 auto 32px; }
+
+  /* Section headings */
+  .section-title { font-size: 1.8em; font-weight: 700; margin-bottom: 8px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 16px; }
+
+  /* Reason cards */
+  .reasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+  .reason { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+  .reason h3 { color: var(--accent); margin-bottom: 8px; font-size: 1.05em; }
+  .reason p { color: var(--muted); font-size: 0.95em; }
+
+  /* Architecture diagram */
+  .stack { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 48px 0; }
+  .stack-layer { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 48px; text-align: center; width: 100%; max-width: 500px; }
+  .stack-layer.active { border-color: var(--accent); }
+  .stack-arrow { color: var(--muted); font-size: 1.5em; }
+
+  /* Steps */
+  .steps { margin-top: 32px; }
+  .step { margin-bottom: 32px; }
+  .step h3 { margin-bottom: 12px; font-size: 1.1em; }
+  .step-number { display: inline-block; background: var(--accent); color: #000; font-weight: 700; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; margin-right: 8px; font-size: 0.85em; }
+
+  /* Deployment options */
+  .deploy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 32px; }
+  .deploy-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+  .deploy-card h3 { margin-bottom: 8px; font-size: 1em; }
+  .deploy-card p { color: var(--muted); font-size: 0.9em; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .compare-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 2px solid var(--border); }
+  .compare-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9em; }
+
+  /* Audience cards */
+  .audience { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 32px; }
+  .audience-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+  .audience-card h3 { margin-bottom: 8px; font-size: 1.05em; }
+  .audience-card p { color: var(--muted); font-size: 0.9em; }
+
+  /* CTA */
+  .bottom-cta { text-align: center; padding: 80px 0; }
+  .bottom-cta h2 { font-size: 2em; margin-bottom: 12px; }
+  .bottom-cta p { color: var(--muted); margin-bottom: 24px; }
+  .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .cta a { display: inline-block; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 1em; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #e8890f; text-decoration: none; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+  .btn-secondary:hover { border-color: var(--muted); text-decoration: none; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8em; }
+    .hero .subtitle { font-size: 1em; }
+    section { padding: 48px 0; }
+    .stack-layer { padding: 12px 24px; }
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can I run Satoshi API on my own Bitcoin node?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Satoshi API is designed to be self-hosted. Install it with pip install satoshi-api, point it at your Bitcoin Core node, and it starts a REST API on localhost:9332. No accounts, no cloud services, no third parties."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are the advantages of a self-hosted Bitcoin API over hosted services?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Self-hosting preserves privacy (no one sees your address lookups or transaction queries), removes rate limits (your hardware, your throughput), eliminates vendor lock-in (MIT licensed, no accounts needed), costs nothing ($0 forever), and gives you full control over uptime and availability."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What do I need to self-host Satoshi API?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You need a Bitcoin Core node running with server=1 in bitcoin.conf, and Python 3.10 or higher (or Docker). The txindex=1 option is recommended for full transaction lookup support. Installation is one command: pip install satoshi-api."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is Satoshi API different from running Bitcoin Core RPC directly?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bitcoin Core RPC returns raw, unprocessed data and has no REST interface, no caching, no rate limiting, and no input validation. Satoshi API adds a clean REST layer with analyzed responses (fee recommendations in sat/vB, congestion scores), reorg-aware caching, tiered rate limiting to protect your node, and MCP support for AI agents."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo" style="text-decoration: none;">Satoshi API</a>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/docs">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="/best-bitcoin-api-for-developers">Compare</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Self-Hosted <span>Bitcoin API</span></h1>
+    <p class="subtitle">Running your own Bitcoin API eliminates third-party dependencies, preserves privacy, and removes rate limits. Satoshi API turns any Bitcoin Core node into a full REST API server with one command.</p>
+  </div>
+</section>
+
+<!-- Why Self-Host -->
+<section id="why-self-host">
+  <div class="container">
+    <h2 class="section-title">Why self-host your Bitcoin API?</h2>
+    <p class="section-subtitle">Every query to a hosted API leaks information about what you're building and who you're serving. Self-hosting fixes that.</p>
+    <div class="reasons">
+      <div class="reason">
+        <h3>Privacy</h3>
+        <p>No one sees your queries. Address lookups, transaction checks, fee estimates, UTXO scans -- all stay between your app and your node. No IP logging by a third party, no usage analytics you didn't consent to.</p>
+      </div>
+      <div class="reason">
+        <h3>No rate limits</h3>
+        <p>Your hardware, your throughput. Burst 10,000 requests per second during a fee spike? No 429 errors, no throttling, no waiting for quota resets. You decide how hard to push your own machine.</p>
+      </div>
+      <div class="reason">
+        <h3>No vendor lock-in</h3>
+        <p>MIT licensed, no account needed. Your code calls localhost -- if you ever swap to a different tool, change one URL. No proprietary SDKs, no API key migrations, no contract negotiations.</p>
+      </div>
+      <div class="reason">
+        <h3>No surprise pricing</h3>
+        <p>$0 forever. No tiered pricing that changes when you scale. No invoices that spike because your app went viral. The only cost is the hardware you already run your node on.</p>
+      </div>
+      <div class="reason">
+        <h3>Uptime on your terms</h3>
+        <p>Your infrastructure, your availability. No dependency on someone else's servers, their maintenance windows, their outages. If your node is up, your API is up.</p>
+      </div>
+      <div class="reason">
+        <h3>Sovereignty</h3>
+        <p>The Bitcoin ethos is "don't trust, verify." Running a full node embodies that. A self-hosted API extends the same principle to your application layer -- your app verifies data from your own node, not from a company that could censor, throttle, or shut down.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section id="architecture">
+  <div class="container">
+    <h2 class="section-title">How it works</h2>
+    <p class="section-subtitle">Satoshi API sits between your applications and Bitcoin Core, translating raw RPC into clean REST.</p>
+    <div class="stack">
+      <div class="stack-layer"><strong>Your Application</strong><br><span style="color: var(--muted); font-size: 0.85em;">Web app, wallet, bot, AI agent</span></div>
+      <div class="stack-arrow">&#8595;</div>
+      <div class="stack-layer active"><strong style="color: var(--accent);">Satoshi API</strong><br><span style="color: var(--muted); font-size: 0.85em;">localhost:9332 -- REST, caching, rate limiting, analysis</span></div>
+      <div class="stack-arrow">&#8595;</div>
+      <div class="stack-layer"><strong>Bitcoin Core RPC</strong><br><span style="color: var(--muted); font-size: 0.85em;">localhost:8332 -- JSON-RPC interface</span></div>
+      <div class="stack-arrow">&#8595;</div>
+      <div class="stack-layer"><strong>Blockchain</strong><br><span style="color: var(--muted); font-size: 0.85em;">900,000+ blocks of verified data</span></div>
+    </div>
+    <p style="color: var(--muted); max-width: 700px; margin: 0 auto; text-align: center;">Satoshi API adds analyzed responses (fee recommendations in sat/vB, mempool congestion scores), reorg-aware smart caching (deep blocks cached longer, tip blocks refresh frequently), and tiered rate limiting that protects your node from your own applications during traffic spikes.</p>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section id="quickstart">
+  <div class="container">
+    <h2 class="section-title">Quick start</h2>
+    <p class="section-subtitle">From node to API in three steps.</p>
+    <div class="steps">
+      <div class="step">
+        <h3><span class="step-number">1</span> Prerequisites</h3>
+        <p style="color: var(--muted); margin-bottom: 12px;">Bitcoin Core running with <code>server=1</code> in <code>bitcoin.conf</code>. Python 3.10+ installed. <code>txindex=1</code> recommended for full transaction lookups.</p>
+      </div>
+      <div class="step">
+        <h3><span class="step-number">2</span> Install</h3>
+<pre><code>pip install satoshi-api</code></pre>
+      </div>
+      <div class="step">
+        <h3><span class="step-number">3</span> Run</h3>
+<pre><code><span style="color: var(--muted)"># Set your Bitcoin Core RPC credentials</span>
+export BITCOIN_RPC_USER=your_user
+export BITCOIN_RPC_PASSWORD=your_password
+
+<span style="color: var(--muted)"># Start the API</span>
+satoshi-api
+<span style="color: var(--green)">INFO</span>  Satoshi API running at http://localhost:9332
+<span style="color: var(--green)">INFO</span>  Interactive docs at http://localhost:9332/docs</code></pre>
+      </div>
+    </div>
+    <p style="color: var(--muted); margin-top: 16px;">That's it. 40 REST endpoints are now available on your machine. Open <code>http://localhost:9332/docs</code> for the interactive Swagger UI playground.</p>
+  </div>
+</section>
+
+<!-- Deployment Options -->
+<section id="deployment">
+  <div class="container">
+    <h2 class="section-title">Deployment options</h2>
+    <p class="section-subtitle">Self-hosted doesn't mean local-only. Choose the deployment model that fits your use case.</p>
+    <div class="deploy-grid">
+      <div class="deploy-card">
+        <h3>Local development</h3>
+        <p><code>pip install satoshi-api</code> and run. Best for development, testing, and personal use. API available at localhost:9332.</p>
+      </div>
+      <div class="deploy-card">
+        <h3>Docker</h3>
+        <p><code>docker compose up -d</code> for containerized deployment. Includes health checks and auto-restart. Same image runs on any Docker host.</p>
+      </div>
+      <div class="deploy-card">
+        <h3>Cloudflare Tunnel</h3>
+        <p>Expose your self-hosted API publicly with DDoS protection, SSL termination, and a custom domain. No port forwarding, no static IP needed.</p>
+      </div>
+      <div class="deploy-card">
+        <h3>Reverse proxy</h3>
+        <p>Put nginx or Caddy in front for SSL, custom domains, and additional access controls. Standard ASGI app, works with any reverse proxy.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Self-Hosted Alternatives -->
+<section id="alternatives">
+  <div class="container">
+    <h2 class="section-title">Self-hosted alternatives</h2>
+    <p class="section-subtitle">Satoshi API is not the only option. Here's how the self-hostable tools compare.</p>
+    <table class="compare-table">
+      <thead>
+        <tr><th>Capability</th><th>Satoshi API</th><th>Blockstream Esplora</th><th>Bitcoin Core RPC</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Interface</td><td style="color: var(--green);">REST API</td><td>REST API</td><td>JSON-RPC only</td></tr>
+        <tr><td>Primary focus</td><td>Developer API</td><td>Block explorer</td><td>Node control</td></tr>
+        <tr><td>Analyzed data</td><td style="color: var(--green);">Fee recs, congestion scores</td><td>Raw data</td><td>Raw data</td></tr>
+        <tr><td>Smart caching</td><td style="color: var(--green);">Reorg-aware TTL</td><td>Electrs index</td><td>None</td></tr>
+        <tr><td>Rate limiting</td><td style="color: var(--green);">Built-in, tiered</td><td>None</td><td>None</td></tr>
+        <tr><td>Address lookups</td><td>Roadmap</td><td style="color: var(--green);">Yes</td><td>Wallet only</td></tr>
+        <tr><td>AI agent support</td><td style="color: var(--green);">MCP ready</td><td>No</td><td>No</td></tr>
+        <tr><td>Install complexity</td><td style="color: var(--green);">pip install</td><td>Docker + Electrs</td><td>Already running</td></tr>
+        <tr><td>License</td><td>MIT</td><td>MIT</td><td>MIT</td></tr>
+        <tr><td>Language</td><td>Python (FastAPI)</td><td>Rust</td><td>C++</td></tr>
+      </tbody>
+    </table>
+    <p style="color: var(--muted); margin-top: 16px; font-size: 0.9em;">Esplora is the stronger choice if you need address-based lookups and are willing to run Electrs for indexing. Bitcoin Core RPC is always there but provides no REST layer, no caching, and no input validation. Satoshi API fills the gap for developers who want a clean REST interface with analyzed data and minimal setup.</p>
+  </div>
+</section>
+
+<!-- Who Is This For -->
+<section id="audience">
+  <div class="container">
+    <h2 class="section-title">Who is this for?</h2>
+    <p class="section-subtitle">Anyone who already runs a Bitcoin node and wants a proper API on top of it.</p>
+    <div class="audience">
+      <div class="audience-card">
+        <h3>Node operators</h3>
+        <p>You run a full node already. You want programmatic access to fees, mempool state, and block data without relying on someone else's API. Install, point, query.</p>
+      </div>
+      <div class="audience-card">
+        <h3>Wallet developers</h3>
+        <p>Building a wallet or payment processor? Get fee estimates, broadcast transactions, and validate addresses from your own infrastructure. No third-party dependency in your critical path.</p>
+      </div>
+      <div class="audience-card">
+        <h3>Privacy advocates</h3>
+        <p>Every query to a hosted API correlates your IP with the addresses and transactions you care about. Self-hosted means zero data leakage to third parties.</p>
+      </div>
+      <div class="audience-card">
+        <h3>AI agent builders</h3>
+        <p>Give Claude, GPT, or your custom agent direct access to Bitcoin data via MCP tool calls. Your agent queries your node -- no API keys, no rate limits, no middleman.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bottom CTA -->
+<section class="bottom-cta">
+  <div class="container">
+    <h2>Your node. Your API. Your rules.</h2>
+    <p>One pip install. Zero third-party dependencies. Full sovereignty over your Bitcoin data.</p>
+    <div class="cta">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" target="_blank" rel="noopener noreferrer">Get Started on GitHub</a>
+      <a href="/docs" class="btn-secondary">API Reference</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the MIT License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/">Home</a> &middot;
+      <a href="/best-bitcoin-api-for-developers">Best Bitcoin API for Developers</a> &middot;
+      <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+      <a href="/vs-mempool">vs Mempool.space</a> &middot;
+      <a href="/vs-blockcypher">vs BlockCypher</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

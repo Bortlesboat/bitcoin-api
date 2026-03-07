@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.3.0] - 2026-03-07
+
+### Added
+- `GET /fees/landscape` — "should I send now or wait?" decision engine
+- `GET /fees/estimate-tx` — transaction size and fee cost estimator
+- `GET /fees/history` — historical fee rates with cheapest hour
+- `GET /stream/blocks` — real-time new block events (Server-Sent Events)
+- `GET /stream/fees` — live fee rate updates every 30s (SSE)
+- `GET /tools/exchange-compare` — cross-exchange fee comparison (optional)
+- `POST /register` — self-serve API key registration
+- SEO pages: 7 decision/comparison pages with JSON-LD structured data
+- robots.txt, sitemap.xml for search engine indexing
+- IndexNow integration for Bing/Yandex indexing
+- SEO metrics tracker script (`scripts/seo_metrics.py`)
+- Security headers: CSP, HSTS, X-Frame-Options, Permissions-Policy
+- CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md
+- GitHub issue templates, PR template, dependabot config
+- 15 GitHub topics for discoverability
+
+### Changed
+- Total endpoints: 33 → 40+
+- Unit tests: 80 → 110
+- README completely overhauled with badges, collapsible sections, live examples
+- Landing page updated with JSON-LD structured data and improved meta tags
+- Static pages exempt from rate limiting (crawlers can access freely)
+- OG image updated to reflect 40 endpoints
+
 ## [0.2.1] - 2026-03-06
 
 ### Added
