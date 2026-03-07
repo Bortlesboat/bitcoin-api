@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "satoshi-api"
-version = "0.1.0"
+version = "0.2.1"
 description = "Satoshi API — developer-friendly Bitcoin REST API powered by your own node"
 readme = "README.md"
 license = "MIT"
