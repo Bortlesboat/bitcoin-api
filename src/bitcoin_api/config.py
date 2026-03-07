@@ -36,6 +36,9 @@ class Settings(BaseSettings):
             "address_router": self.enable_address_router,
         }
 
+    # Logging format ("text" or "json")
+    log_format: str = "text"
+
     # RPC timeout (seconds)
     rpc_timeout: int = 30
 

@@ -987,7 +987,7 @@ def test_stream_fees_generator(mock_rpc):
 def test_exchange_compare_default(client, monkeypatch):
     """Exchange compare returns results for default $100."""
     monkeypatch.setattr(
-        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 92000.0
+        "bitcoin_api.routers.exchanges.get_cached_price", lambda: 92000.0
     )
     resp = client.get("/api/v1/tools/exchange-compare")
     assert resp.status_code == 200
@@ -1005,7 +1005,7 @@ def test_exchange_compare_default(client, monkeypatch):
 def test_exchange_compare_custom_amount(client, monkeypatch):
     """Exchange compare with custom USD amount."""
     monkeypatch.setattr(
-        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 92000.0
+        "bitcoin_api.routers.exchanges.get_cached_price", lambda: 92000.0
     )
     resp = client.get("/api/v1/tools/exchange-compare?amount_usd=10")
     assert resp.status_code == 200
@@ -1020,7 +1020,7 @@ def test_exchange_compare_custom_amount(client, monkeypatch):
 def test_exchange_compare_fee_math(client, monkeypatch):
     """Verify fee calculations are correct for a known exchange."""
     monkeypatch.setattr(
-        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 100000.0
+        "bitcoin_api.routers.exchanges.get_cached_price", lambda: 100000.0
     )
     resp = client.get("/api/v1/tools/exchange-compare?amount_usd=1000")
     assert resp.status_code == 200
@@ -1038,7 +1038,7 @@ def test_exchange_compare_fee_math(client, monkeypatch):
 def test_exchange_compare_below_minimum(client, monkeypatch):
     """Exchanges with higher minimums are excluded for small amounts."""
     monkeypatch.setattr(
-        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 92000.0
+        "bitcoin_api.routers.exchanges.get_cached_price", lambda: 92000.0
     )
     resp = client.get("/api/v1/tools/exchange-compare?amount_usd=5")
     assert resp.status_code == 200
@@ -1060,7 +1060,7 @@ def test_exchange_compare_invalid_amount(client):
 def test_exchange_compare_price_unavailable(client, monkeypatch):
     """Returns error message when BTC price is unavailable."""
     monkeypatch.setattr(
-        "bitcoin_api.routers.exchanges._get_btc_price", lambda: None
+        "bitcoin_api.routers.exchanges.get_cached_price", lambda: None
     )
     resp = client.get("/api/v1/tools/exchange-compare")
     assert resp.status_code == 200

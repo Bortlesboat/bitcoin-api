@@ -29,7 +29,7 @@ def _get_applied(conn: sqlite3.Connection) -> set[str]:
 def _get_pending(conn: sqlite3.Connection) -> list[Path]:
     """Return sorted list of .sql migration files not yet applied."""
     applied = _get_applied(conn)
-    sql_files = sorted(_MIGRATIONS_DIR.glob("*.sql"))
+    sql_files = sorted(f for f in _MIGRATIONS_DIR.glob("*.sql") if not f.stem.endswith(".down"))
     return [f for f in sql_files if f.stem not in applied]
 
 
@@ -56,3 +56,71 @@ def run_pending(conn: sqlite3.Connection) -> list[str]:
             raise
 
     return applied
+
+
+def rollback_last(conn: sqlite3.Connection) -> str | None:
+    """Rollback the most recently applied migration if a .down.sql file exists.
+
+    Returns the rolled-back version name, or None if nothing to rollback.
+    """
+    _ensure_migrations_table(conn)
+    row = conn.execute(
+        "SELECT version FROM schema_migrations ORDER BY applied_at DESC, version DESC LIMIT 1"
+    ).fetchone()
+    if not row:
+        return None
+
+    version = row[0]
+    down_file = _MIGRATIONS_DIR / f"{version}.down.sql"
+    if not down_file.exists():
+        log.warning("No rollback file for %s (expected %s)", version, down_file.name)
+        return None
+
+    sql = down_file.read_text(encoding="utf-8")
+    try:
+        conn.executescript(sql)
+        conn.execute("DELETE FROM schema_migrations WHERE version = ?", (version,))
+        conn.commit()
+        log.info("Rolled back migration: %s", version)
+        return version
+    except Exception:
+        log.error("Failed to rollback migration: %s", version, exc_info=True)
+        raise
+
+
+def get_migration_status(conn: sqlite3.Connection) -> list[dict]:
+    """Return list of applied migrations with rollback availability."""
+    _ensure_migrations_table(conn)
+    rows = conn.execute(
+        "SELECT version, applied_at FROM schema_migrations ORDER BY version"
+    ).fetchall()
+    result = []
+    for version, applied_at in rows:
+        down_file = _MIGRATIONS_DIR / f"{version}.down.sql"
+        result.append({
+            "version": version,
+            "applied_at": applied_at,
+            "has_rollback": down_file.exists(),
+        })
+    return result
+
+
+def validate_migrations() -> list[str]:
+    """Check that migration files are sequential and well-formed. Returns list of warnings."""
+    warnings = []
+    sql_files = sorted(f for f in _MIGRATIONS_DIR.glob("*.sql") if not f.stem.endswith(".down"))
+
+    for i, f in enumerate(sql_files):
+        prefix = f.stem.split("_")[0]
+        try:
+            num = int(prefix)
+            if num != i + 1:
+                warnings.append(f"{f.name}: expected prefix {i+1:03d}, got {prefix}")
+        except ValueError:
+            warnings.append(f"{f.name}: prefix '{prefix}' is not a number")
+
+        content = f.read_text(encoding="utf-8").strip()
+        if not content:
+            warnings.append(f"{f.name}: file is empty")
+
+    return warnings

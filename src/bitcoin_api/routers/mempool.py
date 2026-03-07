@@ -1,6 +1,5 @@
 """Mempool endpoints: /mempool, /mempool/info, /mempool/tx/{txid}, /mempool/txids, /mempool/recent."""
 
-import math
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Path
@@ -10,6 +9,7 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..cache import cached_blockchain_info, cached_mempool_analysis, cached_raw_mempool
 from ..dependencies import get_rpc
 from ..models import ApiResponse, MempoolAnalysisData, envelope
+from ..services.serializers import sanitize_for_json
 
 router = APIRouter(prefix="/mempool", tags=["Mempool"])
 
@@ -114,17 +114,6 @@ _MEMPOOL_ENTRY_EXAMPLE = {
 _TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
 
-def _sanitize_for_json(obj):
-    """Replace inf/nan floats that JSON can't serialize."""
-    if isinstance(obj, dict):
-        return {k: _sanitize_for_json(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_sanitize_for_json(v) for v in obj]
-    if isinstance(obj, float) and (math.isinf(obj) or math.isnan(obj)):
-        return None
-    return obj
-
-
 @router.get("", response_model=ApiResponse[MempoolAnalysisData], responses=_MEMPOOL_ANALYSIS_EXAMPLE)
 def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
     """Full mempool analysis: fee buckets, congestion level, next-block minimum fee."""
@@ -136,7 +125,7 @@ def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
         raw.setdefault("bytes", raw.pop("total_bytes"))
     if "buckets" in raw:
         raw.setdefault("fee_buckets", raw.pop("buckets"))
-    data = _sanitize_for_json(raw)
+    data = sanitize_for_json(raw)
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 

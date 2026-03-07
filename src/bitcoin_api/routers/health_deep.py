@@ -9,6 +9,7 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..cache import get_cache_state, get_sync_progress, get_all_cache_stats
 from ..dependencies import get_rpc
 from ..jobs import get_job_health
+from ..migrations.runner import get_migration_status
 from ..models import envelope
 from ..usage_buffer import usage_buffer
 
@@ -36,11 +37,13 @@ def health_deep(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
 
     # DB check
     db_ok = False
+    migrations = []
     try:
         from ..db import get_db
         conn = get_db()
         conn.execute("SELECT 1").fetchone()
         db_ok = True
+        migrations = get_migration_status(conn)
     except Exception:
         pass
 
@@ -53,7 +56,7 @@ def health_deep(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
 
     data = {
         "rpc": {"ok": rpc_ok, "height": rpc_height},
-        "db": {"ok": db_ok},
+        "db": {"ok": db_ok, "migrations_applied": len(migrations), "latest_migration": migrations[-1]["version"] if migrations else None},
         "cache": {
             "blockchain_info_cached": cache_cached,
             "blockchain_info_age_seconds": cache_age,

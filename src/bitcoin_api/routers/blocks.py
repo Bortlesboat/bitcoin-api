@@ -8,24 +8,11 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis, cached_block_by_hash
 from ..dependencies import get_rpc
 from ..models import ApiResponse, BlockAnalysisData, envelope
+from ..services.serializers import serialize_block
 
 _HASH_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
 router = APIRouter(prefix="/blocks", tags=["Blocks"])
-
-
-def _serialize_block(data: dict) -> dict:
-    # Map bitcoinlib-rpc field names to API field names
-    if "fee_rate_median" in data:
-        data.setdefault("median_fee_rate", data.pop("fee_rate_median"))
-    if "total_fee_btc" in data:
-        data.setdefault("total_fee", data.pop("total_fee_btc"))
-    if data.get("top_fee_txids"):
-        data["top_fee_txids"] = [
-            {"txid": t[0], "fee_rate": t[1]} if isinstance(t, (list, tuple)) else t
-            for t in data["top_fee_txids"]
-        ]
-    return data
 
 
 @router.get(
@@ -58,7 +45,7 @@ def latest_block(rpc: BitcoinRPC = Depends(get_rpc)):
     """Analyze the most recent block."""
     height = cached_block_count(rpc)
     analysis = cached_block_analysis(rpc, height)
-    data = _serialize_block(analysis.model_dump())
+    data = serialize_block(analysis.model_dump())
     info = cached_blockchain_info(rpc)
     return envelope(data, height=height, chain=info["chain"])
 
@@ -172,7 +159,7 @@ def get_block(
     else:
         analysis = cached_block_by_hash(rpc, identifier)
 
-    data = _serialize_block(analysis.model_dump())
+    data = serialize_block(analysis.model_dump())
     info = cached_blockchain_info(rpc)
     return envelope(data, height=info["blocks"], chain=info["chain"])
 

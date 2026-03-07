@@ -5,7 +5,6 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette.requests import Request
 from bitcoinlib_rpc import BitcoinRPC
-from bitcoinlib_rpc.rpc import RPCError
 from bitcoinlib_rpc.transactions import analyze_transaction
 
 from ..cache import cached_blockchain_info
@@ -14,6 +13,7 @@ from ..models import (
     ApiResponse, BroadcastData, BroadcastRequest, DecodeRequest,
     TransactionAnalysisData, envelope,
 )
+from ..services.transactions import check_outspends, broadcast_with_validation
 
 _TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
@@ -207,16 +207,7 @@ def get_tx_outspends(
         raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
     raw = rpc.call("getrawtransaction", txid, True)
     info = cached_blockchain_info(rpc)
-    outputs = raw.get("vout", [])
-    result = []
-    for out in outputs:
-        vout_index = out["n"]
-        utxo = rpc.call("gettxout", txid, vout_index)
-        entry = {"vout": vout_index, "spent": utxo is None}
-        if utxo is not None:
-            entry["value"] = utxo.get("value")
-            entry["scriptPubKey_type"] = utxo.get("scriptPubKey", {}).get("type")
-        result.append(entry)
+    result = check_outspends(rpc, txid, raw.get("vout", []))
     return envelope(result, height=info["blocks"], chain=info["chain"])
 
 
@@ -345,25 +336,6 @@ def broadcast_transaction(
     if not _HEX_RE.match(body.hex):
         raise HTTPException(status_code=422, detail="Invalid hex string")
 
-    # Pre-validate: decode first to catch malformed hex before broadcast
-    try:
-        rpc.call("decoderawtransaction", body.hex)
-    except RPCError:
-        raise HTTPException(status_code=422, detail="Transaction could not be decoded — malformed hex")
-
-    # Broadcast with human-readable error mapping
-    _BROADCAST_ERRORS = {
-        -25: (409, "Transaction already in mempool or missing inputs"),
-        -26: (422, "Transaction failed policy checks (e.g. insufficient fee, non-standard)"),
-        -27: (409, "Transaction already confirmed in a block"),
-    }
-    try:
-        txid = rpc.call("sendrawtransaction", body.hex)
-    except RPCError as exc:
-        if exc.code in _BROADCAST_ERRORS:
-            status, detail = _BROADCAST_ERRORS[exc.code]
-            raise HTTPException(status_code=status, detail=detail)
-        raise  # Let global handler deal with other codes
-
+    txid = broadcast_with_validation(rpc, body.hex)
     info = cached_blockchain_info(rpc)
     return envelope({"txid": txid}, height=info["blocks"], chain=info["chain"])
