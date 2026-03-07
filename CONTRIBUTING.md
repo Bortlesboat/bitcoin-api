@@ -60,6 +60,38 @@ locust -f tests/locustfile.py --host http://localhost:9332
 4. Update the endpoint table in `README.md`
 5. Update `docs/SCOPE_OF_WORK.md` Section 3
 
+## Developer Certificate of Origin (DCO)
+
+This project uses the [Developer Certificate of Origin](https://developercertificate.org/) (DCO). All contributions must include a `Signed-off-by` line in the commit message, certifying that you wrote or have the right to submit the code under the project's license.
+
+### How to sign off
+
+Add `-s` to your git commit command:
+
+```bash
+git commit -s -m "Add new endpoint for X"
+```
+
+This adds a line like:
+
+```
+Signed-off-by: Your Name <your@email.com>
+```
+
+If you forgot to sign off on a commit, you can amend it:
+
+```bash
+git commit --amend -s
+```
+
+### What the DCO means
+
+By signing off, you certify (per [developercertificate.org](https://developercertificate.org/)):
+
+1. You created the contribution, or have the right to submit it.
+2. You understand it will be public and a record of the contribution is maintained.
+3. You license the contribution under the project's Apache 2.0 license.
+
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the Apache License 2.0.

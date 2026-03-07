@@ -672,7 +672,7 @@ satoshi-api
         <tr><td>Input validation</td><td style="color: var(--green);">Before RPC call</td><td>None</td><td>Yes</td></tr>
         <tr><td>Cost at scale</td><td style="color: var(--green);">$0 (self-host)</td><td>$0</td><td>$50-500+/mo</td></tr>
         <tr><td>AI agent support</td><td style="color: var(--green);">MCP ready</td><td>No</td><td>No</td></tr>
-        <tr><td>Vendor lock-in</td><td style="color: var(--green);">None (MIT)</td><td>None</td><td>Yes</td></tr>
+        <tr><td>Vendor lock-in</td><td style="color: var(--green);">None (Apache 2.0)</td><td>None</td><td>Yes</td></tr>
       </tbody>
     </table>
   </div>
@@ -693,12 +693,15 @@ satoshi-api
 
 <footer>
   <div class="container">
-    <p>Satoshi API is open source under the MIT License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="color: var(--muted); font-size: 0.8em; margin-bottom: 12px;">Data provided by this API is for informational purposes only and does not constitute financial advice. Price data powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>.</p>
+    <p>Satoshi API is open source under the Apache 2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
     <p style="margin-top: 8px;">
       <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
       <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
       <a href="/docs">API Docs</a> &middot;
-      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a> &middot;
+      <a href="/terms">Terms of Service</a> &middot;
+      <a href="/privacy">Privacy Policy</a>
     </p>
     <p style="margin-top: 8px;">
       <a href="/vs-mempool">Satoshi API vs Mempool.space</a> &middot;
@@ -754,7 +757,7 @@ function handleRegister(e) {
   btn.textContent = 'Creating...';
   result.style.display = 'none';
 
-  var body = { email: email };
+  var body = { email: email, agreed_to_terms: true };
   if (label) body.label = label;
 
   fetch('/api/v1/register', {

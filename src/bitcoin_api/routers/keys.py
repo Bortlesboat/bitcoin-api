@@ -16,10 +16,17 @@ router = APIRouter(tags=["Keys"])
 class RegisterRequest(BaseModel):
     email: str
     label: str | None = None
+    agreed_to_terms: bool = False
 
 
 @router.post("/register")
 def register(body: RegisterRequest):
+    if not body.agreed_to_terms:
+        raise HTTPException(
+            status_code=422,
+            detail="You must agree to the Terms of Service (agreed_to_terms: true). See https://bitcoinsapi.com/terms",
+        )
+
     email = body.email.strip().lower()
     if "@" not in email or "." not in email:
         raise HTTPException(status_code=422, detail="Invalid email address")

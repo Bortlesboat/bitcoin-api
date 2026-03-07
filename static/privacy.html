@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Satoshi API</title>
+<meta name="description" content="Privacy Policy for the Satoshi API hosted service at bitcoinsapi.com.">
+<link rel="canonical" href="https://bitcoinsapi.com/privacy">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --accent: #f7931a;
+  --green: #3fb950;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.container { max-width: 800px; margin: 0 auto; padding: 48px 24px; }
+h1 { color: var(--accent); margin-bottom: 8px; font-size: 2em; }
+h2 { color: var(--text); margin-top: 32px; margin-bottom: 12px; font-size: 1.3em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+p, li { color: var(--text); margin-bottom: 12px; }
+ul { margin-left: 24px; margin-bottom: 16px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.meta { color: var(--muted); font-size: 0.9em; margin-bottom: 32px; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+th { background: var(--surface); color: var(--muted); font-weight: 600; }
+footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Privacy Policy</h1>
+<p class="meta">Last updated: March 7, 2026</p>
+
+<p>This Privacy Policy describes how the Satoshi API hosted service at bitcoinsapi.com ("Service") collects, uses, and protects your information. The Service is operated by Andy Barnes ("Operator", "we", "us").</p>
+
+<h2>1. Information We Collect</h2>
+
+<table>
+<thead>
+<tr><th>Data</th><th>When Collected</th><th>Purpose</th><th>Retention</th></tr>
+</thead>
+<tbody>
+<tr><td>Email address</td><td>API key registration</td><td>Key management, abuse prevention</td><td>Until key deletion</td></tr>
+<tr><td>API key hash (SHA-256)</td><td>Registration</td><td>Authentication</td><td>Until key deletion</td></tr>
+<tr><td>IP address</td><td>Every request</td><td>Rate limiting, abuse prevention</td><td>30 days (access logs)</td></tr>
+<tr><td>Request path and method</td><td>Every request</td><td>Usage analytics, rate limiting</td><td>30 days</td></tr>
+<tr><td>HTTP status code</td><td>Every request</td><td>Error monitoring</td><td>30 days</td></tr>
+</tbody>
+</table>
+
+<h2>2. Information We Do NOT Collect</h2>
+<ul>
+<li>We do not use cookies or browser tracking.</li>
+<li>We do not collect personal information beyond email (for key registration) and IP addresses (for rate limiting).</li>
+<li>We do not store your API key in plaintext. Only the SHA-256 hash is stored.</li>
+<li>We do not log the content of your API requests or responses (e.g., transaction hex data you broadcast is not stored).</li>
+<li>We do not sell, rent, or share your data with third parties.</li>
+</ul>
+
+<h2>3. Third-Party Services</h2>
+<p>The Service uses the following third-party services:</p>
+<ul>
+<li><strong>Cloudflare:</strong> HTTPS termination, DDoS protection, and CDN. Cloudflare may process your IP address and request headers according to their <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">privacy policy</a>.</li>
+<li><strong>CoinGecko:</strong> Price data source. Your requests to our price endpoint do not go directly to CoinGecko; we fetch and cache data server-side.</li>
+</ul>
+
+<h2>4. How We Use Your Information</h2>
+<ul>
+<li><strong>Rate limiting:</strong> IP addresses and API key hashes are used to enforce per-minute and daily rate limits.</li>
+<li><strong>Abuse prevention:</strong> Access logs help identify and block abusive behavior.</li>
+<li><strong>Service improvement:</strong> Aggregate, anonymized usage data (e.g., most popular endpoints) may be used to prioritize features.</li>
+</ul>
+
+<h2>5. Data Security</h2>
+<ul>
+<li>All traffic is encrypted via HTTPS (TLS, terminated at Cloudflare).</li>
+<li>API keys are stored as SHA-256 hashes. Plaintext keys are shown once at registration and never stored.</li>
+<li>The database is stored locally on the server with filesystem-level access controls.</li>
+<li>No passwords are collected (API keys are the only credential).</li>
+</ul>
+
+<h2>6. Data Retention</h2>
+<ul>
+<li><strong>Access logs:</strong> Pruned automatically after 30 days.</li>
+<li><strong>API key records:</strong> Retained until you request deletion.</li>
+<li><strong>Fee history data:</strong> Aggregate data retained for up to 90 days for the fee history endpoint.</li>
+</ul>
+
+<h2>7. Your Rights</h2>
+<p>You may request:</p>
+<ul>
+<li><strong>Deletion</strong> of your API key and associated email by contacting us.</li>
+<li><strong>Information</strong> about what data we hold about your email address.</li>
+</ul>
+<p>Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> for data requests.</p>
+
+<h2>8. Self-Hosted Instances</h2>
+<p>This Privacy Policy applies only to the hosted service at bitcoinsapi.com. If you self-host Satoshi API, you are responsible for your own data handling practices. The open-source software does not phone home or transmit data to us.</p>
+
+<h2>9. Children's Privacy</h2>
+<p>The Service is not directed at children under 13. We do not knowingly collect information from children.</p>
+
+<h2>10. Changes to This Policy</h2>
+<p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date.</p>
+
+<h2>11. Contact</h2>
+<p>For privacy questions or data requests, contact us at <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
+
+</div>
+
+<footer>
+<div class="container">
+<p><a href="/">Home</a> &middot; <a href="/terms">Terms of Service</a> &middot; <a href="/docs">API Docs</a></p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — Satoshi API</title>
+<meta name="description" content="Terms of Service for the Satoshi API hosted service at bitcoinsapi.com.">
+<link rel="canonical" href="https://bitcoinsapi.com/terms">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --accent: #f7931a;
+  --green: #3fb950;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.container { max-width: 800px; margin: 0 auto; padding: 48px 24px; }
+h1 { color: var(--accent); margin-bottom: 8px; font-size: 2em; }
+h2 { color: var(--text); margin-top: 32px; margin-bottom: 12px; font-size: 1.3em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+p, li { color: var(--text); margin-bottom: 12px; }
+ul { margin-left: 24px; margin-bottom: 16px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.meta { color: var(--muted); font-size: 0.9em; margin-bottom: 32px; }
+footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Terms of Service</h1>
+<p class="meta">Last updated: March 7, 2026</p>
+
+<p>These Terms of Service ("Terms") govern your access to and use of the Satoshi API hosted service at bitcoinsapi.com ("Service"), operated by Andy Barnes ("Operator", "we", "us"). By accessing or using the Service, you agree to be bound by these Terms.</p>
+
+<h2>1. Service Description</h2>
+<p>Satoshi API provides a REST API for querying Bitcoin blockchain data, including block information, transaction details, fee estimates, mempool analysis, and price data. The Service wraps a Bitcoin Core node with analyzed, structured data.</p>
+
+<h2>2. Acceptance of Terms</h2>
+<p>By registering for an API key or making API requests, you agree to these Terms. If you do not agree, do not use the Service. We may update these Terms at any time; continued use after changes constitutes acceptance.</p>
+
+<h2>3. API Keys and Account Responsibility</h2>
+<ul>
+<li>API keys are issued per email address, with a maximum of 3 keys per email.</li>
+<li>You are responsible for safeguarding your API key. Do not share it publicly or embed it in client-side code.</li>
+<li>We may revoke API keys that are abused, shared publicly, or used in violation of these Terms.</li>
+<li>Anonymous (keyless) access is available for read-only GET endpoints with reduced rate limits.</li>
+</ul>
+
+<h2>4. Acceptable Use</h2>
+<p>You agree NOT to:</p>
+<ul>
+<li>Use the Service for any unlawful purpose or in violation of any applicable laws.</li>
+<li>Attempt to circumvent rate limiting, authentication, or other security measures.</li>
+<li>Use the Service to broadcast malicious, fraudulent, or spam transactions.</li>
+<li>Resell or redistribute raw API data as a competing data service.</li>
+<li>Perform automated scraping that exceeds your tier's rate limits.</li>
+<li>Attempt to access the underlying Bitcoin Core node or server infrastructure.</li>
+</ul>
+
+<h2>5. Rate Limits and Fair Use</h2>
+<p>The Service enforces per-minute and daily rate limits based on your tier (anonymous, free, pro). Rate limit headers are included in every response. Exceeding limits results in HTTP 429 responses. Persistent abuse may result in key revocation.</p>
+
+<h2>6. Financial Data Disclaimer</h2>
+<p><strong>The Service provides informational data only. It is NOT financial advice.</strong></p>
+<ul>
+<li>Fee recommendations are estimates based on current mempool conditions and may not reflect actual confirmation times.</li>
+<li>Price data is sourced from CoinGecko and cached for up to 60 seconds. It may be delayed, incomplete, or inaccurate.</li>
+<li>Transaction broadcast relays your signed transaction to the Bitcoin network. We do not guarantee confirmation, inclusion in a block, or any particular outcome.</li>
+<li>You are solely responsible for any financial decisions made using data from this Service.</li>
+</ul>
+
+<h2>7. Third-Party Data Attribution</h2>
+<p>Price data is provided by <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>. CoinGecko owns all rights to the price data delivered through the Service. Use of price data is subject to CoinGecko's terms of service.</p>
+
+<h2>8. Availability and Uptime</h2>
+<p>The Service is provided on a best-effort basis. We do not guarantee any specific uptime, availability, or response time. The Service may be interrupted for maintenance, node restarts, or infrastructure issues without notice.</p>
+
+<h2>9. Limitation of Liability</h2>
+<p><strong>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.</strong> To the maximum extent permitted by law:</p>
+<ul>
+<li>We are not liable for any damages arising from your use of the Service, including but not limited to financial losses from reliance on fee estimates, price data, or transaction broadcasts.</li>
+<li>We are not liable for data inaccuracies, service interruptions, or API key compromise.</li>
+<li>Our total liability shall not exceed the amount you paid for the Service in the 12 months preceding the claim (which may be $0 for free-tier users).</li>
+</ul>
+
+<h2>10. Indemnification</h2>
+<p>You agree to indemnify and hold harmless the Operator from any claims, damages, or expenses arising from your use of the Service or violation of these Terms.</p>
+
+<h2>11. Open Source Software</h2>
+<p>The Satoshi API software is open source under the <a href="https://github.com/Bortlesboat/bitcoin-api/blob/master/LICENSE">Apache License 2.0</a>. These Terms govern the <em>hosted service</em> at bitcoinsapi.com, not the open-source software itself. Self-hosted instances are governed solely by the Apache 2.0 license.</p>
+
+<h2>12. Termination</h2>
+<p>We may suspend or terminate your access at any time for violation of these Terms or for any reason at our sole discretion. You may stop using the Service at any time.</p>
+
+<h2>13. Governing Law</h2>
+<p>These Terms are governed by the laws of the State of Florida, United States. Any disputes shall be resolved in the courts of St. Johns County, Florida.</p>
+
+<h2>14. Contact</h2>
+<p>For questions about these Terms, contact us at <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
+
+</div>
+
+<footer>
+<div class="container">
+<p><a href="/">Home</a> &middot; <a href="/privacy">Privacy Policy</a> &middot; <a href="/docs">API Docs</a></p>
+</div>
+</footer>
+</body>
+</html>

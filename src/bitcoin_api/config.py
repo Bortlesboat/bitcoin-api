@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     rate_limit_pro: int = 500
     rate_limit_enterprise: int = 2000
 
+    # Admin API key for analytics endpoints
+    admin_api_key: str | None = None
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

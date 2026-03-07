@@ -74,6 +74,16 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
                 if "email" not in cols:
                     conn.execute("ALTER TABLE api_keys ADD COLUMN email TEXT")
                     conn.commit()
+                # Migration: add analytics columns to usage_log
+                usage_cols = [r[1] for r in conn.execute("PRAGMA table_info(usage_log)").fetchall()]
+                if "method" not in usage_cols:
+                    conn.execute("ALTER TABLE usage_log ADD COLUMN method TEXT")
+                    conn.execute("ALTER TABLE usage_log ADD COLUMN response_time_ms REAL")
+                    conn.execute("ALTER TABLE usage_log ADD COLUMN user_agent TEXT")
+                    conn.commit()
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_endpoint ON usage_log(endpoint)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_status ON usage_log(status)")
+                conn.commit()
                 conn.close()
                 _initialized = True
 
@@ -85,11 +95,19 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
-def log_usage(key_hash: str | None, endpoint: str, status_code: int) -> None:
+def log_usage(
+    key_hash: str | None,
+    endpoint: str,
+    status_code: int,
+    method: str | None = None,
+    response_time_ms: float | None = None,
+    user_agent: str | None = None,
+) -> None:
     conn = get_db()
     conn.execute(
-        "INSERT INTO usage_log (key_hash, endpoint, status) VALUES (?, ?, ?)",
-        (key_hash, endpoint, status_code),
+        "INSERT INTO usage_log (key_hash, endpoint, status, method, response_time_ms, user_agent) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        (key_hash, endpoint, status_code, method, response_time_ms, user_agent),
     )
     conn.commit()
 

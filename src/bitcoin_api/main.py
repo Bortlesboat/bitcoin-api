@@ -134,6 +134,10 @@ async def security_headers(request: Request, call_next):
             "base-uri 'self'; "
             "form-action 'self'"
         )
+    # Financial data disclaimer on API responses
+    if path.startswith("/api/v1/"):
+        response.headers["X-Data-Disclaimer"] = "For informational purposes only. Not financial advice. See /terms"
+
     if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     progress = get_sync_progress()
@@ -173,6 +177,7 @@ _RATE_LIMIT_SKIP = {
     "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
     "/bitcoin-fee-api", "/bitcoin-mempool-api",
+    "/terms", "/privacy",
 }
 
 
@@ -184,14 +189,20 @@ async def auth_and_rate_limit(request: Request, call_next):
     request_id = str(uuid.uuid4())
     request.state.request_id = request_id
 
+    start_time = time.monotonic()
+    req_method = request.method
+    req_user_agent = request.headers.get("user-agent", "")
+
     # Skip rate limiting for docs and health
     if request.url.path in _RATE_LIMIT_SKIP:
         response = await call_next(request)
+        elapsed_ms = (time.monotonic() - start_time) * 1000
         response.headers["X-Request-ID"] = request_id
         # Log health requests but don't rate limit them
         if request.url.path == "/api/v1/health":
             key_info = authenticate(request)
-            log_usage(key_info.key_hash, request.url.path, response.status_code)
+            log_usage(key_info.key_hash, request.url.path, response.status_code,
+                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
         return response
 
     key_info = authenticate(request)
@@ -503,6 +514,7 @@ def static_page(page: str):
         "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
         "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
         "bitcoin-fee-api", "bitcoin-mempool-api",
+        "terms", "privacy",
     }
     if page in allowed:
         p = _STATIC_DIR / f"{page}.html"
