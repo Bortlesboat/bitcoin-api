@@ -401,9 +401,8 @@ def check_new_integrations():
             if domain_short.lower() in privacy_text:
                 note(f"{domain} ({source_file}) — documented in privacy policy")
             else:
-                if domain in ("static.cloudflareinsights.com", "raw.githubusercontent.com",
-                              "cdn.jsdelivr.net", "schema.org", "www.coingecko.com",
-                              "cloudflareinsights.com"):
+                if domain in ("raw.githubusercontent.com",
+                              "cdn.jsdelivr.net", "schema.org", "www.coingecko.com"):
                     pass  # Infrastructure, not data collection
                 else:
                     warn(f"{domain} ({source_file}) — NOT mentioned in privacy policy. Review if it processes user data.")

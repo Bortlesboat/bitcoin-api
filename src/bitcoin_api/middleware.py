@@ -204,10 +204,10 @@ def register_middleware(app: FastAPI):
         if request.url.path not in _DOCS_PATHS:
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; "
+                "script-src 'self' 'unsafe-inline'; "
                 "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "
-                "connect-src 'self' https://bitcoinsapi.com https://cloudflareinsights.com; "
+                "connect-src 'self' https://bitcoinsapi.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self'"

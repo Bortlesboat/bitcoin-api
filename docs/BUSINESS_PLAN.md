@@ -10,7 +10,7 @@
 
 Satoshi API is an open-source REST API that turns any Bitcoin Core node into a developer-friendly data service. Where existing tools give developers raw RPC dumps, Satoshi API provides analyzed, structured data — fee recommendations, mempool congestion scores, block analysis — in a standard REST format with OpenAPI docs.
 
-The product is built and production-hardened (118 unit tests, 21 e2e tests, 9/9 security checks, CI pipeline green). It runs on commodity hardware with ~$3/month operating cost. The business model is open-core: free self-hosted product drives adoption and credibility, optional hosted tiers generate recurring revenue, and the project serves as a consulting funnel for custom Bitcoin infrastructure work.
+The product is built and production-hardened (129 unit tests, 21 e2e tests (150 total), 9/9 security checks, CI pipeline green). It runs on commodity hardware with ~$3/month operating cost. The business model is open-core: free self-hosted product drives adoption and credibility, optional hosted tiers generate recurring revenue, and the project serves as a consulting funnel for custom Bitcoin infrastructure work.
 
 **What exists today:**
 - 42 REST endpoints across 9 categories (blocks, transactions, fees, mempool, mining, network, prices, status)
@@ -96,9 +96,9 @@ Use in scripts          Use in web apps         Use in AI agents
 
 | Product | What It Does | Status |
 |---------|-------------|--------|
-| **bitcoinlib-rpc** | Typed Python wrapper for Bitcoin Core RPC + 6 analysis tools | v0.1.0, stable |
-| **Satoshi API** | REST API with auth, caching, rate limiting, 19 endpoints | v0.1.0, production-ready |
-| **bitcoin-mcp** | MCP server exposing 20 tools for AI agents | v0.1.0, tested |
+| **bitcoinlib-rpc** | Typed Python wrapper for Bitcoin Core RPC + 6 analysis tools | v0.3.1, stable |
+| **Satoshi API** | REST API with auth, caching, rate limiting, 50 endpoints | v0.3.1, production-ready |
+| **bitcoin-mcp** | MCP server exposing 20 tools for AI agents | v0.3.1, tested |
 
 ### 4.1 API Endpoints (19)
 
@@ -225,12 +225,12 @@ We're not competing on hosted infrastructure scale. We're competing on developer
 
 ## 8. Product Roadmap
 
-### v0.1.0 — COMPLETE
+### v0.3.1 — COMPLETE
 
-- 19 REST endpoints, 7 routers
+- 50 REST endpoints, 14 routers
 - API key auth (4 tiers), rate limiting, caching
 - Docker, CI/CD, security hardening
-- 59 unit tests + 9 e2e tests
+- 129 unit tests + 21 e2e tests (150 total)
 - Landing page, blog post, self-hosting guide
 
 ### v0.2 — Scalability & Observability (Month 1-2)
