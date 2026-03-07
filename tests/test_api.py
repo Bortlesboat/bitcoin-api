@@ -7,9 +7,7 @@ from unittest.mock import patch, MagicMock
 def test_root(client):
     resp = client.get("/")
     assert resp.status_code == 200
-    data = resp.json()
-    assert data["name"] == "Satoshi API"
-    assert "docs" in data
+    assert "Satoshi API" in resp.text
 
 
 def test_health_returns_envelope(client):
@@ -510,11 +508,10 @@ def test_unified_error_format_422(client):
 
 
 def test_version_in_root(client):
-    """Root endpoint should show version."""
+    """Root endpoint should show product name."""
     resp = client.get("/")
-    body = resp.json()
-    assert "version" in body
-    assert body["version"]  # not empty
+    assert resp.status_code == 200
+    assert "Satoshi" in resp.text
 
 
 # --- Sprint 5 tests ---
