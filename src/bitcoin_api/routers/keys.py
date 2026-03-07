@@ -36,7 +36,7 @@ def register(body: RegisterRequest):
         "SELECT COUNT(*) FROM api_keys WHERE email = ?", (email,)
     ).fetchone()[0]
     if count >= 3:
-        raise HTTPException(status_code=429, detail="Maximum 3 keys per email")
+        raise HTTPException(status_code=429, detail="Registration limit reached. Contact api@bitcoinsapi.com if you need additional keys.")
 
     raw_key = "btc_" + secrets.token_hex(16)
     key_hash = hash_key(raw_key)
