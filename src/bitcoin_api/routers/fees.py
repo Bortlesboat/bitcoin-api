@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Path, Query
 from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.utils import fee_recommendation
 
-from ..cache import cached_blockchain_info, cached_fee_estimates, get_mempool_snapshots
+from ..cache import cached_blockchain_info, cached_fee_estimates, cached_raw_mempool, get_mempool_snapshots
 from ..db import get_fee_history
 from ..dependencies import get_rpc
 from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope
@@ -146,7 +146,7 @@ _MEMPOOL_BLOCKS_EXAMPLE = {
 @router.get("/mempool-blocks", response_model=ApiResponse[list[dict]], responses=_MEMPOOL_BLOCKS_EXAMPLE)
 def fees_mempool_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
     """Project the next N blocks from the current mempool, sorted by fee rate descending."""
-    raw = rpc.call("getrawmempool", True)
+    raw = cached_raw_mempool(rpc)
     info = cached_blockchain_info(rpc)
 
     # Build list of (fee_rate, weight, fee_sat) per tx

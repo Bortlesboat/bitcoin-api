@@ -67,6 +67,22 @@ def get_mempool_snapshots() -> list[dict]:
         return list(_mempool_snapshots)
 
 
+_raw_mempool_lock = threading.Lock()
+_raw_mempool_cache: TTLCache = TTLCache(maxsize=1, ttl=5)
+
+
+def cached_raw_mempool(rpc):
+    """Cache getrawmempool(True) for 5 seconds — used by mempool/recent and fees/mempool-blocks."""
+    key = "raw"
+    with _raw_mempool_lock:
+        if key in _raw_mempool_cache:
+            return _raw_mempool_cache[key]
+    result = rpc.call("getrawmempool", True)
+    with _raw_mempool_lock:
+        _raw_mempool_cache[key] = result
+    return result
+
+
 _info_fetched_at: float | None = None
 
 

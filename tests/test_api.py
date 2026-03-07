@@ -1351,3 +1351,35 @@ def test_address_invalid_address(client, mock_rpc):
     mock_rpc.call.side_effect = addr_invalid
     resp = client.get("/api/v1/address/1InvalidAddressNotRealButLongEnough")
     assert resp.status_code == 400
+
+
+# --- Production hardening tests ---
+
+
+def test_api_404_returns_json_envelope(client):
+    """404 on unknown /api/v1/* route should return JSON error envelope, not HTML."""
+    resp = client.get("/api/v1/nonexistent")
+    assert resp.status_code in (404, 405)
+    body = resp.json()
+    assert "error" in body
+    assert "status" in body["error"]
+    assert "detail" in body["error"]
+
+
+def test_cache_control_on_fee_endpoint(client):
+    """Fee endpoints should include Cache-Control header."""
+    resp = client.get("/api/v1/fees")
+    assert resp.status_code == 200
+    assert "Cache-Control" in resp.headers
+    assert "max-age=10" in resp.headers["Cache-Control"]
+
+
+def test_cache_control_no_store_on_register(authed_client):
+    """Register endpoint should have Cache-Control: no-store."""
+    resp = authed_client.post(
+        "/api/v1/register",
+        json={"email": "test@example.com", "label": "test"},
+    )
+    # May get 200 or 429 or other status, but header should be set
+    assert "Cache-Control" in resp.headers
+    assert "no-store" in resp.headers["Cache-Control"]
