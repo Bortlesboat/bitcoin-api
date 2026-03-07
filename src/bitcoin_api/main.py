@@ -75,9 +75,8 @@ app.include_router(metrics_router.router)
 # WebSocket
 app.include_router(ws_router.router, prefix=PREFIX)
 
-# Stripe billing (conditional — only if configured)
-if settings.stripe_secret_key is not None:
-    app.include_router(billing_router.router, prefix=PREFIX)
+# Stripe billing (always registered — returns 503 if not configured)
+app.include_router(billing_router.router, prefix=PREFIX)
 
 # Extended (toggleable via feature flags)
 _FEATURE_ROUTERS = {

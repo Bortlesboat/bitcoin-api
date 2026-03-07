@@ -1707,3 +1707,428 @@ def test_error_help_url_on_401(client):
     error = resp.json()["error"]
     assert error["help_url"] == "/api/v1/guide"
     assert "POST /api/v1/register" in error["detail"]
+
+
+# --- Prometheus /metrics Tests ---
+
+
+def test_metrics_endpoint_returns_prometheus_format(client):
+    """GET /metrics should return Prometheus text exposition format."""
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    assert "text/plain" in resp.headers.get("content-type", "")
+    text = resp.text
+    assert "http_requests_total" in text or "http_request_duration_seconds" in text or "bitcoin_block_height" in text
+
+
+def test_metrics_no_rate_limit(client):
+    """Metrics endpoint should not be rate limited."""
+    for _ in range(35):
+        resp = client.get("/metrics")
+        assert resp.status_code == 200
+
+
+def test_metrics_request_count_increments(client):
+    """After hitting an endpoint, http_requests_total should increment."""
+    client.get("/api/v1/fees")
+    resp = client.get("/metrics")
+    text = resp.text
+    assert "http_requests_total" in text
+
+
+def test_metrics_latency_histogram_present(client):
+    """Latency histogram should be present after requests."""
+    client.get("/api/v1/fees")
+    resp = client.get("/metrics")
+    text = resp.text
+    assert "http_request_duration_seconds" in text
+
+
+def test_metrics_block_height_gauge(client):
+    """bitcoin_block_height gauge should be present."""
+    resp = client.get("/metrics")
+    assert "bitcoin_block_height" in resp.text
+
+
+def test_metrics_job_errors_counter(client):
+    """background_job_errors_total counter should be present."""
+    resp = client.get("/metrics")
+    assert "background_job_errors_total" in resp.text
+
+
+# --- WebSocket Tests ---
+
+
+def test_websocket_subscribe_and_receive(client):
+    """WebSocket client can subscribe to a channel and receive events."""
+    import json
+    from bitcoin_api.pubsub import hub
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "new_block"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "subscribed"
+        assert resp["channel"] == "new_block"
+
+        # Publish an event from the hub
+        hub.publish("new_block", {"height": 900000, "timestamp": 1234567890})
+        event = json.loads(ws.receive_text())
+        assert event["channel"] == "new_block"
+        assert event["height"] == 900000
+
+
+def test_websocket_unsubscribe(client):
+    """WebSocket client can unsubscribe from a channel."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "new_fees"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "subscribed"
+
+        ws.send_text(json.dumps({"action": "unsubscribe", "channel": "new_fees"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "unsubscribed"
+
+
+def test_websocket_invalid_json(client):
+    """WebSocket should handle invalid JSON gracefully."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text("not json at all")
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "error"
+        assert "Invalid JSON" in resp["detail"]
+
+
+def test_websocket_unknown_channel(client):
+    """Subscribing to an unknown channel should return error."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "nonexistent"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "error"
+        assert "Unknown channel" in resp["detail"]
+
+
+def test_websocket_unknown_action(client):
+    """Unknown action should return error."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "explode", "channel": "new_block"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "error"
+        assert "Unknown action" in resp["detail"]
+
+
+def test_websocket_ping_pong(client):
+    """Ping action should return pong."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "ping"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "pong"
+
+
+def test_websocket_duplicate_subscribe(client):
+    """Subscribing twice to the same channel should return error."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "new_block"}))
+        json.loads(ws.receive_text())  # subscribed
+
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "new_block"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "error"
+        assert "Already subscribed" in resp["detail"]
+
+
+def test_websocket_unsubscribe_without_subscribe(client):
+    """Unsubscribing without subscribing should return error."""
+    import json
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "unsubscribe", "channel": "new_block"}))
+        resp = json.loads(ws.receive_text())
+        assert resp["type"] == "error"
+        assert "Not subscribed" in resp["detail"]
+
+
+def test_websocket_multiple_channels(client):
+    """Client can subscribe to multiple channels simultaneously."""
+    import json
+    from bitcoin_api.pubsub import hub
+
+    with client.websocket_connect("/api/v1/ws") as ws:
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "new_block"}))
+        json.loads(ws.receive_text())
+        ws.send_text(json.dumps({"action": "subscribe", "channel": "new_fees"}))
+        json.loads(ws.receive_text())
+
+        hub.publish("new_fees", {"next_block_fee": 15.0, "timestamp": 123})
+        event = json.loads(ws.receive_text())
+        assert event["channel"] == "new_fees"
+
+
+def test_pubsub_hub_subscriber_count():
+    """PubSubHub.subscriber_count should track subscriptions."""
+    from bitcoin_api.pubsub import PubSubHub
+    h = PubSubHub()
+    assert h.subscriber_count == 0
+    q = h.subscribe("new_block")
+    assert h.subscriber_count == 1
+    h.unsubscribe("new_block", q)
+    assert h.subscriber_count == 0
+
+
+# --- Stripe Billing Tests ---
+
+
+def test_billing_checkout_503_when_not_configured(authed_client):
+    """Billing checkout should return 503 when Stripe is not configured."""
+    resp = authed_client.post("/api/v1/billing/checkout")
+    assert resp.status_code == 503
+    assert "not configured" in resp.json()["detail"].lower()
+
+
+def test_billing_status_503_when_not_configured(authed_client):
+    """Billing status should return 503 when Stripe is not configured."""
+    resp = authed_client.get("/api/v1/billing/status")
+    assert resp.status_code == 503
+
+
+def test_billing_cancel_503_when_not_configured(authed_client):
+    """Billing cancel should return 503 when Stripe is not configured."""
+    resp = authed_client.post("/api/v1/billing/cancel")
+    assert resp.status_code == 503
+
+
+def test_billing_checkout_requires_auth(client):
+    """Billing checkout should reject anonymous users."""
+    from bitcoin_api.config import settings
+    original = settings.stripe_secret_key
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    try:
+        resp = client.post("/api/v1/billing/checkout")
+        assert resp.status_code == 401
+    finally:
+        settings.stripe_secret_key = original
+
+
+def test_billing_status_requires_auth(client):
+    """Billing status should reject anonymous users."""
+    from bitcoin_api.config import settings
+    original = settings.stripe_secret_key
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    try:
+        resp = client.get("/api/v1/billing/status")
+        assert resp.status_code == 401
+    finally:
+        settings.stripe_secret_key = original
+
+
+def test_billing_status_no_subscription(authed_client):
+    """Billing status should return none when no subscription exists."""
+    from bitcoin_api.config import settings
+    original = settings.stripe_secret_key
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    try:
+        resp = authed_client.get("/api/v1/billing/status")
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["status"] == "none"
+        assert data["subscription_id"] is None
+    finally:
+        settings.stripe_secret_key = original
+
+
+def test_billing_webhook_rejects_bad_signature(authed_client):
+    """Billing webhook should reject requests with invalid signature."""
+    from bitcoin_api.config import settings
+    original_key = settings.stripe_secret_key
+    original_secret = settings.stripe_webhook_secret
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_webhook_secret = SecretStr("whsec_test_fake")
+    try:
+        resp = authed_client.post(
+            "/api/v1/billing/webhook",
+            content=b'{"type": "checkout.session.completed"}',
+            headers={"stripe-signature": "t=123,v1=bad_sig"},
+        )
+        assert resp.status_code == 400
+    finally:
+        settings.stripe_secret_key = original_key
+        settings.stripe_webhook_secret = original_secret
+
+
+def test_billing_webhook_checkout_completed(authed_client):
+    """Webhook checkout.session.completed should upgrade tier to pro."""
+    import hashlib
+    from bitcoin_api.config import settings
+    from bitcoin_api.db import get_db
+
+    original_key = settings.stripe_secret_key
+    original_secret = settings.stripe_webhook_secret
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_webhook_secret = SecretStr("whsec_test_fake")
+
+    # Get the key hash from the authed_client
+    key_hash = hashlib.sha256("test-authed-key-fixture".encode()).hexdigest()
+
+    # Ensure subscriptions table exists
+    db = get_db()
+    db.execute("""CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        api_key_hash TEXT NOT NULL,
+        stripe_customer_id TEXT,
+        stripe_subscription_id TEXT UNIQUE,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )""")
+    # Add stripe_customer_id column if not exists
+    try:
+        db.execute("ALTER TABLE api_keys ADD COLUMN stripe_customer_id TEXT")
+    except Exception:
+        pass
+    db.commit()
+
+    event = {
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "metadata": {"api_key_hash": key_hash},
+                "customer": "cus_test123",
+                "subscription": "sub_test456",
+            }
+        }
+    }
+
+    with patch("bitcoin_api.routers.billing.verify_webhook_signature", return_value=event):
+        resp = authed_client.post(
+            "/api/v1/billing/webhook",
+            content=b'{}',
+            headers={"stripe-signature": "t=123,v1=test"},
+        )
+    assert resp.status_code == 200
+
+    # Verify tier was upgraded
+    row = db.execute("SELECT tier FROM api_keys WHERE key_hash = ?", (key_hash,)).fetchone()
+    assert row[0] == "pro"
+
+    # Verify subscription was created
+    sub = db.execute("SELECT status FROM subscriptions WHERE api_key_hash = ?", (key_hash,)).fetchone()
+    assert sub[0] == "active"
+
+    settings.stripe_secret_key = original_key
+    settings.stripe_webhook_secret = original_secret
+
+
+def test_billing_webhook_subscription_canceled(authed_client):
+    """Webhook customer.subscription.deleted should downgrade tier to free."""
+    import hashlib
+    from bitcoin_api.config import settings
+    from bitcoin_api.db import get_db
+
+    original_key = settings.stripe_secret_key
+    original_secret = settings.stripe_webhook_secret
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_webhook_secret = SecretStr("whsec_test_fake")
+
+    key_hash = hashlib.sha256("test-authed-key-fixture".encode()).hexdigest()
+
+    db = get_db()
+    db.execute("""CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        api_key_hash TEXT NOT NULL,
+        stripe_customer_id TEXT,
+        stripe_subscription_id TEXT UNIQUE,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )""")
+    try:
+        db.execute("ALTER TABLE api_keys ADD COLUMN stripe_customer_id TEXT")
+    except Exception:
+        pass
+    # Seed a pro subscription
+    db.execute("UPDATE api_keys SET tier = 'pro' WHERE key_hash = ?", (key_hash,))
+    db.execute(
+        "INSERT OR REPLACE INTO subscriptions (api_key_hash, stripe_customer_id, stripe_subscription_id, status) VALUES (?, 'cus_test', 'sub_cancel_test', 'active')",
+        (key_hash,),
+    )
+    db.commit()
+
+    event = {
+        "type": "customer.subscription.deleted",
+        "data": {
+            "object": {
+                "id": "sub_cancel_test",
+                "status": "canceled",
+            }
+        }
+    }
+
+    with patch("bitcoin_api.routers.billing.verify_webhook_signature", return_value=event):
+        resp = authed_client.post(
+            "/api/v1/billing/webhook",
+            content=b'{}',
+            headers={"stripe-signature": "t=123,v1=test"},
+        )
+    assert resp.status_code == 200
+
+    row = db.execute("SELECT tier FROM api_keys WHERE key_hash = ?", (key_hash,)).fetchone()
+    assert row[0] == "free"
+
+    sub = db.execute("SELECT status FROM subscriptions WHERE stripe_subscription_id = 'sub_cancel_test'").fetchone()
+    assert sub[0] == "canceled"
+
+    settings.stripe_secret_key = original_key
+    settings.stripe_webhook_secret = original_secret
+
+
+def test_billing_cancel_no_subscription(authed_client):
+    """Cancel should return 404 when no active subscription."""
+    from bitcoin_api.config import settings
+    from bitcoin_api.db import get_db
+
+    original = settings.stripe_secret_key
+    from pydantic import SecretStr
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+
+    db = get_db()
+    db.execute("""CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        api_key_hash TEXT NOT NULL,
+        stripe_customer_id TEXT,
+        stripe_subscription_id TEXT UNIQUE,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )""")
+    db.commit()
+
+    try:
+        resp = authed_client.post("/api/v1/billing/cancel")
+        assert resp.status_code == 404
+    finally:
+        settings.stripe_secret_key = original
+
+
+def test_billing_webhook_no_rate_limit(client):
+    """Billing webhook should not be rate limited."""
+    for _ in range(35):
+        resp = client.post("/api/v1/billing/webhook")
+        # Will get 503 (not configured) but never 429
+        assert resp.status_code != 429
