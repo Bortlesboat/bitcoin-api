@@ -58,7 +58,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 18 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 19 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -72,7 +72,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (55 total — 54 REST + 1 WebSocket)
+### 3.1 Endpoints (60 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -351,7 +351,7 @@ Errors follow the same structure:
 | 19 | Analytics infrastructure expansion: 4 new analytics endpoints (keys, growth, slow-endpoints, retention), auto-pruning in fee collector, admin dashboard (Chart.js), CSP + rate-limit skip updates | 10 |
 | 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
-| **Total** | **55 endpoints (54 REST + 1 WS), 18 routers** | **175 unit + 21 e2e** |
+| **Total** | **60 endpoints, 19 routers** | **175 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 

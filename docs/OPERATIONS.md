@@ -96,7 +96,61 @@ If these are not set, billing endpoints return **503 Service Unavailable** with 
 
 ---
 
-## 3. Analytics Dashboard (Admin Only)
+## 3. Prometheus Metrics
+
+The `/metrics` endpoint exposes Prometheus-format metrics. No auth required.
+
+```bash
+curl http://localhost:9332/metrics
+```
+
+Returns standard Prometheus text format with counters, histograms, and gauges for request latency, error rates, cache hit rates, and active connections. Point your Prometheus scraper at this endpoint.
+
+---
+
+## 4. WebSocket Subscriptions
+
+Connect to `/api/v1/ws` for real-time push notifications (blocks, fees, mempool changes). Requires an API key.
+
+```python
+import websockets, json
+
+async with websockets.connect(
+    "wss://bitcoinsapi.com/api/v1/ws",
+    extra_headers={"X-API-Key": "YOUR_KEY"}
+) as ws:
+    # Subscribe to topics
+    await ws.send(json.dumps({"subscribe": ["blocks", "fees"]}))
+    async for msg in ws:
+        print(json.loads(msg))
+```
+
+**Topics:** `blocks`, `fees`, `mempool`. The server pushes events via an in-process pub/sub hub (`pubsub.py`).
+
+---
+
+## 5. Stripe Billing
+
+Four billing endpoints under `/api/v1/billing/`. All return **503** if Stripe env vars are not configured.
+
+```bash
+# Create a checkout session for Pro tier upgrade
+curl -X POST -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/checkout
+
+# Check subscription status
+curl -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/status
+
+# Cancel subscription
+curl -X POST -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/cancel
+```
+
+The `/api/v1/billing/webhook` endpoint receives Stripe webhook events (signature-verified via `STRIPE_WEBHOOK_SECRET`). Configure the webhook URL in Stripe Dashboard to point at `https://bitcoinsapi.com/api/v1/billing/webhook`.
+
+Subscription data is stored in the `subscriptions` table (created by `migrations/004_add_subscriptions.sql`), with `stripe_customer_id` linked to the API key.
+
+---
+
+## 6. Analytics Dashboard (Admin Only)
 
 Ten endpoints + a visual dashboard that show how people use your API. All require the admin key.
 
@@ -154,7 +208,7 @@ In `~/Bortlesboat/bitcoin-api/.env`, the `ADMIN_API_KEY` line.
 
 ---
 
-## 4. API Keys (for users)
+## 7. API Keys (for users)
 
 ### Create a new API key
 ```bash
@@ -168,7 +222,7 @@ Users can POST to `/api/v1/register` with `agreed_to_terms: true` to get a free 
 
 ---
 
-## 5. SEO & Marketing Toolkit
+## 8. SEO & Marketing Toolkit
 
 ### Run SEO metrics check
 ```bash
@@ -201,7 +255,7 @@ This Claude Code skill audits all marketing files against the actual codebase an
 
 ---
 
-## 6. Running Tests
+## 9. Running Tests
 
 ```bash
 cd ~/Bortlesboat/bitcoin-api
@@ -227,7 +281,7 @@ python scripts/security_audit.py
 
 ---
 
-## 7. Interactive API Guide
+## 10. Interactive API Guide
 
 The `/api/v1/guide` endpoint returns curated code examples and use-case walkthroughs. No auth required.
 
@@ -242,7 +296,7 @@ curl "https://bitcoinsapi.com/api/v1/guide?use_case=transactions&lang=curl"
 
 ---
 
-## 8. Agent Employees (10 Agents — Claude Code Skills)
+## 11. Agent Employees (10 Agents — Claude Code Skills)
 
 The project has 10 specialized agents (flat org, all report to CEO) you can run as slash commands:
 
@@ -268,7 +322,7 @@ After any code change, Claude will check the trigger matrix in `docs/AGENT_ROLES
 
 ---
 
-## 9. Building & Publishing
+## 12. Building & Publishing
 
 ### Build the PyPI package locally
 ```bash
@@ -289,7 +343,7 @@ python -m twine upload dist/satoshi_api-*.whl dist/satoshi_api-*.tar.gz
 
 ---
 
-## 10. Domain & HTTPS (Cloudflare)
+## 13. Domain & HTTPS (Cloudflare)
 
 - **Domain:** bitcoinsapi.com (Cloudflare Registrar)
 - **Tunnel:** `cloudflared` Windows service routes `bitcoinsapi.com` -> `localhost:9332`
@@ -310,7 +364,7 @@ Both are intentional and don't conflict. Do NOT delete either one. New HTML page
 
 ---
 
-## 11. Pending Setup (Manual Browser Actions)
+## 14. Pending Setup (Manual Browser Actions)
 
 ### Bing Webmaster Tools — DONE (2026-03-07)
 Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitted: `https://bitcoinsapi.com/sitemap.xml`. Token is in `static/index.html`.
@@ -322,11 +376,11 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 ---
 
-## 12. File Map
+## 15. File Map
 
 | Location | What's there |
 |----------|-------------|
-| `src/bitcoin_api/` | All source code (13 modules + 15 routers) |
+| `src/bitcoin_api/` | All source code (16 modules + 18 routers) |
 | `tests/` | Unit tests, e2e tests, load test, helpers |
 | `static/` | Landing page, SEO pages, legal pages, robots/sitemap |
 | `docs/` | SOW, self-hosting guide, marketing, legal |

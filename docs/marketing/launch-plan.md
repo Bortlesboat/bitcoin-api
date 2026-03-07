@@ -37,7 +37,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 - [ ] PyPI: publish v0.3.1 (BLOCKER — marketing says "pip install" but PyPI is stale). Build verified locally.
 - [ ] GitHub social preview image uploaded (og-image.svg ready in static/)
 - [ ] Bing Webmaster Tools setup
-- [x] All marketing drafts synced to 60 endpoints + Apache-2.0 license
+- [x] All marketing drafts synced to 71 endpoints + Apache-2.0 license
 - [x] SEO metrics baseline captured (2026-03-07): 10/10 pages live, 6287 req/24h, 74 PyPI downloads
 - [x] CHANGELOG updated with Sprint 15+16 entries
 - [x] ADMIN_API_KEY added to .env templates
@@ -127,7 +127,7 @@ When the product changes, these materials MUST be updated:
 
 ## Key Messages (use consistently across all channels)
 
-1. **Primary:** Self-hosted REST API for Bitcoin Core. 60 endpoints. `pip install satoshi-api`.
+1. **Primary:** Self-hosted REST API for Bitcoin Core. 71 endpoints. `pip install satoshi-api`.
 2. **Differentiator:** Only Bitcoin API with native AI agent support (MCP).
 3. **Privacy angle:** Your node, your data. Queries never leave your network.
 4. **Developer angle:** Analyzed data, not raw RPC. Fees in sat/vB, congestion levels, human-readable recommendations.

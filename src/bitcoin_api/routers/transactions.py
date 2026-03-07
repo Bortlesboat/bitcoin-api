@@ -212,6 +212,51 @@ def get_tx_outspends(
 
 
 @router.get(
+    "/tx/{txid}/merkle-proof",
+    response_model=ApiResponse[dict],
+    responses={
+        200: {
+            "description": "Merkle proof for a confirmed transaction",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": {
+                            "proof_hex": "0100000001...",
+                            "block_hash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+                        },
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        404: {"description": "Transaction unconfirmed or not found"},
+        422: {"description": "Invalid txid format"},
+    },
+)
+def get_merkle_proof(
+    txid: str = Path(description="Transaction ID (hex)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Merkle proof for a confirmed transaction (gettxoutproof)."""
+    if not _TXID_RE.match(txid):
+        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+
+    # Get block hash from the transaction
+    raw = rpc.call("getrawtransaction", txid, True)
+    block_hash = raw.get("blockhash")
+    if not block_hash:
+        raise HTTPException(status_code=404, detail="Transaction is unconfirmed — merkle proof requires a confirmed transaction")
+
+    proof_hex = rpc.call("gettxoutproof", [txid], block_hash)
+    info = cached_blockchain_info(rpc)
+    return envelope(
+        {"proof_hex": proof_hex, "block_hash": block_hash},
+        height=info["blocks"],
+        chain=info["chain"],
+    )
+
+
+@router.get(
     "/utxo/{txid}/{vout}",
     response_model=ApiResponse[dict],
     responses={

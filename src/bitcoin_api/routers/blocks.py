@@ -310,3 +310,33 @@ def block_txs(
     txs = block.get("tx", [])[start:start + limit]
     info = cached_blockchain_info(rpc)
     return envelope(txs, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/{block_hash}/raw",
+    response_model=ApiResponse[str],
+    responses={
+        200: {
+            "description": "Raw block as hex string",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": "0100000000000000000000000000000000000000000000000...",
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid block hash format"},
+    },
+)
+def block_raw(
+    block_hash: str = Path(description="Block hash (64 hex characters)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Raw serialized block as hex string (verbosity 0)."""
+    if not _HASH_RE.match(block_hash):
+        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    raw_hex = rpc.call("getblock", block_hash, 0)
+    info = cached_blockchain_info(rpc)
+    return envelope(raw_hex, height=info["blocks"], chain=info["chain"])
