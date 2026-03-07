@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin MCP Server Setup Guide — Connect Claude to Your Bitcoin Node</title>
+<meta name="description" content="Step-by-step guide to set up bitcoin-mcp, the MCP server for Bitcoin Core. Connect Claude, ChatGPT, Cursor, or any AI agent to your own node in under 60 seconds.">
+<meta name="keywords" content="bitcoin mcp server, bitcoin mcp setup, claude bitcoin integration, bitcoin data for ai agents, bitcoin mcp tutorial, connect claude to bitcoin, bitcoin model context protocol setup">
+<link rel="canonical" href="https://bitcoinsapi.com/bitcoin-mcp-setup-guide">
+<meta property="og:title" content="Bitcoin MCP Server Setup Guide — Connect Claude to Your Bitcoin Node">
+<meta property="og:description" content="Step-by-step guide to set up bitcoin-mcp. Connect Claude, Cursor, or any AI agent to your Bitcoin node in under 60 seconds.">
+<meta property="og:url" content="https://bitcoinsapi.com/bitcoin-mcp-setup-guide">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Bitcoin MCP Server Setup Guide — Connect Claude to Your Bitcoin Node">
+<meta name="twitter:description" content="Step-by-step guide to set up bitcoin-mcp. Connect Claude, Cursor, or any AI agent to your Bitcoin node in under 60 seconds.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; font-size: 0.85em; line-height: 1.7; }
+  pre code { background: none; padding: 0; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 80px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* Nav */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  nav .logo { font-weight: 700; font-size: 1.1em; color: var(--accent); }
+  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
+  nav .links a { color: var(--muted); }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 100px 0 80px; }
+  .hero h1 { font-size: 2.6em; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle { font-size: 1.15em; color: var(--muted); max-width: 680px; margin: 0 auto 32px; }
+
+  /* Section headings */
+  .section-title { font-size: 1.8em; font-weight: 700; margin-bottom: 8px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 16px; }
+
+  /* Steps */
+  .steps { counter-reset: step; margin-top: 32px; }
+  .step { display: flex; gap: 20px; margin-bottom: 32px; align-items: flex-start; }
+  .step::before { counter-increment: step; content: counter(step); display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #000; font-weight: 700; font-size: 1.1em; }
+  .step-content { flex: 1; }
+  .step-content h3 { margin-bottom: 8px; font-size: 1.1em; }
+  .step-content p { color: var(--muted); font-size: 0.95em; margin-bottom: 12px; }
+
+  /* Example cards */
+  .examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 32px; }
+  .example-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+  .example-card .question { color: var(--text); font-weight: 600; margin-bottom: 8px; font-size: 1em; }
+  .example-card .answer { color: var(--muted); font-size: 0.9em; margin-bottom: 12px; }
+  .example-card code { font-size: 0.85em; }
+  .example-card .tool-badge { display: inline-block; background: var(--accent); color: #000; font-size: 0.75em; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 4px; }
+
+  /* Config tabs */
+  .config-tabs { display: flex; gap: 0; margin-top: 32px; border-bottom: 2px solid var(--border); }
+  .config-tab { padding: 10px 20px; cursor: pointer; color: var(--muted); font-size: 0.95em; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+  .config-tab:hover { color: var(--text); }
+  .config-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .config-panel { display: none; margin-top: 20px; }
+  .config-panel.active { display: block; }
+
+  /* Env table */
+  .env-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .env-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 2px solid var(--border); }
+  .env-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9em; }
+  .env-table td:first-child { white-space: nowrap; }
+
+  /* FAQ */
+  .faq-item { border-bottom: 1px solid var(--border); padding: 24px 0; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-question { font-weight: 700; font-size: 1.1em; margin-bottom: 8px; }
+  .faq-answer { color: var(--muted); font-size: 0.95em; line-height: 1.7; }
+
+  /* Highlight box */
+  .highlight-box { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 28px; margin-top: 32px; }
+  .highlight-box h3 { color: var(--accent); margin-bottom: 12px; }
+  .highlight-box p { color: var(--muted); font-size: 0.95em; line-height: 1.7; }
+
+  /* CTA */
+  .btn-primary { background: var(--accent); color: #000; display: inline-block; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 1em; }
+  .btn-primary:hover { background: #e8890f; text-decoration: none; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); display: inline-block; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 1em; }
+  .btn-secondary:hover { border-color: var(--muted); text-decoration: none; }
+  .bottom-cta { text-align: center; padding: 80px 0; }
+  .bottom-cta h2 { font-size: 2em; margin-bottom: 12px; }
+  .bottom-cta p { color: var(--muted); margin-bottom: 24px; }
+  .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8em; }
+    .hero .subtitle { font-size: 1em; }
+    section { padding: 48px 0; }
+    .config-tabs { flex-wrap: wrap; }
+    .config-tab { font-size: 0.85em; padding: 8px 14px; }
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I connect Claude to Bitcoin?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Install bitcoin-mcp (pip install bitcoin-mcp), then add a bitcoin-mcp entry to your Claude Desktop config file (claude_desktop_config.json) or Claude Code MCP settings. Point it at a running Satoshi API instance (your own node or the hosted endpoint at bitcoinsapi.com). Claude will automatically discover the Bitcoin tools and can query fees, blocks, mempool, mining data, and more."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is bitcoin-mcp?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "bitcoin-mcp is an open-source MCP (Model Context Protocol) server that wraps Satoshi API's 50 Bitcoin endpoints as AI tool calls. It lets AI agents like Claude, ChatGPT, Cursor, and Windsurf query real-time Bitcoin blockchain data — fees, blocks, mempool, transactions, mining stats — directly during a conversation, without custom code or API wrappers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use bitcoin-mcp without running a full node?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. You can point bitcoin-mcp at the hosted Satoshi API endpoint (https://bitcoinsapi.com) instead of running your own node. This gives you instant access to all 54 endpoints without any node setup. For maximum privacy and sovereignty, self-hosting with your own Bitcoin Core node is recommended."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What AI agents work with bitcoin-mcp?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "bitcoin-mcp works with any MCP-compatible AI client. This includes Claude Desktop, Claude Code (CLI), Cursor, Windsurf, and any custom agent built on the MCP protocol. Configuration is a JSON snippet pointing the client at the bitcoin-mcp command. Claude Desktop and Claude Code have native MCP support built in."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to connect an AI agent to my Bitcoin node?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. bitcoin-mcp connects through Satoshi API, which provides a read-only REST layer over your node. The AI agent never touches your node's RPC directly. Satoshi API includes rate limiting, input validation, and API key authentication. POST endpoints (broadcast, decode) require explicit authorization. Self-hosting means no third party sees your queries."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo" style="text-decoration: none;">Satoshi API</a>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/docs">API Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="/best-bitcoin-api-for-developers">Compare</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1><span>Bitcoin MCP Server</span> — Connect AI Agents to Your Node in 60 Seconds</h1>
+    <p class="subtitle">bitcoin-mcp is the open-source MCP server for Bitcoin Core. Give Claude, Cursor, Windsurf, or any AI agent direct tool-call access to 50 Bitcoin endpoints — fees, blocks, mempool, mining, transactions, and more.</p>
+    <div class="cta" style="margin-top: 8px;">
+      <a href="#setup" class="btn-primary" style="text-decoration: none;">Get Started</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" class="btn-secondary" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">View on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- Step-by-step setup -->
+<section id="setup">
+  <div class="container">
+    <h2 class="section-title">Setup in 3 Steps</h2>
+    <p class="section-subtitle">From zero to AI-powered Bitcoin queries in under 60 seconds.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-content">
+          <h3>Install bitcoin-mcp</h3>
+          <p>One pip install. That's it. bitcoin-mcp includes everything needed to bridge your AI agent to Bitcoin.</p>
+<pre><code><span style="color: var(--muted)">$ </span>pip install bitcoin-mcp</code></pre>
+          <p style="margin-top: 12px;">If you're running your own node, also install the API:</p>
+<pre><code><span style="color: var(--muted)">$ </span>pip install satoshi-api
+<span style="color: var(--muted)">$ </span>export BITCOIN_RPC_USER=your_user
+<span style="color: var(--muted)">$ </span>export BITCOIN_RPC_PASSWORD=your_password
+<span style="color: var(--muted)">$ </span>satoshi-api</code></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>Configure your AI client</h3>
+          <p>Add the MCP server to your client's config. Here's Claude Desktop:</p>
+<pre><code><span style="color: var(--muted)">// claude_desktop_config.json</span>
+{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp",
+      "args": ["--api-url", "http://localhost:9332"]
+    }
+  }
+}</code></pre>
+          <p style="margin-top: 12px;">No node? Point at the hosted endpoint instead:</p>
+<pre><code>"args": ["--api-url", "https://bitcoinsapi.com"]</code></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>Ask a question</h3>
+          <p>Open your AI client and ask anything about Bitcoin. The agent automatically calls the right tool.</p>
+<pre><code><span style="color: var(--green)">You:</span> What are the current Bitcoin fees? Should I send now or wait?
+
+<span style="color: var(--blue)">Claude:</span> Let me check the current fee environment.
+<span style="color: var(--muted)">[Calling get_recommended_fees...]</span>
+<span style="color: var(--muted)">[Calling get_fee_landscape...]</span>
+
+Current fees are 12 sat/vB for high priority. The mempool is
+clearing steadily — good time to send at medium priority (8 sat/vB)
+for confirmation within ~30 minutes.</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What can your agent do -->
+<section id="capabilities">
+  <div class="container">
+    <h2 class="section-title">What Can Your Agent Do?</h2>
+    <p class="section-subtitle">Real questions mapped to the tools bitcoin-mcp exposes.</p>
+    <div class="examples">
+      <div class="example-card">
+        <div class="question">"What are current Bitcoin fees?"</div>
+        <div class="answer">Returns fee estimates in sat/vB for high, medium, and low priority with a human-readable recommendation.</div>
+        <span class="tool-badge">get_recommended_fees</span>
+      </div>
+      <div class="example-card">
+        <div class="question">"Should I send now or wait?"</div>
+        <div class="answer">Analyzes mempool congestion, fee trends, and recent block rates to produce a send-now-or-wait recommendation.</div>
+        <span class="tool-badge">get_fee_landscape</span>
+      </div>
+      <div class="example-card">
+        <div class="question">"What's in the latest block?"</div>
+        <div class="answer">Returns block height, tx count, total fees, weight utilization, miner, and time since the previous block.</div>
+        <span class="tool-badge">get_latest_block</span>
+      </div>
+      <div class="example-card">
+        <div class="question">"Is the mempool congested?"</div>
+        <div class="answer">Returns congestion level, transaction count, total size in vMB, fee distribution buckets, and minimum fee for the next block.</div>
+        <span class="tool-badge">get_mempool</span>
+      </div>
+      <div class="example-card">
+        <div class="question">"When is the next difficulty adjustment?"</div>
+        <div class="answer">Returns current difficulty, estimated hashrate, blocks until retarget, and projected adjustment percentage.</div>
+        <span class="tool-badge">get_mining_stats</span>
+      </div>
+      <div class="example-card">
+        <div class="question">"How much would a 2-in, 1-out tx cost?"</div>
+        <div class="answer">Returns estimated transaction size in vBytes and cost at each fee priority level for the given input/output configuration.</div>
+        <span class="tool-badge">estimate_transaction_fee</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Client configuration -->
+<section id="clients">
+  <div class="container">
+    <h2 class="section-title">Configuration for Every Client</h2>
+    <p class="section-subtitle">bitcoin-mcp works with any MCP-compatible AI client. Pick yours.</p>
+
+    <div class="config-tabs">
+      <button class="config-tab active" onclick="showTab('claude-desktop')">Claude Desktop</button>
+      <button class="config-tab" onclick="showTab('claude-code')">Claude Code</button>
+      <button class="config-tab" onclick="showTab('cursor')">Cursor</button>
+      <button class="config-tab" onclick="showTab('windsurf')">Windsurf</button>
+    </div>
+
+    <div id="claude-desktop" class="config-panel active">
+      <p style="color: var(--muted); margin-bottom: 16px;">Add to <code>claude_desktop_config.json</code> (Settings &rarr; Developer &rarr; Edit Config):</p>
+<pre><code>{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp",
+      "args": ["--api-url", "http://localhost:9332"]
+    }
+  }
+}</code></pre>
+      <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Config file location: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows).</p>
+    </div>
+
+    <div id="claude-code" class="config-panel">
+      <p style="color: var(--muted); margin-bottom: 16px;">Add via the CLI or edit <code>.claude/settings.json</code>:</p>
+<pre><code><span style="color: var(--muted)">$ </span>claude mcp add bitcoin -- bitcoin-mcp --api-url http://localhost:9332</code></pre>
+      <p style="color: var(--muted); margin-top: 16px;">Or add manually to <code>.claude/settings.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp",
+      "args": ["--api-url", "http://localhost:9332"]
+    }
+  }
+}</code></pre>
+    </div>
+
+    <div id="cursor" class="config-panel">
+      <p style="color: var(--muted); margin-bottom: 16px;">Add to <code>.cursor/mcp.json</code> in your project root:</p>
+<pre><code>{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp",
+      "args": ["--api-url", "http://localhost:9332"]
+    }
+  }
+}</code></pre>
+      <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Restart Cursor after adding the config. The Bitcoin tools will appear in the MCP tools panel.</p>
+    </div>
+
+    <div id="windsurf" class="config-panel">
+      <p style="color: var(--muted); margin-bottom: 16px;">Add to <code>~/.codeium/windsurf/mcp_config.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp",
+      "args": ["--api-url", "http://localhost:9332"]
+    }
+  }
+}</code></pre>
+      <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Restart Windsurf after saving. The Bitcoin tools will be available in Cascade.</p>
+    </div>
+
+    <div class="highlight-box">
+      <h3>No node? No problem.</h3>
+      <p>Replace <code>http://localhost:9332</code> with <code>https://bitcoinsapi.com</code> in any config above to use the hosted API. No Bitcoin Core installation required. For authenticated access to POST endpoints, add <code>"--api-key", "your_key"</code> to the args array.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Environment variables -->
+<section id="env">
+  <div class="container">
+    <h2 class="section-title">Environment Variables Reference</h2>
+    <p class="section-subtitle">All configuration options for bitcoin-mcp and Satoshi API.</p>
+
+    <h3 style="margin-top: 24px; margin-bottom: 8px; font-size: 1.1em;">bitcoin-mcp</h3>
+    <table class="env-table">
+      <thead>
+        <tr><th>Variable</th><th>Description</th><th>Default</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>BITCOIN_MCP_API_URL</code></td><td>Satoshi API base URL</td><td><code>http://localhost:9332</code></td></tr>
+        <tr><td><code>BITCOIN_MCP_API_KEY</code></td><td>API key for authenticated endpoints</td><td>None (anonymous)</td></tr>
+        <tr><td><code>BITCOIN_MCP_TIMEOUT</code></td><td>Request timeout in seconds</td><td><code>30</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px; margin-bottom: 8px; font-size: 1.1em;">Satoshi API (if self-hosting)</h3>
+    <table class="env-table">
+      <thead>
+        <tr><th>Variable</th><th>Description</th><th>Default</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>BITCOIN_RPC_USER</code></td><td>Bitcoin Core RPC username</td><td>Required</td></tr>
+        <tr><td><code>BITCOIN_RPC_PASSWORD</code></td><td>Bitcoin Core RPC password</td><td>Required</td></tr>
+        <tr><td><code>BITCOIN_RPC_HOST</code></td><td>Bitcoin Core RPC host</td><td><code>127.0.0.1</code></td></tr>
+        <tr><td><code>BITCOIN_RPC_PORT</code></td><td>Bitcoin Core RPC port</td><td><code>8332</code></td></tr>
+        <tr><td><code>SATOSHI_API_PORT</code></td><td>Port Satoshi API listens on</td><td><code>9332</code></td></tr>
+        <tr><td><code>SATOSHI_API_KEY</code></td><td>API key for authenticated access</td><td>None (anonymous only)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <p class="section-subtitle">Common questions about bitcoin-mcp and Bitcoin + AI integration.</p>
+
+    <div style="margin-top: 32px;">
+      <div class="faq-item">
+        <div class="faq-question">How do I connect Claude to Bitcoin?</div>
+        <div class="faq-answer">Install bitcoin-mcp (<code>pip install bitcoin-mcp</code>), add it to your Claude Desktop or Claude Code config, and point it at a Satoshi API instance — either your own node at <code>localhost:9332</code> or the hosted endpoint at <code>bitcoinsapi.com</code>. Claude will automatically discover the Bitcoin tools and can query fees, blocks, mempool, mining data, and more during any conversation.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">What is bitcoin-mcp?</div>
+        <div class="faq-answer">bitcoin-mcp is an open-source MCP (Model Context Protocol) server that wraps Satoshi API's 50 Bitcoin endpoints as AI tool calls. It's the bridge between AI agents and Bitcoin blockchain data. Install it with <code>pip install bitcoin-mcp</code> and configure your AI client to use it. Source code: <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">github.com/Bortlesboat/bitcoin-mcp</a>.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Can I use bitcoin-mcp without running a full node?</div>
+        <div class="faq-answer">Yes. Point bitcoin-mcp at the hosted Satoshi API endpoint (<code>https://bitcoinsapi.com</code>) instead of <code>localhost:9332</code>. You get instant access to all 54 endpoints with no node setup. For maximum privacy and sovereignty, self-hosting with your own Bitcoin Core node is recommended — but it's not required to get started.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">What AI agents work with bitcoin-mcp?</div>
+        <div class="faq-answer">Any MCP-compatible client works: Claude Desktop, Claude Code (CLI), Cursor, Windsurf, and custom agents built on the MCP protocol. See the <a href="#clients">configuration section</a> above for JSON configs for each client. The MCP standard is growing — as more clients adopt it, bitcoin-mcp will work with them automatically.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Is it safe to connect an AI agent to my Bitcoin node?</div>
+        <div class="faq-answer">Yes. bitcoin-mcp connects through Satoshi API, which provides a <strong>read-only</strong> REST layer over your node by default. The AI agent never touches your node's RPC directly. Satoshi API includes rate limiting, input validation, and API key authentication. POST endpoints (like transaction broadcast) require explicit API key authorization. Self-hosting means no third party ever sees your queries.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Pages -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Related Pages</h2>
+    <div class="examples" style="margin-top: 24px;">
+      <div class="example-card">
+        <div class="question"><a href="/bitcoin-api-for-ai-agents" style="color: var(--accent);">Why AI Agents Need Bitcoin Data</a></div>
+        <div class="answer">The case for giving LLMs direct access to real-time blockchain data via MCP.</div>
+      </div>
+      <div class="example-card">
+        <div class="question"><a href="/bitcoin-fee-api" style="color: var(--accent);">Fee API Endpoints</a></div>
+        <div class="answer">Multi-target fee estimation, congestion scoring, and fee landscape analysis.</div>
+      </div>
+      <div class="example-card">
+        <div class="question"><a href="/bitcoin-mempool-api" style="color: var(--accent);">Mempool API Endpoints</a></div>
+        <div class="answer">Real-time mempool analysis, distribution buckets, and transaction monitoring.</div>
+      </div>
+      <div class="example-card">
+        <div class="question"><a href="/self-hosted-bitcoin-api" style="color: var(--accent);">Self-Hosting Guide</a></div>
+        <div class="answer">Run Satoshi API on your own Bitcoin Core node for maximum privacy and control.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bottom CTA -->
+<section class="bottom-cta">
+  <div class="container">
+    <h2>Connect your AI agent to Bitcoin.</h2>
+    <p>One pip install. One JSON config. 54 endpoints at your agent's fingertips.</p>
+    <div class="cta">
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" class="btn-primary" target="_blank" rel="noopener noreferrer">Get bitcoin-mcp</a>
+      <a href="https://pypi.org/project/bitcoin-mcp/" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on PyPI</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the Apache-2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/">Home</a> &middot;
+      <a href="/best-bitcoin-api-for-developers">Best Bitcoin API for Developers</a> &middot;
+      <a href="/self-hosted-bitcoin-api">Self-Hosted Bitcoin API</a> &middot;
+      <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+      <a href="/bitcoin-mcp-setup-guide">MCP Setup Guide</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.config-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

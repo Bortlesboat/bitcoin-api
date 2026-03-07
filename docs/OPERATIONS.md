@@ -87,7 +87,13 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 
 ## 3. Analytics Dashboard (Admin Only)
 
-Six endpoints that show how people use your API. All require the admin key header.
+Ten endpoints + a visual dashboard that show how people use your API. All require the admin key.
+
+### Visual Dashboard
+
+Open in browser: `http://localhost:9332/admin/dashboard?key=YOUR_KEY`
+
+Auto-refreshes every 60 seconds. Shows KPI cards, charts (requests over time, top endpoints, latency percentiles), per-key usage table, and retention metrics.
 
 ### How to query
 ```bash
@@ -108,9 +114,29 @@ curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/user-agen
 
 # Response time stats
 curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/latency
+
+# Per-key usage breakdown (hits, latency, error rate per API key)
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/keys
+
+# Day-over-day and week-over-week growth
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/growth
+
+# Slowest endpoints by p95 latency
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/slow-endpoints
+
+# Key retention (active keys in 24h/7d/30d vs total)
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/retention
 ```
 
 Replace `YOUR_KEY` with the value from your `.env` `ADMIN_API_KEY`.
+
+### Auto-Pruning
+
+The background fee collector thread automatically prunes old data once per 24 hours:
+- Usage logs older than 90 days are deleted
+- Fee history older than 30 days is deleted
+
+Check API logs for `Auto-prune:` messages to confirm it's running.
 
 ### Where is the admin key?
 In `~/Bortlesboat/bitcoin-api/.env`, the `ADMIN_API_KEY` line.
@@ -190,25 +216,29 @@ python scripts/security_audit.py
 
 ---
 
-## 7. Agent Employees (Claude Code Skills)
+## 7. Agent Employees (10 Agents — Claude Code Skills)
 
-The project has specialized agents you can run as slash commands:
+The project has 10 specialized agents (flat org, all report to CEO) you can run as slash commands:
 
-| Command | What it does |
-|---------|-------------|
-| `/code-review` | Runs tests, checks code quality, verifies SCOPE_OF_WORK is current |
-| `/marketing-sync` | Fixes stale endpoint counts, license refs, test counts across all marketing files |
-| `/security-review` | Audits security headers, auth, rate limits, CSP, secrets |
-| `/legal-review` | Checks ToS, privacy policy, disclaimers against actual code behavior |
-| `/analytics-review` | Audits data collection, logging, analytics endpoints |
-| `/product-review` | Product vision, customer journey, pricing, competitive positioning |
-| `/finance-review` | Cost analysis, unit economics, revenue projections |
-| `/architecture-review` | SCOPE_OF_WORK currency, module coupling, architecture |
-| `/qa-review` | Test coverage, test-to-SOW sync, regression scanning |
-| `/ux-review` | Landing page, registration flow, docs UX, error messages |
-| `/all-hands` | Runs ALL agents, produces consolidated dashboard |
+| Command | Role | What it does |
+|---------|------|-------------|
+| `/pm-review` | Product Manager | Feature strategy, competitive gaps, pricing, 90-day roadmap |
+| `/ux-review` | UX/Design Lead | Customer journey, landing page, registration flow, docs UX, error messages |
+| `/finance-review` | CFO | Cost analysis, unit economics, revenue projections |
+| `/legal-review` | Legal | Checks ToS, privacy policy, disclaimers against actual code behavior |
+| `/marketing-sync` | Marketing | Fixes stale endpoint counts, license refs, test counts across all marketing files |
+| `/security-review` | Security | Audits security headers, auth, rate limits, CSP, secrets |
+| `/architecture-review` | Architect | SCOPE_OF_WORK currency, CLAUDE.md, code quality, module coupling |
+| `/qa-review` | QA Lead | Test coverage, test-to-SOW sync, regression scanning |
+| `/analytics-review` | Analytics | Audits data collection, logging, analytics endpoints |
+| `/ops-review` | Chief of Staff | Data lifecycle, metrics, process automation, standards, org maintenance |
+| `/all-hands` | Orchestrator | Runs ALL 10 agents, consolidated dashboard, conflict detection, CEO action items |
 
-After any code change, Claude will check the trigger matrix in `docs/AGENT_ROLES.md` to see which agents should run.
+**Deprecated wrappers** (backward compat — run successor agents):
+| `/code-review` | → `/qa-review` + `/architecture-review` |
+| `/product-review` | → `/pm-review` + `/ux-review` |
+
+After any code change, Claude will check the trigger matrix in `docs/AGENT_ROLES.md` to see which agents should run. See that file for the full trigger matrix, cross-reference table, conflict resolution protocol, and performance tracking.
 
 ---
 
@@ -243,25 +273,21 @@ python -m twine upload dist/satoshi_api-*.whl dist/satoshi_api-*.tar.gz
 ### Cloudflare Dashboard locations
 - **DNS:** dash.cloudflare.com -> bitcoinsapi.com -> DNS
 - **Tunnel:** dash.cloudflare.com -> Zero Trust -> Tunnels
-- **Analytics (pending):** dash.cloudflare.com -> Analytics & Logs -> Web Analytics
+- **Web Analytics:** dash.cloudflare.com -> Analytics & Logs -> Web Analytics
+
+### Cloudflare Analytics — DONE (2026-03-07)
+Two analytics entries exist for bitcoinsapi.com:
+1. **JS Snippet (manual)** — token `be5b86b8738d40218e1832ce1dd743ef`, embedded in all 8 HTML pages via `beacon.min.js`. Tracks page-level visits.
+2. **Automatic setup (RUM)** — enabled via Speed > RUM. Cloudflare auto-injects at the edge. Tracks performance (load time, TTFB).
+
+Both are intentional and don't conflict. Do NOT delete either one. New HTML pages need the beacon snippet added.
 
 ---
 
 ## 10. Pending Setup (Manual Browser Actions)
 
-### Cloudflare Web Analytics
-1. Go to dash.cloudflare.com -> Analytics & Logs -> Web Analytics
-2. Click "Add a site" -> enter `bitcoinsapi.com`
-3. Copy the token
-4. Tell Claude: "replace REPLACE_WITH_CF_TOKEN in all HTML files with [your token]"
-
-### Bing Webmaster Tools
-1. Go to bing.com/webmasters
-2. Add site: `bitcoinsapi.com`
-3. Choose "HTML Meta Tag" verification
-4. Copy the content value from the meta tag
-5. Tell Claude: "replace REPLACE_WITH_BING_TOKEN in index.html with [your token]"
-6. After verification, submit sitemap: `https://bitcoinsapi.com/sitemap.xml`
+### Bing Webmaster Tools — DONE (2026-03-07)
+Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitted: `https://bitcoinsapi.com/sitemap.xml`. Token is in `static/index.html`.
 
 ### GitHub Social Preview
 1. Go to github.com/Bortlesboat/bitcoin-api/settings
