@@ -22,13 +22,19 @@ class Settings(BaseSettings):
     # CORS (comma-separated origins, or "*" for all — use "*" only for local/dev)
     cors_origins: str = "http://localhost:3000,http://localhost:9332"
 
-    # Feature flags
+    # Feature flags (toggleable routers)
     enable_exchange_compare: bool = True
     enable_prices_router: bool = True
     enable_address_router: bool = True
 
-    # RPC timeout (seconds)
-    rpc_timeout: int = 30
+    @property
+    def feature_flags(self) -> dict[str, bool]:
+        """Map of feature flag name → router module name → enabled."""
+        return {
+            "exchange_compare": self.enable_exchange_compare,
+            "prices_router": self.enable_prices_router,
+            "address_router": self.enable_address_router,
+        }
 
     # RPC timeout (seconds)
     rpc_timeout: int = 30

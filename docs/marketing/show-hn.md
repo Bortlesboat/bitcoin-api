@@ -12,7 +12,7 @@ So I built Satoshi API:
 
     pip install satoshi-api && satoshi-api
 
-That gives you 42 REST endpoints wrapping your node with analyzed, structured JSON. Fee estimates come with "send now or wait?" recommendations. Transactions come decoded with input/output analysis. The mempool gets a congestion score and fee buckets.
+That gives you 48 REST endpoints wrapping your node with analyzed, structured JSON. Fee estimates come with "send now or wait?" recommendations. Transactions come decoded with input/output analysis. The mempool gets a congestion score and fee buckets.
 
 What makes it different:
 

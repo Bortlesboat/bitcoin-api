@@ -4,7 +4,7 @@
 
 ---
 
-I built an open-source REST API that wraps your Bitcoin Core node in 42 clean endpoints. It is called Satoshi API. MIT licensed, self-hosted, no third parties.
+I built an open-source REST API that wraps your Bitcoin Core node in 48 clean endpoints. It is called Satoshi API. Apache-2.0 licensed, self-hosted, no third parties.
 
 **Why it exists:** Running a full node is sovereign. Querying someone else's API to read your own blockchain data is not. Satoshi API keeps everything local -- install it, point it at your node, and you have a full REST API without any data leaving your machine.
 

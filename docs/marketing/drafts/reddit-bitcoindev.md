@@ -1,27 +1,25 @@
 # Platform: r/BitcoinDev
 
-**Suggested Title:** Satoshi API: open-source REST wrapper for Bitcoin Core RPC (49 endpoints, pip install)
+**Suggested Title:** What would you want from a REST wrapper around Bitcoin Core RPC?
 
 ---
 
-I built a REST API layer over Bitcoin Core's JSON-RPC and wanted to share it with this community for feedback.
+I've been running a full node for a while and kept hitting the same friction building apps on top of it. Fee estimates come back with no context, mempool data takes multiple calls to piece together, caching is tricky because of reorgs near the tip.
 
-**The problem:** Bitcoin Core's RPC is powerful but rough for application development. Fee estimates come back as raw sat/vB numbers with no context. Mempool data requires multiple calls to piece together. Block data needs hash-to-height lookups you have to manage yourself. Every app I built ended up reimplementing the same translation layer.
+So I started building a REST layer that handles the annoying parts — unit conversion, depth-aware caching, combining multiple RPC calls into single analyzed responses. It's at the point where I use it daily but I'm not sure I'm prioritizing the right things.
 
-**What Satoshi API does:** It wraps 17 whitelisted RPC commands into 42 REST endpoints that return analyzed, structured data. A few things I think are worth discussing:
+A few design questions I'd genuinely like input on:
 
-- **Depth-aware caching.** Blocks deeper than 6 confirmations get long TTLs. Recent blocks get short TTLs. Fee and mempool data refresh every 10-30 seconds. This avoids stale data during reorgs without hammering the node.
-- **Fee landscape endpoint.** `/fees/landscape` combines `estimatesmartfee` at multiple targets with mempool size and recent block fullness to give a "send now or wait?" recommendation. Opinionated, but useful for wallets.
-- **Reorg safety.** Every response includes `meta.node_height` and `meta.syncing` (triggered when `verificationprogress < 0.9999`), so clients know if they are looking at IBD data.
-- **RPC whitelist.** The API only calls 17 read-only commands (plus `sendrawtransaction` behind auth). No wallet RPCs, no debug RPCs.
+1. **Fee analysis** — right now I combine estimatesmartfee at multiple targets with mempool size to generate a "send now or wait" recommendation. Is that useful, or do wallet devs prefer raw numbers and doing their own analysis?
 
-The stack is Python/FastAPI with sliding-window rate limiting and SQLite for usage logging. Runs on port 9332 alongside your node.
+2. **RPC surface** — I whitelist 17 read-only commands. Is there demand for more? I deliberately left out wallet and debug RPCs but maybe that's too conservative.
 
-I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query the API directly via Model Context Protocol. This is probably the part I am least sure about in terms of demand -- would appreciate thoughts on whether agent-accessible Bitcoin data is something people actually want.
+3. **MCP/AI agent access** — I built a Model Context Protocol server so Claude/GPT can query the node. Feels like it could be useful but might also be a solution looking for a problem. Anyone actually building agent workflows against Bitcoin data?
 
-This is a new project and I am a single developer. I would genuinely appreciate feedback on the API design, the caching strategy, or anything that looks wrong.
+4. **What's missing?** If you had a clean REST interface to your node, what endpoints would you reach for first?
 
-- **GitHub:** https://github.com/Bortlesboat/bitcoin-api
-- **Live interactive docs:** https://bitcoinsapi.com/docs
-- **Install:** `pip install satoshi-api`
-- **License:** MIT
+I've open-sourced what I have so far if anyone wants to look at the approach: https://github.com/Bortlesboat/bitcoin-api
+
+You can also poke the live docs at https://bitcoinsapi.com/docs — no signup needed.
+
+Not trying to sell anything, just want to build something actually useful. What would matter to you?

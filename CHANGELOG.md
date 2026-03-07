@@ -10,14 +10,20 @@
 - Cache-Control headers middleware (fee/mempool: 10s, blocks: 1hr, health: no-cache, register: no-store)
 - Timeout guard on address endpoint `scantxoutset` (returns 504 on timeout)
 - Cached raw mempool for mempool/recent and fees/mempool-blocks (5s TTL)
+- Analytics & web metrics: enhanced request logging (method, latency, user-agent)
+- 6 admin analytics endpoints (`/api/v1/analytics/*`: overview, requests, endpoints, errors, user-agents, latency)
+- Cloudflare Web Analytics beacon + Bing Webmaster verification placeholders
+- SEO metrics API usage tracker in `scripts/seo_metrics.py`
+- `ADMIN_API_KEY` env var for analytics endpoint authentication
+- 3-tier codebase refactor: split main.py (555→89 lines), cache factory+registry, batch usage logging, migration system
 
 ### Fixed
 - 404 on `/api/v1/*` routes now returns JSON error envelope instead of HTML
 - `/api/v1/register` now subject to rate limiting (removed from skip set)
 
 ### Changed
-- Total endpoints: 40 → 42
-- Unit tests: 115 → 118+
+- Total endpoints: 42 → 48
+- Unit tests: 118 → 129 (150 total with 21 e2e)
 
 ## [0.3.0] - 2026-03-07
 

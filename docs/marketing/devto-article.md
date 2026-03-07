@@ -213,10 +213,10 @@ There's also optional support for [L402](https://docs.lightning.engineering/the-
 
 No project is complete, and I'd rather be upfront about the gaps:
 
-- **No address balance lookups.** Bitcoin Core doesn't index by address (unless you import it to the wallet). Address queries need an Electrum server (Electrs/Fulcrum) backend, which is planned for v0.5.
+- **Address lookups are limited.** Uses `scantxoutset` which shows current UTXOs but not transaction history. Full address indexing needs Electrs/Fulcrum.
 - **Single chain.** Bitcoin mainnet, testnet, and signet only. No Liquid, no altchains.
 - **Single node.** No clustering, no failover. If your node goes down, the API goes down. Fine for personal use, not for production SLAs.
-- **No WebSocket streaming.** Polling only for now. Real-time mempool/block subscriptions are on the roadmap.
+- **SSE only, no WebSocket.** Real-time streaming uses Server-Sent Events for new blocks and fee updates. WebSocket support is on the roadmap.
 
 ## Try it
 
@@ -231,13 +231,13 @@ curl https://bitcoinsapi.com/api/v1/fees/recommended
 ```
 
 **Browse the source:**
-[github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api) (MIT license)
+[github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api) (Apache-2.0 license)
 
 **PyPI:**
 [pypi.org/project/satoshi-api/](https://pypi.org/project/satoshi-api/)
 
-43 endpoints. 110 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
+48 endpoints. 150 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
 
 ---
 
-*Satoshi API is open source under the MIT license. PRs, issues, and feedback welcome.*
+*Satoshi API is open source under the Apache-2.0 license. PRs, issues, and feedback welcome.*

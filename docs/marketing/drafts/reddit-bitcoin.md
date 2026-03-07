@@ -14,9 +14,9 @@ For example, instead of just telling you the fee rate is 4 sat/vB, it tells you 
 
 - **Self-hosted.** Runs on your machine next to your node. Your queries never leave your network.
 - **One install.** `pip install satoshi-api` and you are running. Docker also supported.
-- **49 endpoints.** Blocks, transactions, fees, mempool, mining stats, address lookups, and more.
+- **48 endpoints.** Blocks, transactions, fees, mempool, mining stats, address lookups, and more.
 - **AI-ready.** It is the only Bitcoin API with MCP support, meaning AI assistants like Claude can query your node directly.
-- **Free and open source.** MIT license. No subscriptions required for self-hosting.
+- **Free and open source.** Apache-2.0 license. No subscriptions required for self-hosting.
 
 There is also a hosted version at bitcoinsapi.com if you want to try it without running a node. Free tier, no signup needed for read endpoints.
 

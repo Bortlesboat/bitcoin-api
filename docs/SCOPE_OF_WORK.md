@@ -43,7 +43,13 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 | Component | Responsibility | Design Pattern |
 |-----------|---------------|----------------|
-| `main.py` | App lifecycle, middleware stack, exception handlers | Middleware chain |
+| `main.py` | App creation, lifespan, router registration (~89 lines) | Composition root |
+| `middleware.py` | Security headers, CORS, auth + rate limiting middleware | Middleware chain |
+| `exceptions.py` | RPC, validation, HTTP, and generic exception handlers | Exception handler registry |
+| `jobs.py` | Background fee collector thread lifecycle | Background worker |
+| `static_routes.py` | Landing page, robots.txt, sitemap, decision pages | Static file serving |
+| `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
+| `migrations/` | SQL migration files + runner, tracked in `schema_migrations` | Sequential migrations |
 | `auth.py` | API key validation, tier resolution | Strategy (tier-based) |
 | `rate_limit.py` | Per-minute sliding window + daily limits | Token bucket / sliding window |
 | `cache.py` | TTL caching with reorg-safe depth awareness, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache |
@@ -51,7 +57,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `routers/` | 13 domain routers (address, blocks, tx, fees, mempool, mining, network, prices, status, keys, stream, exchanges, tools) | RESTful resource routing |
+| `routers/` | 14 domain routers (address, analytics, blocks, tx, fees, mempool, mining, network, prices, status, keys, stream, exchanges, tools) | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -65,7 +71,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (42 total)
+### 3.1 Endpoints (48 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -112,6 +118,12 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/stream/fees` | GET (SSE) | No |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
+| **Analytics** | `/api/v1/analytics/overview` | GET | Admin key |
+| | `/api/v1/analytics/requests` | GET | Admin key |
+| | `/api/v1/analytics/endpoints` | GET | Admin key |
+| | `/api/v1/analytics/errors` | GET | Admin key |
+| | `/api/v1/analytics/user-agents` | GET | Admin key |
+| | `/api/v1/analytics/latency` | GET | Admin key |
 
 ### 3.2 Endpoint Tiers
 
@@ -235,9 +247,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | B- | Access logs + request IDs. Missing: Prometheus metrics. |
+| Observability | B | Access logs + request IDs + admin analytics (6 endpoints). Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 118 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 129 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | B+ | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. No schema migrations framework. |
@@ -284,7 +296,7 @@ Errors follow the same structure:
 | SQLite write bottleneck | >1K req/s will see contention | v0.2 -- batch writes or PostgreSQL |
 | No Prometheus metrics | Can't monitor cache hit rates, latency | v0.2 -- add `/metrics` endpoint |
 | No idempotency keys | POST retries could double-broadcast | v0.2 -- add `Idempotency-Key` header |
-| No schema migrations | Manual ALTER TABLE for DB changes | v0.2 -- add Alembic |
+| ~~No schema migrations~~ | ~~Manual ALTER TABLE for DB changes~~ | **RESOLVED** -- SQL migration runner in `migrations/` |
 | Daily limit COUNT(*) | O(n) per request at scale | v0.2 -- cache count in memory |
 | No webhook support | Clients must poll | v0.3 -- WebSocket/webhook subscriptions |
 
@@ -310,18 +322,22 @@ Errors follow the same structure:
 | 12 | Production hardening: RPC timeout, Cache-Control, 404 JSON, address timeout guard, cached raw mempool | 3 |
 | 13 | Simplify for launch: feature flags for extended routers, 2-tier pricing presentation, README trim, Show HN draft | 0 |
 | 14 | Legal infrastructure: ToS, Privacy Policy, financial disclaimer header, CoinGecko attribution, ToS acceptance on /register, Apache 2.0 license, DCO | 0 |
-| **Total** | **42 endpoints, 13 routers** | **118 unit + 21 e2e** |
+| 15 | Analytics & web metrics: enhanced request logging (method, latency, user-agent), 6 admin analytics endpoints, CF beacon, Bing verification, SEO metrics API usage tracker | 11 |
+| 16 | 3-tier codebase refactor: split main.py (555→89 lines), cache factory+registry, batch usage logging, migration system, deep health endpoint, feature flags dict, test helpers | 0 (existing 129 all pass) |
+| **Total** | **48 endpoints, 15 routers** | **129 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (15 files):**
-- `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, models, rate_limit
-- `src/bitcoin_api/routers/` -- address, blocks, exchanges, fees, keys, mempool, mining, network, prices, status, stream, transactions
+**Source (23 files):**
+- `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, exceptions, jobs, middleware, models, rate_limit, static_routes, usage_buffer
+- `src/bitcoin_api/routers/` -- address, analytics, blocks, exchanges, fees, health_deep, keys, mempool, mining, network, prices, status, stream, transactions
+- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql
 
-**Tests (3 files):**
-- `tests/test_api.py` -- 118 unit tests
+**Tests (4 files):**
+- `tests/test_api.py` -- 129 unit tests
 - `tests/test_e2e.py` -- 9 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
+- `tests/helpers.py` -- Isolated router test client factory
 
 **Deployment (6 files):**
 - `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml`
@@ -340,10 +356,11 @@ Errors follow the same structure:
 **Project config (1 file):**
 - `CLAUDE.md` -- Project instructions for AI-assisted development
 
-**Scripts (4 files):**
+**Scripts (5 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
 - `scripts/staging-check.sh` (pre-deploy validation: starts staging server, checks CSP/headers/docs/endpoints)
+- `scripts/legal_audit.py` (10-area legal compliance checker: ToS, privacy, disclaimers, attribution, license)
 
 **Legal (3 files):**
 - `static/terms.html` -- Terms of Service (FL governing law, liability limitation, acceptable use)

@@ -229,6 +229,40 @@ def check_ai_search_mentions():
     return mentions
 
 
+def check_api_analytics():
+    """Query the API's usage_log DB for request metrics."""
+    api_db = Path(__file__).parent.parent / "data" / "bitcoin_api.db"
+    if not api_db.exists():
+        return None
+    try:
+        aconn = sqlite3.connect(str(api_db))
+        aconn.row_factory = sqlite3.Row
+        total_24h = aconn.execute(
+            "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-24 hours')"
+        ).fetchone()[0]
+        top_endpoints = aconn.execute(
+            "SELECT endpoint, COUNT(*) as cnt FROM usage_log "
+            "WHERE ts >= datetime('now', '-24 hours') GROUP BY endpoint ORDER BY cnt DESC LIMIT 5"
+        ).fetchall()
+        errors_24h = aconn.execute(
+            "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-24 hours') AND status >= 400"
+        ).fetchone()[0]
+        avg_rt = aconn.execute(
+            "SELECT AVG(response_time_ms) FROM usage_log "
+            "WHERE ts >= datetime('now', '-24 hours') AND response_time_ms IS NOT NULL"
+        ).fetchone()[0]
+        aconn.close()
+        return {
+            "total_24h": total_24h,
+            "top_endpoints": [(r[0], r[1]) for r in top_endpoints],
+            "errors_24h": errors_24h,
+            "error_rate": round(errors_24h / total_24h, 4) if total_24h > 0 else 0,
+            "avg_response_time_ms": round(avg_rt, 2) if avg_rt else None,
+        }
+    except Exception:
+        return None
+
+
 def run_all_checks(conn):
     """Run all metrics checks and save to DB."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -303,6 +337,25 @@ def run_all_checks(conn):
     for query, found in mentions.items():
         icon = "+" if found else ("-" if found is False else "?")
         print(f"  [{icon}] \"{query}\"")
+
+    # 8. API usage analytics
+    print("\nChecking API usage analytics...")
+    api_stats = check_api_analytics()
+    if api_stats:
+        save_metric(conn, "api_usage", "requests_24h", api_stats["total_24h"], api_stats["total_24h"])
+        save_metric(conn, "api_usage", "errors_24h", api_stats["errors_24h"], api_stats["errors_24h"])
+        save_metric(conn, "api_usage", "error_rate", api_stats["error_rate"], api_stats["error_rate"])
+        if api_stats["avg_response_time_ms"] is not None:
+            save_metric(conn, "api_usage", "avg_response_time_ms", api_stats["avg_response_time_ms"], api_stats["avg_response_time_ms"])
+        print(f"  Requests (24h): {api_stats['total_24h']}")
+        print(f"  Errors (24h): {api_stats['errors_24h']} ({api_stats['error_rate']*100:.1f}%)")
+        if api_stats["avg_response_time_ms"] is not None:
+            print(f"  Avg response time: {api_stats['avg_response_time_ms']:.1f}ms")
+        print(f"  Top endpoints:")
+        for ep, cnt in api_stats["top_endpoints"]:
+            print(f"    {ep}: {cnt}")
+    else:
+        print("  (API DB not found or query failed)")
 
     print(f"\n{'='*50}")
     print(f"Summary: {accessible}/{total} pages live, {merged_count}/{len(prs)} PRs merged, "

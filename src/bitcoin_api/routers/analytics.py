@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from ..config import settings
 from ..db import get_db
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -26,6 +25,7 @@ _INTERVAL_MAP = {
 
 
 def _require_admin(request: Request):
+    from ..config import settings
     if not settings.admin_api_key:
         raise HTTPException(status_code=403, detail="Analytics not configured")
     key = request.headers.get("X-Admin-Key", "")

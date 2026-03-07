@@ -238,23 +238,21 @@ def reset_rate_limits():
 @pytest.fixture(autouse=True)
 def clear_caches():
     """Clear all TTL caches between tests."""
-    from bitcoin_api.cache import (
-        _fee_cache, _mempool_cache, _status_cache,
-        _blockchain_info_cache, _block_count_cache, _block_cache,
-        _recent_block_cache, _nextblock_cache, _hash_to_height,
-        _mempool_snapshots, _raw_mempool_cache,
-    )
-    _fee_cache.clear()
-    _mempool_cache.clear()
-    _status_cache.clear()
-    _blockchain_info_cache.clear()
-    _block_count_cache.clear()
-    _block_cache.clear()
-    _recent_block_cache.clear()
-    _nextblock_cache.clear()
-    _hash_to_height.clear()
-    _mempool_snapshots.clear()
-    _raw_mempool_cache.clear()
+    from bitcoin_api.cache import clear_all_caches
+    clear_all_caches()
+    yield
+    clear_all_caches()
+
+
+@pytest.fixture(autouse=True)
+def flush_usage_buffer():
+    """Make usage buffer flush immediately in tests so DB assertions work."""
+    from bitcoin_api.usage_buffer import usage_buffer
+    original = usage_buffer.FLUSH_SIZE
+    usage_buffer.FLUSH_SIZE = 1  # Flush after every log call
+    yield
+    usage_buffer.flush()
+    usage_buffer.FLUSH_SIZE = original
 
 
 @pytest.fixture(autouse=True)

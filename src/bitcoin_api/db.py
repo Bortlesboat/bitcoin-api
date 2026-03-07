@@ -11,47 +11,6 @@ _db_path: Path | None = None
 _initialized = False
 _init_lock = threading.Lock()
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS api_keys (
-    key_hash   TEXT PRIMARY KEY,
-    prefix     TEXT NOT NULL,
-    tier       TEXT NOT NULL DEFAULT 'free',
-    label      TEXT,
-    email      TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    active     INTEGER NOT NULL DEFAULT 1
-);
-
-CREATE TABLE IF NOT EXISTS usage_log (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    key_hash        TEXT,
-    endpoint        TEXT NOT NULL,
-    status          INTEGER NOT NULL,
-    method          TEXT,
-    response_time_ms REAL,
-    user_agent      TEXT,
-    ts              TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_usage_ts ON usage_log(ts);
-CREATE INDEX IF NOT EXISTS idx_usage_key ON usage_log(key_hash);
-CREATE INDEX IF NOT EXISTS idx_usage_key_ts ON usage_log(key_hash, ts);
-
-CREATE TABLE IF NOT EXISTS fee_history (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    ts              TEXT NOT NULL DEFAULT (datetime('now')),
-    next_block_fee  REAL,
-    median_fee      REAL,
-    low_fee         REAL,
-    mempool_size    INTEGER,
-    mempool_vsize   INTEGER,
-    congestion      TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_fee_history_ts ON fee_history(ts);
-
-"""
-
 
 def _make_conn(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(path), check_same_thread=False)
@@ -71,22 +30,9 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
                 _db_path = db_path or settings.api_db_path
                 _db_path.parent.mkdir(parents=True, exist_ok=True)
                 conn = _make_conn(_db_path)
-                conn.executescript(SCHEMA)
-                # Migration: add email column if missing
-                cols = [r[1] for r in conn.execute("PRAGMA table_info(api_keys)").fetchall()]
-                if "email" not in cols:
-                    conn.execute("ALTER TABLE api_keys ADD COLUMN email TEXT")
-                    conn.commit()
-                # Migration: add analytics columns to usage_log
-                usage_cols = [r[1] for r in conn.execute("PRAGMA table_info(usage_log)").fetchall()]
-                if "method" not in usage_cols:
-                    conn.execute("ALTER TABLE usage_log ADD COLUMN method TEXT")
-                    conn.execute("ALTER TABLE usage_log ADD COLUMN response_time_ms REAL")
-                    conn.execute("ALTER TABLE usage_log ADD COLUMN user_agent TEXT")
-                    conn.commit()
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_endpoint ON usage_log(endpoint)")
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_status ON usage_log(status)")
-                conn.commit()
+                # Run migrations (creates tables + indexes)
+                from .migrations.runner import run_pending
+                run_pending(conn)
                 conn.close()
                 _initialized = True
 
@@ -106,13 +52,9 @@ def log_usage(
     response_time_ms: float | None = None,
     user_agent: str | None = None,
 ) -> None:
-    conn = get_db()
-    conn.execute(
-        "INSERT INTO usage_log (key_hash, endpoint, status, method, response_time_ms, user_agent) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
-        (key_hash, endpoint, status_code, method, response_time_ms, user_agent),
-    )
-    conn.commit()
+    """Buffer a usage log entry for batch insertion."""
+    from .usage_buffer import usage_buffer
+    usage_buffer.log(key_hash, endpoint, status_code, method, response_time_ms, user_agent)
 
 
 def count_daily_usage(key_hash: str) -> int:

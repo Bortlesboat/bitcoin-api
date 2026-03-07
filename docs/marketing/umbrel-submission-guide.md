@@ -266,10 +266,10 @@ version: 1.0.0
 eos-version: 0.3.5.x
 release-notes: |
   * Initial release
-  * 34 REST API endpoints for Bitcoin Core
+  * 48 REST API endpoints for Bitcoin Core
   * API key authentication with rate limiting
   * Intelligent caching and request logging
-license: MIT
+license: Apache-2.0
 wrapper-repo: https://github.com/Bortlesboat/satoshi-api-startos
 upstream-repo: https://github.com/Bortlesboat/bitcoin-api
 support-site: https://github.com/Bortlesboat/bitcoin-api/issues
@@ -494,7 +494,7 @@ docker buildx version || echo "Please install docker buildx"
 - [ ] `Makefile` with `start-sdk pack` target
 - [ ] `prepare.sh` for build environment setup
 - [ ] `icon.svg` service icon
-- [ ] `LICENSE` file (MIT)
+- [ ] `LICENSE` file (Apache-2.0)
 - [ ] Config get/set scripts (for user-configurable settings)
 - [ ] Properties script (shows connection info in UI)
 - [ ] Backup/restore works correctly

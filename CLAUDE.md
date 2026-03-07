@@ -47,10 +47,41 @@ The SOW is the single source of truth for what this project is, what it does, an
 | File | Purpose |
 |------|---------|
 | `docs/SCOPE_OF_WORK.md` | Living project document (KEEP UPDATED) |
-| `src/bitcoin_api/main.py` | App, middleware, exception handlers |
-| `src/bitcoin_api/config.py` | Settings from env vars |
+| `src/bitcoin_api/main.py` | App creation, lifespan, router registration (~89 lines) |
+| `src/bitcoin_api/middleware.py` | Security headers, CORS, auth + rate limiting |
+| `src/bitcoin_api/exceptions.py` | All exception handlers |
+| `src/bitcoin_api/jobs.py` | Background fee collector thread |
+| `src/bitcoin_api/static_routes.py` | Landing page, robots.txt, sitemap, decision pages |
+| `src/bitcoin_api/config.py` | Settings from env vars + feature_flags property |
 | `src/bitcoin_api/auth.py` | API key auth |
 | `src/bitcoin_api/rate_limit.py` | Rate limiting |
-| `src/bitcoin_api/cache.py` | TTL + LRU caching |
-| `tests/test_api.py` | Unit tests (115) |
+| `src/bitcoin_api/cache.py` | TTL + LRU caching with registry + factory |
+| `src/bitcoin_api/usage_buffer.py` | Batch usage logging (50 rows / 30s flush) |
+| `src/bitcoin_api/db.py` | SQLite (WAL), key storage, fee history |
+| `src/bitcoin_api/migrations/` | SQL migrations + runner |
+| `tests/test_api.py` | Unit tests (129) |
 | `tests/test_e2e.py` | E2E tests (21) |
+| `tests/helpers.py` | Isolated router test client factory |
+| `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
+| `scripts/security_audit.py` | Automated security audit (8 checks) |
+
+## Agent Employees
+
+Satoshi API has 7 agent "employees" organized in a hierarchy. After any change, check the trigger matrix in `docs/AGENT_ROLES.md` to see if other agents should run.
+
+### Leadership (report to CEO)
+| Role | Skill | Responsibility |
+|------|-------|---------------|
+| **Head of Product** | `/product-review` | Product vision, customer journey, pricing, roadmap, competitive positioning |
+| **CFO / Finance** | `/finance-review` | Cost analysis, unit economics, pricing validation, revenue projections |
+
+### Operations
+| Role | Skill | Responsibility |
+|------|-------|---------------|
+| **Legal** | `/legal-review` | ToS, privacy policy, disclaimers, compliance |
+| **Marketing** | `/marketing-sync` | Landing page, SEO, endpoint counts, feature claims |
+| **Security** | `/security-review` | Headers, auth, rate limits, CSP, threat model |
+| **CTO / Coder** | `/code-review` | Tests pass, code quality, SCOPE_OF_WORK updated, architecture |
+| **Analytics** | `/analytics-review` | Data collection changes, logging, metrics |
+
+Each agent reads the trigger matrix, does its work, then reports which other agents should run next. No auto-execution — user stays in control.

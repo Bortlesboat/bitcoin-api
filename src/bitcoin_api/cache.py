@@ -1,34 +1,69 @@
-"""TTL caching for expensive RPC calls."""
+"""TTL caching for expensive RPC calls — with cache registry."""
 
 import threading
 import time
 from collections import deque
+from dataclasses import dataclass, field
 
 from cachetools import LRUCache, TTLCache
 
-# Per-cache locks to avoid cross-cache contention
-_info_lock = threading.Lock()
-_count_lock = threading.Lock()
-_fee_lock = threading.Lock()
-_mempool_lock = threading.Lock()
-_status_lock = threading.Lock()
-_block_lock = threading.Lock()
-_nextblock_lock = threading.Lock()
+
+# --- Cache registry ---
+
+@dataclass
+class CacheEntry:
+    cache: TTLCache | LRUCache
+    lock: threading.Lock = field(default_factory=threading.Lock)
+
+_registry: dict[str, CacheEntry] = {}
+
+
+def create_cache(name: str, cache: TTLCache | LRUCache) -> CacheEntry:
+    """Register a named cache with its own lock."""
+    entry = CacheEntry(cache=cache)
+    _registry[name] = entry
+    return entry
+
+
+def clear_all_caches():
+    """Clear every registered cache (used by tests)."""
+    for entry in _registry.values():
+        with entry.lock:
+            entry.cache.clear()
+    with _snapshot_lock:
+        _mempool_snapshots.clear()
+
+
+def get_all_cache_stats() -> dict[str, dict]:
+    """Return size/maxsize for every registered cache."""
+    stats = {}
+    for name, entry in _registry.items():
+        with entry.lock:
+            c = entry.cache
+            stats[name] = {
+                "size": len(c),
+                "maxsize": c.maxsize,
+            }
+    return stats
+
+
+# --- Cache instances ---
 
 # Mutable data — short TTL
-_fee_cache: TTLCache = TTLCache(maxsize=1, ttl=10)
-_mempool_cache: TTLCache = TTLCache(maxsize=1, ttl=5)
-_status_cache: TTLCache = TTLCache(maxsize=1, ttl=30)
-_blockchain_info_cache: TTLCache = TTLCache(maxsize=1, ttl=10)
-_block_count_cache: TTLCache = TTLCache(maxsize=1, ttl=5)
-_nextblock_cache: TTLCache = TTLCache(maxsize=1, ttl=20)
+_fee = create_cache("fee", TTLCache(maxsize=1, ttl=10))
+_mempool = create_cache("mempool", TTLCache(maxsize=1, ttl=5))
+_status = create_cache("status", TTLCache(maxsize=1, ttl=30))
+_blockchain_info = create_cache("blockchain_info", TTLCache(maxsize=1, ttl=10))
+_block_count = create_cache("block_count", TTLCache(maxsize=1, ttl=5))
+_nextblock = create_cache("nextblock", TTLCache(maxsize=1, ttl=20))
+_raw_mempool = create_cache("raw_mempool", TTLCache(maxsize=1, ttl=5))
 
 # Immutable data — confirmed blocks never change (deep confirmations)
-_block_cache: TTLCache = TTLCache(maxsize=64, ttl=3600)
+_block = create_cache("block", TTLCache(maxsize=64, ttl=3600))
 # Recent blocks near tip — short TTL to handle reorgs
-_recent_block_cache: TTLCache = TTLCache(maxsize=8, ttl=30)
+_recent_block = create_cache("recent_block", TTLCache(maxsize=8, ttl=30))
 # Block hash → height mapping for cache lookups (bounded to prevent memory leak)
-_hash_to_height: LRUCache = LRUCache(maxsize=256)
+_hash_to_height = create_cache("hash_to_height", LRUCache(maxsize=256))
 
 REORG_SAFE_DEPTH = 6
 
@@ -67,42 +102,26 @@ def get_mempool_snapshots() -> list[dict]:
         return list(_mempool_snapshots)
 
 
-_raw_mempool_lock = threading.Lock()
-_raw_mempool_cache: TTLCache = TTLCache(maxsize=1, ttl=5)
-
-
-def cached_raw_mempool(rpc):
-    """Cache getrawmempool(True) for 5 seconds — used by mempool/recent and fees/mempool-blocks."""
-    key = "raw"
-    with _raw_mempool_lock:
-        if key in _raw_mempool_cache:
-            return _raw_mempool_cache[key]
-    result = rpc.call("getrawmempool", True)
-    with _raw_mempool_lock:
-        _raw_mempool_cache[key] = result
-    return result
-
-
 _info_fetched_at: float | None = None
 
 
 def cached_blockchain_info(rpc):
     global _info_fetched_at
     key = "info"
-    with _info_lock:
-        if key in _blockchain_info_cache:
-            return _blockchain_info_cache[key]
+    with _blockchain_info.lock:
+        if key in _blockchain_info.cache:
+            return _blockchain_info.cache[key]
     result = rpc.call("getblockchaininfo")
-    with _info_lock:
-        _blockchain_info_cache[key] = result
+    with _blockchain_info.lock:
+        _blockchain_info.cache[key] = result
         _info_fetched_at = time.time()
     return result
 
 
 def get_cached_node_info() -> tuple[int | None, str | None]:
     """Return (height, chain) from cached blockchain info, or (None, None)."""
-    with _info_lock:
-        info = _blockchain_info_cache.get("info")
+    with _blockchain_info.lock:
+        info = _blockchain_info.cache.get("info")
     if info is None:
         return None, None
     return info.get("blocks"), info.get("chain")
@@ -110,8 +129,8 @@ def get_cached_node_info() -> tuple[int | None, str | None]:
 
 def get_sync_progress() -> float | None:
     """Return verificationprogress from cached blockchain info, or None if not cached."""
-    with _info_lock:
-        info = _blockchain_info_cache.get("info")
+    with _blockchain_info.lock:
+        info = _blockchain_info.cache.get("info")
     if info is None:
         return None
     return info.get("verificationprogress")
@@ -119,8 +138,8 @@ def get_sync_progress() -> float | None:
 
 def get_cache_state() -> tuple[bool, int | None]:
     """Return (is_cached, age_seconds) for blockchain info cache."""
-    with _info_lock:
-        is_cached = "info" in _blockchain_info_cache
+    with _blockchain_info.lock:
+        is_cached = "info" in _blockchain_info.cache
     if not is_cached or _info_fetched_at is None:
         return False, None
     return True, int(time.time() - _info_fetched_at)
@@ -128,12 +147,12 @@ def get_cache_state() -> tuple[bool, int | None]:
 
 def cached_block_count(rpc):
     key = "count"
-    with _count_lock:
-        if key in _block_count_cache:
-            return _block_count_cache[key]
+    with _block_count.lock:
+        if key in _block_count.cache:
+            return _block_count.cache[key]
     result = rpc.call("getblockcount")
-    with _count_lock:
-        _block_count_cache[key] = result
+    with _block_count.lock:
+        _block_count.cache[key] = result
     return result
 
 
@@ -141,12 +160,12 @@ def cached_fee_estimates(rpc):
     from bitcoinlib_rpc.fees import get_fee_estimates
 
     key = "fees"
-    with _fee_lock:
-        if key in _fee_cache:
-            return _fee_cache[key]
+    with _fee.lock:
+        if key in _fee.cache:
+            return _fee.cache[key]
     result = get_fee_estimates(rpc)
-    with _fee_lock:
-        _fee_cache[key] = result
+    with _fee.lock:
+        _fee.cache[key] = result
     return result
 
 
@@ -154,12 +173,12 @@ def cached_mempool_analysis(rpc):
     from bitcoinlib_rpc.mempool import analyze_mempool
 
     key = "mempool"
-    with _mempool_lock:
-        if key in _mempool_cache:
-            return _mempool_cache[key]
+    with _mempool.lock:
+        if key in _mempool.cache:
+            return _mempool.cache[key]
     result = analyze_mempool(rpc)
-    with _mempool_lock:
-        _mempool_cache[key] = result
+    with _mempool.lock:
+        _mempool.cache[key] = result
     return result
 
 
@@ -167,12 +186,24 @@ def cached_status(rpc):
     from bitcoinlib_rpc.status import get_status
 
     key = "status"
-    with _status_lock:
-        if key in _status_cache:
-            return _status_cache[key]
+    with _status.lock:
+        if key in _status.cache:
+            return _status.cache[key]
     result = get_status(rpc)
-    with _status_lock:
-        _status_cache[key] = result
+    with _status.lock:
+        _status.cache[key] = result
+    return result
+
+
+def cached_raw_mempool(rpc):
+    """Cache getrawmempool(True) for 5 seconds — used by mempool/recent and fees/mempool-blocks."""
+    key = "raw"
+    with _raw_mempool.lock:
+        if key in _raw_mempool.cache:
+            return _raw_mempool.cache[key]
+    result = rpc.call("getrawmempool", True)
+    with _raw_mempool.lock:
+        _raw_mempool.cache[key] = result
     return result
 
 
@@ -181,23 +212,21 @@ def cached_block_analysis(rpc, height: int):
 
     tip = cached_block_count(rpc)
 
-    # Blocks near tip use short-TTL cache (reorg safety)
     if (tip - height) < REORG_SAFE_DEPTH:
-        with _block_lock:
-            if height in _recent_block_cache:
-                return _recent_block_cache[height]
+        with _recent_block.lock:
+            if height in _recent_block.cache:
+                return _recent_block.cache[height]
         result = analyze_block(rpc, height)
-        with _block_lock:
-            _recent_block_cache[height] = result
+        with _recent_block.lock:
+            _recent_block.cache[height] = result
         return result
 
-    # Deep blocks use long-TTL cache
-    with _block_lock:
-        if height in _block_cache:
-            return _block_cache[height]
+    with _block.lock:
+        if height in _block.cache:
+            return _block.cache[height]
     result = analyze_block(rpc, height)
-    with _block_lock:
-        _block_cache[height] = result
+    with _block.lock:
+        _block.cache[height] = result
     return result
 
 
@@ -205,23 +234,22 @@ def cached_block_by_hash(rpc, block_hash: str):
     """Analyze a block by hash, caching the result by resolved height."""
     from bitcoinlib_rpc.blocks import analyze_block
 
-    # Check if we already know this hash's height
-    with _block_lock:
-        height = _hash_to_height.get(block_hash)
+    with _block.lock:
+        height = _hash_to_height.cache.get(block_hash)
         if height is not None:
-            if height in _block_cache:
-                return _block_cache[height]
-            if height in _recent_block_cache:
-                return _recent_block_cache[height]
+            if height in _block.cache:
+                return _block.cache[height]
+            if height in _recent_block.cache:
+                return _recent_block.cache[height]
 
     result = analyze_block(rpc, block_hash)
     data = result.model_dump() if hasattr(result, "model_dump") else result
     resolved_height = data.get("height")
 
     if resolved_height is not None:
-        with _block_lock:
-            _hash_to_height[block_hash] = resolved_height
-            _block_cache[resolved_height] = result
+        with _block.lock:
+            _hash_to_height.cache[block_hash] = resolved_height
+            _block.cache[resolved_height] = result
 
     return result
 
@@ -230,10 +258,10 @@ def cached_next_block(rpc):
     from bitcoinlib_rpc.nextblock import analyze_next_block
 
     key = "nextblock"
-    with _nextblock_lock:
-        if key in _nextblock_cache:
-            return _nextblock_cache[key]
+    with _nextblock.lock:
+        if key in _nextblock.cache:
+            return _nextblock.cache[key]
     result = analyze_next_block(rpc)
-    with _nextblock_lock:
-        _nextblock_cache[key] = result
+    with _nextblock.lock:
+        _nextblock.cache[key] = result
     return result

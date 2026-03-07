@@ -143,7 +143,9 @@ def test_envelope_format(client):
 def test_usage_logging(client):
     """Requests should be logged to usage_log table."""
     from bitcoin_api.db import get_db
+    from bitcoin_api.usage_buffer import usage_buffer
     client.get("/api/v1/network")
+    usage_buffer.flush()
     conn = get_db()
     rows = conn.execute("SELECT * FROM usage_log").fetchall()
     assert len(rows) >= 1
@@ -593,8 +595,10 @@ def test_network_moved_to_network_router(client):
 def test_daily_rate_limit_uses_bucket(client, mock_rpc):
     """Anonymous users should have daily limits enforced via IP bucket."""
     from bitcoin_api.db import get_db
+    from bitcoin_api.usage_buffer import usage_buffer
     # Make a request (anonymous, so bucket = IP)
     client.get("/api/v1/fees/6")
+    usage_buffer.flush()
     conn = get_db()
     rows = conn.execute("SELECT key_hash FROM usage_log").fetchall()
     # Anonymous users should log with IP (bucket), not NULL
@@ -1383,3 +1387,138 @@ def test_cache_control_no_store_on_register(authed_client):
     # May get 200 or 429 or other status, but header should be set
     assert "Cache-Control" in resp.headers
     assert "no-store" in resp.headers["Cache-Control"]
+
+
+# --- Analytics Endpoints ---
+
+
+def test_analytics_overview_requires_admin_key(client):
+    """Analytics endpoints should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/overview")
+    assert resp.status_code == 403
+
+
+def test_analytics_overview_rejects_wrong_key(client):
+    """Analytics endpoints should reject an invalid admin key."""
+    resp = client.get("/api/v1/analytics/overview", headers={"X-Admin-Key": "wrong"})
+    assert resp.status_code == 403
+
+
+def _admin_client(mock_rpc):
+    """Create a test client with admin key configured."""
+    from bitcoin_api.main import app
+    from bitcoin_api.dependencies import get_rpc
+    from bitcoin_api.config import settings
+
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    app.dependency_overrides[get_rpc] = lambda: mock_rpc
+    from fastapi.testclient import TestClient
+    c = TestClient(app, headers={"X-Admin-Key": "test-admin-secret"})
+    yield c
+    settings.admin_api_key = original
+    app.dependency_overrides.clear()
+
+
+import pytest
+
+@pytest.fixture
+def admin_client(mock_rpc):
+    from bitcoin_api.main import app
+    from bitcoin_api.dependencies import get_rpc
+    from bitcoin_api.config import settings
+
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    app.dependency_overrides[get_rpc] = lambda: mock_rpc
+    from fastapi.testclient import TestClient
+    with TestClient(app, headers={"X-Admin-Key": "test-admin-secret"}) as c:
+        yield c
+    settings.admin_api_key = original
+    app.dependency_overrides.clear()
+
+
+def test_analytics_overview_with_admin_key(admin_client):
+    """Analytics overview should return 200 with valid admin key."""
+    resp = admin_client.get("/api/v1/analytics/overview")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "requests_24h" in data
+    assert "unique_keys_24h" in data
+    assert "error_rate_24h" in data
+    assert "avg_latency_ms_24h" in data
+
+
+def test_analytics_requests_with_admin_key(admin_client):
+    """Analytics requests should return time-series data."""
+    resp = admin_client.get("/api/v1/analytics/requests?period=24h&interval=1h")
+    assert resp.status_code == 200
+    assert "data" in resp.json()
+    assert isinstance(resp.json()["data"], list)
+
+
+def test_analytics_endpoints_with_admin_key(admin_client):
+    """Analytics endpoints should return top endpoints."""
+    resp = admin_client.get("/api/v1/analytics/endpoints?period=24h&limit=10")
+    assert resp.status_code == 200
+    assert isinstance(resp.json()["data"], list)
+
+
+def test_analytics_errors_with_admin_key(admin_client):
+    """Analytics errors should return error breakdown."""
+    resp = admin_client.get("/api/v1/analytics/errors?period=24h")
+    assert resp.status_code == 200
+    assert isinstance(resp.json()["data"], list)
+
+
+def test_analytics_user_agents_with_admin_key(admin_client):
+    """Analytics user-agents should return top user agents."""
+    resp = admin_client.get("/api/v1/analytics/user-agents?period=24h")
+    assert resp.status_code == 200
+    assert isinstance(resp.json()["data"], list)
+
+
+def test_analytics_latency_with_admin_key(admin_client):
+    """Analytics latency should return percentiles."""
+    resp = admin_client.get("/api/v1/analytics/latency?period=24h")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "p50" in data
+    assert "p95" in data
+    assert "p99" in data
+    assert "count" in data
+
+
+def test_log_usage_stores_new_fields(client):
+    """log_usage should store method, response_time_ms, user_agent."""
+    from bitcoin_api.db import get_db, log_usage
+    from bitcoin_api.usage_buffer import usage_buffer
+    log_usage("test-key", "/api/v1/test", 200, method="GET", response_time_ms=42.5, user_agent="TestBot/1.0")
+    usage_buffer.flush()
+    conn = get_db()
+    row = conn.execute(
+        "SELECT method, response_time_ms, user_agent FROM usage_log WHERE key_hash = 'test-key' ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    assert row is not None
+    assert row[0] == "GET"
+    assert abs(row[1] - 42.5) < 0.01
+    assert row[2] == "TestBot/1.0"
+
+
+def test_usage_log_migration_creates_columns():
+    """Migration should create method, response_time_ms, user_agent columns."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(usage_log)").fetchall()]
+    assert "method" in cols
+    assert "response_time_ms" in cols
+    assert "user_agent" in cols
+
+
+def test_usage_log_indexes_exist():
+    """New indexes should exist on usage_log."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    indexes = [r[1] for r in conn.execute("PRAGMA index_list(usage_log)").fetchall()]
+    assert "idx_usage_endpoint" in indexes
+    assert "idx_usage_status" in indexes
