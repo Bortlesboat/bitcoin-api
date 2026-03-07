@@ -227,7 +227,7 @@ Errors follow the same structure:
 | **Retry-After** | Header on 429 responses | Per-minute: calculated from window reset; daily: 3600s |
 | **Gzip Compression** | GzipMiddleware | Responses ≥1000 bytes compressed automatically |
 | **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
-| **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for Cloudflare analytics, inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
+| **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
 | **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
 
 ### 4.2 Threat Model
@@ -299,6 +299,9 @@ Errors follow the same structure:
 22. **404 returns HTML on API routes** -- `http_exception_handler` now returns JSON envelope for `/api/*` paths
 23. **Registration not rate-limited** -- Removed `/api/v1/register` from rate limit skip set
 24. **Raw mempool fetched repeatedly** -- Added `cached_raw_mempool` with 5s TTL for mempool/recent and fees/mempool-blocks
+25. **Timing attack on API key comparison** -- Auth now uses `secrets.compare_digest()` for constant-time comparison
+26. **Registration email enumeration** -- `/register` no longer reveals whether an email is already registered
+27. **Cloudflare Insights tracking removed** -- Removed CF beacon from all HTML pages, CSP, and legal_audit checks
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
@@ -337,8 +340,8 @@ Errors follow the same structure:
 | 16 | 3-tier codebase refactor: split main.py (555→89 lines), cache factory+registry, batch usage logging, migration system, deep health endpoint, feature flags dict, test helpers | 0 (existing 129 all pass) |
 | 17 | Service layer extraction (~300 lines from routers→services), enhanced migration runner (rollback, status, validation), structured JSON logging, migration status in /health/deep | 0 (existing 129 all pass) |
 | 18 | Industry Standards: RFC 7807 type URIs, Retry-After on 429s, OpenAPI metadata (contact/license/terms/servers), GzipMiddleware, favicon route | 0 (existing 129 all pass) |
-| 19 | Analytics infrastructure expansion: 4 new analytics endpoints (keys, growth, slow-endpoints, retention), auto-pruning in fee collector, admin dashboard (Chart.js), CSP + rate-limit skip updates | 8 |
-| **Total** | **55 endpoints, 15 routers** | **137 unit + 21 e2e** |
+| 19 | Analytics infrastructure expansion: 4 new analytics endpoints (keys, growth, slow-endpoints, retention), auto-pruning in fee collector, admin dashboard (Chart.js), CSP + rate-limit skip updates | 10 |
+| **Total** | **50 endpoints, 14 routers** | **139 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -364,26 +367,29 @@ Errors follow the same structure:
 - `docs/self-hosting.md`, `docs/bitcoin-conf-example.conf`
 - `docs/OPERATIONS.md` -- How to run, restart, configure, use analytics, run agents
 
-**CI/CD (3 files):**
+**CI/CD (2 active files):**
 - `.github/workflows/ci.yml` -- Tests + lint on push
 - `.github/workflows/publish.yml` -- PyPI publish on release
-- `.github/workflows/pages.yml` -- GitHub Pages deployment for landing page
+- ~~`.github/workflows/pages.yml`~~ -- Removed (static pages served by FastAPI, not GitHub Pages)
 
 **Project config (1 file):**
 - `CLAUDE.md` -- Project instructions for AI-assisted development
 
-**Scripts (5 files):**
+**Scripts (8 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
 - `scripts/staging-check.sh` (pre-deploy validation: starts staging server, checks CSP/headers/docs/endpoints)
 - `scripts/legal_audit.py` (10-area legal compliance checker: ToS, privacy, disclaimers, attribution, license)
+- `scripts/privacy_check.py` (pre-commit privacy enforcer — blocks commits with secrets/PII)
+- `scripts/trigger_check.py` (pre-commit advisory — reports which agents should review based on changed files)
+- `scripts/install-hooks.sh` (installs pre-commit hooks: privacy enforcer blocking + trigger advisory non-blocking)
 
 **Legal (3 files):**
 - `static/terms.html` -- Terms of Service (FL governing law, liability limitation, acceptable use)
 - `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
-**Website (13 files):**
+**Website (14 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -392,10 +398,11 @@ Errors follow the same structure:
 - `static/self-hosted-bitcoin-api.html` -- SEO decision page: self-hosting
 - `static/bitcoin-fee-api.html` -- SEO feature page: fee estimation endpoints
 - `static/bitcoin-mempool-api.html` -- SEO feature page: mempool analysis endpoints
+- `static/bitcoin-mcp-setup-guide.html` -- SEO guide: MCP setup for AI agents
 - `static/robots.txt` -- Search engine crawl directives (welcomes AI crawlers)
 - `static/terms.html` -- Terms of Service page
 - `static/privacy.html` -- Privacy Policy page
-- `static/sitemap.xml` -- XML sitemap for search engines (11 URLs)
+- `static/sitemap.xml` -- XML sitemap for search engines (12 URLs)
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 
 ---
@@ -424,7 +431,7 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [x] All 118 unit tests pass
+- [x] All 139 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -556,7 +563,18 @@ twine upload dist/*
 - `GET /stream/fees` — SSE fee rate updates every 30s
 - Background fee collector (5-min snapshots for trend + history)
 
-### v0.3.1 (Security Hardening — Next)
+### v0.3.1 (Security Hardening — COMPLETE)
+- Timing attack fix (`secrets.compare_digest`)
+- Registration email enumeration fix
+- Cloudflare Insights removed (privacy improvement)
+- Service layer extraction (exchanges, fees, transactions, serializers)
+- Migration rollback support
+- JSON logging option (`log_format` config)
+- Admin dashboard page (`static/admin-dashboard.html`)
+- Pre-commit hooks: privacy enforcer (blocking) + trigger advisory (non-blocking)
+- 10 new unit tests (129 → 139)
+
+### v0.3.2 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)
 - Subresource Integrity (SRI) for any external scripts
 - API key rotation endpoint (issue new key, deprecate old)

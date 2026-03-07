@@ -20,7 +20,7 @@ I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin
 
 The hosted version at bitcoinsapi.com has a free tier (no signup for GET endpoints). But the main use case is self-hosting -- your node, your data, no third-party dependencies.
 
-Solo project. 129 unit tests, 21 e2e tests. Apache-2.0 license. Feedback appreciated.
+Solo project. 139 unit tests, 21 e2e tests. Apache-2.0 license. Feedback appreciated.
 
 - GitHub: https://github.com/Bortlesboat/bitcoin-api
 - Live docs: https://bitcoinsapi.com/docs

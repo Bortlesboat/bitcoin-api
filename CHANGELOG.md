@@ -12,18 +12,33 @@
 - Cached raw mempool for mempool/recent and fees/mempool-blocks (5s TTL)
 - Analytics & web metrics: enhanced request logging (method, latency, user-agent)
 - 6 admin analytics endpoints (`/api/v1/analytics/*`: overview, requests, endpoints, errors, user-agents, latency)
-- Cloudflare Web Analytics beacon + Bing Webmaster verification placeholders
+- 4 more analytics endpoints (keys, growth, slow-endpoints, retention)
+- Admin dashboard page (`static/admin-dashboard.html`) with Chart.js, dark theme, auto-refresh
 - SEO metrics API usage tracker in `scripts/seo_metrics.py`
 - `ADMIN_API_KEY` env var for analytics endpoint authentication
 - 3-tier codebase refactor: split main.py (555→89 lines), cache factory+registry, batch usage logging, migration system
+- Service layer extraction: `services/exchanges.py`, `services/fees.py`, `services/transactions.py`, `services/serializers.py`
+- Enhanced migration runner with rollback support and validation
+- JSON logging option (`log_format` config setting)
+- Pre-commit hooks: `scripts/privacy_check.py` (blocking), `scripts/trigger_check.py` (non-blocking advisory), `scripts/install-hooks.sh`
+- `static/bitcoin-mcp-setup-guide.html` — MCP setup guide for AI agents
+- RFC 7807 error type URIs, Retry-After on 429s, GzipMiddleware
 
 ### Fixed
 - 404 on `/api/v1/*` routes now returns JSON error envelope instead of HTML
 - `/api/v1/register` now subject to rate limiting (removed from skip set)
+- Timing attack on API key comparison — now uses `secrets.compare_digest()`
+- Registration email enumeration — `/register` no longer reveals existing emails
+- Cloudflare Insights beacon removed from all HTML pages, CSP, and legal_audit
+
+### Removed
+- `docs/website/` directory (static pages served by FastAPI directly)
+- `.github/workflows/pages.yml` (no longer needed)
 
 ### Changed
-- Total endpoints: 42 → 48
-- Unit tests: 118 → 129 (150 total with 21 e2e)
+- Total endpoints: 42 → 50
+- Unit tests: 118 → 139 (160 total with 21 e2e)
+- Static pages: 12 public pages
 
 ## [0.3.0] - 2026-03-07
 
