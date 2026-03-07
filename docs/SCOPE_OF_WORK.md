@@ -1,6 +1,6 @@
 # Satoshi API -- Scope of Work
 
-**Version:** 0.3.0
+**Version:** 0.3.1
 **Date:** 2026-03-07
 **Author:** Andy Barnes
 **Status:** Live -- https://bitcoinsapi.com
@@ -65,7 +65,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (41 total)
+### 3.1 Endpoints (42 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -113,16 +113,31 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
 
-### 3.2 Rate Limits
+### 3.2 Endpoint Tiers
 
-| Tier | Per Minute | Per Day | POST Access |
-|------|-----------|---------|-------------|
-| Anonymous | 30 | 1,000 | No |
-| Free | 100 | 10,000 | Yes |
-| Pro | 500 | 100,000 | Yes |
-| Enterprise | 2,000 | Unlimited | Yes |
+Endpoints are grouped into Core (always on) and Extended (toggleable via feature flags):
 
-### 3.3 Data Integrity Features
+| Tier | Routers | Feature Flag |
+|------|---------|-------------|
+| **Core** | status, blocks, transactions, fees, mempool, mining, network, stream, keys | Always enabled |
+| **Extended** | prices | `ENABLE_PRICES_ROUTER` (default: true) |
+| **Extended** | address | `ENABLE_ADDRESS_ROUTER` (default: true) |
+| **Extended** | exchanges | `ENABLE_EXCHANGE_COMPARE` (default: true) |
+
+All flags default to `true` so tests pass unchanged and Swagger `/docs` shows everything. Production `.env` controls what's actually exposed.
+
+### 3.3 Rate Limits
+
+| Tier | Price | Rate Limit | Daily Limit | POST Access |
+|------|-------|-----------|-------------|-------------|
+| **Self-Hosted** | Free forever | Unlimited | Unlimited | Yes |
+| **Hosted (anonymous)** | Free | 30/min | 1,000/day | No |
+| **Hosted (API key)** | Free | 100/min | 10,000/day | Yes |
+| **Pro** | $19/mo | 500/min | 100,000/day | Yes |
+
+Landing page presents 2 tiers (Self-Hosted + Hosted). Pro is preserved but hidden until demand materializes.
+
+### 3.4 Data Integrity Features
 
 | Feature | Implementation | Details |
 |---------|---------------|---------|
@@ -130,7 +145,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Stale Data Indicators** | `Meta.cached: bool`, `Meta.cache_age_seconds: int \| None` | Auto-populated from blockchain info cache state. Lets clients know data freshness. |
 | **Broadcast Pre-Validation** | `decoderawtransaction` before `sendrawtransaction` | `/broadcast` catches malformed hex early. RPC error codes mapped to human-readable HTTP responses (see Section 4). |
 
-### 3.4 Response Format
+### 3.5 Response Format
 
 All responses use a standard envelope:
 
@@ -218,7 +233,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | B- | Access logs + request IDs. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 115 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 118 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | B+ | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. No schema migrations framework. |
@@ -250,6 +265,14 @@ Errors follow the same structure:
 **Post-launch (Mar 6):**
 18. **Hardcoded API key in security_check.sh** -- Flagged by GitGuardian. Replaced with `$SATOSHI_API_KEY` env var. Exposed key deactivated, new key generated. Committed key is in git history but was for local use only (no third-party exposure).
 
+**v0.3.1 Hardening (Mar 7):**
+19. **No RPC timeout** -- Added configurable `RPC_TIMEOUT` (default 30s) via Settings, wired to BitcoinRPC constructor
+20. **Address scan can hang** -- Wrapped `scantxoutset` in timeout guard, returns 504 on `ReadTimeout`
+21. **No Cache-Control headers** -- Added middleware: fee/mempool→10s, deep blocks→1hr, health→no-cache, register→no-store
+22. **404 returns HTML on API routes** -- `http_exception_handler` now returns JSON envelope for `/api/*` paths
+23. **Registration not rate-limited** -- Removed `/api/v1/register` from rate limit skip set
+24. **Raw mempool fetched repeatedly** -- Added `cached_raw_mempool` with 5s TTL for mempool/recent and fees/mempool-blocks
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
@@ -280,7 +303,9 @@ Errors follow the same structure:
 | 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
 | 10 | Launch features: fee landscape, tx estimator, SSE streams, fee history | 9 |
 | 11 | Security hardening (headers, CSP, HSTS), exchange compare tool, SEO comparison pages, robots.txt, sitemap.xml | 6 |
-| **Total** | **43 endpoints, 13 routers** | **115 unit + 21 e2e** |
+| 12 | Production hardening: RPC timeout, Cache-Control, 404 JSON, address timeout guard, cached raw mempool | 3 |
+| 13 | Simplify for launch: feature flags for extended routers, 2-tier pricing presentation, README trim, Show HN draft | 0 |
+| **Total** | **42 endpoints, 13 routers** | **118 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -289,7 +314,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/routers/` -- address, blocks, exchanges, fees, keys, mempool, mining, network, prices, status, stream, transactions
 
 **Tests (3 files):**
-- `tests/test_api.py` -- 115 unit tests
+- `tests/test_api.py` -- 118 unit tests
 - `tests/test_e2e.py` -- 9 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 
@@ -310,9 +335,10 @@ Errors follow the same structure:
 **Project config (1 file):**
 - `CLAUDE.md` -- Project instructions for AI-assisted development
 
-**Scripts (3 files):**
+**Scripts (4 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
+- `scripts/staging-check.sh` (pre-deploy validation: starts staging server, checks CSP/headers/docs/endpoints)
 
 **Website (10 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
@@ -352,7 +378,7 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [x] All 115 unit tests pass
+- [x] All 118 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)

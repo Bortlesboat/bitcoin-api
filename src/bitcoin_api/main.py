@@ -435,17 +435,23 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # --- Routers ---
 
 PREFIX = "/api/v1"
+
+# --- Core (node-powered) ---
 app.include_router(status.router, prefix=PREFIX)
 app.include_router(blocks.router, prefix=PREFIX)
 app.include_router(transactions.router, prefix=PREFIX)
-app.include_router(mempool.router, prefix=PREFIX)
 app.include_router(fees.router, prefix=PREFIX)
+app.include_router(mempool.router, prefix=PREFIX)
 app.include_router(mining.router, prefix=PREFIX)
 app.include_router(network.router, prefix=PREFIX)
-app.include_router(prices.router, prefix=PREFIX)
-app.include_router(keys.router, prefix=PREFIX)
 app.include_router(stream.router, prefix=PREFIX)
-app.include_router(address.router, prefix=PREFIX)
+app.include_router(keys.router, prefix=PREFIX)
+
+# --- Extended (toggleable) ---
+if settings.enable_prices_router:
+    app.include_router(prices.router, prefix=PREFIX)
+if settings.enable_address_router:
+    app.include_router(address.router, prefix=PREFIX)
 if settings.enable_exchange_compare:
     app.include_router(exchanges.router, prefix=PREFIX)
 

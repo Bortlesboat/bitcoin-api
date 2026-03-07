@@ -24,6 +24,11 @@ class Settings(BaseSettings):
 
     # Feature flags
     enable_exchange_compare: bool = True
+    enable_prices_router: bool = True
+    enable_address_router: bool = True
+
+    # RPC timeout (seconds)
+    rpc_timeout: int = 30
 
     # RPC timeout (seconds)
     rpc_timeout: int = 30
