@@ -23,6 +23,13 @@ class UseCaseFilter(str, Enum):
     prices = "prices"
     address = "address"
     tools = "tools"
+    status = "status"
+    authentication = "authentication"
+    supply = "supply"
+    statistics = "statistics"
+    billing = "billing"
+    websocket = "websocket"
+    admin = "admin"
     all = "all"
 
 
@@ -127,6 +134,7 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/blocks/{hash}/header", "Raw block header"),
                 _ep("GET", "/api/v1/blocks/{hash}/txids", "Transaction IDs in a block"),
                 _ep("GET", "/api/v1/blocks/{hash}/txs", "Transactions in a block (paginated)"),
+                _ep("GET", "/api/v1/blocks/{hash}/raw", "Raw block as hex string"),
             ],
         },
         {
@@ -141,6 +149,7 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/tx/{txid}/outspends", "Which outputs are spent"),
                 _ep("GET", "/api/v1/utxo/{txid}/{vout}", "UTXO lookup"),
                 _ep("POST", "/api/v1/decode", "Decode a raw transaction hex", auth=True),
+                _ep("GET", "/api/v1/tx/{txid}/merkle-proof", "Merkle proof for confirmed transaction"),
                 _ep("POST", "/api/v1/broadcast", "Broadcast a signed transaction", auth=True),
             ],
         },
@@ -159,10 +168,15 @@ def _build_categories() -> list[dict]:
         {
             "name": "Mining",
             "use_case": "mining",
-            "description": "Mining stats, difficulty, and next block prediction",
+            "description": "Mining stats, difficulty, hashrate history, and revenue analysis",
             "endpoints": [
                 _ep("GET", "/api/v1/mining", "Mining overview: difficulty, hashrate, retarget"),
                 _ep("GET", "/api/v1/mining/nextblock", "Next block fee prediction"),
+                _ep("GET", "/api/v1/mining/hashrate/history", "Hashrate history over recent blocks"),
+                _ep("GET", "/api/v1/mining/revenue", "Mining revenue breakdown"),
+                _ep("GET", "/api/v1/mining/pools", "Pool identification from coinbase tags"),
+                _ep("GET", "/api/v1/mining/difficulty/history", "Difficulty adjustment history"),
+                _ep("GET", "/api/v1/mining/revenue/history", "Per-block revenue history"),
             ],
         },
         {
@@ -179,10 +193,65 @@ def _build_categories() -> list[dict]:
         {
             "name": "Real-Time Streams",
             "use_case": "streams",
-            "description": "Server-Sent Events for live block and fee updates",
+            "description": "Server-Sent Events for live block, fee, and whale transaction updates",
             "endpoints": [
                 _ep("GET", "/api/v1/stream/blocks", "Live new block notifications (SSE)"),
                 _ep("GET", "/api/v1/stream/fees", "Live fee estimate updates (SSE)"),
+                _ep("GET", "/api/v1/stream/whale-txs", "Live whale transaction alerts (SSE)"),
+            ],
+        },
+        {
+            "name": "Status & Health",
+            "use_case": "status",
+            "description": "API health checks and node status",
+            "endpoints": [
+                _ep("GET", "/api/v1/health", "Quick health check"),
+                _ep("GET", "/api/v1/status", "Detailed node and API status"),
+                _ep("GET", "/api/v1/health/deep", "Deep health check with component status", auth=True),
+            ],
+        },
+        {
+            "name": "Authentication",
+            "use_case": "authentication",
+            "description": "API key registration and management",
+            "endpoints": [
+                _ep("POST", "/api/v1/register", "Register for a free API key"),
+            ],
+        },
+        {
+            "name": "Billing",
+            "use_case": "billing",
+            "description": "Subscription management via Stripe",
+            "endpoints": [
+                _ep("POST", "/api/v1/billing/checkout", "Create a Stripe checkout session", auth=True),
+                _ep("GET", "/api/v1/billing/status", "Check subscription status", auth=True),
+                _ep("POST", "/api/v1/billing/cancel", "Cancel subscription", auth=True),
+            ],
+        },
+        {
+            "name": "WebSocket",
+            "use_case": "websocket",
+            "description": "Real-time pub/sub for blocks, fees, and transactions",
+            "endpoints": [
+                _ep("GET", "/api/v1/ws", "WebSocket connection for real-time subscriptions"),
+            ],
+        },
+        {
+            "name": "Admin & Monitoring",
+            "use_case": "admin",
+            "description": "Prometheus metrics and admin analytics (admin key required)",
+            "endpoints": [
+                _ep("GET", "/metrics", "Prometheus metrics endpoint"),
+                _ep("GET", "/api/v1/analytics/overview", "Analytics overview", auth=True),
+                _ep("GET", "/api/v1/analytics/requests", "Request volume analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/endpoints", "Per-endpoint analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/errors", "Error analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/user-agents", "User agent analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/latency", "Latency analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/keys", "API key analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/growth", "Growth analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/slow-endpoints", "Slowest endpoint analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/retention", "User retention analytics", auth=True),
             ],
         },
     ]
@@ -215,6 +284,26 @@ def _build_categories() -> list[dict]:
             "description": "Developer utilities and comparison tools",
             "endpoints": [
                 _ep("GET", "/api/v1/tools/exchange-compare", "Compare exchange rates"),
+            ],
+        })
+    if flags.get("supply_router", False):
+        cats.append({
+            "name": "Supply",
+            "use_case": "supply",
+            "description": "Bitcoin supply data and issuance schedule",
+            "endpoints": [
+                _ep("GET", "/api/v1/supply", "Current Bitcoin supply statistics"),
+            ],
+        })
+    if flags.get("stats_router", False):
+        cats.append({
+            "name": "Statistics",
+            "use_case": "statistics",
+            "description": "On-chain statistics and adoption metrics",
+            "endpoints": [
+                _ep("GET", "/api/v1/stats/utxo-set", "UTXO set statistics"),
+                _ep("GET", "/api/v1/stats/segwit-adoption", "SegWit adoption metrics"),
+                _ep("GET", "/api/v1/stats/op-returns", "OP_RETURN data analysis"),
             ],
         })
 
@@ -271,7 +360,7 @@ def guide(
             step["examples"] = _filter_examples(step["examples"], lang_val)
 
     data = {
-        "welcome": "Satoshi API — Bitcoin data for developers. 55+ endpoints, zero vendor lock-in.",
+        "welcome": "Satoshi API — Bitcoin data for developers. 70+ endpoints, zero vendor lock-in.",
         "quickstart": quickstart,
         "categories": categories,
         "auth": _build_auth_info(),

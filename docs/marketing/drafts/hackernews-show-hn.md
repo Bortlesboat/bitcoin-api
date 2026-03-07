@@ -16,11 +16,11 @@ A few technical decisions that might be interesting:
 - **Rate limiting is hybrid.** Per-minute limits use an in-memory sliding window (fast, no I/O). Daily limits use SQLite (survives restarts). Both are per-API-key with tier-based thresholds.
 - **RPC surface is whitelisted.** The API only calls 17 read-only RPC commands (plus `sendrawtransaction` behind auth). No wallet, no debug, no admin RPCs.
 
-I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query Bitcoin data via Model Context Protocol. This is probably niche, but I have not seen another Bitcoin API that supports it.
+I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query Bitcoin data via Model Context Protocol. It is listed on the official Anthropic MCP Registry (`io.github.Bortlesboat/bitcoin-mcp`) and on PyPI. This is probably niche, but it is the only Bitcoin MCP server that talks directly to your local node -- the others all use third-party APIs like mempool.space.
 
 The hosted version at bitcoinsapi.com has a free tier (no signup for GET endpoints). But the main use case is self-hosting -- your node, your data, no third-party dependencies.
 
-Solo project. 175 unit tests, 21 e2e tests. Apache-2.0 license. Feedback appreciated.
+Solo project. 207 unit tests, 21 e2e tests. Apache-2.0 license. Feedback appreciated.
 
 - GitHub: https://github.com/Bortlesboat/bitcoin-api
 - Live docs: https://bitcoinsapi.com/docs

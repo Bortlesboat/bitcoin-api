@@ -68,7 +68,7 @@
 #### e) r/Python (1.3M members)
 **URL:** https://reddit.com/r/Python
 **What to write:** Focus on the Python/FastAPI implementation. Code quality, typing, testing.
-**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 71 endpoints, 196 tests, pip installable"
+**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 71 endpoints, 228 tests, pip installable"
 **Rules:** Must be about the Python aspects, not Bitcoin evangelism.
 
 #### f) r/FastAPI (~30K members)
@@ -106,13 +106,19 @@
 **Impact:** HIGH (unique positioning -- only Bitcoin API with MCP)
 **This is your differentiated channel.** No competitor has MCP integration.
 
-#### a) Official MCP Registry
+#### a) Official MCP Registry -- DONE (Mar 7, 2026)
 **URL:** https://registry.modelcontextprotocol.io/
-**Action:** Register bitcoin-mcp server
+**Status:** **PUBLISHED** as `io.github.Bortlesboat/bitcoin-mcp`. Also on PyPI as `bitcoin-mcp` v0.2.2.
+**Impact:** Major distribution win. 10,000+ MCP servers in the registry, but we are the only Bitcoin MCP server that queries a local node. Competitors (AbdelStark, JamesANZ, tiero) all use third-party APIs.
 
 #### b) modelcontextprotocol/servers GitHub repo
 **URL:** https://github.com/modelcontextprotocol/servers
 **Action:** Submit PR to add bitcoin-mcp to the community servers list
+
+#### b2) awesome-blockchain-mcps (NEW)
+**URL:** https://github.com/royyannick/awesome-blockchain-mcps
+**Action:** Submit PR. Curated list of Blockchain & Crypto MCP servers. Directly targets our audience.
+**Status:** TODO
 
 #### c) Smithery
 **URL:** https://smithery.ai/
@@ -488,7 +494,7 @@ What's the most painful API integration you've dealt with?
 - [ ] **Day 2:** Publish dev.to article
 - [ ] **Day 3:** Post on r/Bitcoin and r/Python
 - [ ] **Day 3:** LinkedIn post (link in first comment)
-- [ ] **Day 3:** Submit bitcoin-mcp to MCP Registry + Smithery + PulseMCP
+- [x] **Day 3:** Submit bitcoin-mcp to MCP Registry (**DONE**) + Smithery (TODO) + PulseMCP (TODO)
 
 ### Week 2: Ecosystem (Days 4-14)
 - [ ] Submit PRs to all awesome-bitcoin lists (5 repos)

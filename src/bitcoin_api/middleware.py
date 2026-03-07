@@ -65,6 +65,12 @@ def register_middleware(app: FastAPI):
                 key_info = authenticate(request)
                 log_usage(key_info.key_hash, request.url.path, response.status_code,
                           method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+            # Record skipped-path metrics for Prometheus visibility
+            REQUEST_COUNT.labels(
+                method=req_method, endpoint=request.url.path,
+                status=str(response.status_code), tier="unknown",
+            ).inc()
+            REQUEST_LATENCY.labels(method=req_method, endpoint=request.url.path).observe(elapsed_ms / 1000)
             return response
 
         key_info = authenticate(request)
@@ -85,6 +91,8 @@ def register_middleware(app: FastAPI):
                 ).model_dump(),
             )
             resp.headers["X-Request-ID"] = request_id
+            REQUEST_COUNT.labels(method=req_method, endpoint=request.url.path, status="401", tier="invalid").inc()
+            REQUEST_LATENCY.labels(method=req_method, endpoint=request.url.path).observe((time.monotonic() - start_time))
             return resp
 
         bucket = key_info.key_hash or request.client.host if request.client else "unknown"
@@ -154,6 +162,8 @@ def register_middleware(app: FastAPI):
             and not path.startswith("/api/v1/register")
             and not path.startswith("/api/v1/analytics")
             and not path.startswith("/api/v1/guide")
+            and not path.startswith("/api/v1/billing")
+            and not path.startswith("/api/v1/ws")
         )
         if _is_rpc_path:
             try:
@@ -170,6 +180,7 @@ def register_middleware(app: FastAPI):
                             title="Service Unavailable",
                             detail="Circuit breaker OPEN -- Bitcoin node unavailable. Fast-failing to avoid delays.",
                             request_id=request_id,
+                            help_url=_GUIDE_URL,
                         )
                     ).model_dump(),
                 )
@@ -195,6 +206,7 @@ def register_middleware(app: FastAPI):
                         title="Internal Server Error",
                         detail="An unexpected error occurred",
                         request_id=request_id,
+                        help_url=_GUIDE_URL,
                     )
                 ).model_dump(),
             )

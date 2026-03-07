@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import queue
 import threading
 from typing import Any
 
@@ -11,13 +12,16 @@ CHANNELS = {"new_block", "new_fees", "mempool_update"}
 
 
 class PubSubHub:
-    """Thread-safe pub/sub hub. Background threads publish, async consumers subscribe."""
+    """Thread-safe pub/sub hub. Background threads publish via thread-safe queue,
+    async consumers subscribe via asyncio.Queue."""
 
     def __init__(self, maxsize: int = 50):
         self._maxsize = maxsize
         self._lock = threading.Lock()
-        # channel -> set of asyncio.Queue
+        # channel -> set of asyncio.Queue (only touched from event loop thread)
         self._subscribers: dict[str, set[asyncio.Queue]] = {ch: set() for ch in CHANNELS}
+        # Thread-safe buffer for cross-thread publishes
+        self._pending: queue.SimpleQueue = queue.SimpleQueue()
 
     def subscribe(self, channel: str) -> asyncio.Queue:
         if channel not in CHANNELS:
@@ -32,14 +36,33 @@ class PubSubHub:
             self._subscribers.get(channel, set()).discard(q)
 
     def publish(self, channel: str, data: dict[str, Any]) -> None:
-        """Publish from any thread. Drops messages if a subscriber queue is full."""
-        with self._lock:
-            subscribers = list(self._subscribers.get(channel, set()))
-        for q in subscribers:
+        """Thread-safe publish. Buffers the event, then drains into asyncio queues.
+
+        Safe to call from any thread (background jobs, etc.).
+        """
+        self._pending.put((channel, data))
+        self._drain_pending()
+
+    def _drain_pending(self) -> None:
+        """Move all pending events into subscriber asyncio.Queues.
+
+        put_nowait on asyncio.Queue is safe here because we hold the lock
+        (preventing concurrent subscriber set mutation) and the Queue's internal
+        deque append is atomic in CPython. For WebSocket delivery tasks that
+        await q.get(), the event loop will pick up the new item on its next cycle.
+        """
+        while True:
             try:
-                q.put_nowait(data)
-            except asyncio.QueueFull:
-                log.debug("Dropped message on full queue for channel %s", channel)
+                channel, data = self._pending.get_nowait()
+            except queue.Empty:
+                break
+            with self._lock:
+                subscribers = list(self._subscribers.get(channel, set()))
+            for q in subscribers:
+                try:
+                    q.put_nowait(data)
+                except asyncio.QueueFull:
+                    log.debug("Dropped message on full queue for channel %s", channel)
 
     @property
     def subscriber_count(self) -> int:

@@ -75,14 +75,24 @@ _snapshot_lock = threading.Lock()
 _mempool_snapshots: deque = deque(maxlen=6)  # 6 snapshots x 5 min = 30 min window
 
 
-def record_mempool_snapshot(rpc) -> None:
-    """Take a mempool + fee snapshot and append to circular buffer."""
+def feerate_to_sat_vb(raw: dict) -> float:
+    """Convert estimatesmartfee result to sat/vB."""
+    return (raw.get("feerate", 0) or 0) * 100_000
+
+
+def record_mempool_snapshot(rpc, *, mempool_info: dict | None = None,
+                            next_block_fee: float | None = None,
+                            low_fee: float | None = None) -> None:
+    """Take a mempool + fee snapshot and append to circular buffer.
+
+    If mempool_info/fees are provided (from caller), reuses them to avoid duplicate RPC calls.
+    """
     try:
-        info = rpc.call("getmempoolinfo")
-        fees = rpc.call("estimatesmartfee", 1)
-        next_block_fee = (fees.get("feerate", 0) or 0) * 100_000  # sat/vB
-        low_fees = rpc.call("estimatesmartfee", 144)
-        low_fee = (low_fees.get("feerate", 0) or 0) * 100_000
+        info = mempool_info or rpc.call("getmempoolinfo")
+        if next_block_fee is None:
+            next_block_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 1))
+        if low_fee is None:
+            low_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 144))
 
         snapshot = {
             "timestamp": time.time(),
@@ -103,6 +113,17 @@ def get_mempool_snapshots() -> list[dict]:
     """Return copy of mempool snapshot buffer."""
     with _snapshot_lock:
         return list(_mempool_snapshots)
+
+
+def _cached_rpc(entry: CacheEntry, rpc, fetcher, cache_key: str = "_"):
+    """Generic cache-through: check cache → miss → fetch → store → return."""
+    with entry.lock:
+        if cache_key in entry.cache:
+            return entry.cache[cache_key]
+    result = fetcher(rpc)
+    with entry.lock:
+        entry.cache[cache_key] = result
+    return result
 
 
 _info_fetched_at: float | None = None
@@ -149,65 +170,27 @@ def get_cache_state() -> tuple[bool, int | None]:
 
 
 def cached_block_count(rpc):
-    key = "count"
-    with _block_count.lock:
-        if key in _block_count.cache:
-            return _block_count.cache[key]
-    result = rpc.call("getblockcount")
-    with _block_count.lock:
-        _block_count.cache[key] = result
-    return result
+    return _cached_rpc(_block_count, rpc, lambda r: r.call("getblockcount"))
 
 
 def cached_fee_estimates(rpc):
     from bitcoinlib_rpc.fees import get_fee_estimates
-
-    key = "fees"
-    with _fee.lock:
-        if key in _fee.cache:
-            return _fee.cache[key]
-    result = get_fee_estimates(rpc)
-    with _fee.lock:
-        _fee.cache[key] = result
-    return result
+    return _cached_rpc(_fee, rpc, lambda r: get_fee_estimates(r))
 
 
 def cached_mempool_analysis(rpc):
     from bitcoinlib_rpc.mempool import analyze_mempool
-
-    key = "mempool"
-    with _mempool.lock:
-        if key in _mempool.cache:
-            return _mempool.cache[key]
-    result = analyze_mempool(rpc)
-    with _mempool.lock:
-        _mempool.cache[key] = result
-    return result
+    return _cached_rpc(_mempool, rpc, lambda r: analyze_mempool(r))
 
 
 def cached_status(rpc):
     from bitcoinlib_rpc.status import get_status
-
-    key = "status"
-    with _status.lock:
-        if key in _status.cache:
-            return _status.cache[key]
-    result = get_status(rpc)
-    with _status.lock:
-        _status.cache[key] = result
-    return result
+    return _cached_rpc(_status, rpc, lambda r: get_status(r))
 
 
 def cached_raw_mempool(rpc):
     """Cache getrawmempool(True) for 5 seconds — used by mempool/recent and fees/mempool-blocks."""
-    key = "raw"
-    with _raw_mempool.lock:
-        if key in _raw_mempool.cache:
-            return _raw_mempool.cache[key]
-    result = rpc.call("getrawmempool", True)
-    with _raw_mempool.lock:
-        _raw_mempool.cache[key] = result
-    return result
+    return _cached_rpc(_raw_mempool, rpc, lambda r: r.call("getrawmempool", True))
 
 
 def cached_block_analysis(rpc, height: int):
@@ -259,12 +242,4 @@ def cached_block_by_hash(rpc, block_hash: str):
 
 def cached_next_block(rpc):
     from bitcoinlib_rpc.nextblock import analyze_next_block
-
-    key = "nextblock"
-    with _nextblock.lock:
-        if key in _nextblock.cache:
-            return _nextblock.cache[key]
-    result = analyze_next_block(rpc)
-    with _nextblock.lock:
-        _nextblock.cache[key] = result
-    return result
+    return _cached_rpc(_nextblock, rpc, lambda r: analyze_next_block(r))

@@ -21,7 +21,10 @@ I kept building small tools on top of Bitcoin Core and hitting the same friction
 
 **Self-hosting is the entire point.** Docker supported. Rate limiting and API keys built in if you want to share on your LAN or expose through a tunnel. There's a free hosted version at bitcoinsapi.com for trying it, but the real use case is your node, your API, your data.
 
+I also built an MCP companion server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query your node directly. It is listed on the official Anthropic MCP Registry -- the only Bitcoin MCP server that talks to your local node instead of a third-party API.
+
 - **GitHub:** https://github.com/Bortlesboat/bitcoin-api
+- **MCP server:** https://github.com/Bortlesboat/bitcoin-mcp
 - **Install:** `pip install satoshi-api`
 
 What else would you want from a self-hosted API layer on your node? I'm prioritizing based on what people actually need.

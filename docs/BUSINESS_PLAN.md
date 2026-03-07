@@ -10,7 +10,7 @@
 
 Satoshi API is an open-source REST API that turns any Bitcoin Core node into a developer-friendly data service. Where existing tools give developers raw RPC dumps, Satoshi API provides analyzed, structured data — fee recommendations, mempool congestion scores, block analysis — in a standard REST format with OpenAPI docs.
 
-The product is built and production-hardened (175 unit tests, 21 e2e tests (196 total), 9/9 security checks, CI pipeline green). It runs on commodity hardware with ~$3/month operating cost. The business model is open-core: free self-hosted product drives adoption and credibility, optional hosted tiers generate recurring revenue, and the project serves as a consulting funnel for custom Bitcoin infrastructure work.
+The product is built and production-hardened (207 unit tests, 21 e2e tests (228 total), 9/9 security checks, CI pipeline green). It runs on commodity hardware with ~$3/month operating cost. The business model is open-core: free self-hosted product drives adoption and credibility, optional hosted tiers generate recurring revenue, and the project serves as a consulting funnel for custom Bitcoin infrastructure work.
 
 **What exists today:**
 - 60 REST endpoints across 19 routers (blocks, transactions, fees, mempool, mining, network, prices, status)
@@ -230,7 +230,7 @@ We're not competing on hosted infrastructure scale. We're competing on developer
 - 60 REST endpoints, 19 routers
 - API key auth (4 tiers), rate limiting, caching
 - Docker, CI/CD, security hardening
-- 175 unit tests + 21 e2e tests (196 total)
+- 207 unit tests + 21 e2e tests (228 total)
 - Landing page, blog post, self-hosting guide
 
 ### v0.2 — Scalability & Observability (Month 1-2)

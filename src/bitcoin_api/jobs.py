@@ -5,7 +5,7 @@ import threading
 import time
 
 from .db import record_fee_snapshot, prune_fee_history, prune_old_logs
-from .cache import record_mempool_snapshot
+from .cache import record_mempool_snapshot, feerate_to_sat_vb
 from .metrics import BLOCK_HEIGHT, JOB_ERRORS
 from .pubsub import hub
 
@@ -47,18 +47,18 @@ def _fee_collector():
         _run_count += 1
         try:
             rpc = _get_rpc_dep()
-            record_mempool_snapshot(rpc)
 
+            # Fetch RPC data once, share with snapshot recorder
             info = rpc.call("getmempoolinfo")
-            fees_1 = rpc.call("estimatesmartfee", 1)
-            fees_6 = rpc.call("estimatesmartfee", 6)
-            fees_144 = rpc.call("estimatesmartfee", 144)
-
-            next_block_fee = (fees_1.get("feerate", 0) or 0) * 100_000
-            median_fee = (fees_6.get("feerate", 0) or 0) * 100_000
-            low_fee = (fees_144.get("feerate", 0) or 0) * 100_000
+            next_block_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 1))
+            median_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 6))
+            low_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 144))
             mempool_size = info.get("size", 0)
             mempool_vsize = info.get("bytes", 0)
+
+            # Reuse fetched data — avoids duplicate RPC calls
+            record_mempool_snapshot(rpc, mempool_info=info,
+                                   next_block_fee=next_block_fee, low_fee=low_fee)
 
             if mempool_vsize < 1_000_000:
                 congestion = "low"

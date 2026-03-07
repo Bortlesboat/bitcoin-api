@@ -104,7 +104,8 @@ async def stripe_webhook(request: Request):
             log.info("Subscription %s canceled/deleted", sub_id)
 
     elif event_type == "invoice.payment_failed":
-        log.warning("Payment failed for event %s — Stripe will retry", event.get("id", "?"))
+        event_id = event["id"] if isinstance(event, dict) else getattr(event, "id", "?")
+        log.warning("Payment failed for event %s — Stripe will retry", event_id)
 
     return JSONResponse({"status": "ok"})
 

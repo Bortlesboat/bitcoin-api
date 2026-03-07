@@ -39,8 +39,8 @@ class Settings(BaseSettings):
             "exchange_compare": self.enable_exchange_compare,
             "prices_router": self.enable_prices_router,
             "address_router": self.enable_address_router,
-            "enable_supply_router": self.enable_supply_router,
-            "enable_stats_router": self.enable_stats_router,
+            "supply_router": self.enable_supply_router,
+            "stats_router": self.enable_stats_router,
         }
 
     # Logging format ("text" or "json")

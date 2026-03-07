@@ -182,7 +182,7 @@ If you need address queries, pair it with Electrs or Fulcrum. Satoshi API is com
 - **More analysis endpoints** -- UTXO set stats, peer geographic distribution, historical fee trends
 - **WebSocket support** -- real-time mempool fee updates
 
-The codebase is 150 tests, CI pipeline, Apache-2.0 licensed. If you run a node and want a clean API on top of it, give it a try: [github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api).
+The codebase is 228 tests (207 unit + 21 e2e), CI pipeline, Apache-2.0 licensed. If you run a node and want a clean API on top of it, give it a try: [github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api).
 
 Feedback welcome -- open an issue or find me on Nostr.
 

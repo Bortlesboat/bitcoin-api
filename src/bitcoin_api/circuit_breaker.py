@@ -29,6 +29,15 @@ class CircuitBreaker:
 
     @property
     def state(self) -> CircuitState:
+        """Read-only snapshot of current state (no side effects)."""
+        with self._lock:
+            if self._state == CircuitState.OPEN:
+                if time.time() - self._last_failure_time >= self._recovery_timeout:
+                    return CircuitState.HALF_OPEN
+            return self._state
+
+    def _check_and_transition(self) -> CircuitState:
+        """Check state and perform OPEN→HALF_OPEN transition if recovery timeout elapsed."""
         with self._lock:
             if self._state == CircuitState.OPEN:
                 if time.time() - self._last_failure_time >= self._recovery_timeout:
@@ -38,7 +47,7 @@ class CircuitBreaker:
 
     def before_call(self):
         """Call before RPC. Raises CircuitOpenError if circuit is open."""
-        state = self.state
+        state = self._check_and_transition()
         if state == CircuitState.OPEN:
             remaining = self._recovery_timeout - (time.time() - self._last_failure_time)
             raise CircuitOpenError(

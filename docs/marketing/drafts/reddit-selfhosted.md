@@ -20,7 +20,7 @@ That is it. API runs on port 9332, interactive docs at `/docs`.
 
 **What it gives you:**
 
-- 48 REST endpoints: blocks, transactions, fees, mempool, mining, network, address lookups, real-time SSE streams
+- 71 REST endpoints: blocks, transactions, fees, mempool, mining, network, address lookups, real-time SSE streams
 - Fee recommendations with context ("Fees are low. Good time to send.")
 - Mempool congestion scoring
 - Smart caching so you do not hammer your node (depth-aware TTLs, reorg-safe)

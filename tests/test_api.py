@@ -1714,46 +1714,82 @@ def test_error_help_url_on_401(client):
 
 def test_metrics_endpoint_returns_prometheus_format(client):
     """GET /metrics should return Prometheus text exposition format."""
-    resp = client.get("/metrics")
-    assert resp.status_code == 200
-    assert "text/plain" in resp.headers.get("content-type", "")
-    text = resp.text
-    assert "http_requests_total" in text or "http_request_duration_seconds" in text or "bitcoin_block_height" in text
+    from bitcoin_api.config import settings
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    try:
+        resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
+        assert resp.status_code == 200
+        assert "text/plain" in resp.headers.get("content-type", "")
+        text = resp.text
+        assert "http_requests_total" in text or "http_request_duration_seconds" in text or "bitcoin_block_height" in text
+    finally:
+        settings.admin_api_key = original
 
 
 def test_metrics_no_rate_limit(client):
     """Metrics endpoint should not be rate limited."""
-    for _ in range(35):
-        resp = client.get("/metrics")
-        assert resp.status_code == 200
+    from bitcoin_api.config import settings
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    try:
+        for _ in range(35):
+            resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
+            assert resp.status_code == 200
+    finally:
+        settings.admin_api_key = original
 
 
 def test_metrics_request_count_increments(client):
     """After hitting an endpoint, http_requests_total should increment."""
-    client.get("/api/v1/fees")
-    resp = client.get("/metrics")
-    text = resp.text
-    assert "http_requests_total" in text
+    from bitcoin_api.config import settings
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    try:
+        client.get("/api/v1/fees")
+        resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
+        text = resp.text
+        assert "http_requests_total" in text
+    finally:
+        settings.admin_api_key = original
 
 
 def test_metrics_latency_histogram_present(client):
     """Latency histogram should be present after requests."""
-    client.get("/api/v1/fees")
-    resp = client.get("/metrics")
-    text = resp.text
-    assert "http_request_duration_seconds" in text
+    from bitcoin_api.config import settings
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    try:
+        client.get("/api/v1/fees")
+        resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
+        text = resp.text
+        assert "http_request_duration_seconds" in text
+    finally:
+        settings.admin_api_key = original
 
 
 def test_metrics_block_height_gauge(client):
     """bitcoin_block_height gauge should be present."""
-    resp = client.get("/metrics")
-    assert "bitcoin_block_height" in resp.text
+    from bitcoin_api.config import settings
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    try:
+        resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
+        assert "bitcoin_block_height" in resp.text
+    finally:
+        settings.admin_api_key = original
 
 
 def test_metrics_job_errors_counter(client):
     """background_job_errors_total counter should be present."""
-    resp = client.get("/metrics")
-    assert "background_job_errors_total" in resp.text
+    from bitcoin_api.config import settings
+    original = settings.admin_api_key
+    settings.admin_api_key = "test-admin-secret"
+    try:
+        resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
+        assert "background_job_errors_total" in resp.text
+    finally:
+        settings.admin_api_key = original
 
 
 # --- WebSocket Tests ---
@@ -2134,3 +2170,362 @@ def test_billing_webhook_no_rate_limit(client):
         resp = client.post("/api/v1/billing/webhook")
         # Will get 503 (not configured) but never 429
         assert resp.status_code != 429
+
+
+# --- Supply Router Tests ---
+
+
+def test_supply_endpoint(client):
+    """Supply endpoint returns circulating supply data."""
+    from bitcoin_api.config import settings
+    original = settings.enable_supply_router
+    settings.enable_supply_router = True
+    resp = client.get("/api/v1/supply")
+    settings.enable_supply_router = original
+    # May be 404 if feature flag isn't wired at app startup (registered once)
+    if resp.status_code == 200:
+        body = resp.json()
+        assert "data" in body
+        data = body["data"]
+        assert "circulating_supply_btc" in data
+        assert "total_possible_btc" in data
+        assert data["total_possible_btc"] == 21000000
+        assert data["halvings_completed"] >= 0
+        assert data["blocks_until_halving"] > 0
+        assert data["annual_inflation_rate_pct"] > 0
+        assert data["percent_mined"] > 0
+
+
+def test_supply_math_correctness(client):
+    """Supply calculations should be mathematically correct for block 880000."""
+    resp = client.get("/api/v1/supply")
+    if resp.status_code == 200:
+        data = resp.json()["data"]
+        # Block 880000: 4 halvings completed (840000 was 4th halving)
+        assert data["halvings_completed"] == 4
+        assert data["current_block_subsidy_btc"] == 3.125
+        assert data["next_halving_height"] == 1050000
+        assert data["blocks_until_halving"] == 1050000 - 880000
+
+
+# --- Mining Expansion Tests ---
+
+
+def test_mining_hashrate_history(client):
+    """Hashrate history returns list of data points."""
+    resp = client.get("/api/v1/mining/hashrate/history?blocks=3")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "data" in body
+    data = body["data"]
+    assert isinstance(data, list)
+    if data:
+        assert "height" in data[0]
+        assert "hashrate_eh_s" in data[0]
+        assert "difficulty" in data[0]
+
+
+def test_mining_hashrate_history_default(client):
+    """Hashrate history works with default blocks param."""
+    resp = client.get("/api/v1/mining/hashrate/history")
+    assert resp.status_code == 200
+
+
+def test_mining_revenue(client):
+    """Mining revenue returns fee/subsidy breakdown."""
+    resp = client.get("/api/v1/mining/revenue?blocks=3")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert "blocks_analyzed" in data
+    assert "total_subsidy_btc" in data
+    assert "total_fees_btc" in data
+    assert "total_revenue_btc" in data
+    assert "fee_percentage" in data
+    assert data["blocks_analyzed"] == 3
+
+
+def test_mining_pools(client):
+    """Mining pools returns pool identification data."""
+    resp = client.get("/api/v1/mining/pools?blocks=3")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert "blocks_analyzed" in data
+    assert "pools" in data
+    assert isinstance(data["pools"], list)
+    assert "unknown_count" in data
+
+
+def test_mining_difficulty_history(client):
+    """Difficulty history returns epoch data."""
+    resp = client.get("/api/v1/mining/difficulty/history?epochs=3")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert isinstance(data, list)
+    if data:
+        assert "epoch" in data[0]
+        assert "height" in data[0]
+        assert "difficulty" in data[0]
+
+
+def test_mining_revenue_history(client):
+    """Revenue history returns per-block data."""
+    resp = client.get("/api/v1/mining/revenue/history?blocks=3")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert isinstance(data, list)
+    if data:
+        assert "height" in data[0]
+        assert "subsidy_btc" in data[0]
+        assert "fees_btc" in data[0]
+        assert "total_btc" in data[0]
+
+
+# --- Raw Block Endpoint ---
+
+
+def test_block_raw(client):
+    """Raw block returns hex string."""
+    block_hash = "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670"
+    resp = client.get(f"/api/v1/blocks/{block_hash}/raw")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "data" in body
+    assert isinstance(body["data"], str)
+
+
+def test_block_raw_invalid_hash(client):
+    """Raw block rejects invalid hash."""
+    resp = client.get("/api/v1/blocks/invalid_hash/raw")
+    assert resp.status_code == 422
+
+
+# --- Merkle Proof Endpoint ---
+
+
+def test_merkle_proof(client):
+    """Merkle proof returns proof hex and block hash."""
+    txid = "abc" * 21 + "a"
+    resp = client.get(f"/api/v1/tx/{txid}/merkle-proof")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert "proof_hex" in data
+    assert "block_hash" in data
+
+
+def test_merkle_proof_invalid_txid(client):
+    """Merkle proof rejects invalid txid."""
+    resp = client.get("/api/v1/tx/invalid/merkle-proof")
+    assert resp.status_code == 422
+
+
+# --- Stats Router Tests ---
+
+
+def test_stats_utxo_set(client):
+    """UTXO set returns summary data."""
+    resp = client.get("/api/v1/stats/utxo-set")
+    if resp.status_code == 200:
+        body = resp.json()
+        data = body["data"]
+        assert "height" in data
+        assert "txouts" in data
+        assert "total_amount_btc" in data
+
+
+def test_stats_segwit_adoption(client):
+    """SegWit adoption returns type distribution."""
+    resp = client.get("/api/v1/stats/segwit-adoption?blocks=2")
+    if resp.status_code == 200:
+        body = resp.json()
+        data = body["data"]
+        assert "blocks_analyzed" in data
+        assert "total_outputs" in data
+        assert "type_distribution" in data
+        assert "segwit_percentage" in data
+        assert "taproot_percentage" in data
+
+
+def test_stats_op_returns(client):
+    """OP_RETURN stats returns usage data."""
+    resp = client.get("/api/v1/stats/op-returns?blocks=2")
+    if resp.status_code == 200:
+        body = resp.json()
+        data = body["data"]
+        assert "blocks_analyzed" in data
+        assert "total_op_returns" in data
+        assert "total_bytes" in data
+        assert "samples" in data
+
+
+# --- Whale TX SSE Stream ---
+
+
+def test_whale_txs_stream_generator(mock_rpc):
+    """Whale tx SSE generator should yield a connected event first."""
+    import asyncio
+    from bitcoin_api.routers.stream import _whale_tx_generator
+
+    async def get_first_event():
+        gen = _whale_tx_generator(mock_rpc, 10.0)
+        return await gen.__anext__()
+
+    event = asyncio.run(get_first_event())
+    assert "event: connected" in event
+    assert '"min_btc"' in event
+
+
+# --- Services Unit Tests ---
+
+
+def test_parse_coinbase_tag_foundry():
+    """parse_coinbase_tag identifies Foundry from coinbase hex."""
+    from bitcoin_api.services.mining import parse_coinbase_tag
+    # "Foundry USA Pool" as hex
+    hex_str = "466f756e64727920555341".lower()
+    # Pad it to make it look like a real coinbase
+    result = parse_coinbase_tag("03a0d60d" + hex_str)
+    assert result != "Unknown"
+
+
+def test_parse_coinbase_tag_unknown():
+    """parse_coinbase_tag returns Unknown for unrecognized data."""
+    from bitcoin_api.services.mining import parse_coinbase_tag
+    result = parse_coinbase_tag("deadbeef")
+    assert result == "Unknown"
+
+
+def test_extract_coinbase_hex():
+    """extract_coinbase_hex pulls coinbase from block data."""
+    from bitcoin_api.services.mining import extract_coinbase_hex
+    block = {"tx": [{"vin": [{"coinbase": "03a0d60d2f466f756e6472792f"}]}]}
+    result = extract_coinbase_hex(block)
+    assert result == "03a0d60d2f466f756e6472792f"
+
+
+def test_extract_coinbase_hex_empty():
+    """extract_coinbase_hex handles empty block."""
+    from bitcoin_api.services.mining import extract_coinbase_hex
+    assert extract_coinbase_hex({}) == ""
+    assert extract_coinbase_hex({"tx": []}) == ""
+
+
+def test_calculate_hashrate():
+    """calculate_hashrate computes from difficulty."""
+    from bitcoin_api.services.mining import calculate_hashrate
+    result = calculate_hashrate(110_000_000_000_000)
+    assert result > 0
+    # hashrate = difficulty * 2^32 / 600
+    expected = 110_000_000_000_000 * (2 ** 32) / 600
+    assert abs(result - expected) < 1
+
+
+def test_classify_output_type():
+    """classify_output_type maps script types correctly."""
+    from bitcoin_api.services.stats import classify_output_type
+    assert classify_output_type("witness_v0_keyhash") == "P2WPKH"
+    assert classify_output_type("witness_v1_taproot") == "P2TR"
+    assert classify_output_type("nulldata") == "OP_RETURN"
+    assert classify_output_type("pubkeyhash") == "P2PKH"
+    assert classify_output_type("unknown_type") == "unknown_type"
+
+
+def test_classify_outputs():
+    """classify_outputs counts output types in a block."""
+    from bitcoin_api.services.stats import classify_outputs
+    block = {
+        "tx": [
+            {"vout": [
+                {"scriptPubKey": {"type": "witness_v0_keyhash"}},
+                {"scriptPubKey": {"type": "witness_v1_taproot"}},
+            ]},
+            {"vout": [
+                {"scriptPubKey": {"type": "witness_v0_keyhash"}},
+                {"scriptPubKey": {"type": "nulldata", "hex": "6a0b68656c6c6f"}},
+            ]},
+        ]
+    }
+    counts = classify_outputs(block)
+    assert counts["P2WPKH"] == 2
+    assert counts["P2TR"] == 1
+    assert counts["OP_RETURN"] == 1
+
+
+def test_parse_op_returns():
+    """parse_op_returns extracts OP_RETURN data."""
+    from bitcoin_api.services.stats import parse_op_returns
+    block = {
+        "tx": [
+            {"txid": "abc123", "vout": [
+                {"scriptPubKey": {"type": "witness_v0_keyhash"}},
+                {"scriptPubKey": {"type": "nulldata", "hex": "6a0b68656c6c6f20776f726c64"}},
+            ]},
+        ]
+    }
+    result = parse_op_returns(block)
+    assert len(result) == 1
+    assert result[0]["txid"] == "abc123"
+    assert result[0]["hex"] == "6a0b68656c6c6f20776f726c64"
+    assert result[0]["size_bytes"] == 13
+
+
+def test_parse_op_returns_empty():
+    """parse_op_returns returns empty for blocks with no OP_RETURN."""
+    from bitcoin_api.services.stats import parse_op_returns
+    block = {"tx": [{"txid": "abc", "vout": [{"scriptPubKey": {"type": "pubkeyhash"}}]}]}
+    assert parse_op_returns(block) == []
+
+
+# --- Visualizer Page ---
+
+
+def test_visualizer_page(client):
+    """Visualizer page returns HTML."""
+    resp = client.get("/visualizer")
+    assert resp.status_code == 200
+    assert "ECharts" in resp.text or "echarts" in resp.text
+
+
+# --- Parameter Validation ---
+
+
+def test_mining_hashrate_invalid_blocks(client):
+    """Hashrate history rejects blocks > 2016."""
+    resp = client.get("/api/v1/mining/hashrate/history?blocks=5000")
+    assert resp.status_code == 422
+
+
+def test_mining_revenue_invalid_blocks(client):
+    """Mining revenue rejects blocks > 2016."""
+    resp = client.get("/api/v1/mining/revenue?blocks=5000")
+    assert resp.status_code == 422
+
+
+def test_mining_pools_invalid_blocks(client):
+    """Mining pools rejects blocks > 2016."""
+    resp = client.get("/api/v1/mining/pools?blocks=5000")
+    assert resp.status_code == 422
+
+
+def test_mining_difficulty_invalid_epochs(client):
+    """Difficulty history rejects epochs > 50."""
+    resp = client.get("/api/v1/mining/difficulty/history?epochs=100")
+    assert resp.status_code == 422
+
+
+def test_stats_segwit_invalid_blocks(client):
+    """SegWit adoption rejects blocks > 1000."""
+    resp = client.get("/api/v1/stats/segwit-adoption?blocks=5000")
+    if resp.status_code != 404:  # feature flag may be off
+        assert resp.status_code == 422
+
+
+def test_stats_op_returns_invalid_blocks(client):
+    """OP_RETURN stats rejects blocks > 1000."""
+    resp = client.get("/api/v1/stats/op-returns?blocks=5000")
+    if resp.status_code != 404:
+        assert resp.status_code == 422

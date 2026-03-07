@@ -144,7 +144,7 @@ Track the last run of each agent for staleness detection.
 | Legal | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Security, Marketing |
 | Marketing | 2026-03-07 | PASS WITH WARNINGS | All-Hands | — |
 | Security | 2026-03-07 | PASS WITH WARNINGS (3W) | /security-review | — |
-| Architect | 2026-03-07 | PASS (139/139 tests) | All-Hands | QA, Marketing |
+| Architect | 2026-03-07 | PASS (207/207 tests) | All-Hands | QA, Marketing |
 | QA | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Architect |
 | Analytics | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Legal, Security |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |
@@ -198,7 +198,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >60 endpoints | 50 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >100 endpoints | 73 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---

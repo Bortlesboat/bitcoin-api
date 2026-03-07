@@ -69,10 +69,15 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/routers/metrics.py` | GET /metrics (Prometheus text format) |
 | `src/bitcoin_api/routers/websocket.py` | WS /api/v1/ws (real-time subscriptions) |
 | `src/bitcoin_api/routers/billing.py` | Stripe billing: checkout, webhook, status, cancel |
-| `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, serializers) |
+| `src/bitcoin_api/routers/supply.py` | Supply endpoint: circulating supply, halving, inflation |
+| `src/bitcoin_api/routers/stats.py` | Statistics: UTXO set, SegWit adoption, OP_RETURN stats |
+| `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, mining, stats, serializers) |
+| `src/bitcoin_api/services/mining.py` | Pool identification, hashrate calculation |
+| `src/bitcoin_api/services/stats.py` | Output type classification, OP_RETURN parsing |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
 | `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
-| `tests/test_api.py` | Unit tests (175) |
+| `static/visualizer.html` | ECharts live visualization dashboard |
+| `tests/test_api.py` | Unit tests (207) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |

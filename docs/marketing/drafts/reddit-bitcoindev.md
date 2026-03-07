@@ -20,6 +20,6 @@ It's not an address indexer or block explorer — just a thin REST layer for the
 
 I've open-sourced what I have so far: https://github.com/Bortlesboat/bitcoin-api
 
-Also experimenting with MCP for AI agent access if anyone has thoughts on that use case.
+Also experimenting with MCP for AI agent access -- bitcoin-mcp is now listed on the official Anthropic MCP Registry and PyPI. If anyone has thoughts on AI agent use cases for Bitcoin node data, I would appreciate the feedback.
 
 Not trying to sell anything, just want to build something actually useful. What would matter to you?

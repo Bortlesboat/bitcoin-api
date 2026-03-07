@@ -58,7 +58,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 19 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 21 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -72,7 +72,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (60 total)
+### 3.1 Endpoints (73 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -87,11 +87,13 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/blocks/{hash}/txids` | GET | No |
 | | `/api/v1/blocks/{hash}/txs` | GET | No |
 | | `/api/v1/blocks/{hash}/header` | GET | No |
+| | `/api/v1/blocks/{hash}/raw` | GET | No |
 | **Transactions** | `/api/v1/tx/{txid}` | GET | No |
 | | `/api/v1/tx/{txid}/raw` | GET | No |
 | | `/api/v1/tx/{txid}/hex` | GET | No |
 | | `/api/v1/tx/{txid}/status` | GET | No |
 | | `/api/v1/tx/{txid}/outspends` | GET | No |
+| | `/api/v1/tx/{txid}/merkle-proof` | GET | No |
 | | `/api/v1/utxo/{txid}/{vout}` | GET | No |
 | | `/api/v1/decode` | POST | Yes (free+) |
 | | `/api/v1/broadcast` | POST | Yes (free+) |
@@ -109,6 +111,11 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/mempool/recent` | GET | No |
 | **Mining** | `/api/v1/mining` | GET | No |
 | | `/api/v1/mining/nextblock` | GET | No |
+| | `/api/v1/mining/hashrate/history` | GET | No |
+| | `/api/v1/mining/revenue` | GET | No |
+| | `/api/v1/mining/pools` | GET | No |
+| | `/api/v1/mining/difficulty/history` | GET | No |
+| | `/api/v1/mining/revenue/history` | GET | No |
 | **Network** | `/api/v1/network` | GET | No (redacted) |
 | | `/api/v1/network/forks` | GET | No |
 | | `/api/v1/network/difficulty` | GET | No |
@@ -116,8 +123,13 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Prices** | `/api/v1/prices` | GET | No |
 | **Address** | `/api/v1/address/{address}` | GET | No |
 | | `/api/v1/address/{address}/utxos` | GET | No |
+| **Supply** | `/api/v1/supply` | GET | No |
+| **Statistics** | `/api/v1/stats/utxo-set` | GET | No |
+| | `/api/v1/stats/segwit-adoption` | GET | No |
+| | `/api/v1/stats/op-returns` | GET | No |
 | **Streams** | `/api/v1/stream/blocks` | GET (SSE) | No |
 | | `/api/v1/stream/fees` | GET (SSE) | No |
+| | `/api/v1/stream/whale-txs` | GET (SSE) | No |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
 | **Analytics** | `/api/v1/analytics/overview` | GET | Admin key |
@@ -149,6 +161,8 @@ Endpoints are grouped into Core (always on) and Extended (toggleable via feature
 | **Extended** | prices | `ENABLE_PRICES_ROUTER` (default: true) |
 | **Extended** | address | `ENABLE_ADDRESS_ROUTER` (default: true) |
 | **Extended** | exchanges | `ENABLE_EXCHANGE_COMPARE` (default: true) |
+| **Extended** | supply | `ENABLE_SUPPLY_ROUTER` (default: true) |
+| **Extended** | stats | `ENABLE_STATS_ROUTER` (default: true) |
 
 All flags default to `true` so tests pass unchanged and Swagger `/docs` shows everything. Production `.env` controls what's actually exposed.
 
@@ -268,7 +282,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (10 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 175 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 207 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -351,18 +365,19 @@ Errors follow the same structure:
 | 19 | Analytics infrastructure expansion: 4 new analytics endpoints (keys, growth, slow-endpoints, retention), auto-pruning in fee collector, admin dashboard (Chart.js), CSP + rate-limit skip updates | 10 |
 | 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
-| **Total** | **60 endpoints, 19 routers** | **175 unit + 21 e2e** |
+| 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
+| **Total** | **73 endpoints, 21 routers** | **207 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
 **Source (36 files):**
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
-- `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers
-- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, transactions, websocket
+- `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats
+- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql
 
 **Tests (4 files):**
-- `tests/test_api.py` -- 175 unit tests
+- `tests/test_api.py` -- 207 unit tests
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
@@ -414,6 +429,7 @@ Errors follow the same structure:
 - `static/privacy.html` -- Privacy Policy page
 - `static/sitemap.xml` -- XML sitemap for search engines (12 URLs)
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
+- `static/visualizer.html` -- ECharts live visualization dashboard
 
 ---
 
@@ -441,7 +457,7 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [x] All 175 unit tests pass
+- [x] All 207 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -582,7 +598,7 @@ twine upload dist/*
 - JSON logging option (`log_format` config)
 - Admin dashboard page (`static/admin-dashboard.html`)
 - Pre-commit hooks: privacy enforcer (blocking) + trigger advisory (non-blocking)
-- 10 new unit tests (129 → 139)
+- Unit tests expanded (139 → 207 across sprints 19-22)
 
 ### v0.3.2 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)

@@ -131,7 +131,6 @@ async def _whale_tx_generator(rpc: BitcoinRPC, min_btc: float):
                 tx = rpc.call("getrawtransaction", txid, True)
                 total_value = sum(vout.get("value", 0) for vout in tx.get("vout", []))
                 if total_value >= min_btc:
-                    entry = tx.get("fees", {})
                     event_data = {
                         "txid": txid,
                         "value_btc": round(total_value, 8),

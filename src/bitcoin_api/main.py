@@ -83,8 +83,8 @@ _FEATURE_ROUTERS = {
     "prices_router": prices.router,
     "address_router": address.router,
     "exchange_compare": exchanges.router,
-    "enable_supply_router": supply.router,
-    "enable_stats_router": stats.router,
+    "supply_router": supply.router,
+    "stats_router": stats.router,
 }
 for flag, router in _FEATURE_ROUTERS.items():
     if settings.feature_flags.get(flag, False):

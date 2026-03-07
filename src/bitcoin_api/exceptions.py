@@ -31,6 +31,14 @@ _PATH_PREFIXES = [
     ("/api/v1/prices", "prices"),
     ("/api/v1/address", "address"),
     ("/api/v1/tools", "tools"),
+    ("/api/v1/health", "status"),
+    ("/api/v1/status", "status"),
+    ("/api/v1/register", "authentication"),
+    ("/api/v1/billing", "billing"),
+    ("/api/v1/supply", "supply"),
+    ("/api/v1/stats", "statistics"),
+    ("/api/v1/analytics", "admin"),
+    ("/api/v1/ws", "websocket"),
 ]
 
 
@@ -84,6 +92,7 @@ def register_exception_handlers(app: FastAPI):
                     title="Service Unavailable",
                     detail=str(exc),
                     request_id=request_id,
+                    help_url=_GUIDE_URL,
                 )
             ).model_dump(),
         )
@@ -119,6 +128,7 @@ def register_exception_handlers(app: FastAPI):
             content=ErrorResponse(
                 error=ErrorDetail(
                     type=err_type, status=http_status, title=title, detail=exc.message, request_id=request_id,
+                    help_url=_guide_help_url(request.url.path),
                 )
             ).model_dump(),
         )
@@ -141,6 +151,7 @@ def register_exception_handlers(app: FastAPI):
                     title="Node Unreachable",
                     detail="Cannot connect to Bitcoin Core. Is the node running?",
                     request_id=request_id,
+                    help_url=_GUIDE_URL,
                 )
             ).model_dump(),
         )
@@ -182,6 +193,7 @@ def register_exception_handlers(app: FastAPI):
                     title="Error",
                     detail=str(exc.detail),
                     request_id=request_id,
+                    help_url=_guide_help_url(request.url.path) if exc.status_code < 500 else _GUIDE_URL,
                 )
             ).model_dump(),
         )
@@ -202,6 +214,7 @@ def register_exception_handlers(app: FastAPI):
                     title="Internal Server Error",
                     detail="An unexpected error occurred.",
                     request_id=request_id,
+                    help_url=_GUIDE_URL,
                 )
             ).model_dump(),
         )

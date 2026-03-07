@@ -16,12 +16,15 @@ If any product change happened since drafts were written (new endpoint, feature,
 |------|-------|-----------------|
 | Version (live) | v0.3.1 | CHANGELOG.md |
 | Version (PyPI) | 0.3.1 — NEEDS UPDATE | pypi.org/project/satoshi-api |
-| Endpoints | 60 | docs/SCOPE_OF_WORK.md |
-| Tests | 175 unit + 21 e2e (196 total) | tests/ |
+| Endpoints | 71 | router files (marketing_sync.py) |
+| Tests | 207 unit + 21 e2e (228 total) | tests/ |
 | Install command | `pip install satoshi-api` | pypi |
 | Live URL | https://bitcoinsapi.com | Cloudflare Tunnel |
 | GitHub stars | 0 | github.com/Bortlesboat/bitcoin-api |
 | PyPI downloads | 252 | pypistats.org |
+| bitcoin-mcp version | v0.2.2 | pypi.org/project/bitcoin-mcp |
+| bitcoin-mcp MCP Registry | **Published** | io.github.Bortlesboat/bitcoin-mcp |
+| bitcoin-mcp tools | 32 tools, 6 prompts, 6 resources | bitcoin-mcp README |
 
 ## Pre-Launch Checklist (before any marketing push)
 
@@ -103,6 +106,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 | bitcoin-mcp-setup-guide SEO page | Mar 7 | **Live** | /bitcoin-mcp-setup-guide |
 | bitcoin-mcp v0.2.2 on PyPI | Mar 7 | **Published** | https://pypi.org/project/bitcoin-mcp/0.2.2/ |
 | MCP Registry (Anthropic official) | Mar 7 | **Published** | io.github.Bortlesboat/bitcoin-mcp |
+| All marketing drafts updated with MCP Registry | Mar 7 | **Done** | 6 drafts updated |
 
 ## Pending Manual Steps
 
@@ -110,6 +114,38 @@ If any product change happened since drafts were written (new endpoint, feature,
 |--------|-----|---------|
 | Submit to PulseMCP | Web form — MCP directory | https://www.pulsemcp.com/submit |
 | Submit to Smithery | CLI publish — MCP directory | `smithery mcp publish` (needs npm install) |
+
+## MCP Registry Win — Competitive Landscape (Mar 7, 2026)
+
+**bitcoin-mcp is now listed on the official Anthropic MCP Registry.** This is a major distribution milestone.
+
+### Competing Bitcoin MCP Servers (as of Mar 7, 2026)
+
+| Server | Author | Data Source | Local Node? | Registry? | Stars |
+|--------|--------|-------------|-------------|-----------|-------|
+| **bitcoin-mcp (ours)** | Bortlesboat | Local Bitcoin Core/Knots | **Yes** | **Anthropic Registry + PyPI** | -- |
+| bitcoin-mcp | AbdelStark | Third-party APIs | No | npm only | ~50 |
+| bitcoin-mcp | JamesANZ | mempool.space API | No | npm only | ~10 |
+| bitcoin-mcp | tiero | Third-party APIs | No | No | ~5 |
+| bitcoin-mcp-server | nbulian | Mixed (node + APIs) | Partial | No | ~5 |
+| bitcoin-mcp | runeape-sats | bitcoin-cli | Yes (CLI) | No | ~2 |
+| blockchain-mcp | Tatum | Tatum API (130 chains) | No | No | ~20 |
+
+**Our differentiation is clear:** Only bitcoin-mcp server that (a) talks directly to your local node via RPC, (b) is on PyPI, and (c) is listed in the official Anthropic MCP Registry. Competitors all depend on third-party APIs (mempool.space, Blockstream, etc.) or wrap bitcoin-cli.
+
+### New Action Items from MCP Registry Listing
+
+| Action | Priority | Status |
+|--------|----------|--------|
+| Submit to awesome-blockchain-mcps (royyannick/awesome-blockchain-mcps) | HIGH | TODO |
+| Submit to modelcontextprotocol/servers community list | HIGH | TODO |
+| Submit to PulseMCP | HIGH | TODO |
+| Submit to Smithery | HIGH | TODO |
+| Update all marketing drafts with MCP Registry mention | HIGH | **DONE** |
+| Create MCP-specific announcement post (Stacker News / r/LocalLLaMA) | MEDIUM | TODO |
+| Add "Listed on the Anthropic MCP Registry" badge to bitcoin-mcp README | MEDIUM | TODO |
+| Write SEO page: "best bitcoin mcp server" targeting MCP discovery queries | MEDIUM | TODO |
+| Explore bitcoin-mcp landing page at bitcoinsapi.com/mcp | MEDIUM | TODO |
 
 ## Content Consistency Rules
 

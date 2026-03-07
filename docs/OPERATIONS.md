@@ -82,6 +82,8 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 - `ENABLE_PRICES_ROUTER=true` -- toggle CoinGecko price endpoint
 - `ENABLE_ADDRESS_ROUTER=true` -- toggle address lookup endpoints
 - `ENABLE_EXCHANGE_COMPARE=true` -- toggle exchange comparison endpoint
+- `ENABLE_SUPPLY_ROUTER=true` -- toggle supply endpoint
+- `ENABLE_STATS_ROUTER=true` -- toggle statistics endpoints (utxo-set, segwit, op-returns)
 
 ### Stripe Billing (optional)
 ```ini
@@ -380,7 +382,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 | Location | What's there |
 |----------|-------------|
-| `src/bitcoin_api/` | All source code (16 modules + 18 routers) |
+| `src/bitcoin_api/` | All source code (17 modules + 20 routers + 6 services) |
 | `tests/` | Unit tests, e2e tests, load test, helpers |
 | `static/` | Landing page, SEO pages, legal pages, robots/sitemap |
 | `docs/` | SOW, self-hosting guide, marketing, legal |

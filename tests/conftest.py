@@ -97,8 +97,10 @@ def make_mock_rpc():
             "height": 880000,
         },
         "getblockstats": {
-            "height": 880000,
+            "height": args[0] if args else 880000,
             "total_fee": 25000000,
+            "totalfee": 25000000,
+            "subsidy": 312500000,
             "txs": 3500,
             "avgfee": 7142,
             "avgfeerate": 15,
@@ -125,14 +127,33 @@ def make_mock_rpc():
             else ["aaa" * 21 + "a", "bbb" * 21 + "b"]
         ),
         "getblock": (
+            # verbosity=0 returns raw hex string
+            "0100000000000000000000000000000000000000abcdef"
+            if args and len(args) > 1 and args[1] == 0
             # verbosity=2 returns full txs, verbosity=1 returns txids as strings
-            {
+            else {
                 "hash": "abc" * 21 + "a",
                 "height": 880000,
+                "previousblockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
                 "tx": (
                     [
-                        {"txid": "tx1" + "0" * 61, "size": 200, "vsize": 150, "vin": [], "vout": [{"value": 50.0, "n": 0}]},
-                        {"txid": "tx2" + "0" * 61, "size": 300, "vsize": 250, "vin": [], "vout": [{"value": 0.5, "n": 0}]},
+                        {
+                            "txid": "tx1" + "0" * 61,
+                            "size": 200, "vsize": 150,
+                            "vin": [{"coinbase": "03a0d60d2f466f756e6472792f", "sequence": 4294967295}],
+                            "vout": [
+                                {"value": 50.0, "n": 0, "scriptPubKey": {"type": "witness_v0_keyhash"}},
+                            ],
+                        },
+                        {
+                            "txid": "tx2" + "0" * 61,
+                            "size": 300, "vsize": 250,
+                            "vin": [{"txid": "prev" + "0" * 60, "vout": 0}],
+                            "vout": [
+                                {"value": 0.5, "n": 0, "scriptPubKey": {"type": "witness_v1_taproot"}},
+                                {"value": 0.3, "n": 1, "scriptPubKey": {"type": "nulldata", "hex": "6a0b68656c6c6f20776f726c64"}},
+                            ],
+                        },
                     ]
                     if args and len(args) > 1 and args[1] == 2
                     else ["tx1" + "0" * 61, "tx2" + "0" * 61]
@@ -151,11 +172,25 @@ def make_mock_rpc():
             else {
                 "hash": args[0] if args else "abc" * 21 + "a",
                 "confirmations": 880000,
-                "height": 0,
+                "height": 880000,
                 "version": 1,
                 "nTx": 1,
+                "time": 1709654400,
+                "difficulty": 110_000_000_000_000,
+                "previousblockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
             }
         ),
+        "getblockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+        "gettxoutsetinfo": {
+            "height": 880000,
+            "bestblock": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+            "txouts": 180000000,
+            "total_amount": 19687500.0,
+            "hash_serialized_2": "abc" * 21 + "a",
+            "disk_size": 12000000000,
+            "bogosize": 13500000000,
+        },
+        "gettxoutproof": "0100000001abcdef0123456789proof",
         "validateaddress": {
             "isvalid": True,
             "address": args[0] if args else "bc1qtest",
