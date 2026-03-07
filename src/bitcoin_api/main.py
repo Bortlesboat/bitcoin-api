@@ -12,7 +12,7 @@ from .jobs import start_background_jobs, stop_background_jobs
 from .middleware import register_middleware
 from .static_routes import register_static_routes
 from . import __version__
-from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address, health_deep, guide, metrics as metrics_router, websocket as ws_router, billing as billing_router
+from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address, health_deep, guide, metrics as metrics_router, websocket as ws_router, billing as billing_router, supply
 
 log = logging.getLogger("bitcoin_api")
 
@@ -83,6 +83,7 @@ _FEATURE_ROUTERS = {
     "prices_router": prices.router,
     "address_router": address.router,
     "exchange_compare": exchanges.router,
+    "enable_supply_router": supply.router,
 }
 for flag, router in _FEATURE_ROUTERS.items():
     if settings.feature_flags.get(flag, False):

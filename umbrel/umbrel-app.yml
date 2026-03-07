@@ -8,7 +8,7 @@ version: "0.3.1"
 port: 9332
 description: >-
   Turn your Bitcoin Core node into a production-ready REST API.
-  54 endpoints for blocks, transactions, fees, mempool, mining,
+  60 endpoints for blocks, transactions, fees, mempool, mining,
   network stats, and address lookups. Smart caching, rate limiting,
   and AI agent support via MCP. Your node, your API, your rules.
 developer: Bortlesboat
@@ -18,7 +18,7 @@ support: https://github.com/Bortlesboat/bitcoin-api/issues
 dependencies:
   - bitcoin
 releaseNotes: >-
-  Initial Umbrel release. 54 endpoints, real-time SSE streams,
+  Initial Umbrel release. 60 endpoints, real-time SSE streams,
   fee landscape analysis, self-serve API key registration.
 submitter: Bortlesboat
 submission: https://github.com/getumbrel/umbrel-apps

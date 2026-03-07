@@ -1,12 +1,13 @@
-"""Mining endpoints: /mining, /mining/nextblock."""
+"""Mining endpoints: /mining, /mining/nextblock, hashrate history, revenue, pools, difficulty."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_next_block
 from ..dependencies import get_rpc
 from ..models import ApiResponse, MiningData, NextBlockData, envelope
+from ..services.mining import parse_coinbase_tag, extract_coinbase_hex, calculate_hashrate
 
 router = APIRouter(prefix="/mining", tags=["Mining"])
 
@@ -98,3 +99,164 @@ def next_block(rpc: BitcoinRPC = Depends(get_rpc)):
     # Remove raw fee_rates list (too large for API response)
     data.pop("fee_rates", None)
     return envelope(data, height=info["blocks"], chain=info["chain"])
+
+
+@router.get("/hashrate/history")
+def hashrate_history(
+    blocks: int = Query(144, ge=1, le=2016, description="Number of blocks to analyze"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Hashrate history derived from difficulty over recent blocks."""
+    info = cached_blockchain_info(rpc)
+    current_hash = info["bestblockhash"]
+
+    results = []
+    for _ in range(blocks):
+        header = rpc.call("getblockheader", current_hash, True)
+        hr = calculate_hashrate(header["difficulty"])
+        results.append({
+            "height": header["height"],
+            "timestamp": header["time"],
+            "hashrate_eh_s": round(hr / 1e18, 2),
+            "difficulty": header["difficulty"],
+        })
+        current_hash = header.get("previousblockhash")
+        if not current_hash:
+            break
+
+    results.reverse()
+    return envelope(results, height=info["blocks"], chain=info["chain"])
+
+
+@router.get("/revenue")
+def mining_revenue(
+    blocks: int = Query(144, ge=1, le=2016, description="Number of blocks to analyze"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Mining revenue breakdown: subsidy vs fees over recent blocks."""
+    info = cached_blockchain_info(rpc)
+    tip = info["blocks"]
+
+    total_subsidy = 0
+    total_fees = 0
+    count = min(blocks, tip)
+
+    for h in range(tip, tip - count, -1):
+        stats = rpc.call("getblockstats", h)
+        total_subsidy += stats.get("subsidy", 0)
+        total_fees += stats.get("totalfee", 0)
+
+    total_subsidy_btc = total_subsidy / 1e8
+    total_fees_btc = total_fees / 1e8
+    total_rev = total_subsidy_btc + total_fees_btc
+
+    data = {
+        "blocks_analyzed": count,
+        "total_subsidy_btc": round(total_subsidy_btc, 8),
+        "total_fees_btc": round(total_fees_btc, 8),
+        "total_revenue_btc": round(total_rev, 8),
+        "avg_revenue_per_block_btc": round(total_rev / count, 8) if count else 0,
+        "fee_percentage": round(total_fees_btc / total_rev * 100, 2) if total_rev else 0,
+    }
+    return envelope(data, height=tip, chain=info["chain"])
+
+
+@router.get("/pools")
+def mining_pools(
+    blocks: int = Query(144, ge=1, le=2016, description="Number of blocks to analyze"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Identify mining pools from coinbase tags over recent blocks."""
+    info = cached_blockchain_info(rpc)
+    current_hash = info["bestblockhash"]
+
+    pool_counts: dict[str, int] = {}
+    analyzed = 0
+
+    for _ in range(blocks):
+        block = rpc.call("getblock", current_hash, 2)
+        coinbase_hex = extract_coinbase_hex(block)
+        pool = parse_coinbase_tag(coinbase_hex)
+        pool_counts[pool] = pool_counts.get(pool, 0) + 1
+        analyzed += 1
+        current_hash = block.get("previousblockhash")
+        if not current_hash:
+            break
+
+    pools = sorted(
+        [{"name": name, "blocks_found": count, "percentage": round(count / analyzed * 100, 2)}
+         for name, count in pool_counts.items() if name != "Unknown"],
+        key=lambda x: x["blocks_found"],
+        reverse=True,
+    )
+    unknown = pool_counts.get("Unknown", 0)
+
+    data = {
+        "blocks_analyzed": analyzed,
+        "pools": pools,
+        "unknown_count": unknown,
+        "unknown_percentage": round(unknown / analyzed * 100, 2) if analyzed else 0,
+    }
+    return envelope(data, height=info["blocks"], chain=info["chain"])
+
+
+@router.get("/difficulty/history")
+def difficulty_history(
+    epochs: int = Query(10, ge=1, le=50, description="Number of difficulty epochs"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Difficulty adjustment history at epoch boundaries."""
+    info = cached_blockchain_info(rpc)
+    tip = info["blocks"]
+    current_epoch_start = (tip // 2016) * 2016
+
+    results = []
+    for i in range(epochs):
+        epoch_height = current_epoch_start - (i * 2016)
+        if epoch_height < 0:
+            break
+        block_hash = rpc.call("getblockhash", epoch_height)
+        header = rpc.call("getblockheader", block_hash, True)
+
+        entry = {
+            "epoch": epoch_height // 2016,
+            "height": epoch_height,
+            "difficulty": header["difficulty"],
+            "timestamp": header["time"],
+        }
+        results.append(entry)
+
+    results.reverse()
+    # Calculate change_pct comparing each epoch to the previous
+    for i in range(1, len(results)):
+        prev_diff = results[i - 1]["difficulty"]
+        if prev_diff:
+            results[i]["change_pct"] = round(
+                (results[i]["difficulty"] - prev_diff) / prev_diff * 100, 2
+            )
+
+    return envelope(results, height=tip, chain=info["chain"])
+
+
+@router.get("/revenue/history")
+def revenue_history(
+    blocks: int = Query(144, ge=1, le=2016, description="Number of blocks"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Per-block mining revenue history (subsidy + fees)."""
+    info = cached_blockchain_info(rpc)
+    tip = info["blocks"]
+    count = min(blocks, tip)
+
+    results = []
+    for h in range(tip - count + 1, tip + 1):
+        stats = rpc.call("getblockstats", h)
+        results.append({
+            "height": h,
+            "subsidy_btc": round(stats.get("subsidy", 0) / 1e8, 8),
+            "fees_btc": round(stats.get("totalfee", 0) / 1e8, 8),
+            "total_btc": round((stats.get("subsidy", 0) + stats.get("totalfee", 0)) / 1e8, 8),
+            "tx_count": stats.get("txs", 0),
+        })
+
+    return envelope(results, height=tip, chain=info["chain"])
