@@ -185,6 +185,29 @@ def make_mock_rpc():
             "vout": [],
         },
         "sendrawtransaction": "abc" * 21 + "a",
+        "scantxoutset": {
+            "success": True,
+            "txouts_searched": 180000000,
+            "total_amount": 0.05,
+            "unspents": [
+                {
+                    "txid": "aaa" * 21 + "a",
+                    "vout": 0,
+                    "scriptPubKey": "0014751e76e8199196d454941c45d1b3a323f1433bd6",
+                    "amount": 0.03,
+                    "height": 870000,
+                    "coinbase": False,
+                },
+                {
+                    "txid": "bbb" * 21 + "b",
+                    "vout": 1,
+                    "scriptPubKey": "0014751e76e8199196d454941c45d1b3a323f1433bd6",
+                    "amount": 0.02,
+                    "height": 875000,
+                    "coinbase": False,
+                },
+            ],
+        },
     }.get(method, {})
 
     # getblocktemplate is called via rpc.getblocktemplate() not rpc.call()

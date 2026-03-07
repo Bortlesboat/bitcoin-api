@@ -2,7 +2,7 @@
 
 # Satoshi API
 
-**REST API for your Bitcoin node. One `pip install`, 40 endpoints.**
+**REST API for your Bitcoin node. One `pip install`, 41 endpoints.**
 
 [![CI](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/satoshi-api?color=orange)](https://pypi.org/project/satoshi-api/)
@@ -72,7 +72,7 @@ docker compose up -d
 
 ## Endpoints
 
-40 endpoints across 8 categories. All prefixed with `/api/v1/`. [Full interactive docs at `/docs`](https://bitcoinsapi.com/docs).
+41 endpoints across 8 categories. All prefixed with `/api/v1/`. [Full interactive docs at `/docs`](https://bitcoinsapi.com/docs).
 
 <details>
 <summary><strong>Blocks</strong> — 8 endpoints</summary>

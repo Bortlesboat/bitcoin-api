@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ..auth import hash_key
+from ..cache import get_cached_node_info
 from ..db import get_db
 from ..models import envelope
 
@@ -40,4 +41,5 @@ def register(body: RegisterRequest):
     )
     conn.commit()
 
-    return envelope({"api_key": raw_key, "tier": "free", "label": body.label})
+    height, chain = get_cached_node_info()
+    return envelope({"api_key": raw_key, "tier": "free", "label": body.label}, height=height, chain=chain)

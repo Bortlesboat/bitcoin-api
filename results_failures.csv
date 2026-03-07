@@ -1,0 +1,8 @@
+Method,Name,Error,Occurrences
+GET,/api/v1/mempool/info,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/mempool/info'),123
+GET,/api/v1/fees/6,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/fees/6'),104
+GET,/api/v1/blocks/latest,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/blocks/latest'),236
+GET,/api/v1/mempool,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/mempool'),337
+GET,/api/v1/network,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/network'),248
+GET,/api/v1/fees/recommended,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/fees/recommended'),335
+GET,/api/v1/mining,HTTPError('429 Client Error: Too Many Requests for url: /api/v1/mining'),224

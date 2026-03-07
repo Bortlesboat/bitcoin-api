@@ -1285,3 +1285,69 @@ def test_broadcast_policy_rejection(authed_client):
     resp = authed_client.post("/api/v1/broadcast", json={"hex": "0200000001"})
     assert resp.status_code == 422
     assert "policy" in resp.json()["error"]["detail"].lower()
+
+
+# --- Address endpoints ---
+
+
+def test_address_summary(client):
+    """Address summary returns balance, utxo count, and address info."""
+    resp = client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert data["address"] == "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    assert data["balance_btc"] == 0.05
+    assert data["balance_sats"] == 5000000
+    assert data["utxo_count"] == 2
+    assert data["is_witness"] is True
+    assert "meta" in body
+    assert body["meta"]["node_height"] == 880000
+
+
+def test_address_utxos(client):
+    """Address UTXOs returns list of unspent outputs."""
+    resp = client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4/utxos")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert data["utxo_count"] == 2
+    assert data["returned"] == 2
+    assert data["balance_btc"] == 0.05
+    assert data["balance_sats"] == 5000000
+    assert len(data["utxos"]) == 2
+    # Should be sorted by value descending
+    assert data["utxos"][0]["value_btc"] >= data["utxos"][1]["value_btc"]
+    assert "txid" in data["utxos"][0]
+    assert "vout" in data["utxos"][0]
+    assert "value_sats" in data["utxos"][0]
+
+
+def test_address_utxos_limit(client):
+    """UTXO limit parameter should cap results."""
+    resp = client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4/utxos?limit=1")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["utxo_count"] == 2  # total count stays
+    assert data["returned"] == 1   # but only 1 returned
+    assert len(data["utxos"]) == 1
+
+
+def test_address_invalid_format(client):
+    """Garbage address format should return 422."""
+    resp = client.get("/api/v1/address/!!invalid!!")
+    assert resp.status_code == 422
+
+
+def test_address_invalid_address(client, mock_rpc):
+    """Valid format but invalid address should return 400."""
+    original = mock_rpc.call.side_effect
+
+    def addr_invalid(method, *args):
+        if method == "validateaddress":
+            return {"isvalid": False}
+        return original(method, *args)
+
+    mock_rpc.call.side_effect = addr_invalid
+    resp = client.get("/api/v1/address/1InvalidAddressNotRealButLongEnough")
+    assert resp.status_code == 400

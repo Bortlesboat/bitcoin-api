@@ -83,6 +83,15 @@ def cached_blockchain_info(rpc):
     return result
 
 
+def get_cached_node_info() -> tuple[int | None, str | None]:
+    """Return (height, chain) from cached blockchain info, or (None, None)."""
+    with _info_lock:
+        info = _blockchain_info_cache.get("info")
+    if info is None:
+        return None, None
+    return info.get("blocks"), info.get("chain")
+
+
 def get_sync_progress() -> float | None:
     """Return verificationprogress from cached blockchain info, or None if not cached."""
     with _info_lock:

@@ -22,7 +22,7 @@ from .cache import record_mempool_snapshot, get_sync_progress
 from .models import ErrorResponse, ErrorDetail
 from .rate_limit import check_rate_limit, check_daily_limit
 from . import __version__
-from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges
+from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address
 
 access_log = logging.getLogger("bitcoin_api.access")
 
@@ -431,6 +431,7 @@ app.include_router(network.router, prefix=PREFIX)
 app.include_router(prices.router, prefix=PREFIX)
 app.include_router(keys.router, prefix=PREFIX)
 app.include_router(stream.router, prefix=PREFIX)
+app.include_router(address.router, prefix=PREFIX)
 if settings.enable_exchange_compare:
     app.include_router(exchanges.router, prefix=PREFIX)
 
