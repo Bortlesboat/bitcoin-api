@@ -151,7 +151,7 @@ Track the last run of each agent for staleness detection.
 | Legal | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Security, Marketing |
 | Marketing | 2026-03-07 | PASS WITH WARNINGS | All-Hands | — |
 | Security | 2026-03-07 | PASS (pentest: 3 fixed, 0 outstanding) | /security-review + pentest | — |
-| Architect | 2026-03-07 | PASS (207/207 tests) | All-Hands | QA, Marketing |
+| Architect | 2026-03-07 | PASS (231/231 tests) | All-Hands | QA, Marketing |
 | QA | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Architect |
 | Analytics | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Legal, Security |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |

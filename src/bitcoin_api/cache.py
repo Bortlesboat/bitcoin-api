@@ -60,6 +60,7 @@ _blockchain_info = create_cache("blockchain_info", TTLCache(maxsize=1, ttl=10))
 _block_count = create_cache("block_count", TTLCache(maxsize=1, ttl=5))
 _nextblock = create_cache("nextblock", TTLCache(maxsize=1, ttl=20))
 _raw_mempool = create_cache("raw_mempool", TTLCache(maxsize=1, ttl=5))
+_utxo_set = create_cache("utxo_set", TTLCache(maxsize=1, ttl=300))  # 5 min cache
 
 # Immutable data — confirmed blocks never change (deep confirmations)
 _block = create_cache("block", TTLCache(maxsize=64, ttl=3600))
@@ -191,6 +192,11 @@ def cached_status(rpc):
 def cached_raw_mempool(rpc):
     """Cache getrawmempool(True) for 5 seconds — used by mempool/recent and fees/mempool-blocks."""
     return _cached_rpc(_raw_mempool, rpc, lambda r: r.call("getrawmempool", True))
+
+
+def cached_utxo_set_info(rpc):
+    """Cache gettxoutsetinfo for 5 minutes — this RPC takes 30-60s."""
+    return _cached_rpc(_utxo_set, rpc, lambda r: r.call("gettxoutsetinfo"))
 
 
 def cached_block_analysis(rpc, height: int):

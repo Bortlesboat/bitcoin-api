@@ -1,9 +1,11 @@
 """Mining endpoints: /mining, /mining/nextblock, hashrate history, revenue, pools, difficulty."""
 
 from fastapi import APIRouter, Depends, Query
+from starlette.requests import Request
 
 from bitcoinlib_rpc import BitcoinRPC
 
+from ..auth import require_api_key, cap_blocks_param, BLOCKS_CAP
 from ..cache import cached_blockchain_info, cached_next_block
 from ..dependencies import get_rpc
 from ..models import ApiResponse, MiningData, NextBlockData, envelope
@@ -68,6 +70,81 @@ _NEXT_BLOCK_EXAMPLE = {
     }
 }
 
+_HASHRATE_HISTORY_EXAMPLE = {
+    200: {
+        "description": "Hashrate derived from block difficulty",
+        "content": {"application/json": {"example": {
+            "data": [
+                {"height": 879998, "timestamp": 1709654200, "hashrate_eh_s": 786.32, "difficulty": 110000000000000.0},
+                {"height": 879999, "timestamp": 1709654400, "hashrate_eh_s": 786.32, "difficulty": 110000000000000.0},
+            ],
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
+_MINING_REVENUE_EXAMPLE = {
+    200: {
+        "description": "Mining revenue breakdown",
+        "content": {"application/json": {"example": {
+            "data": {
+                "blocks_analyzed": 144,
+                "total_subsidy_btc": 450.0,
+                "total_fees_btc": 3.6,
+                "total_revenue_btc": 453.6,
+                "avg_revenue_per_block_btc": 3.15,
+                "fee_percentage": 0.79,
+            },
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
+_MINING_POOLS_EXAMPLE = {
+    200: {
+        "description": "Pool identification from coinbase tags",
+        "content": {"application/json": {"example": {
+            "data": {
+                "blocks_analyzed": 144,
+                "pools": [
+                    {"name": "foundry", "blocks_found": 42, "percentage": 29.17},
+                    {"name": "antpool", "blocks_found": 28, "percentage": 19.44},
+                    {"name": "f2pool", "blocks_found": 18, "percentage": 12.5},
+                ],
+                "unknown_count": 12,
+                "unknown_percentage": 8.33,
+            },
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
+_DIFFICULTY_HISTORY_EXAMPLE = {
+    200: {
+        "description": "Difficulty at epoch boundaries",
+        "content": {"application/json": {"example": {
+            "data": [
+                {"epoch": 434, "height": 875232, "difficulty": 95672678345126.0, "timestamp": 1708000000},
+                {"epoch": 435, "height": 877248, "difficulty": 110000000000000.0, "timestamp": 1709200000, "change_pct": 14.96},
+            ],
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
+_REVENUE_HISTORY_EXAMPLE = {
+    200: {
+        "description": "Per-block mining revenue",
+        "content": {"application/json": {"example": {
+            "data": [
+                {"height": 879999, "subsidy_btc": 3.125, "fees_btc": 0.025, "total_btc": 3.15, "tx_count": 3500},
+                {"height": 880000, "subsidy_btc": 3.125, "fees_btc": 0.031, "total_btc": 3.156, "tx_count": 3200},
+            ],
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
 
 @router.get("", response_model=ApiResponse[MiningData], responses=_MINING_SUMMARY_EXAMPLE)
 def mining_summary(rpc: BitcoinRPC = Depends(get_rpc)):
@@ -101,12 +178,15 @@ def next_block(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/hashrate/history")
+@router.get("/hashrate/history", response_model=ApiResponse[list], responses=_HASHRATE_HISTORY_EXAMPLE)
 def hashrate_history(
+    request: Request,
     blocks: int = Query(144, ge=1, le=2016, description="Number of blocks to analyze"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Hashrate history derived from difficulty over recent blocks."""
+    tier = getattr(request.state, "tier", "anonymous")
+    blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     current_hash = info["bestblockhash"]
 
@@ -125,15 +205,20 @@ def hashrate_history(
             break
 
     results.reverse()
-    return envelope(results, height=info["blocks"], chain=info["chain"])
+    resp = envelope(results, height=info["blocks"], chain=info["chain"])
+    resp["meta"]["max_blocks"] = BLOCKS_CAP.get(tier, 144)
+    return resp
 
 
-@router.get("/revenue")
+@router.get("/revenue", response_model=ApiResponse[dict], responses=_MINING_REVENUE_EXAMPLE)
 def mining_revenue(
+    request: Request,
     blocks: int = Query(144, ge=1, le=2016, description="Number of blocks to analyze"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Mining revenue breakdown: subsidy vs fees over recent blocks."""
+    tier = require_api_key(request, "mining revenue")
+    blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     tip = info["blocks"]
 
@@ -158,15 +243,20 @@ def mining_revenue(
         "avg_revenue_per_block_btc": round(total_rev / count, 8) if count else 0,
         "fee_percentage": round(total_fees_btc / total_rev * 100, 2) if total_rev else 0,
     }
-    return envelope(data, height=tip, chain=info["chain"])
+    resp = envelope(data, height=tip, chain=info["chain"])
+    resp["meta"]["max_blocks"] = BLOCKS_CAP.get(tier, 144)
+    return resp
 
 
-@router.get("/pools")
+@router.get("/pools", response_model=ApiResponse[dict], responses=_MINING_POOLS_EXAMPLE)
 def mining_pools(
+    request: Request,
     blocks: int = Query(144, ge=1, le=2016, description="Number of blocks to analyze"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Identify mining pools from coinbase tags over recent blocks."""
+    tier = require_api_key(request, "mining pools")
+    blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     current_hash = info["bestblockhash"]
 
@@ -197,10 +287,12 @@ def mining_pools(
         "unknown_count": unknown,
         "unknown_percentage": round(unknown / analyzed * 100, 2) if analyzed else 0,
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    resp = envelope(data, height=info["blocks"], chain=info["chain"])
+    resp["meta"]["max_blocks"] = BLOCKS_CAP.get(tier, 144)
+    return resp
 
 
-@router.get("/difficulty/history")
+@router.get("/difficulty/history", response_model=ApiResponse[list], responses=_DIFFICULTY_HISTORY_EXAMPLE)
 def difficulty_history(
     epochs: int = Query(10, ge=1, le=50, description="Number of difficulty epochs"),
     rpc: BitcoinRPC = Depends(get_rpc),
@@ -238,12 +330,15 @@ def difficulty_history(
     return envelope(results, height=tip, chain=info["chain"])
 
 
-@router.get("/revenue/history")
+@router.get("/revenue/history", response_model=ApiResponse[list], responses=_REVENUE_HISTORY_EXAMPLE)
 def revenue_history(
+    request: Request,
     blocks: int = Query(144, ge=1, le=2016, description="Number of blocks"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Per-block mining revenue history (subsidy + fees)."""
+    tier = require_api_key(request, "mining revenue history")
+    blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     tip = info["blocks"]
     count = min(blocks, tip)
@@ -259,4 +354,6 @@ def revenue_history(
             "tx_count": stats.get("txs", 0),
         })
 
-    return envelope(results, height=tip, chain=info["chain"])
+    resp = envelope(results, height=tip, chain=info["chain"])
+    resp["meta"]["max_blocks"] = BLOCKS_CAP.get(tier, 144)
+    return resp

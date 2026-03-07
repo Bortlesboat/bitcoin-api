@@ -4,11 +4,31 @@ import hashlib
 import logging
 from dataclasses import dataclass
 
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 from .db import lookup_key
 
 log = logging.getLogger(__name__)
+
+# Block-walking parameter caps per tier
+BLOCKS_CAP = {"anonymous": 144, "free": 144, "pro": 1008, "enterprise": 2016}
+
+
+def require_api_key(request: Request, endpoint_name: str = "this endpoint") -> str:
+    """Require at least a free-tier API key. Returns the tier string."""
+    tier = getattr(request.state, "tier", "anonymous")
+    if tier == "anonymous":
+        raise HTTPException(
+            status_code=403,
+            detail=f"API key required for {endpoint_name}. Get a free key at /docs",
+        )
+    return tier
+
+
+def cap_blocks_param(blocks: int, tier: str) -> int:
+    """Cap block-walking parameter based on user tier."""
+    max_blocks = BLOCKS_CAP.get(tier, 144)
+    return min(blocks, max_blocks)
 
 
 @dataclass

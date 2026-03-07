@@ -16,6 +16,7 @@ class Meta(BaseModel):
     syncing: bool = False
     cached: bool = False
     cache_age_seconds: int | None = None
+    max_blocks: int | None = None
 
 
 class ApiResponse(BaseModel, Generic[T]):

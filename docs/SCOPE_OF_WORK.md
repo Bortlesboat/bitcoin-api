@@ -231,7 +231,7 @@ Errors follow the same structure:
 |-------|---------|----------------|
 | **Transport** | HTTPS via Cloudflare Tunnel | TLS termination at edge, no home IP exposed |
 | **Authentication** | API key (SHA256 hashed) | X-API-Key header, deprecated query param with sunset |
-| **Authorization** | Tier-based access | Anonymous: read-only. Free+: POST endpoints |
+| **Authorization** | Tier-based access | Anonymous: read-only GET. Free+: POST + expensive GET (mining/stats). Block-walking caps per tier (anon/free: 144, pro: 1008, enterprise: 2016) |
 | **Rate Limiting** | Per-minute + daily | Sliding window (memory) + DB-backed daily counts |
 | **Input Validation** | Regex + Pydantic | 64-hex txid, non-negative heights, hex-only bodies |
 | **Body Size** | 2MB limit | Pydantic `Field(max_length=2_000_000)` on hex inputs |
@@ -393,8 +393,9 @@ Errors follow the same structure:
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
 | 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
 | 23 | Consistency pass: complete guide catalog (all 73 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
-| 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 0 |
-| **Total** | **73 endpoints, 20 routers** | **207 unit + 21 e2e** |
+| 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 12 |
+| 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
+| **Total** | **73 endpoints, 20 routers** | **231 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -405,7 +406,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql
 
 **Tests (4 files):**
-- `tests/test_api.py` -- 207 unit tests
+- `tests/test_api.py` -- 231 unit tests
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory

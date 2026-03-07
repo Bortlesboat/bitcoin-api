@@ -1,19 +1,73 @@
 from fastapi import APIRouter, Depends, Query
+from starlette.requests import Request
+
 from bitcoinlib_rpc import BitcoinRPC
 
+from ..auth import require_api_key, cap_blocks_param, BLOCKS_CAP
 from ..dependencies import get_rpc
-from ..cache import cached_blockchain_info
+from ..cache import cached_blockchain_info, cached_utxo_set_info
 from ..models import ApiResponse, envelope
 from ..services.stats import classify_outputs, parse_op_returns
 
 router = APIRouter(prefix="/stats", tags=["Statistics"])
 
+_UTXO_SET_EXAMPLE = {
+    200: {
+        "description": "UTXO set summary",
+        "content": {"application/json": {"example": {
+            "data": {
+                "height": 880000,
+                "txouts": 180000000,
+                "total_amount_btc": 19687500.0,
+                "hash": "abc123...",
+                "disk_size_bytes": 12000000000,
+                "bogosize": 13500000000,
+            },
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
 
-@router.get("/utxo-set", response_model=ApiResponse[dict])
-def utxo_set(rpc: BitcoinRPC = Depends(get_rpc)):
+_SEGWIT_ADOPTION_EXAMPLE = {
+    200: {
+        "description": "Output type distribution",
+        "content": {"application/json": {"example": {
+            "data": {
+                "blocks_analyzed": 100,
+                "total_outputs": 45000,
+                "type_distribution": {"P2WPKH": 22000, "P2TR": 12000, "P2SH": 6000, "P2PKH": 3000, "OP_RETURN": 2000},
+                "segwit_percentage": 75.56,
+                "taproot_percentage": 26.67,
+            },
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
+_OP_RETURNS_EXAMPLE = {
+    200: {
+        "description": "OP_RETURN usage statistics",
+        "content": {"application/json": {"example": {
+            "data": {
+                "blocks_analyzed": 100,
+                "total_op_returns": 2500,
+                "total_bytes": 75000,
+                "avg_per_block": 25.0,
+                "avg_size_bytes": 30.0,
+                "samples": [{"txid": "abc123...", "hex": "6a0b68656c6c6f", "size_bytes": 7}],
+            },
+            "meta": {"timestamp": "2026-03-07T12:00:00+00:00", "node_height": 880000, "chain": "main"},
+        }}},
+    }
+}
+
+
+@router.get("/utxo-set", response_model=ApiResponse[dict], responses=_UTXO_SET_EXAMPLE)
+def utxo_set(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
     """UTXO set summary from gettxoutsetinfo. Note: this RPC call can be slow."""
+    require_api_key(request, "UTXO set info")
     info = cached_blockchain_info(rpc)
-    utxo_info = rpc.call("gettxoutsetinfo")
+    utxo_info = cached_utxo_set_info(rpc)
     data = {
         "height": utxo_info.get("height"),
         "txouts": utxo_info.get("txouts"),
@@ -25,12 +79,15 @@ def utxo_set(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/segwit-adoption", response_model=ApiResponse[dict])
+@router.get("/segwit-adoption", response_model=ApiResponse[dict], responses=_SEGWIT_ADOPTION_EXAMPLE)
 def segwit_adoption(
+    request: Request,
     blocks: int = Query(100, ge=1, le=1000, description="Number of blocks to analyze"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Output type distribution (SegWit, Taproot, legacy) across recent blocks."""
+    tier = require_api_key(request, "SegWit adoption stats")
+    blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     current_hash = info["bestblockhash"]
 
@@ -59,15 +116,20 @@ def segwit_adoption(
         "segwit_percentage": round(segwit_count / total_outputs * 100, 2) if total_outputs else 0,
         "taproot_percentage": round(taproot_count / total_outputs * 100, 2) if total_outputs else 0,
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    resp = envelope(data, height=info["blocks"], chain=info["chain"])
+    resp["meta"]["max_blocks"] = BLOCKS_CAP.get(tier, 144)
+    return resp
 
 
-@router.get("/op-returns", response_model=ApiResponse[dict])
+@router.get("/op-returns", response_model=ApiResponse[dict], responses=_OP_RETURNS_EXAMPLE)
 def op_return_stats(
+    request: Request,
     blocks: int = Query(100, ge=1, le=1000, description="Number of blocks to analyze"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """OP_RETURN usage statistics across recent blocks."""
+    tier = require_api_key(request, "OP_RETURN stats")
+    blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     current_hash = info["bestblockhash"]
 
@@ -93,4 +155,6 @@ def op_return_stats(
         "avg_size_bytes": round(total_bytes / len(all_op_returns), 1) if all_op_returns else 0,
         "samples": all_op_returns[:10],
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    resp = envelope(data, height=info["blocks"], chain=info["chain"])
+    resp["meta"]["max_blocks"] = BLOCKS_CAP.get(tier, 144)
+    return resp

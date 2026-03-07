@@ -20,6 +20,8 @@ def _require_stripe():
     """Raise 503 if Stripe is not configured."""
     if settings.stripe_secret_key is None:
         raise HTTPException(status_code=503, detail="Billing not configured.")
+    if not settings.stripe_price_id:
+        raise HTTPException(status_code=503, detail="Billing not yet configured: missing Stripe price ID.")
 
 
 def _require_auth(request: Request) -> str:

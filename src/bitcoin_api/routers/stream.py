@@ -6,13 +6,18 @@ import time
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
+from starlette.requests import Request
 
 from bitcoinlib_rpc import BitcoinRPC
 
+from ..auth import require_api_key
 from ..cache import cached_block_count, cached_fee_estimates, cached_blockchain_info
 from ..dependencies import get_rpc
 
 router = APIRouter(prefix="/stream", tags=["Streams"])
+
+_active_whale_streams: int = 0
+_MAX_WHALE_STREAMS: int = 20
 
 
 async def _block_event_generator(rpc: BitcoinRPC):
@@ -151,14 +156,33 @@ async def _whale_tx_generator(rpc: BitcoinRPC, min_btc: float):
             last_keepalive = time.time()
 
 
+async def _tracked_whale_generator(rpc: BitcoinRPC, min_btc: float):
+    global _active_whale_streams
+    _active_whale_streams += 1
+    try:
+        async for event in _whale_tx_generator(rpc, min_btc):
+            yield event
+    finally:
+        _active_whale_streams -= 1
+
+
 @router.get("/whale-txs")
 async def stream_whale_txs(
+    request: Request,
     min_btc: float = Query(10.0, ge=0.1, le=10000, description="Minimum BTC value to alert on"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """SSE stream of whale transactions (large value txs entering the mempool)."""
+    require_api_key(request, "whale transaction stream")
+    global _active_whale_streams
+    if _active_whale_streams >= _MAX_WHALE_STREAMS:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"error": {"status": 503, "title": "Service Unavailable", "detail": "Max whale stream connections reached. Try again later."}},
+        )
     return StreamingResponse(
-        _whale_tx_generator(rpc, min_btc),
+        _tracked_whale_generator(rpc, min_btc),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

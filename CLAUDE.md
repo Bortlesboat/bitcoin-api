@@ -21,7 +21,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 - **Stack:** FastAPI + bitcoinlib-rpc + SQLite (WAL mode)
 - **Entry point:** `src/bitcoin_api/main.py`
 - **Config:** Pydantic Settings from env vars (`config.py`), RPC password is `SecretStr`
-- **Auth:** API key via `X-API-Key` header, tier-based (anonymous/free/pro/enterprise)
+- **Auth:** API key via `X-API-Key` header, tier-based (anonymous/free/pro/enterprise). Anonymous: lightweight GET only. Free+: expensive GET (mining/stats/whale-stream). Block caps: anon/free=144, pro=1008, enterprise=2016. Helpers: `require_api_key()`, `cap_blocks_param()` in `auth.py`.
 - **Rate limiting:** Sliding window (in-memory) + daily (DB-backed)
 - **Caching:** Per-cache locks, reorg-safe depth awareness, bounded LRU for hash mappings
 
@@ -31,8 +31,8 @@ The SOW is the single source of truth for what this project is, what it does, an
 - E2E (requires running API): `python -m pytest tests/test_e2e.py -m e2e`
 - Load test: `locust -f tests/locustfile.py --host http://localhost:9332`
 - Security check: `SATOSHI_API_KEY=<key> bash scripts/security_check.sh`
-- `authed_client` fixture for POST endpoint tests (requires API key in DB)
-- `client` fixture is anonymous -- use for GET tests and auth rejection tests
+- `authed_client` fixture for POST endpoints + gated GET endpoints (requires API key in DB)
+- `client` fixture is anonymous -- use for lightweight GET tests and auth rejection tests
 
 ## Conventions
 
@@ -88,9 +88,9 @@ The SOW is the single source of truth for what this project is, what it does, an
 
 ## Agent Employees
 
-Satoshi API has 10 agent "employees" in a flat org. After any change, check the trigger matrix in `docs/AGENT_ROLES.md` to see if other agents should run.
+Satoshi API has 11 agent "employees" in a flat org. After any change, check the trigger matrix in `docs/AGENT_ROLES.md` to see if other agents should run.
 
-### All 10 Agents (report directly to CEO)
+### All 11 Agents (report directly to CEO)
 | Role | Skill | Responsibility |
 |------|-------|---------------|
 | **Product Manager** | `/pm-review` | Feature strategy, competitive gaps, pricing, 90-day roadmap |
@@ -103,8 +103,9 @@ Satoshi API has 10 agent "employees" in a flat org. After any change, check the 
 | **QA Lead** | `/qa-review` | Tests, coverage gaps, regressions, test-to-docs sync |
 | **Analytics** | `/analytics-review` | Data collection changes, logging, metrics |
 | **Chief of Staff** | `/ops-review` | Data lifecycle, metrics, process automation, standards, org maintenance, headcount |
+| **Admin Assistant** | `/admin-assistant` | Endpoint count stamping, doc consistency, guide catalog sync, cross-file reference audits |
 
-**Orchestration:** `/all-hands` runs all 10 agents with consolidated dashboard.
+**Orchestration:** `/all-hands` runs all 11 agents with consolidated dashboard.
 **Deprecated wrappers:** `/code-review` (→ qa + architecture), `/product-review` (→ pm + ux).
 
 Each agent reads the trigger matrix, does its work, then reports which other agents should run next. No auto-execution — user stays in control.
