@@ -260,7 +260,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A- | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (10 endpoints + visual dashboard), auto-pruning. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 137 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 139 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -349,7 +349,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql
 
 **Tests (4 files):**
-- `tests/test_api.py` -- 137 unit tests
+- `tests/test_api.py` -- 139 unit tests
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory

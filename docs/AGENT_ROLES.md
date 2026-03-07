@@ -138,31 +138,31 @@ Track the last run of each agent for staleness detection.
 
 | Agent | Last Run | Result | Triggered By | Downstream Triggers |
 |-------|----------|--------|-------------|-------------------|
-| PM | - | - | - | - |
-| UX | - | - | - | - |
-| Finance | - | - | - | - |
-| Legal | - | - | - | - |
-| Marketing | - | - | - | - |
-| Security | - | - | - | - |
-| Architect | 2026-03-07 | PASS (129/129 tests) | Sprint 17 — service layer, migration upgrade, structured logging | Security (service layer, logging change), Analytics (structured JSON logging) |
-| QA | - | - | - | - |
-| Analytics | - | - | - | - |
-| Ops | - | - | - | - |
+| PM | 2026-03-07 | PASS WITH WARNINGS | All-Hands | UX, Finance, Marketing |
+| UX | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Marketing |
+| Finance | 2026-03-07 | PASS | All-Hands | PM |
+| Legal | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Security, Marketing |
+| Marketing | 2026-03-07 | PASS WITH WARNINGS | All-Hands | — |
+| Security | 2026-03-07 | PASS WITH WARNINGS | All-Hands | QA, Architect |
+| Architect | 2026-03-07 | PASS (139/139 tests) | All-Hands | QA, Marketing |
+| QA | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Architect |
+| Analytics | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Legal, Security |
+| Ops | 2026-03-07 | — (created) | All-Hands | — |
 
 ## Performance Tracking
 
 | Agent | Last 5 Runs | Issues Found | Fixed | Trigger Count |
 |-------|-------------|-------------|-------|---------------|
-| PM | - | - | - | - |
-| UX | - | - | - | - |
-| Finance | - | - | - | - |
-| Legal | - | - | - | - |
-| Marketing | - | - | - | - |
-| Security | - | - | - | - |
-| Architect | - | - | - | - |
-| QA | - | - | - | - |
-| Analytics | - | - | - | - |
-| Ops | - | - | - | - |
+| PM | 2026-03-07 | 4 | 0 | 3 |
+| UX | 2026-03-07 | 3 | 0 | 1 |
+| Finance | 2026-03-07 | 0 | 0 | 1 |
+| Legal | 2026-03-07 | 2 | 2 | 2 |
+| Marketing | 2026-03-07 | 7 | 7 | 0 |
+| Security | 2026-03-07 | 2 | 2 | 2 |
+| Architect | 2026-03-07 | 1 | 1 | 2 |
+| QA | 2026-03-07 | 2 | 2 | 1 |
+| Analytics | 2026-03-07 | 2 | 0 | 2 |
+| Ops | 2026-03-07 | — | — | — |
 
 ## Conflict Resolution Protocol
 
