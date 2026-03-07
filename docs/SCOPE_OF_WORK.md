@@ -361,7 +361,7 @@ A hosted API is a secondary revenue opportunity, not the primary business.
 | **Developer (Hosted)** | Free (with key) | 100/min | 10,000/day | Yes | Build & ship |
 | **Pro** | $19/mo | 500/min | 100,000/day | Yes | Production apps |
 
-**Launch strategy:** Free tiers at launch, Pro tier via Stripe when demand materializes. L402 Lightning payments available as optional extension (feature, not primary monetization). API keys are free — request via email or self-serve `/api/v1/register` endpoint.
+**Launch strategy:** Free tiers at launch, Pro tier via Stripe when demand materializes. L402 Lightning payments available as optional extension (feature, not primary monetization). API keys are free — request via api@bitcoinsapi.com or self-serve `/api/v1/register` endpoint.
 
 ### 8.4 Infrastructure Cost
 
