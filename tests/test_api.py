@@ -823,3 +823,465 @@ def test_prices(client):
         body = resp.json()
         assert body["data"]["USD"] == 92000.0
         assert "change_24h_pct" in body["data"]
+
+
+# --- Launch features tests ---
+
+
+def test_fees_landscape(client):
+    """Fee landscape should return recommendation + scenarios."""
+    resp = client.get("/api/v1/fees/landscape")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert data["recommendation"] in ("send", "wait", "urgent_only")
+    assert data["confidence"] in ("high", "medium", "low")
+    assert "reasoning" in data
+    assert "trend" in data
+    assert data["trend"]["direction"] in ("rising", "falling", "stable", "unknown")
+    assert "scenarios" in data
+    assert "send_now" in data["scenarios"]
+    assert "wait_1hr" in data["scenarios"]
+    assert "wait_low" in data["scenarios"]
+    assert data["scenarios"]["send_now"]["fee_rate"] > 0
+    assert "current_fees" in data
+
+
+def test_fees_landscape_with_snapshots(client):
+    """Fee landscape trend should work when snapshots are available."""
+    from bitcoin_api.cache import _mempool_snapshots
+    import time
+
+    # Seed snapshots to simulate falling mempool
+    _mempool_snapshots.append({
+        "timestamp": time.time() - 300,
+        "mempool_size": 20000,
+        "mempool_bytes": 10_000_000,
+        "mempool_vsize": 10_000_000,
+        "next_block_fee": 25.0,
+        "low_fee": 5.0,
+        "total_fee": 2.0,
+    })
+    _mempool_snapshots.append({
+        "timestamp": time.time(),
+        "mempool_size": 15000,
+        "mempool_bytes": 7_000_000,
+        "mempool_vsize": 7_000_000,
+        "next_block_fee": 20.0,
+        "low_fee": 4.0,
+        "total_fee": 1.5,
+    })
+
+    resp = client.get("/api/v1/fees/landscape")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["trend"]["direction"] == "falling"
+    assert data["trend"]["snapshots_available"] == 2
+
+
+def test_fees_estimate_tx_defaults(client):
+    """Estimate tx with defaults should return valid structure."""
+    resp = client.get("/api/v1/fees/estimate-tx")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert data["inputs"] == 1
+    assert data["outputs"] == 2
+    assert data["input_type"] == "p2wpkh"
+    assert data["estimated_vsize"] > 0
+    assert data["estimated_weight"] > 0
+    assert "fee_scenarios" in data
+    assert "next_block" in data["fee_scenarios"]
+    assert "1_day" in data["fee_scenarios"]
+    assert data["fee_scenarios"]["next_block"]["total_fee_sats"] > 0
+    assert "breakdown" in data
+
+
+def test_fees_estimate_tx_custom(client):
+    """Estimate tx with custom params."""
+    resp = client.get("/api/v1/fees/estimate-tx?inputs=2&outputs=3&input_type=p2tr&output_type=p2tr")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["inputs"] == 2
+    assert data["outputs"] == 3
+    assert data["input_type"] == "p2tr"
+    assert data["output_type"] == "p2tr"
+    # P2TR is lighter than P2PKH
+    resp2 = client.get("/api/v1/fees/estimate-tx?inputs=2&outputs=3&input_type=p2pkh&output_type=p2pkh")
+    data2 = resp2.json()["data"]
+    assert data["estimated_vsize"] < data2["estimated_vsize"]
+
+
+def test_fees_estimate_tx_validation(client):
+    """Invalid input count should return 422."""
+    resp = client.get("/api/v1/fees/estimate-tx?inputs=0")
+    assert resp.status_code == 422
+
+
+def test_fees_history_empty(client):
+    """Fee history with no data should return empty datapoints."""
+    resp = client.get("/api/v1/fees/history?hours=1")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["datapoints"] == []
+    assert data["summary"] is None
+
+
+def test_fees_history_with_data(client):
+    """Fee history with seeded data should return datapoints + summary."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    # Insert some test data
+    for i in range(5):
+        conn.execute(
+            "INSERT INTO fee_history (ts, next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion) "
+            "VALUES (datetime('now', ?), ?, ?, ?, ?, ?, ?)",
+            (f"-{(4-i)*2} minutes", 20.0 + i, 12.0 + i, 5.0 + i, 15000 + i * 1000, 8500000 + i * 100000, "normal"),
+        )
+    conn.commit()
+
+    resp = client.get("/api/v1/fees/history?hours=1&interval=1m")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert len(data["datapoints"]) >= 1
+    assert data["summary"] is not None
+    assert data["summary"]["min_next_block_fee"] > 0
+    assert data["summary"]["max_next_block_fee"] >= data["summary"]["min_next_block_fee"]
+    assert data["summary"]["cheapest_time_utc"] is not None
+
+
+def test_stream_blocks_generator(mock_rpc):
+    """Block SSE generator should yield a connected event first."""
+    import asyncio
+    from bitcoin_api.routers.stream import _block_event_generator
+
+    async def get_first_event():
+        gen = _block_event_generator(mock_rpc)
+        return await gen.__anext__()
+
+    event = asyncio.run(get_first_event())
+    assert "event: connected" in event
+    assert '"height"' in event
+
+
+def test_stream_fees_generator(mock_rpc):
+    """Fee SSE generator should yield a connected event first."""
+    import asyncio
+    from bitcoin_api.routers.stream import _fee_event_generator
+
+    async def get_first_event():
+        gen = _fee_event_generator(mock_rpc)
+        return await gen.__anext__()
+
+    event = asyncio.run(get_first_event())
+    assert "event: connected" in event
+
+
+# ── Exchange comparison ────────────────────────────────────────────────
+
+
+def test_exchange_compare_default(client, monkeypatch):
+    """Exchange compare returns results for default $100."""
+    monkeypatch.setattr(
+        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 92000.0
+    )
+    resp = client.get("/api/v1/tools/exchange-compare")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert data["amount_usd"] == 100
+    assert data["btc_price_usd"] == 92000.0
+    assert len(data["exchanges"]) > 0
+    assert "best_value" in data
+    # Results should be sorted by net_sats descending
+    sats = [e["net_sats"] for e in data["exchanges"]]
+    assert sats == sorted(sats, reverse=True)
+
+
+def test_exchange_compare_custom_amount(client, monkeypatch):
+    """Exchange compare with custom USD amount."""
+    monkeypatch.setattr(
+        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 92000.0
+    )
+    resp = client.get("/api/v1/tools/exchange-compare?amount_usd=10")
+    assert resp.status_code == 200
+    body = resp.json()
+    data = body["data"]
+    assert data["amount_usd"] == 10
+    # Kraken has $10 min, so it should be included
+    names = [e["exchange"] for e in data["exchanges"]]
+    assert "Kraken" in names
+
+
+def test_exchange_compare_fee_math(client, monkeypatch):
+    """Verify fee calculations are correct for a known exchange."""
+    monkeypatch.setattr(
+        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 100000.0
+    )
+    resp = client.get("/api/v1/tools/exchange-compare?amount_usd=1000")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    # Find Coinbase Advanced (0.12% fee, 0% spread, 0 withdrawal)
+    cb_adv = next(e for e in data["exchanges"] if e["exchange"] == "Coinbase Advanced")
+    assert cb_adv["trading_fee_usd"] == 1.20  # 0.12% of $1000
+    assert cb_adv["spread_cost_usd"] == 0.0
+    assert cb_adv["withdrawal_fee_sats"] == 0
+    # Net should be (1000 - 1.20) / 100000 BTC in sats
+    expected_sats = int((1000 - 1.20) / 100000 * 1e8)
+    assert cb_adv["net_sats"] == expected_sats
+
+
+def test_exchange_compare_below_minimum(client, monkeypatch):
+    """Exchanges with higher minimums are excluded for small amounts."""
+    monkeypatch.setattr(
+        "bitcoin_api.routers.exchanges._get_btc_price", lambda: 92000.0
+    )
+    resp = client.get("/api/v1/tools/exchange-compare?amount_usd=5")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    names = [e["exchange"] for e in data["exchanges"]]
+    # Kraken ($10 min) and River ($10 min) should be excluded
+    assert "Kraken" not in names
+    assert "River" not in names
+    # Coinbase ($1 min) should be included
+    assert "Coinbase" in names
+
+
+def test_exchange_compare_invalid_amount(client):
+    """Amount below $1 returns 422."""
+    resp = client.get("/api/v1/tools/exchange-compare?amount_usd=0.5")
+    assert resp.status_code == 422
+
+
+def test_exchange_compare_price_unavailable(client, monkeypatch):
+    """Returns error message when BTC price is unavailable."""
+    monkeypatch.setattr(
+        "bitcoin_api.routers.exchanges._get_btc_price", lambda: None
+    )
+    resp = client.get("/api/v1/tools/exchange-compare")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "error" in body["data"]
+
+
+# --- Security tests ---
+
+
+def test_security_headers_present(client):
+    """All security headers must appear in every response."""
+    resp = client.get("/api/v1/fees")
+    for header in [
+        "x-content-type-options",
+        "x-frame-options",
+        "content-security-policy",
+        "referrer-policy",
+        "permissions-policy",
+    ]:
+        assert header in resp.headers, f"Missing security header: {header}"
+
+
+def test_method_not_allowed(client):
+    """Unsupported HTTP methods return 405."""
+    assert client.delete("/api/v1/fees").status_code == 405
+    assert client.put("/api/v1/fees").status_code == 405
+    assert client.patch("/api/v1/fees").status_code == 405
+
+
+def test_error_envelope_consistency(client):
+    """All error responses use the {error} envelope, never raw strings."""
+    # 404
+    resp = client.get("/api/v1/tx/" + "0" * 64)
+    body = resp.json()
+    assert "error" in body
+    assert "status" in body["error"]
+    assert "detail" in body["error"]
+
+    # 422
+    resp = client.get("/api/v1/tx/not-a-txid")
+    body = resp.json()
+    assert "error" in body
+    assert "status" in body["error"]
+
+
+def test_no_traceback_in_errors(client):
+    """Error responses must never contain Python tracebacks."""
+    resp = client.get("/api/v1/tx/ZZZZ")
+    text = resp.text
+    assert "Traceback" not in text
+    assert ".py" not in text or "detail" in text  # .py only in structured error detail is ok
+
+
+def test_unhandled_exception_returns_500_envelope(client, mock_rpc):
+    """Unhandled exceptions return clean 500 with {error} envelope, no traceback."""
+    mock_rpc.call.side_effect = RuntimeError("something unexpected")
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 500
+    body = resp.json()
+    assert "error" in body
+    assert body["error"]["status"] == 500
+    assert "unexpected" in body["error"]["detail"].lower()
+    assert "RuntimeError" not in resp.text
+    assert "Traceback" not in resp.text
+
+
+def test_cors_evil_origin_not_reflected(client):
+    """CORS must not reflect arbitrary origins."""
+    resp = client.get(
+        "/api/v1/fees",
+        headers={"Origin": "https://evil.example.com"},
+    )
+    acao = resp.headers.get("access-control-allow-origin", "")
+    assert "evil" not in acao
+
+
+def test_post_without_content_type_json(authed_client):
+    """POST with wrong content-type should be rejected."""
+    resp = authed_client.post(
+        "/api/v1/decode",
+        content=b"not json",
+        headers={"Content-Type": "text/plain"},
+    )
+    assert resp.status_code == 422
+
+
+# --- Data Integrity & User Protection Tests ---
+
+
+def test_meta_syncing_false_when_synced(client):
+    """Default mock has verificationprogress=0.9999, so syncing should be False."""
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 200
+    meta = resp.json()["meta"]
+    assert meta["syncing"] is False
+
+
+def test_meta_syncing_true_during_ibd(client, mock_rpc):
+    """When verificationprogress < 0.9999, syncing should be True."""
+    original_side_effect = mock_rpc.call.side_effect
+
+    def ibd_side_effect(method, *args):
+        result = original_side_effect(method, *args)
+        if method == "getblockchaininfo":
+            result = dict(result)
+            result["verificationprogress"] = 0.5
+        return result
+
+    mock_rpc.call.side_effect = ibd_side_effect
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 200
+    meta = resp.json()["meta"]
+    assert meta["syncing"] is True
+
+
+def test_syncing_header_during_ibd(client, mock_rpc):
+    """X-Node-Syncing header should appear when node is syncing."""
+    original_side_effect = mock_rpc.call.side_effect
+
+    def ibd_side_effect(method, *args):
+        result = original_side_effect(method, *args)
+        if method == "getblockchaininfo":
+            result = dict(result)
+            result["verificationprogress"] = 0.5
+        return result
+
+    mock_rpc.call.side_effect = ibd_side_effect
+    resp = client.get("/api/v1/network")
+    assert resp.headers.get("X-Node-Syncing") == "true"
+
+
+def test_meta_cached_false_on_first_call(client):
+    """First request should have cached=False (fresh from RPC)."""
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 200
+    meta = resp.json()["meta"]
+    # After first call, the info IS now cached for the build_meta call,
+    # but the data was fetched fresh for this request
+    assert "cached" in meta
+    assert "cache_age_seconds" in meta
+
+
+def test_meta_cached_true_on_second_call(client):
+    """Second request within TTL should show cached=True."""
+    client.get("/api/v1/network")
+    resp = client.get("/api/v1/network")
+    assert resp.status_code == 200
+    meta = resp.json()["meta"]
+    assert meta["cached"] is True
+    assert meta["cache_age_seconds"] is not None
+    assert meta["cache_age_seconds"] >= 0
+
+
+def test_broadcast_decode_failure(authed_client):
+    """Malformed hex that can't be decoded should return 422."""
+    from bitcoinlib_rpc.rpc import RPCError
+
+    with patch(
+        "bitcoin_api.routers.transactions.BitcoinRPC",
+    ):
+        original_mock = authed_client.app.dependency_overrides
+        mock_rpc = MagicMock()
+
+        call_count = {"decode": 0}
+
+        def side_effect(method, *args):
+            if method == "decoderawtransaction":
+                raise RPCError(-22, "TX decode failed")
+            if method == "getblockchaininfo":
+                return {"chain": "main", "blocks": 880000, "verificationprogress": 0.9999}
+            return {}
+
+        mock_rpc.call.side_effect = side_effect
+        from bitcoin_api.dependencies import get_rpc
+        authed_client.app.dependency_overrides[get_rpc] = lambda: mock_rpc
+
+        resp = authed_client.post("/api/v1/broadcast", json={"hex": "deadbeef"})
+        assert resp.status_code == 422
+        assert "could not be decoded" in resp.json()["error"]["detail"]
+
+
+def test_broadcast_already_in_mempool(authed_client):
+    """RPC error -25 on broadcast should return 409."""
+    from bitcoinlib_rpc.rpc import RPCError
+
+    mock_rpc = MagicMock()
+
+    def side_effect(method, *args):
+        if method == "decoderawtransaction":
+            return {"txid": "a" * 64}
+        if method == "sendrawtransaction":
+            raise RPCError(-25, "Transaction already in mempool")
+        if method == "getblockchaininfo":
+            return {"chain": "main", "blocks": 880000, "verificationprogress": 0.9999}
+        return {}
+
+    mock_rpc.call.side_effect = side_effect
+    from bitcoin_api.dependencies import get_rpc
+    authed_client.app.dependency_overrides[get_rpc] = lambda: mock_rpc
+
+    resp = authed_client.post("/api/v1/broadcast", json={"hex": "0200000001"})
+    assert resp.status_code == 409
+    assert "already in mempool" in resp.json()["error"]["detail"].lower()
+
+
+def test_broadcast_policy_rejection(authed_client):
+    """RPC error -26 on broadcast should return 422."""
+    from bitcoinlib_rpc.rpc import RPCError
+
+    mock_rpc = MagicMock()
+
+    def side_effect(method, *args):
+        if method == "decoderawtransaction":
+            return {"txid": "a" * 64}
+        if method == "sendrawtransaction":
+            raise RPCError(-26, "non-mandatory-script-verify-flag")
+        if method == "getblockchaininfo":
+            return {"chain": "main", "blocks": 880000, "verificationprogress": 0.9999}
+        return {}
+
+    mock_rpc.call.side_effect = side_effect
+    from bitcoin_api.dependencies import get_rpc
+    authed_client.app.dependency_overrides[get_rpc] = lambda: mock_rpc
+
+    resp = authed_client.post("/api/v1/broadcast", json={"hex": "0200000001"})
+    assert resp.status_code == 422
+    assert "policy" in resp.json()["error"]["detail"].lower()

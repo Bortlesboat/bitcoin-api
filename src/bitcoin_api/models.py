@@ -13,6 +13,9 @@ class Meta(BaseModel):
     request_id: str | None = None
     node_height: int | None = None
     chain: str | None = None
+    syncing: bool = False
+    cached: bool = False
+    cache_age_seconds: int | None = None
 
 
 class ApiResponse(BaseModel, Generic[T]):
@@ -174,11 +177,21 @@ class DecodeRequest(BaseModel):
 def build_meta(
     *, height: int | None = None, chain: str | None = None, request_id: str | None = None,
 ) -> Meta:
+    from .cache import get_sync_progress, get_cache_state
+
+    progress = get_sync_progress()
+    syncing = progress is not None and progress < 0.9999
+
+    is_cached, cache_age = get_cache_state()
+
     return Meta(
         timestamp=datetime.now(timezone.utc).isoformat(),
         request_id=request_id,
         node_height=height,
         chain=chain,
+        syncing=syncing,
+        cached=is_cached,
+        cache_age_seconds=cache_age,
     )
 
 

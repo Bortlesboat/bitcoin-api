@@ -1,7 +1,7 @@
 # Satoshi API -- Scope of Work
 
-**Version:** 0.1.0
-**Date:** 2026-03-06
+**Version:** 0.3.0
+**Date:** 2026-03-07
 **Author:** Andy Barnes
 **Status:** Live -- https://bitcoinsapi.com
 
@@ -51,7 +51,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `routers/` | 10 domain routers (blocks, tx, fees, mempool, mining, network, prices, status, keys, stream) | RESTful resource routing |
+| `routers/` | 12 domain routers (blocks, tx, fees, mempool, mining, network, prices, status, keys, stream, exchanges) | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -65,7 +65,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (40 total)
+### 3.1 Endpoints (41 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -108,6 +108,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Prices** | `/api/v1/prices` | GET | No |
 | **Streams** | `/api/v1/stream/blocks` | GET (SSE) | No |
 | | `/api/v1/stream/fees` | GET (SSE) | No |
+| **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
 
 ### 3.2 Rate Limits
@@ -119,7 +120,15 @@ Bitcoin Core RPC (port 8332, localhost only)
 | Pro | 500 | 100,000 | Yes |
 | Enterprise | 2,000 | Unlimited | Yes |
 
-### 3.3 Response Format
+### 3.3 Data Integrity Features
+
+| Feature | Implementation | Details |
+|---------|---------------|---------|
+| **IBD/Sync Warning** | `Meta.syncing: bool` field | Auto-detected via `verificationprogress < 0.9999`. `X-Node-Syncing: true` header added to all responses when node is syncing. |
+| **Stale Data Indicators** | `Meta.cached: bool`, `Meta.cache_age_seconds: int \| None` | Auto-populated from blockchain info cache state. Lets clients know data freshness. |
+| **Broadcast Pre-Validation** | `decoderawtransaction` before `sendrawtransaction` | `/broadcast` catches malformed hex early. RPC error codes mapped to human-readable HTTP responses (see Section 4). |
+
+### 3.4 Response Format
 
 All responses use a standard envelope:
 
@@ -130,7 +139,10 @@ All responses use a standard envelope:
     "timestamp": "2026-03-06T12:00:00+00:00",
     "request_id": "uuid",
     "node_height": 939462,
-    "chain": "main"
+    "chain": "main",
+    "syncing": false,
+    "cached": true,
+    "cache_age_seconds": 12
   }
 }
 ```
@@ -164,10 +176,15 @@ Errors follow the same structure:
 | **Body Size** | 2MB limit | Pydantic `Field(max_length=2_000_000)` on hex inputs |
 | **Node Protection** | RPC whitelist | Only 17 safe commands allowed via `rpcwhitelist` |
 | **Network** | Localhost-only RPC | `rpcbind=127.0.0.1`, `rpcallowip=127.0.0.1` |
+| **Broadcast Validation** | Decode-before-send | `decoderawtransaction` pre-check; RPC -25 → 409, -26 → 422, -27 → 409 |
 | **Information Hiding** | Version redaction | Node version/subversion hidden from anonymous users |
 | **Secrets** | SecretStr for RPC password | Pydantic SecretStr prevents accidental logging |
 | **Access Logging** | Structured logs | IP, method, path, status, tier, request_id |
 | **CORS** | Allowlist-based | Configured origins, not wildcard in production |
+| **Security Headers** | Middleware-injected | CSP, X-Frame-Options DENY, HSTS, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, X-XSS-Protection |
+| **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
+| **CSP** | Strict policy | `default-src 'self'`, allowlists for Cloudflare analytics, inline styles (landing page), GitHub images |
+| **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
 
 ### 4.2 Threat Model
 
@@ -180,6 +197,9 @@ Errors follow the same structure:
 | SQL injection | Parameterized SQLite queries | Very low |
 | API key theft | SHA256 hashing, no plaintext storage, no keys in scripts | Medium -- rotate on compromise |
 | Database leak | Keys are hashed, not reversible | Low |
+| XSS via landing page | CSP blocks inline scripts (except landing page), nosniff header | Very low |
+| Clickjacking | X-Frame-Options DENY + CSP frame-ancestors 'none' | Very low |
+| Tab-napping via external links | All external links use `rel="noopener noreferrer"` | Very low |
 
 ---
 
@@ -192,14 +212,14 @@ Errors follow the same structure:
 | SOLID | B | Clean SRP, good DI. Rate limit strategies could use protocol abstraction. |
 | Separation of Concerns | A- | Layers are clean. Minor: middleware does both auth + rate limit + logging. |
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
-| Security | B+ | Defense in depth. Fixed: SecretStr for passwords, body limits in Docker. |
+| Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | B- | Access logs + request IDs. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | B+ | 89 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 110 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
-| Data Integrity | B | WAL mode, parameterized queries. No schema migrations framework. |
+| Data Integrity | B+ | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. No schema migrations framework. |
 | Deployment | B+ | Non-root Docker, health checks. Fixed: graceful shutdown. |
 
 ### 5.2 Critical Issues Fixed
@@ -257,16 +277,17 @@ Errors follow the same structure:
 | 8 | v0.2 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
 | 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
 | 10 | Launch features: fee landscape, tx estimator, SSE streams, fee history | 9 |
-| **Total** | **34 endpoints (6 more in Sprint 10 WIP), 11 routers** | **89 unit + 21 e2e** |
+| 11 | Security hardening (headers, CSP, HSTS), exchange compare tool, SEO comparison pages, robots.txt, sitemap.xml | 6 |
+| **Total** | **41 endpoints, 12 routers** | **95 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (13 files):**
+**Source (14 files):**
 - `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, models, rate_limit
-- `src/bitcoin_api/routers/` -- blocks, fees, keys, mempool, mining, network, prices, status, stream, transactions
+- `src/bitcoin_api/routers/` -- blocks, exchanges, fees, keys, mempool, mining, network, prices, status, stream, transactions
 
 **Tests (3 files):**
-- `tests/test_api.py` -- 89 unit tests
+- `tests/test_api.py` -- 95 unit tests
 - `tests/test_e2e.py` -- 9 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 
@@ -291,8 +312,17 @@ Errors follow the same structure:
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
 
-**Website (1 file):**
-- `docs/website/index.html` -- Landing page with product info, use cases, endpoints, pricing, comparison table
+**Website (10 files):**
+- `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
+- `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
+- `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
+- `static/best-bitcoin-api-for-developers.html` -- SEO decision page: developer guide
+- `static/bitcoin-api-for-ai-agents.html` -- SEO decision page: AI/MCP angle
+- `static/self-hosted-bitcoin-api.html` -- SEO decision page: self-hosting
+- `static/bitcoin-fee-api.html` -- SEO feature page: fee estimation endpoints
+- `static/bitcoin-mempool-api.html` -- SEO feature page: mempool analysis endpoints
+- `static/robots.txt` -- Search engine crawl directives (welcomes AI crawlers)
+- `static/sitemap.xml` -- XML sitemap for search engines (9 URLs)
 
 ---
 
@@ -320,7 +350,7 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [x] All 59 unit tests pass
+- [x] All 95 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -452,7 +482,16 @@ twine upload dist/*
 - `GET /stream/fees` — SSE fee rate updates every 30s
 - Background fee collector (5-min snapshots for trend + history)
 
-### v0.4 (Medium Effort — Next)
+### v0.3.1 (Security Hardening — Next)
+- CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)
+- Subresource Integrity (SRI) for any external scripts
+- API key rotation endpoint (issue new key, deprecate old)
+- SSE connection authentication (optional API key for stream endpoints)
+- Rate limiting for SSE connections (connection count per tier)
+- `Expect-CT` header for certificate transparency monitoring
+- Security.txt (`/.well-known/security.txt`) with disclosure policy
+
+### v0.4 (Medium Effort)
 - Prometheus `/metrics` endpoint
 - Idempotency key support for POST
 - Alembic schema migrations

@@ -219,6 +219,7 @@ def clear_caches():
         _fee_cache, _mempool_cache, _status_cache,
         _blockchain_info_cache, _block_count_cache, _block_cache,
         _recent_block_cache, _nextblock_cache, _hash_to_height,
+        _mempool_snapshots,
     )
     _fee_cache.clear()
     _mempool_cache.clear()
@@ -229,6 +230,7 @@ def clear_caches():
     _recent_block_cache.clear()
     _nextblock_cache.clear()
     _hash_to_height.clear()
+    _mempool_snapshots.clear()
 
 
 @pytest.fixture(autouse=True)

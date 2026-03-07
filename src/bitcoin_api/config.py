@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # CORS (comma-separated origins, or "*" for all — use "*" only for local/dev)
     cors_origins: str = "http://localhost:3000,http://localhost:9332"
 
+    # Feature flags
+    enable_exchange_compare: bool = True
+
     # Rate limits (requests per minute)
     rate_limit_anonymous: int = 30
     rate_limit_free: int = 100

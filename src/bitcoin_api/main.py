@@ -1,6 +1,8 @@
 """Bitcoin API — FastAPI application."""
 
 import logging
+import threading
+import time
 import uuid
 from contextlib import asynccontextmanager
 
@@ -9,22 +11,71 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from bitcoinlib_rpc.rpc import RPCError
 
 from .auth import authenticate
 from .config import settings
-from .db import get_db, log_usage, prune_old_logs
+from .db import get_db, log_usage, prune_old_logs, record_fee_snapshot, prune_fee_history
+from .cache import record_mempool_snapshot, get_sync_progress
 from .models import ErrorResponse, ErrorDetail
 from .rate_limit import check_rate_limit, check_daily_limit
 from . import __version__
-from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys
+from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges
 
 access_log = logging.getLogger("bitcoin_api.access")
 
 
 log = logging.getLogger("bitcoin_api")
+
+_bg_stop = threading.Event()
+
+
+def _background_fee_collector():
+    """Background thread: snapshot mempool every 5 min for trend analysis + fee history."""
+    from .dependencies import get_rpc as _get_rpc_dep
+
+    while not _bg_stop.is_set():
+        try:
+            rpc = _get_rpc_dep()
+            # Record to circular buffer (for /fees/landscape trend)
+            record_mempool_snapshot(rpc)
+
+            # Record to DB (for /fees/history)
+            info = rpc.call("getmempoolinfo")
+            fees_1 = rpc.call("estimatesmartfee", 1)
+            fees_6 = rpc.call("estimatesmartfee", 6)
+            fees_144 = rpc.call("estimatesmartfee", 144)
+
+            next_block_fee = (fees_1.get("feerate", 0) or 0) * 100_000
+            median_fee = (fees_6.get("feerate", 0) or 0) * 100_000
+            low_fee = (fees_144.get("feerate", 0) or 0) * 100_000
+            mempool_size = info.get("size", 0)
+            mempool_vsize = info.get("bytes", 0)
+
+            # Simple congestion classification
+            if mempool_vsize < 1_000_000:
+                congestion = "low"
+            elif mempool_vsize < 10_000_000:
+                congestion = "normal"
+            elif mempool_vsize < 50_000_000:
+                congestion = "elevated"
+            else:
+                congestion = "high"
+
+            record_fee_snapshot(
+                next_block_fee=round(next_block_fee, 2),
+                median_fee=round(median_fee, 2),
+                low_fee=round(low_fee, 2),
+                mempool_size=mempool_size,
+                mempool_vsize=mempool_vsize,
+                congestion=congestion,
+            )
+        except Exception:
+            log.debug("Background fee collector: snapshot failed", exc_info=True)
+
+        _bg_stop.wait(300)  # 5 minutes
 
 
 @asynccontextmanager
@@ -32,9 +83,19 @@ async def lifespan(app: FastAPI):
     # Startup: init DB + prune old logs
     get_db()
     prune_old_logs()
+    prune_fee_history()
     log.info("Satoshi API starting on %s:%s", settings.api_host, settings.api_port)
+
+    # Start background fee collector
+    _bg_stop.clear()
+    bg_thread = threading.Thread(target=_background_fee_collector, daemon=True, name="fee-collector")
+    bg_thread.start()
+
     yield
-    # Shutdown: close DB connections
+
+    # Shutdown
+    _bg_stop.set()
+    bg_thread.join(timeout=5)
     log.info("Satoshi API shutting down")
 
 
@@ -48,6 +109,38 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# --- Security headers middleware ---
+_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json"}
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Skip CSP for docs pages — Swagger UI / ReDoc load assets from cdn.jsdelivr.net
+    if request.url.path not in _DOCS_PATHS:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https://raw.githubusercontent.com; "
+            "connect-src 'self' https://bitcoinsapi.com https://cloudflareinsights.com; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    progress = get_sync_progress()
+    if progress is not None and progress < 0.9999:
+        response.headers["X-Node-Syncing"] = "true"
+    return response
+
+
 _cors_origins = [o.strip() for o in settings.cors_origins.split(",")]
 if "*" in _cors_origins:
     log.warning("CORS_ORIGINS contains '*' — all origins allowed. Not recommended for production.")
@@ -59,7 +152,14 @@ app.add_middleware(
 )
 
 # Paths exempt from rate limiting
-_RATE_LIMIT_SKIP = {"/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz", "/api/v1/register"}
+_RATE_LIMIT_SKIP = {
+    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz", "/api/v1/register",
+    "/api/v1/stream/blocks", "/api/v1/stream/fees",
+    "/robots.txt", "/sitemap.xml",
+    "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
+    "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
+    "/bitcoin-fee-api", "/bitcoin-mempool-api",
+}
 
 
 # --- Middleware: auth + rate limiting + usage logging ---
@@ -208,6 +308,15 @@ async def rpc_error_handler(request: Request, exc: RPCError):
     elif exc.code == -8:  # invalid parameter
         http_status = 400
         title = "Bad Request"
+    elif exc.code == -25:  # tx already in mempool / missing inputs
+        http_status = 409
+        title = "Transaction Already in Mempool"
+    elif exc.code == -26:  # tx policy rejection
+        http_status = 422
+        title = "Transaction Failed Policy Checks"
+    elif exc.code == -27:  # tx already confirmed
+        http_status = 409
+        title = "Transaction Already Confirmed"
     else:
         http_status = 502
         title = "Node Error"
@@ -287,6 +396,26 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return resp
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    request_id = getattr(request.state, "request_id", None)
+    log.error("Unhandled exception on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    resp = JSONResponse(
+        status_code=500,
+        content=ErrorResponse(
+            error=ErrorDetail(
+                status=500,
+                title="Internal Server Error",
+                detail="An unexpected error occurred.",
+                request_id=request_id,
+            )
+        ).model_dump(),
+    )
+    if request_id:
+        resp.headers["X-Request-ID"] = request_id
+    return resp
+
+
 
 
 # --- Routers ---
@@ -301,11 +430,15 @@ app.include_router(mining.router, prefix=PREFIX)
 app.include_router(network.router, prefix=PREFIX)
 app.include_router(prices.router, prefix=PREFIX)
 app.include_router(keys.router, prefix=PREFIX)
+app.include_router(stream.router, prefix=PREFIX)
+if settings.enable_exchange_compare:
+    app.include_router(exchanges.router, prefix=PREFIX)
 
 
 # --- Root redirect ---
 
-_LANDING_PAGE = Path(__file__).resolve().parent.parent.parent / "static" / "index.html"
+_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
+_LANDING_PAGE = _STATIC_DIR / "index.html"
 
 
 @app.get("/", include_in_schema=False)
@@ -320,10 +453,46 @@ def root():
     }
 
 
+@app.get("/robots.txt", include_in_schema=False)
+def robots_txt():
+    p = _STATIC_DIR / "robots.txt"
+    if p.exists():
+        return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
+    return Response("User-agent: *\nAllow: /\n", media_type="text/plain")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml():
+    p = _STATIC_DIR / "sitemap.xml"
+    if p.exists():
+        return Response(p.read_text(encoding="utf-8"), media_type="application/xml")
+    return Response(status_code=404)
+
+
 @app.get("/healthz", include_in_schema=False)
 def healthz():
     """Process-alive check (no RPC call). Use for container healthchecks."""
     return {"status": "ok"}
+
+
+@app.get("/{page}", include_in_schema=False)
+def static_page(page: str):
+    """Serve decision/comparison pages and IndexNow key from static directory."""
+    allowed = {
+        "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
+        "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
+        "bitcoin-fee-api", "bitcoin-mempool-api",
+    }
+    if page in allowed:
+        p = _STATIC_DIR / f"{page}.html"
+        if p.exists():
+            return HTMLResponse(p.read_text(encoding="utf-8"))
+    # Serve IndexNow verification key files ({key}.txt)
+    if page.endswith(".txt") and len(page) == 36:  # 32 hex + .txt
+        p = _STATIC_DIR / page
+        if p.exists():
+            return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
+    return Response(status_code=404)
 
 
 def cli():

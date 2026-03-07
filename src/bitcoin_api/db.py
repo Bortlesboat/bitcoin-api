@@ -34,6 +34,19 @@ CREATE INDEX IF NOT EXISTS idx_usage_ts ON usage_log(ts);
 CREATE INDEX IF NOT EXISTS idx_usage_key ON usage_log(key_hash);
 CREATE INDEX IF NOT EXISTS idx_usage_key_ts ON usage_log(key_hash, ts);
 
+CREATE TABLE IF NOT EXISTS fee_history (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts              TEXT NOT NULL DEFAULT (datetime('now')),
+    next_block_fee  REAL,
+    median_fee      REAL,
+    low_fee         REAL,
+    mempool_size    INTEGER,
+    mempool_vsize   INTEGER,
+    congestion      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_fee_history_ts ON fee_history(ts);
+
 """
 
 
@@ -94,6 +107,62 @@ def prune_old_logs(days: int = 90) -> int:
     conn = get_db()
     cursor = conn.execute(
         "DELETE FROM usage_log WHERE ts < datetime('now', ?)",
+        (f"-{days} days",),
+    )
+    conn.commit()
+    return cursor.rowcount
+
+
+def record_fee_snapshot(
+    next_block_fee: float,
+    median_fee: float,
+    low_fee: float,
+    mempool_size: int,
+    mempool_vsize: int,
+    congestion: str,
+) -> None:
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO fee_history (next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        (next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion),
+    )
+    conn.commit()
+
+
+def get_fee_history(hours: int = 24, interval_minutes: int = 10) -> list[dict]:
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT ts, next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion "
+        "FROM fee_history WHERE ts >= datetime('now', ?) ORDER BY ts ASC",
+        (f"-{hours} hours",),
+    ).fetchall()
+    if not rows:
+        return []
+
+    # Downsample to requested interval
+    results = []
+    last_ts = None
+    for row in rows:
+        d = dict(row)
+        if last_ts is None or _ts_diff_minutes(last_ts, d["ts"]) >= interval_minutes:
+            results.append(d)
+            last_ts = d["ts"]
+    return results
+
+
+def _ts_diff_minutes(ts1: str, ts2: str) -> float:
+    from datetime import datetime
+    fmt = "%Y-%m-%d %H:%M:%S"
+    t1 = datetime.strptime(ts1, fmt)
+    t2 = datetime.strptime(ts2, fmt)
+    return abs((t2 - t1).total_seconds()) / 60
+
+
+def prune_fee_history(days: int = 30) -> int:
+    conn = get_db()
+    cursor = conn.execute(
+        "DELETE FROM fee_history WHERE ts < datetime('now', ?)",
         (f"-{days} days",),
     )
     conn.commit()

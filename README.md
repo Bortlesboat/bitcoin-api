@@ -1,185 +1,248 @@
+<div align="center">
+
 # Satoshi API
 
+**REST API for your Bitcoin node. One `pip install`, 40 endpoints.**
+
 [![CI](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/satoshi-api?color=orange)](https://pypi.org/project/satoshi-api/)
+[![Downloads](https://img.shields.io/pypi/dm/satoshi-api)](https://pypi.org/project/satoshi-api/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Live API](https://img.shields.io/badge/live-bitcoinsapi.com-f7931a)](https://bitcoinsapi.com)
 
-The thinnest REST layer over your Bitcoin node. One `pip install`, instant API.
+[Live Playground](https://bitcoinsapi.com/docs) &middot; [Landing Page](https://bitcoinsapi.com) &middot; [PyPI](https://pypi.org/project/satoshi-api/) &middot; [MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)
 
-Powered by [bitcoinlib-rpc](https://github.com/Bortlesboat/bitcoinlib-rpc) for analyzed data (fees, mempool congestion, block stats) rather than raw RPC dumps. Part of the AI agent pipeline: **bitcoinlib-rpc** -> **satoshi-api** -> [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp).
+</div>
 
-## Prerequisites
+---
 
-- **Bitcoin Core** running with `server=1` in `bitcoin.conf` (RPC enabled)
-- Python 3.10+
+Satoshi API wraps Bitcoin Core's JSON-RPC in a clean REST interface with analyzed data, smart caching, and tiered rate limiting. Instead of calling `estimatesmartfee` five times and doing math, you get fee recommendations in sat/vB. Instead of raw `getmempoolinfo`, you get congestion scores and fee buckets.
 
-**Node configuration notes:**
-- Transaction lookups (`/tx/{txid}`, `/tx/{txid}/raw`) for confirmed transactions require `txindex=1`
-- Block template (`/mining/nextblock`) requires at least one connected peer on mainnet
-- Block stats (`/blocks/{height}/stats`) is unavailable for pruned blocks below the prune height
+```
+Your App  -->  Satoshi API (REST)  -->  Bitcoin Core (RPC)  -->  Blockchain
+                     |
+              bitcoin-mcp (MCP)  -->  AI Agents (Claude, GPT)
+```
 
 ## Quick Start
 
 ```bash
-pip install bitcoin-api  # or: pip install -e . for local dev
+pip install satoshi-api
 
-# Point at your node
 export BITCOIN_RPC_USER=your_user
 export BITCOIN_RPC_PASSWORD=your_password
-# For testnet: export BITCOIN_RPC_PORT=18332
-# For signet:  export BITCOIN_RPC_PORT=38332
 
-# Run
-bitcoin-api  # or: satoshi-api
-# -> http://localhost:9332/docs
+satoshi-api
+# API:  http://localhost:9332
+# Docs: http://localhost:9332/docs
 ```
 
-### Docker
+Or try the live API right now — no install needed:
 
 ```bash
-# Create .env with your node credentials
+curl https://bitcoinsapi.com/api/v1/fees/recommended | jq
+```
+
+<details>
+<summary>Docker</summary>
+
+```bash
 echo "BITCOIN_RPC_USER=your_user" > .env
 echo "BITCOIN_RPC_PASSWORD=your_password" >> .env
 
 docker compose up -d
 ```
 
+</details>
+
+## Why Not Just Use RPC Directly?
+
+| Feature | Satoshi API | Raw RPC | Hosted APIs |
+|---------|-------------|---------|-------------|
+| Setup | 3 lines | Already there | Sign up + API key |
+| Self-hosted | Yes | Yes | No |
+| Privacy | Your node, your data | Your node | They see your queries |
+| Analyzed data | Fee recs, congestion scores | Raw values only | Varies |
+| Caching | Reorg-aware TTL | None | Varies |
+| Rate limiting | Built-in, tiered | None | Yes (their limits) |
+| Input validation | Before RPC call | None | Yes |
+| Cost at scale | $0 (self-host) | $0 | $50-500+/mo |
+| AI agent support | MCP ready | No | No |
+
 ## Endpoints
 
-All endpoints are under `/api/v1/`. Interactive docs at `/docs`.
+40 endpoints across 8 categories. All prefixed with `/api/v1/`. [Full interactive docs at `/docs`](https://bitcoinsapi.com/docs).
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Node ping (no auth required) |
-| `GET /status` | Sync progress, peers, disk usage |
-| `GET /network` | Version, connections, relay fee |
-| `GET /network/forks` | Chain tips / fork detection |
-| `GET /network/difficulty` | Difficulty epoch progress, retarget estimate |
-| `GET /blocks/latest` | Latest block analysis |
-| `GET /blocks/tip/height` | Chain tip height |
-| `GET /blocks/tip/hash` | Chain tip block hash |
-| `GET /blocks/{height_or_hash}` | Block by height or hash |
-| `GET /blocks/{height}/stats` | Raw block statistics |
-| `GET /blocks/{hash}/txids` | Transaction IDs in a block |
-| `GET /blocks/{hash}/txs` | Full transactions in a block (paginated) |
-| `GET /blocks/{hash}/header` | Block header hex string |
-| `GET /tx/{txid}` | Transaction analysis (fees, SegWit, Taproot, inscriptions) |
-| `GET /tx/{txid}/raw` | Raw decoded transaction |
-| `GET /tx/{txid}/status` | Confirmation status |
-| `GET /tx/{txid}/hex` | Raw transaction hex string |
-| `GET /tx/{txid}/outspends` | Spending status of each output |
-| `GET /utxo/{txid}/{vout}` | UTXO lookup |
-| `GET /mempool` | Mempool analysis (fee buckets, congestion) |
-| `GET /mempool/info` | Raw mempool stats |
-| `GET /mempool/tx/{txid}` | Mempool entry for a transaction |
-| `GET /mempool/txids` | All transaction IDs in the mempool |
-| `GET /mempool/recent` | Most recent mempool entries |
-| `GET /fees` | Fee estimates (1, 3, 6, 25, 144 blocks) |
-| `GET /fees/recommended` | Human-readable fee recommendation |
-| `GET /fees/{target}` | Fee estimate for specific block target |
-| `GET /fees/mempool-blocks` | Projected next blocks from mempool by fee rate |
-| `GET /mining` | Hashrate, difficulty, retarget estimate |
-| `GET /mining/nextblock` | Block template analysis |
-| `GET /network/validate-address/{addr}` | Validate a Bitcoin address |
-| `GET /prices` | BTC price in USD, EUR, GBP, JPY, CAD, AUD |
-| `POST /decode` | Decode raw transaction hex |
-| `POST /broadcast` | Broadcast signed transaction |
+<details>
+<summary><strong>Blocks</strong> — 8 endpoints</summary>
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/blocks/latest` | Latest block analysis |
+| GET | `/blocks/tip/height` | Current chain height |
+| GET | `/blocks/tip/hash` | Current tip block hash |
+| GET | `/blocks/{height_or_hash}` | Block by height or hash |
+| GET | `/blocks/{height}/stats` | Detailed block statistics |
+| GET | `/blocks/{hash}/txids` | Transaction IDs in a block |
+| GET | `/blocks/{hash}/txs` | Full transactions in a block |
+| GET | `/blocks/{hash}/header` | Raw block header |
+
+</details>
+
+<details>
+<summary><strong>Transactions</strong> — 7 endpoints</summary>
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tx/{txid}` | Transaction analysis (fees, SegWit, Taproot) |
+| GET | `/tx/{txid}/raw` | Raw decoded transaction |
+| GET | `/tx/{txid}/hex` | Transaction as hex string |
+| GET | `/tx/{txid}/status` | Confirmation status |
+| GET | `/tx/{txid}/outspends` | Spending status of each output |
+| GET | `/utxo/{txid}/{vout}` | UTXO lookup (spent/unspent) |
+| POST | `/broadcast` | Broadcast signed transaction |
+
+</details>
+
+<details>
+<summary><strong>Fees</strong> — 7 endpoints</summary>
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/fees` | Fee estimates (all targets) |
+| GET | `/fees/recommended` | Human-readable high/medium/low |
+| GET | `/fees/{target}` | Fee for specific confirmation target |
+| GET | `/fees/landscape` | Should I send now or wait? |
+| GET | `/fees/estimate-tx` | Transaction size & fee cost estimator |
+| GET | `/fees/history` | Historical fee rates & cheapest hour |
+| GET | `/fees/mempool-blocks` | Fee distribution by projected blocks |
+
+</details>
+
+<details>
+<summary><strong>Mempool</strong> — 5 endpoints</summary>
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/mempool` | Congestion analysis (fee buckets, score) |
+| GET | `/mempool/info` | Raw mempool info |
+| GET | `/mempool/tx/{txid}` | Single mempool entry |
+| GET | `/mempool/txids` | All mempool transaction IDs |
+| GET | `/mempool/recent` | Recently added entries |
+
+</details>
+
+<details>
+<summary><strong>Mining, Network, Prices, Streams</strong> — 13 endpoints</summary>
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/mining` | Hashrate, difficulty, retarget |
+| GET | `/mining/nextblock` | Next block template analysis |
+| GET | `/network` | Connections, relay fee, version |
+| GET | `/network/forks` | Chain tips and fork detection |
+| GET | `/network/difficulty` | Difficulty and retarget info |
+| GET | `/network/validate-address/{addr}` | Validate a Bitcoin address |
+| GET | `/prices` | BTC price in 6 fiat currencies |
+| GET | `/stream/blocks` | Real-time new block events (SSE) |
+| GET | `/stream/fees` | Live fee rate updates (SSE) |
+| POST | `/decode` | Decode raw transaction hex |
+| POST | `/register` | Self-serve API key registration |
+| GET | `/health` | Node reachability check |
+| GET | `/status` | Full node status |
+
+</details>
 
 ## Examples
 
 ```bash
-# Health check
-curl http://localhost:9332/api/v1/health
+# Fee recommendation — what should I pay right now?
+curl https://bitcoinsapi.com/api/v1/fees/recommended
+# {
+#   "data": {
+#     "recommendation": "Fees are low. Good time to send.",
+#     "estimates": { "high": 4, "medium": 2, "low": 1 }
+#   }
+# }
 
-# Fee recommendation
-curl http://localhost:9332/api/v1/fees/recommended
+# Should I send now or wait?
+curl https://bitcoinsapi.com/api/v1/fees/landscape
 
-# Analyze a transaction
-curl http://localhost:9332/api/v1/tx/a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d
+# Mempool congestion
+curl https://bitcoinsapi.com/api/v1/mempool
 
-# Latest block
-curl http://localhost:9332/api/v1/blocks/latest
+# Latest block analysis
+curl https://bitcoinsapi.com/api/v1/blocks/latest
 
-# With API key (higher rate limits)
-curl -H "X-API-Key: your_key_here" http://localhost:9332/api/v1/mempool
+# Transaction analysis — Satoshi's first transaction
+curl https://bitcoinsapi.com/api/v1/tx/f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16
 ```
 
-## API Keys
+## AI Agent Integration (MCP)
 
-Anonymous access works out of the box. For higher rate limits, create a key:
-
-```bash
-python scripts/create_api_key.py --tier free --label "my-app"
-python scripts/create_api_key.py --tier pro --label "production"
-```
-
-Pass the key via `X-API-Key` header. Query parameter `?api_key=` is deprecated (sunset: 2026-09-01).
-
-## Rate Limits
-
-| Tier | Req/min | Req/day |
-|------|---------|---------|
-| Anonymous | 30 | 1,000 |
-| Free (API key) | 100 | 10,000 |
-| Pro | 500 | 100,000 |
-| Enterprise | 2,000 | Unlimited |
-
-Rate limit info in response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `X-RateLimit-Daily-Limit`, `X-RateLimit-Daily-Remaining`.
-
-Every response includes `X-Request-ID` (UUID) and `X-Auth-Tier` headers.
-
-## Response Format
-
-Standard envelope on all endpoints:
+Satoshi API pairs with [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) to give AI assistants direct access to your Bitcoin node via [Model Context Protocol](https://modelcontextprotocol.io/).
 
 ```json
+// Claude Desktop config
 {
-  "data": { ... },
-  "meta": {
-    "timestamp": "2026-03-05T12:00:00+00:00",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000",
-    "node_height": 880000,
-    "chain": "main"
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp",
+      "args": ["--api-url", "http://localhost:9332"]
+    }
   }
 }
 ```
 
-Errors:
+Ask Claude: *"What are current Bitcoin fees?"* *"Should I send a transaction now or wait?"* *"Analyze the latest block."*
 
-```json
-{
-  "error": {
-    "status": 404,
-    "title": "Not Found",
-    "detail": "Transaction not found",
-    "request_id": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
+No other Bitcoin API has native MCP integration.
 
-## Input Validation
+## API Keys & Rate Limits
 
-- Transaction IDs and block hashes must be exactly 64 hex characters
-- Invalid formats return 422 immediately (no wasted RPC calls)
-- Invalid API keys return 401 (not silent downgrade to anonymous)
-
-## Self-Serve API Key Registration
-
-Request a free API key programmatically:
+Anonymous access works out of the box. For higher limits:
 
 ```bash
+# Self-serve registration
 curl -X POST https://bitcoinsapi.com/api/v1/register \
   -H "Content-Type: application/json" \
   -d '{"email": "you@example.com", "label": "my-app"}'
 ```
 
-Returns your API key once — save it, it won't be shown again. Max 3 keys per email.
+| Tier | Req/min | Req/day | POST Access |
+|------|---------|---------|-------------|
+| Anonymous | 30 | 1,000 | No |
+| Free (API key) | 100 | 10,000 | Yes |
+| Pro ($19/mo) | 500 | 100,000 | Yes |
+| Enterprise | 2,000 | Unlimited | Yes |
 
-## L402 Lightning Payments
+Self-hosted = unlimited requests, no tiers needed.
 
-Satoshi API supports [L402](https://docs.lightning.engineering/the-lightning-network/l402) (formerly LSAT) — the HTTP 402 + Lightning micropayment protocol by Lightning Labs. Clients can pay per-request via Lightning Network instead of using API keys. Available as an optional extension. See `bitcoin-api-l402` for details.
+## Architecture
 
-## Development
+- **Stack:** FastAPI + [bitcoinlib-rpc](https://github.com/Bortlesboat/bitcoinlib-rpc) + SQLite (WAL mode)
+- **Caching:** Reorg-aware TTL — deep blocks cached 1hr, tip blocks 30s, fees 10s
+- **Security:** API key auth (SHA256 hashed), input validation before RPC, CSP/HSTS headers, rpcwhitelist
+- **Testing:** 110 unit tests + 21 e2e tests + load test + security check script
+- **Deployment:** pip, Docker, or Cloudflare Tunnel for public access
+
+## Self-Hosting
+
+```bash
+# Production deployment with Cloudflare Tunnel (free HTTPS, DDoS protection)
+pip install satoshi-api
+satoshi-api  # runs on :9332
+
+# Expose publicly
+cloudflared tunnel --url http://localhost:9332
+```
+
+See [self-hosting guide](docs/self-hosting.md) for full production setup.
+
+## Contributing
+
+Issues and PRs welcome. Run the test suite before submitting:
 
 ```bash
 pip install -e ".[dev]"
@@ -189,3 +252,13 @@ pytest
 ## License
 
 MIT
+
+---
+
+<div align="center">
+
+**[Live API](https://bitcoinsapi.com/docs)** &middot; **[Website](https://bitcoinsapi.com)** &middot; **[PyPI](https://pypi.org/project/satoshi-api/)** &middot; **[MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)**
+
+Built by a [Bitcoin Core contributor](https://github.com/Bortlesboat).
+
+</div>

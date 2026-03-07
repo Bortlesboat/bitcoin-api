@@ -1,6 +1,8 @@
 """TTL caching for expensive RPC calls."""
 
 import threading
+import time
+from collections import deque
 
 from cachetools import LRUCache, TTLCache
 
@@ -30,8 +32,46 @@ _hash_to_height: LRUCache = LRUCache(maxsize=256)
 
 REORG_SAFE_DEPTH = 6
 
+# Mempool snapshot circular buffer for trend analysis (fee landscape)
+_snapshot_lock = threading.Lock()
+_mempool_snapshots: deque = deque(maxlen=6)  # 6 snapshots x 5 min = 30 min window
+
+
+def record_mempool_snapshot(rpc) -> None:
+    """Take a mempool + fee snapshot and append to circular buffer."""
+    try:
+        info = rpc.call("getmempoolinfo")
+        fees = rpc.call("estimatesmartfee", 1)
+        next_block_fee = (fees.get("feerate", 0) or 0) * 100_000  # sat/vB
+        low_fees = rpc.call("estimatesmartfee", 144)
+        low_fee = (low_fees.get("feerate", 0) or 0) * 100_000
+
+        snapshot = {
+            "timestamp": time.time(),
+            "mempool_size": info.get("size", 0),
+            "mempool_bytes": info.get("bytes", 0),
+            "mempool_vsize": info.get("bytes", 0),  # approx
+            "next_block_fee": round(next_block_fee, 2),
+            "low_fee": round(low_fee, 2),
+            "total_fee": info.get("total_fee", 0),
+        }
+        with _snapshot_lock:
+            _mempool_snapshots.append(snapshot)
+    except Exception:
+        pass  # Don't crash background thread
+
+
+def get_mempool_snapshots() -> list[dict]:
+    """Return copy of mempool snapshot buffer."""
+    with _snapshot_lock:
+        return list(_mempool_snapshots)
+
+
+_info_fetched_at: float | None = None
+
 
 def cached_blockchain_info(rpc):
+    global _info_fetched_at
     key = "info"
     with _info_lock:
         if key in _blockchain_info_cache:
@@ -39,7 +79,26 @@ def cached_blockchain_info(rpc):
     result = rpc.call("getblockchaininfo")
     with _info_lock:
         _blockchain_info_cache[key] = result
+        _info_fetched_at = time.time()
     return result
+
+
+def get_sync_progress() -> float | None:
+    """Return verificationprogress from cached blockchain info, or None if not cached."""
+    with _info_lock:
+        info = _blockchain_info_cache.get("info")
+    if info is None:
+        return None
+    return info.get("verificationprogress")
+
+
+def get_cache_state() -> tuple[bool, int | None]:
+    """Return (is_cached, age_seconds) for blockchain info cache."""
+    with _info_lock:
+        is_cached = "info" in _blockchain_info_cache
+    if not is_cached or _info_fetched_at is None:
+        return False, None
+    return True, int(time.time() - _info_fetched_at)
 
 
 def cached_block_count(rpc):

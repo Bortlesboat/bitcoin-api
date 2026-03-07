@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Satoshi API — REST API for Your Bitcoin Node</title>
-<meta name="description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<meta name="description" content="Satoshi API is an open-source REST API for Bitcoin Core nodes. One pip install gives you 40 analyzed endpoints — fee recommendations, mempool analysis, mining stats, and real-time streams. Self-hosted, privacy-preserving, MCP-ready for AI agents.">
+<meta name="keywords" content="bitcoin api, bitcoin rest api, self-hosted bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
 <link rel="canonical" href="https://bitcoinsapi.com">
 <meta property="og:title" content="Satoshi API — REST API for Your Bitcoin Node">
-<meta property="og:description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<meta property="og:description" content="Open-source REST API for Bitcoin Core nodes. 40 analyzed endpoints, smart caching, MCP integration for AI agents. Self-hosted, zero vendor lock-in.">
 <meta property="og:url" content="https://bitcoinsapi.com">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
@@ -16,7 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
 <meta name="twitter:title" content="Satoshi API — REST API for Your Bitcoin Node">
-<meta name="twitter:description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<meta name="twitter:description" content="Open-source REST API for Bitcoin Core nodes. 40 analyzed endpoints, smart caching, MCP integration for AI agents. Self-hosted, zero vendor lock-in.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
 <style>
   :root {
@@ -138,6 +139,127 @@
     .trust-badges { gap: 8px; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Satoshi API",
+      "description": "Open-source REST API for Bitcoin Core nodes. Provides 40 analyzed endpoints including fee recommendations, mempool analysis, mining statistics, and real-time SSE streams. Self-hosted with zero vendor lock-in.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Linux, macOS, Windows, Docker",
+      "url": "https://bitcoinsapi.com",
+      "downloadUrl": "https://pypi.org/project/satoshi-api/",
+      "softwareVersion": "1.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "programmingLanguage": "Python",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Self-Hosted",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Run on your own Bitcoin node. All 40 endpoints, unlimited requests, full source code."
+        },
+        {
+          "@type": "Offer",
+          "name": "Hosted Free Tier",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "No node required. 1,000 requests/day, all GET endpoints, no signup needed."
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "19",
+          "priceCurrency": "USD",
+          "billingDuration": "P1M",
+          "description": "100,000 requests/day, 500 requests/min, POST access, priority support."
+        }
+      ],
+      "featureList": [
+        "40 REST endpoints for Bitcoin Core",
+        "Fee recommendations in sat/vB",
+        "Mempool congestion analysis",
+        "Reorg-aware smart caching",
+        "Tiered rate limiting",
+        "API key authentication",
+        "MCP integration for AI agents",
+        "Real-time SSE streams",
+        "L402 Lightning payment support",
+        "Docker and pip install deployment"
+      ]
+    },
+    {
+      "@type": "WebAPI",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com",
+      "documentation": "https://bitcoinsapi.com/docs",
+      "description": "REST API providing analyzed Bitcoin blockchain data from a Bitcoin Core node."
+    },
+    {
+      "@type": "Organization",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "api@bitcoinsapi.com",
+        "contactType": "technical support"
+      },
+      "sameAs": [
+        "https://github.com/Bortlesboat/bitcoin-api",
+        "https://pypi.org/project/satoshi-api/"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Satoshi API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Satoshi API is an open-source REST API that wraps Bitcoin Core's JSON-RPC interface. It provides 40 analyzed endpoints with fee recommendations, mempool analysis, mining statistics, and real-time streams. It is self-hosted and runs on your own Bitcoin node."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I install Satoshi API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Run 'pip install satoshi-api', set your BITCOIN_RPC_USER and BITCOIN_RPC_PASSWORD environment variables, and run 'satoshi-api'. The API starts at http://localhost:9332 with interactive docs at /docs. Docker deployment is also supported."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Satoshi API free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Self-hosted Satoshi API is free forever under the MIT license. The hosted API at bitcoinsapi.com offers a free tier with 1,000 requests/day. A Pro tier at $19/month provides 100,000 requests/day."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Satoshi API work with AI agents?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Satoshi API pairs with bitcoin-mcp to provide MCP (Model Context Protocol) integration, allowing AI assistants like Claude and ChatGPT to query your Bitcoin node directly via tool calls."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is Satoshi API different from mempool.space?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Satoshi API is a self-hosted REST API for your own Bitcoin Core node, providing analyzed data with smart caching and AI agent support via MCP. Mempool.space is a hosted block explorer focused on visualization. Satoshi API is best for developers building applications; mempool.space is best for manual blockchain browsing."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -150,6 +272,7 @@
     <a href="#pricing">Pricing</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="/docs">API Docs</a>
+    <a href="/best-bitcoin-api-for-developers">Compare</a>
     <span class="uptime-badge"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>99.9% uptime</span>
   </div>
 </nav>
@@ -161,6 +284,7 @@
     <p class="subtitle">One pip install. Analyzed data, not raw RPC dumps. Open source, self-hosted, zero vendor lock-in.</p>
     <div class="cta">
       <a href="/docs" class="btn-primary btn-playground">Open Interactive Playground</a>
+      <a href="#quickstart" class="btn-secondary">Start Querying Now</a>
       <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     </div>
     <div class="hero-code">
@@ -371,9 +495,44 @@
 <section id="quickstart">
   <div class="container">
     <h2 class="section-title">Quick Start</h2>
-    <p class="section-subtitle">From node to API in under a minute.</p>
+    <p class="section-subtitle">Start querying Bitcoin data in seconds.</p>
 
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 1: pip install</h3>
+    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 1: Use the hosted API (no setup)</h3>
+    <p style="color: var(--muted); margin-bottom: 12px;">No node, no install, no signup. Just start making requests:</p>
+<pre><code><span style="color: var(--muted)"># Get current fee recommendations</span>
+curl https://bitcoinsapi.com/api/v1/fees/recommended
+
+<span style="color: var(--muted)"># Latest block analysis</span>
+curl https://bitcoinsapi.com/api/v1/blocks/latest
+
+<span style="color: var(--muted)"># Mempool congestion</span>
+curl https://bitcoinsapi.com/api/v1/mempool
+
+<span style="color: var(--muted)"># Mining stats</span>
+curl https://bitcoinsapi.com/api/v1/mining</code></pre>
+    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">That's it. No API key needed for GET requests. <a href="/docs">Try all 40 endpoints in the interactive playground</a>.</p>
+
+    <h3 id="get-api-key" style="margin-top: 48px; margin-bottom: 12px;">Option 2: Get a free API key (10x higher limits)</h3>
+    <p style="color: var(--muted); margin-bottom: 16px;">Unlock 10,000 requests/day and POST access. Takes 5 seconds:</p>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 480px;">
+      <form id="register-form" onsubmit="return handleRegister(event)">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <input type="email" id="reg-email" placeholder="you@example.com" required
+            style="flex: 1; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95em; outline: none;"
+          >
+          <button type="submit" id="reg-btn"
+            style="padding: 10px 20px; border-radius: 6px; border: none; background: var(--accent); color: #000; font-weight: 600; cursor: pointer; font-size: 0.95em; white-space: nowrap;"
+          >Get Key</button>
+        </div>
+        <input type="text" id="reg-label" placeholder="Label (optional, e.g. my-wallet-app)"
+          style="width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95em; outline: none; margin-bottom: 8px;"
+        >
+      </form>
+      <div id="reg-result" style="display: none; margin-top: 12px;"></div>
+    </div>
+
+    <h3 style="margin-top: 48px; margin-bottom: 12px;">Option 3: Self-host on your own node</h3>
+    <p style="color: var(--muted); margin-bottom: 12px;">Run the full API on your own Bitcoin Core node. Unlimited requests, full privacy.</p>
 <pre><code><span style="color: var(--muted)"># Install</span>
 pip install satoshi-api
 
@@ -386,28 +545,7 @@ satoshi-api
 <span style="color: var(--green)"># API at http://localhost:9332</span>
 <span style="color: var(--green)"># Docs at http://localhost:9332/docs</span></code></pre>
 
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 2: Docker</h3>
-<pre><code><span style="color: var(--muted)"># Create env file</span>
-echo "BITCOIN_RPC_USER=your_user" > .env
-echo "BITCOIN_RPC_PASSWORD=your_password" >> .env
-
-<span style="color: var(--muted)"># Run</span>
-docker compose up -d</code></pre>
-
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 3: Create API Keys (optional)</h3>
-<pre><code><span style="color: var(--muted)"># Generate a key for your app</span>
-python scripts/create_api_key.py --tier pro --label "my-wallet"
-<span style="color: var(--green)"># Key: sk_abc123... (save this, it won't be shown again)</span>
-
-<span style="color: var(--muted)"># Use it</span>
-curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
-
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Prerequisites</h3>
-    <ul style="color: var(--muted); padding-left: 20px; line-height: 2;">
-      <li>Bitcoin Core running with <code>server=1</code> in bitcoin.conf</li>
-      <li>Python 3.10+ (for pip install) or Docker</li>
-      <li><code>txindex=1</code> recommended (required for transaction lookups by txid)</li>
-    </ul>
+    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Also available via Docker: <code>docker compose up -d</code>. Requires Bitcoin Core with <code>server=1</code> and Python 3.10+. <code>txindex=1</code> recommended.</p>
   </div>
 </section>
 
@@ -439,7 +577,7 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
           <li>All GET endpoints</li>
           <li>No signup needed</li>
         </ul>
-        <a href="/docs" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Try it Now</a>
+        <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Try it Now</a>
       </div>
       <div class="price-card">
         <h3>Developer (API key)</h3>
@@ -450,7 +588,7 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
           <li>POST access (decode, broadcast)</li>
           <li>Free API key via email</li>
         </ul>
-        <a href="mailto:api@bitcoinsapi.com?subject=Satoshi%20API%20Key%20Request" class="btn-secondary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Request API Key</a>
+        <a href="#get-api-key" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Get Free Key Instantly</a>
       </div>
       <div class="price-card">
         <h3>Pro</h3>
@@ -498,11 +636,12 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
 <!-- Bottom CTA -->
 <section class="bottom-cta">
   <div class="container">
-    <h2>Your node already has the data. Give it a voice.</h2>
-    <p>pip install satoshi-api and start building.</p>
+    <h2>Start building on Bitcoin in 30 seconds.</h2>
+    <p>No signup, no install. Just curl and go.</p>
     <div class="cta">
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" target="_blank" rel="noopener noreferrer">Get Started</a>
-      <a href="/docs" class="btn-secondary">API Reference</a>
+      <a href="#quickstart" class="btn-primary">Quick Start</a>
+      <a href="/docs" class="btn-secondary">Interactive Docs</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer">Self-Host (GitHub)</a>
     </div>
   </div>
 </section>
@@ -515,6 +654,15 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
       <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
       <a href="/docs">API Docs</a> &middot;
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/vs-mempool">Satoshi API vs Mempool.space</a> &middot;
+      <a href="/vs-blockcypher">Satoshi API vs BlockCypher</a> &middot;
+      <a href="/best-bitcoin-api-for-developers">Best Bitcoin API for Developers</a> &middot;
+      <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+      <a href="/self-hosted-bitcoin-api">Self-Hosted Bitcoin API</a> &middot;
+      <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+      <a href="/bitcoin-mempool-api">Bitcoin Mempool API</a>
     </p>
   </div>
 </footer>
@@ -549,6 +697,66 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
     container.addEventListener('click', function() { window.location.href = '/docs'; });
   }
 })();
+
+/* API Key Registration */
+function handleRegister(e) {
+  e.preventDefault();
+  var btn = document.getElementById('reg-btn');
+  var result = document.getElementById('reg-result');
+  var email = document.getElementById('reg-email').value;
+  var label = document.getElementById('reg-label').value || undefined;
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+  result.style.display = 'none';
+
+  var body = { email: email };
+  if (label) body.label = label;
+
+  fetch('/api/v1/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+  .then(function(res) {
+    btn.disabled = false;
+    btn.textContent = 'Get Key';
+    result.style.display = 'block';
+    if (res.ok) {
+      var key = (res.data.data && res.data.data.api_key) || res.data.api_key || JSON.stringify(res.data);
+      result.innerHTML =
+        '<div style="background: #3fb95018; border: 1px solid #3fb95040; border-radius: 6px; padding: 16px;">' +
+          '<div style="color: var(--green); font-weight: 600; margin-bottom: 8px;">Your API key is ready:</div>' +
+          '<div style="display: flex; align-items: center; gap: 8px;">' +
+            '<code id="api-key-value" style="flex: 1; word-break: break-all; font-size: 0.9em; background: var(--bg); padding: 8px 12px; border-radius: 4px;">' + key + '</code>' +
+            '<button onclick="copyKey()" style="padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; font-size: 0.85em;" id="copy-key-btn">Copy</button>' +
+          '</div>' +
+          '<div style="color: var(--muted); font-size: 0.85em; margin-top: 10px;">Save this key — it won\'t be shown again. Use it with: <code>curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/mempool</code></div>' +
+        '</div>';
+    } else {
+      var msg = (res.data.error && res.data.error.detail) || res.data.detail || 'Registration failed. Try again.';
+      result.innerHTML = '<div style="color: #f85149; font-size: 0.9em;">' + msg + '</div>';
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Get Key';
+    result.style.display = 'block';
+    result.innerHTML = '<div style="color: #f85149; font-size: 0.9em;">Network error. Please try again.</div>';
+  });
+  return false;
+}
+
+function copyKey() {
+  var val = document.getElementById('api-key-value');
+  var btn = document.getElementById('copy-key-btn');
+  if (val && navigator.clipboard) {
+    navigator.clipboard.writeText(val.textContent).then(function() {
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+  }
+}
 </script>
 </body>
 </html>

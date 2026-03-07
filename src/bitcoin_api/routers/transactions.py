@@ -5,6 +5,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette.requests import Request
 from bitcoinlib_rpc import BitcoinRPC
+from bitcoinlib_rpc.rpc import RPCError
 from bitcoinlib_rpc.transactions import analyze_transaction
 
 from ..cache import cached_blockchain_info
@@ -343,6 +344,26 @@ def broadcast_transaction(
         raise HTTPException(status_code=403, detail="API key required for POST endpoints. Get a free key at /docs")
     if not _HEX_RE.match(body.hex):
         raise HTTPException(status_code=422, detail="Invalid hex string")
-    txid = rpc.call("sendrawtransaction", body.hex)
+
+    # Pre-validate: decode first to catch malformed hex before broadcast
+    try:
+        rpc.call("decoderawtransaction", body.hex)
+    except RPCError:
+        raise HTTPException(status_code=422, detail="Transaction could not be decoded — malformed hex")
+
+    # Broadcast with human-readable error mapping
+    _BROADCAST_ERRORS = {
+        -25: (409, "Transaction already in mempool or missing inputs"),
+        -26: (422, "Transaction failed policy checks (e.g. insufficient fee, non-standard)"),
+        -27: (409, "Transaction already confirmed in a block"),
+    }
+    try:
+        txid = rpc.call("sendrawtransaction", body.hex)
+    except RPCError as exc:
+        if exc.code in _BROADCAST_ERRORS:
+            status, detail = _BROADCAST_ERRORS[exc.code]
+            raise HTTPException(status_code=status, detail=detail)
+        raise  # Let global handler deal with other codes
+
     info = cached_blockchain_info(rpc)
     return envelope({"txid": txid}, height=info["blocks"], chain=info["chain"])

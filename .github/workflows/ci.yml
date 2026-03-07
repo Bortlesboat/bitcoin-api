@@ -29,6 +29,11 @@ jobs:
       - name: Lint
         run: ruff check src/ tests/
 
+      - name: Dependency audit
+        run: |
+          pip install pip-audit
+          pip-audit
+
       - name: Run tests with coverage
         run: pytest -v --cov=bitcoin_api --cov-report=term-missing --cov-fail-under=70
 

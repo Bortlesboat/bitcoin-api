@@ -94,6 +94,78 @@ wait
 code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$API/fees")
 check "Rate limited after burst" "429" "$code"
 
+# 9. Security headers present
+echo "[9] Security headers"
+hdrs=$(curl -s -D - -o /dev/null "$BASE_URL$API/fees" 2>/dev/null)
+for h in "x-content-type-options" "x-frame-options" "content-security-policy" "referrer-policy" "permissions-policy"; do
+    present=$(echo "$hdrs" | grep -ci "$h")
+    if [ "$present" -ge 1 ]; then
+        echo "  PASS: $h header present"
+        ((PASS++))
+    else
+        echo "  FAIL: $h header missing"
+        ((FAIL++))
+    fi
+done
+
+# 10. HTTP method confusion (DELETE should be 405)
+echo "[10] HTTP method confusion"
+code=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL$API/fees")
+check "DELETE /fees -> 405" "405" "$code"
+code=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "$BASE_URL$API/fees")
+check "PUT /fees -> 405" "405" "$code"
+
+# 11. JSON content-type enforcement on POST
+echo "[11] Content-type enforcement"
+code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL$API/decode" \
+    -H "X-API-Key: ${API_KEY}" \
+    -H "Content-Type: text/plain" \
+    -d 'not json at all')
+check "POST with text/plain rejected" "422" "$code"
+
+# 12. Error response envelope consistency (no raw tracebacks)
+echo "[12] Error envelope consistency"
+body=$(curl -s "$BASE_URL$API/tx/0000000000000000000000000000000000000000000000000000000000000000")
+has_error=$(echo "$body" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print(1 if 'error' in d and 'status' in d['error'] else 0)
+except: print(0)
+" 2>/dev/null)
+check "404 has {error} envelope" "1" "$has_error"
+
+# 13. No stack trace in error responses
+echo "[13] No stack trace leakage"
+body=$(curl -s "$BASE_URL$API/tx/ZZZZ")
+leaked=$(echo "$body" | grep -ci "traceback\|\.py\|File \"")
+check "No traceback in 422 response" "0" "$leaked"
+
+# 14. Malformed hex to /decode
+echo "[14] Malformed Bitcoin hex"
+if [ -n "$API_KEY" ]; then
+    code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL$API/decode" \
+        -H "Content-Type: application/json" \
+        -H "X-API-Key: ${API_KEY}" \
+        -d '{"hex": "ZZZZ_not_hex"}')
+    # Should get 422 (validation) or 400 (bad request), NOT 500
+    if [ "$code" = "422" ] || [ "$code" = "400" ]; then
+        echo "  PASS: Malformed hex rejected cleanly (got $code)"
+        ((PASS++))
+    else
+        echo "  FAIL: Malformed hex (expected 400 or 422, got $code)"
+        ((FAIL++))
+    fi
+else
+    echo "  SKIP: Needs API key"
+fi
+
+# 15. Node version not in error messages
+echo "[15] RPC info not leaked in errors"
+body=$(curl -s "$BASE_URL$API/tx/0000000000000000000000000000000000000000000000000000000000000000")
+leaked=$(echo "$body" | grep -ci "rpc\|8332\|bitcoin-cli\|cookie")
+check "No RPC details in error body" "0" "$leaked"
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

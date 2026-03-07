@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Satoshi API — REST API for Your Bitcoin Node</title>
-<meta name="description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<meta name="description" content="Satoshi API is an open-source REST API for Bitcoin Core nodes. One pip install gives you 40 analyzed endpoints — fee recommendations, mempool analysis, mining stats, and real-time streams. Self-hosted, privacy-preserving, MCP-ready for AI agents.">
+<meta name="keywords" content="bitcoin api, bitcoin rest api, self-hosted bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
 <link rel="canonical" href="https://bitcoinsapi.com">
 <meta property="og:title" content="Satoshi API — REST API for Your Bitcoin Node">
-<meta property="og:description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<meta property="og:description" content="Open-source REST API for Bitcoin Core nodes. 40 analyzed endpoints, smart caching, MCP integration for AI agents. Self-hosted, zero vendor lock-in.">
 <meta property="og:url" content="https://bitcoinsapi.com">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
@@ -16,7 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
 <meta name="twitter:title" content="Satoshi API — REST API for Your Bitcoin Node">
-<meta name="twitter:description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<meta name="twitter:description" content="Open-source REST API for Bitcoin Core nodes. 40 analyzed endpoints, smart caching, MCP integration for AI agents. Self-hosted, zero vendor lock-in.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
 <style>
   :root {
@@ -138,6 +139,127 @@
     .trust-badges { gap: 8px; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Satoshi API",
+      "description": "Open-source REST API for Bitcoin Core nodes. Provides 40 analyzed endpoints including fee recommendations, mempool analysis, mining statistics, and real-time SSE streams. Self-hosted with zero vendor lock-in.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Linux, macOS, Windows, Docker",
+      "url": "https://bitcoinsapi.com",
+      "downloadUrl": "https://pypi.org/project/satoshi-api/",
+      "softwareVersion": "1.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "programmingLanguage": "Python",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Self-Hosted",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Run on your own Bitcoin node. All 40 endpoints, unlimited requests, full source code."
+        },
+        {
+          "@type": "Offer",
+          "name": "Hosted Free Tier",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "No node required. 1,000 requests/day, all GET endpoints, no signup needed."
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "19",
+          "priceCurrency": "USD",
+          "billingDuration": "P1M",
+          "description": "100,000 requests/day, 500 requests/min, POST access, priority support."
+        }
+      ],
+      "featureList": [
+        "40 REST endpoints for Bitcoin Core",
+        "Fee recommendations in sat/vB",
+        "Mempool congestion analysis",
+        "Reorg-aware smart caching",
+        "Tiered rate limiting",
+        "API key authentication",
+        "MCP integration for AI agents",
+        "Real-time SSE streams",
+        "L402 Lightning payment support",
+        "Docker and pip install deployment"
+      ]
+    },
+    {
+      "@type": "WebAPI",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com",
+      "documentation": "https://bitcoinsapi.com/docs",
+      "description": "REST API providing analyzed Bitcoin blockchain data from a Bitcoin Core node."
+    },
+    {
+      "@type": "Organization",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "api@bitcoinsapi.com",
+        "contactType": "technical support"
+      },
+      "sameAs": [
+        "https://github.com/Bortlesboat/bitcoin-api",
+        "https://pypi.org/project/satoshi-api/"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Satoshi API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Satoshi API is an open-source REST API that wraps Bitcoin Core's JSON-RPC interface. It provides 40 analyzed endpoints with fee recommendations, mempool analysis, mining statistics, and real-time streams. It is self-hosted and runs on your own Bitcoin node."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I install Satoshi API?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Run 'pip install satoshi-api', set your BITCOIN_RPC_USER and BITCOIN_RPC_PASSWORD environment variables, and run 'satoshi-api'. The API starts at http://localhost:9332 with interactive docs at /docs. Docker deployment is also supported."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Satoshi API free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Self-hosted Satoshi API is free forever under the MIT license. The hosted API at bitcoinsapi.com offers a free tier with 1,000 requests/day. A Pro tier at $19/month provides 100,000 requests/day."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Satoshi API work with AI agents?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Satoshi API pairs with bitcoin-mcp to provide MCP (Model Context Protocol) integration, allowing AI assistants like Claude and ChatGPT to query your Bitcoin node directly via tool calls."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is Satoshi API different from mempool.space?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Satoshi API is a self-hosted REST API for your own Bitcoin Core node, providing analyzed data with smart caching and AI agent support via MCP. Mempool.space is a hosted block explorer focused on visualization. Satoshi API is best for developers building applications; mempool.space is best for manual blockchain browsing."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -150,6 +272,7 @@
     <a href="#pricing">Pricing</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="/docs">API Docs</a>
+    <a href="/best-bitcoin-api-for-developers">Compare</a>
     <span class="uptime-badge"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>99.9% uptime</span>
   </div>
 </nav>
@@ -515,6 +638,15 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
       <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
       <a href="/docs">API Docs</a> &middot;
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/vs-mempool">Satoshi API vs Mempool.space</a> &middot;
+      <a href="/vs-blockcypher">Satoshi API vs BlockCypher</a> &middot;
+      <a href="/best-bitcoin-api-for-developers">Best Bitcoin API for Developers</a> &middot;
+      <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+      <a href="/self-hosted-bitcoin-api">Self-Hosted Bitcoin API</a> &middot;
+      <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+      <a href="/bitcoin-mempool-api">Bitcoin Mempool API</a>
     </p>
   </div>
 </footer>
