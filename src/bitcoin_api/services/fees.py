@@ -123,9 +123,10 @@ def calculate_fee_landscape(fee_dict: dict, snapshots: list) -> dict:
         if trend == "falling":
             recommendation = "send"
             confidence = "medium"
+            savings_pct = round((1 - day_fee / next_block) * 100) if next_block > 0 else 0
             reasoning = (
                 f"Fees are elevated at {next_block} sat/vB but mempool is draining ({trend_pct}%). "
-                f"Waiting could save ~{round((1 - day_fee / next_block) * 100)}% if you can wait."
+                f"Waiting could save ~{savings_pct}% if you can wait."
             )
         else:
             recommendation = "wait"

@@ -1,7 +1,10 @@
 """Batch usage logging — buffers writes and flushes periodically or at threshold."""
 
+import logging
 import threading
 import time
+
+log = logging.getLogger("bitcoin_api.usage")
 
 
 class UsageBuffer:
@@ -44,8 +47,8 @@ class UsageBuffer:
         # Release lock before DB write
         try:
             self._write_batch(batch)
-        except Exception:
-            pass  # Don't crash on DB errors
+        except Exception as e:
+            log.error("Usage buffer flush failed (%d entries lost): %s", len(batch), e)
 
     @staticmethod
     def _write_batch(batch: list[tuple]):

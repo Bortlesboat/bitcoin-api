@@ -16,7 +16,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 |------|-------|-----------------|
 | Version (live) | v0.3.1 | CHANGELOG.md |
 | Version (PyPI) | 0.3.1 — NEEDS UPDATE | pypi.org/project/satoshi-api |
-| Endpoints | 48 | docs/SCOPE_OF_WORK.md |
+| Endpoints | 54 | docs/SCOPE_OF_WORK.md |
 | Tests | 129 unit + 21 e2e (150 total) | tests/ |
 | Install command | `pip install satoshi-api` | pypi |
 | Live URL | https://bitcoinsapi.com | Cloudflare Tunnel |
@@ -25,7 +25,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 
 ## Pre-Launch Checklist (before any marketing push)
 
-- [x] All SEO pages live (7 decision + 2 feature pages)
+- [x] All SEO pages live (7 decision + 2 feature + 1 MCP guide pages)
 - [x] robots.txt + sitemap.xml deployed
 - [x] JSON-LD structured data on all pages
 - [x] Google Search Console verified
@@ -37,7 +37,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 - [ ] PyPI: publish v0.3.1 (BLOCKER — marketing says "pip install" but PyPI is stale). Build verified locally.
 - [ ] GitHub social preview image uploaded (og-image.svg ready in static/)
 - [ ] Bing Webmaster Tools setup
-- [x] All marketing drafts synced to 48 endpoints + Apache-2.0 license
+- [x] All marketing drafts synced to 54 endpoints + Apache-2.0 license
 - [x] SEO metrics baseline captured (2026-03-07): 10/10 pages live, 6287 req/24h, 74 PyPI downloads
 - [x] CHANGELOG updated with Sprint 15+16 entries
 - [x] ADMIN_API_KEY added to .env templates
@@ -89,13 +89,28 @@ If any product change happened since drafts were written (new endpoint, feature,
 
 | Channel | Date | Status | Link |
 |---------|------|--------|------|
-| awesome-bitcoin PR | Mar 7 | Open | #141 |
-| public-apis PR | Mar 7 | Open | #5403 |
+| awesome-bitcoin PR | Mar 7 | Open | igorbarinov/awesome-bitcoin#141 |
+| public-apis PR | Mar 7 | Open | public-apis/public-apis#5403 |
+| punkpeye/awesome-mcp-servers PR | Mar 7 | Open | #2847 (82K stars) |
+| appcypher/awesome-mcp-servers PR | Mar 7 | Open | #516 (5.2K stars) |
+| awesome-selfhosted-data PR | Mar 7 | Open | #2108 |
 | mcpmarket.com | Mar 7 | Submitted | |
 | mcpservers.org | Mar 7 | Submitted | |
 | Dev.to article | Mar 7 | Published | dev.to/bortlesboat/... |
 | Google Search Console | Mar 7 | Verified | |
 | IndexNow (Bing/Yandex) | Mar 7 | Submitted | |
+| MCP Server Finder email | Mar 7 | Draft in Gmail | info@mcpserverfinder.com |
+| bitcoin-mcp-setup-guide SEO page | Mar 7 | Live | /bitcoin-mcp-setup-guide |
+
+## Pending Manual Steps
+
+| Action | Why | Command |
+|--------|-----|---------|
+| Publish bitcoin-mcp 0.2.1 to PyPI | Needed for MCP Registry verification | `cd ~/Bortlesboat/bitcoin-mcp && python -m twine upload dist/bitcoin_mcp-0.2.1*` |
+| Login to MCP Registry | GitHub OAuth required | `~/bin/mcp-publisher.exe login github` |
+| Publish to MCP Registry | Official Anthropic directory | `cd ~/Bortlesboat/bitcoin-mcp && ~/bin/mcp-publisher.exe publish` |
+| Submit to PulseMCP | Web form | https://www.pulsemcp.com/submit |
+| Submit to Smithery | CLI publish | `smithery mcp publish` (needs npm install) |
 
 ## Content Consistency Rules
 
@@ -103,7 +118,7 @@ When the product changes, these materials MUST be updated:
 
 | If this changes... | Update these... |
 |-------------------|-----------------|
-| Endpoint count | Landing page, README, all SEO pages, PyPI description, all drafts |
+| Endpoint count | **Run `python scripts/marketing_sync.py --fix`** (auto-updates all 25+ files) |
 | Version number | PyPI, CHANGELOG, GitHub Release, landing page |
 | Install command | README, all SEO pages, all marketing drafts |
 | Pricing/tiers | Landing page, SEO pages, Reddit/HN drafts |
@@ -112,7 +127,7 @@ When the product changes, these materials MUST be updated:
 
 ## Key Messages (use consistently across all channels)
 
-1. **Primary:** Self-hosted REST API for Bitcoin Core. 48 endpoints. `pip install satoshi-api`.
+1. **Primary:** Self-hosted REST API for Bitcoin Core. 54 endpoints. `pip install satoshi-api`.
 2. **Differentiator:** Only Bitcoin API with native AI agent support (MCP).
 3. **Privacy angle:** Your node, your data. Queries never leave your network.
 4. **Developer angle:** Analyzed data, not raw RPC. Fees in sat/vB, congestion levels, human-readable recommendations.

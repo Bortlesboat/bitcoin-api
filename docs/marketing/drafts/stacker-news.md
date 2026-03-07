@@ -1,31 +1,27 @@
 # Platform: stacker.news
 
-**Suggested Title:** Satoshi API: REST API for your Bitcoin node with AI agent support
+**Suggested Title:** Your full node already has the data -- you just need a better interface
 
 ---
 
-I built an open-source REST API that wraps your Bitcoin Core node in 48 clean endpoints. It is called Satoshi API. Apache-2.0 licensed, self-hosted, no third parties.
+Running a full node is sovereign. Querying someone else's API to read your own blockchain data is not.
 
-**Why it exists:** Running a full node is sovereign. Querying someone else's API to read your own blockchain data is not. Satoshi API keeps everything local -- install it, point it at your node, and you have a full REST API without any data leaving your machine.
+I kept building small tools on top of Bitcoin Core and hitting the same friction: fee estimates with no context, mempool data scattered across multiple RPC calls, caching that breaks near the tip because of reorgs. So I built Satoshi API -- an open-source REST layer that sits on top of your node and handles the annoying parts.
 
-**What it does:**
+`pip install satoshi-api` and you have 54 endpoints wrapping your node in structured JSON. Apache-2.0 licensed. Everything stays local.
 
-- Fee recommendations with plain-English context, not just raw sat/vB numbers
-- Mempool congestion scoring so you know if now is a good time to send
-- Block and transaction analysis with structured JSON responses
-- Real-time SSE streams for new blocks and fee changes
-- Address balance lookups via `scantxoutset` (no Electrs dependency)
-- Transaction broadcast with pre-validation
+**What's actually useful about it:**
 
-**Self-hosting is the primary use case.** `pip install satoshi-api` and you are live. Docker also supported. Rate limiting and API keys are built in if you want to share it on your LAN or expose it through a Cloudflare Tunnel.
+- Fee recommendations with plain-English context ("send now" vs "wait 2 blocks"), not just raw sat/vB
+- Mempool congestion scoring so you know if now is a good time to transact
+- Real-time SSE streams for new blocks and fee changes -- no polling
+- Address lookups via `scantxoutset` (no Electrs/Esplora dependency)
 
-**AI agent support (MCP).** I also built a companion MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) that lets AI assistants query your node through Model Context Protocol. This means Claude, GPT, or any MCP-compatible agent can look up blocks, check fees, and analyze transactions on your sovereign node. As far as I know, this is the only Bitcoin API with MCP integration.
+**What it's NOT:** Not an address indexer. If you need full address history at scale, you still want Electrs or Esplora. This is for querying what your node already knows, with a clean interface and depth-aware caching.
 
-The hosted version at bitcoinsapi.com is free to try (no signup for read endpoints), but the real point is self-hosting. Your node, your API, your data.
-
-Built by a Bitcoin Core contributor. Feedback welcome.
+**Self-hosting is the entire point.** Docker supported. Rate limiting and API keys built in if you want to share on your LAN or expose through a tunnel. There's a free hosted version at bitcoinsapi.com for trying it, but the real use case is your node, your API, your data.
 
 - **GitHub:** https://github.com/Bortlesboat/bitcoin-api
-- **Live demo:** https://bitcoinsapi.com/docs
 - **Install:** `pip install satoshi-api`
-- **Contact:** api@bitcoinsapi.com
+
+What else would you want from a self-hosted API layer on your node? I'm prioritizing based on what people actually need.

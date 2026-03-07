@@ -46,15 +46,16 @@ def check_legal_pages_exist():
         else:
             error(f"{page} MISSING — create static/{page}")
 
-    # Check they're in the static page whitelist in main.py
-    main_py = (SRC / "main.py").read_text(encoding="utf-8")
+    # Check they're in the static page whitelist in static_routes.py
+    static_routes_py = (SRC / "static_routes.py").read_text(encoding="utf-8")
     for slug in ("terms", "privacy"):
-        if f'"{slug}"' in main_py:
+        if f'"{slug}"' in static_routes_py:
             note(f"/{slug} is in static page whitelist")
         else:
             error(f"/{slug} NOT in static page whitelist — won't be served")
 
     # Check rate limit skip
+    main_py = (SRC / "main.py").read_text(encoding="utf-8")
     if '"terms"' in main_py and '"/terms"' in main_py.split("_RATE_LIMIT_SKIP")[1].split("}")[0] if "_RATE_LIMIT_SKIP" in main_py else False:
         note("/terms in rate limit skip set")
     elif "_RATE_LIMIT_SKIP" in main_py:
@@ -95,8 +96,8 @@ def check_tos_acceptance():
 # ---------------------------------------------------------------------------
 def check_disclaimer():
     print("\n[3] Financial Data Disclaimer")
-    main_py = (SRC / "main.py").read_text(encoding="utf-8")
-    if "X-Data-Disclaimer" in main_py:
+    middleware_py = (SRC / "middleware.py").read_text(encoding="utf-8")
+    if "X-Data-Disclaimer" in middleware_py:
         note("X-Data-Disclaimer header is set in middleware")
     else:
         error("X-Data-Disclaimer header MISSING from middleware — API responses lack financial disclaimer")

@@ -13,6 +13,21 @@ from .models import ErrorResponse, ErrorDetail
 
 log = logging.getLogger("bitcoin_api")
 
+# RFC 7807 error type URIs
+_ERROR_BASE = "https://bitcoinsapi.com/errors"
+ERROR_TYPES = {
+    "not_found": f"{_ERROR_BASE}/not-found",
+    "bad_request": f"{_ERROR_BASE}/bad-request",
+    "conflict": f"{_ERROR_BASE}/conflict",
+    "validation": f"{_ERROR_BASE}/validation-error",
+    "policy": f"{_ERROR_BASE}/policy-violation",
+    "node_error": f"{_ERROR_BASE}/node-error",
+    "node_unreachable": f"{_ERROR_BASE}/node-unreachable",
+    "unauthorized": f"{_ERROR_BASE}/unauthorized",
+    "rate_limit": f"{_ERROR_BASE}/rate-limit-exceeded",
+    "internal": f"{_ERROR_BASE}/internal-error",
+}
+
 
 def register_exception_handlers(app: FastAPI):
     """Register all exception handlers on the app."""
@@ -21,29 +36,23 @@ def register_exception_handlers(app: FastAPI):
     async def rpc_error_handler(request: Request, exc: RPCError):
         request_id = getattr(request.state, "request_id", None)
         if exc.code == -5:
-            http_status = 404
-            title = "Not Found"
+            http_status, title, err_type = 404, "Not Found", ERROR_TYPES["not_found"]
         elif exc.code == -8:
-            http_status = 400
-            title = "Bad Request"
+            http_status, title, err_type = 400, "Bad Request", ERROR_TYPES["bad_request"]
         elif exc.code == -25:
-            http_status = 409
-            title = "Transaction Already in Mempool"
+            http_status, title, err_type = 409, "Transaction Already in Mempool", ERROR_TYPES["conflict"]
         elif exc.code == -26:
-            http_status = 422
-            title = "Transaction Failed Policy Checks"
+            http_status, title, err_type = 422, "Transaction Failed Policy Checks", ERROR_TYPES["policy"]
         elif exc.code == -27:
-            http_status = 409
-            title = "Transaction Already Confirmed"
+            http_status, title, err_type = 409, "Transaction Already Confirmed", ERROR_TYPES["conflict"]
         else:
-            http_status = 502
-            title = "Node Error"
+            http_status, title, err_type = 502, "Node Error", ERROR_TYPES["node_error"]
 
         resp = JSONResponse(
             status_code=http_status,
             content=ErrorResponse(
                 error=ErrorDetail(
-                    status=http_status, title=title, detail=exc.message, request_id=request_id,
+                    type=err_type, status=http_status, title=title, detail=exc.message, request_id=request_id,
                 )
             ).model_dump(),
         )
@@ -60,6 +69,7 @@ def register_exception_handlers(app: FastAPI):
             status_code=502,
             content=ErrorResponse(
                 error=ErrorDetail(
+                    type=ERROR_TYPES["node_unreachable"],
                     status=502,
                     title="Node Unreachable",
                     detail="Cannot connect to Bitcoin Core. Is the node running?",
@@ -81,6 +91,7 @@ def register_exception_handlers(app: FastAPI):
             status_code=422,
             content=ErrorResponse(
                 error=ErrorDetail(
+                    type=ERROR_TYPES["validation"],
                     status=422,
                     title="Validation Error",
                     detail=details,
@@ -118,6 +129,7 @@ def register_exception_handlers(app: FastAPI):
             status_code=500,
             content=ErrorResponse(
                 error=ErrorDetail(
+                    type=ERROR_TYPES["internal"],
                     status=500,
                     title="Internal Server Error",
                     detail="An unexpected error occurred.",

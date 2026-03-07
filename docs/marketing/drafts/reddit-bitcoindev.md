@@ -12,14 +12,14 @@ A few design questions I'd genuinely like input on:
 
 1. **Fee analysis** — right now I combine estimatesmartfee at multiple targets with mempool size to generate a "send now or wait" recommendation. Is that useful, or do wallet devs prefer raw numbers and doing their own analysis?
 
-2. **RPC surface** — I whitelist 17 read-only commands. Is there demand for more? I deliberately left out wallet and debug RPCs but maybe that's too conservative.
+2. **RPC surface** — I whitelist 17 read-only commands (getblock, getblockchaininfo, getblockcount, getblockhash, getblockheader, getblockstats, getdifficulty, estimatesmartfee, getmempoolinfo, getrawmempool, getmempoolentry, getrawtransaction, decoderawtransaction, gettxout, getnetworkinfo, getchaintips, getmininginfo). Is there demand for more? I deliberately left out wallet and debug RPCs but maybe that's too conservative.
 
-3. **MCP/AI agent access** — I built a Model Context Protocol server so Claude/GPT can query the node. Feels like it could be useful but might also be a solution looking for a problem. Anyone actually building agent workflows against Bitcoin data?
+3. **What's missing?** If you had a clean REST interface to your node, what endpoints would you reach for first?
 
-4. **What's missing?** If you had a clean REST interface to your node, what endpoints would you reach for first?
+It's not an address indexer or block explorer — just a thin REST layer for the RPCs you already have, with depth-aware caching, rate limiting, and structured JSON responses.
 
-I've open-sourced what I have so far if anyone wants to look at the approach: https://github.com/Bortlesboat/bitcoin-api
+I've open-sourced what I have so far: https://github.com/Bortlesboat/bitcoin-api
 
-You can also poke the live docs at https://bitcoinsapi.com/docs — no signup needed.
+Also experimenting with MCP for AI agent access if anyone has thoughts on that use case.
 
 Not trying to sell anything, just want to build something actually useful. What would matter to you?

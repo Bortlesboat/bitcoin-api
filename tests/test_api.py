@@ -856,6 +856,9 @@ def test_fees_landscape_with_snapshots(client):
     from bitcoin_api.cache import _mempool_snapshots
     import time
 
+    # Clear any snapshots left by other tests to avoid flaky count assertions
+    _mempool_snapshots.clear()
+
     # Seed snapshots to simulate falling mempool
     _mempool_snapshots.append({
         "timestamp": time.time() - 300,
@@ -1522,3 +1525,90 @@ def test_usage_log_indexes_exist():
     indexes = [r[1] for r in conn.execute("PRAGMA index_list(usage_log)").fetchall()]
     assert "idx_usage_endpoint" in indexes
     assert "idx_usage_status" in indexes
+
+
+def test_health_deep(authed_client):
+    """GET /health/deep should return health check data for authenticated users."""
+    with patch("bitcoin_api.routers.health_deep.get_job_health", return_value={"fee_collector": "ok"}), \
+         patch("bitcoin_api.routers.health_deep.usage_buffer") as mock_buf:
+        mock_buf.pending_count = 0
+        resp = authed_client.get("/api/v1/health/deep")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "data" in body
+    assert "meta" in body
+    data = body["data"]
+    assert data["rpc"]["ok"] is True
+    assert data["rpc"]["height"] == 880000
+    assert data["db"]["ok"] is True
+    assert "sync_progress" in data
+    assert "uptime_seconds" in data
+
+
+def test_health_deep_requires_auth(client):
+    """GET /health/deep should reject anonymous users with 403."""
+    resp = client.get("/api/v1/health/deep")
+    assert resp.status_code == 403
+
+
+# --- New Analytics Endpoints (Sprint 16) ---
+
+
+def test_analytics_keys_with_admin_key(admin_client):
+    """Analytics keys should return per-key usage data."""
+    resp = admin_client.get("/api/v1/analytics/keys?period=24h")
+    assert resp.status_code == 200
+    assert isinstance(resp.json()["data"], list)
+
+
+def test_analytics_keys_requires_admin(client):
+    """Analytics keys should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/keys")
+    assert resp.status_code == 403
+
+
+def test_analytics_growth_with_admin_key(admin_client):
+    """Analytics growth should return DoD and WoW metrics."""
+    resp = admin_client.get("/api/v1/analytics/growth")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "requests_today" in data
+    assert "requests_wow_pct" in data
+    assert "keys_today" in data
+
+
+def test_analytics_slow_endpoints_with_admin_key(admin_client):
+    """Analytics slow-endpoints should return p95 latency data."""
+    resp = admin_client.get("/api/v1/analytics/slow-endpoints?period=24h&limit=5")
+    assert resp.status_code == 200
+    assert isinstance(resp.json()["data"], list)
+
+
+def test_analytics_retention_with_admin_key(admin_client):
+    """Analytics retention should return active key counts."""
+    resp = admin_client.get("/api/v1/analytics/retention")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "total_registered_keys" in data
+    assert "active_24h" in data
+    assert "retention_7d_pct" in data
+
+
+def test_admin_dashboard_requires_key(client):
+    """Admin dashboard should return 403 without key."""
+    resp = client.get("/admin/dashboard")
+    assert resp.status_code == 403
+
+
+def test_admin_dashboard_rejects_wrong_key(client):
+    """Admin dashboard should reject invalid key."""
+    resp = client.get("/admin/dashboard?key=wrong")
+    assert resp.status_code == 403
+
+
+def test_admin_dashboard_with_valid_key(admin_client):
+    """Admin dashboard should return HTML with valid key."""
+    from bitcoin_api.config import settings
+    resp = admin_client.get(f"/admin/dashboard?key={settings.admin_api_key}")
+    assert resp.status_code == 200
+    assert "Admin Dashboard" in resp.text

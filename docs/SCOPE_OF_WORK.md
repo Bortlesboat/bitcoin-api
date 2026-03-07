@@ -44,8 +44,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | Component | Responsibility | Design Pattern |
 |-----------|---------------|----------------|
 | `main.py` | App creation, lifespan, router registration (~89 lines) | Composition root |
-| `middleware.py` | Security headers, CORS, auth + rate limiting middleware | Middleware chain |
-| `exceptions.py` | RPC, validation, HTTP, and generic exception handlers | Exception handler registry |
+| `middleware.py` | Security headers, CORS, auth + rate limiting middleware, gzip compression | Middleware chain |
+| `exceptions.py` | RPC, validation, HTTP, and generic exception handlers; RFC 7807 `type` URIs | Exception handler registry |
 | `jobs.py` | Background fee collector thread lifecycle | Background worker |
 | `static_routes.py` | Landing page, robots.txt, sitemap, decision pages | Static file serving |
 | `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
@@ -57,11 +57,12 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `routers/` | 14 domain routers (address, analytics, blocks, tx, fees, mempool, mining, network, prices, status, keys, stream, exchanges, tools) | RESTful resource routing |
+| `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
+| `routers/` | 14 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
-- **Single Responsibility:** Each module owns one concern. Routers don't touch DB. Cache doesn't know about HTTP.
+- **Single Responsibility:** Each module owns one concern. Routers are thin HTTP wrappers; business logic lives in `services/`. Cache doesn't know about HTTP.
 - **Dependency Inversion:** Routers depend on `get_rpc()` abstraction, not concrete RPC. Testable via DI override.
 - **Open/Closed:** New endpoints = new router file. No modification of middleware needed.
 - **12-Factor App:** Config from env vars, stateless processes, explicit dependencies, dev/prod parity.
@@ -71,11 +72,12 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (48 total)
+### 3.1 Endpoints (50 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
 | **Status** | `/api/v1/health` | GET | No |
+| | `/api/v1/health/deep` | GET | Yes (free+) |
 | | `/api/v1/status` | GET | No |
 | **Blocks** | `/api/v1/blocks/latest` | GET | No |
 | | `/api/v1/blocks/tip/height` | GET | No |
@@ -124,6 +126,11 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/analytics/errors` | GET | Admin key |
 | | `/api/v1/analytics/user-agents` | GET | Admin key |
 | | `/api/v1/analytics/latency` | GET | Admin key |
+| | `/api/v1/analytics/keys` | GET | Admin key |
+| | `/api/v1/analytics/growth` | GET | Admin key |
+| | `/api/v1/analytics/slow-endpoints` | GET | Admin key |
+| | `/api/v1/analytics/retention` | GET | Admin key |
+| **Admin UI** | `/admin/dashboard` | GET | Admin key (query param) |
 
 ### 3.2 Endpoint Tiers
 
@@ -181,6 +188,7 @@ Errors follow the same structure:
 ```json
 {
   "error": {
+    "type": "https://bitcoinsapi.com/errors/not-found",
     "status": 404,
     "title": "Not Found",
     "detail": "Transaction not found",
@@ -215,6 +223,9 @@ Errors follow the same structure:
 | **Privacy Policy** | `/privacy` static page | Data collection transparency, retention periods, third-party services |
 | **ToS Acceptance** | `/register` endpoint | `agreed_to_terms: true` required for API key registration |
 | **CoinGecko Attribution** | Prices response + footer | Required by CoinGecko ToS; `attribution` field in /prices response |
+| **RFC 7807 Errors** | `type` URI on all error responses | 11 error type URIs at `https://bitcoinsapi.com/errors/*`, default `about:blank` |
+| **Retry-After** | Header on 429 responses | Per-minute: calculated from window reset; daily: 3600s |
+| **Gzip Compression** | GzipMiddleware | Responses ≥1000 bytes compressed automatically |
 | **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
 | **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for Cloudflare analytics, inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
 | **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
@@ -247,12 +258,12 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | B | Access logs + request IDs + admin analytics (6 endpoints). Missing: Prometheus metrics. |
+| Observability | A- | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (10 endpoints + visual dashboard), auto-pruning. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 129 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 137 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
-| Data Integrity | B+ | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. No schema migrations framework. |
+| Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
 | Deployment | B+ | Non-root Docker, health checks. Fixed: graceful shutdown. |
 
 ### 5.2 Critical Issues Fixed
@@ -324,18 +335,22 @@ Errors follow the same structure:
 | 14 | Legal infrastructure: ToS, Privacy Policy, financial disclaimer header, CoinGecko attribution, ToS acceptance on /register, Apache 2.0 license, DCO | 0 |
 | 15 | Analytics & web metrics: enhanced request logging (method, latency, user-agent), 6 admin analytics endpoints, CF beacon, Bing verification, SEO metrics API usage tracker | 11 |
 | 16 | 3-tier codebase refactor: split main.py (555→89 lines), cache factory+registry, batch usage logging, migration system, deep health endpoint, feature flags dict, test helpers | 0 (existing 129 all pass) |
-| **Total** | **48 endpoints, 15 routers** | **129 unit + 21 e2e** |
+| 17 | Service layer extraction (~300 lines from routers→services), enhanced migration runner (rollback, status, validation), structured JSON logging, migration status in /health/deep | 0 (existing 129 all pass) |
+| 18 | Industry Standards: RFC 7807 type URIs, Retry-After on 429s, OpenAPI metadata (contact/license/terms/servers), GzipMiddleware, favicon route | 0 (existing 129 all pass) |
+| 19 | Analytics infrastructure expansion: 4 new analytics endpoints (keys, growth, slow-endpoints, retention), auto-pruning in fee collector, admin dashboard (Chart.js), CSP + rate-limit skip updates | 8 |
+| **Total** | **55 endpoints, 15 routers** | **137 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (23 files):**
+**Source (28 files):**
 - `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, exceptions, jobs, middleware, models, rate_limit, static_routes, usage_buffer
+- `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers
 - `src/bitcoin_api/routers/` -- address, analytics, blocks, exchanges, fees, health_deep, keys, mempool, mining, network, prices, status, stream, transactions
-- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql
+- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql
 
 **Tests (4 files):**
-- `tests/test_api.py` -- 129 unit tests
-- `tests/test_e2e.py` -- 9 e2e tests (against live node)
+- `tests/test_api.py` -- 137 unit tests
+- `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
 
@@ -368,7 +383,7 @@ Errors follow the same structure:
 - `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
-**Website (12 files):**
+**Website (13 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -381,6 +396,7 @@ Errors follow the same structure:
 - `static/terms.html` -- Terms of Service page
 - `static/privacy.html` -- Privacy Policy page
 - `static/sitemap.xml` -- XML sitemap for search engines (11 URLs)
+- `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 
 ---
 
@@ -552,8 +568,8 @@ twine upload dist/*
 ### v0.4 (Medium Effort)
 - Prometheus `/metrics` endpoint
 - Idempotency key support for POST
-- Alembic schema migrations
-- Batch usage log writes
+- ~~Alembic schema migrations~~ **RESOLVED** -- Enhanced native runner with rollback, status, validation (Sprint 17)
+- ~~Batch usage log writes~~ **RESOLVED** -- Usage buffer (Sprint 16)
 
 ### L402 Lightning Payments (Extension Package)
 - Separated into `bitcoin-api-l402` package for clean base product

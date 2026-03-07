@@ -1,8 +1,9 @@
-"""Static file routes: landing page, robots.txt, sitemap, decision pages."""
+"""Static file routes: landing page, robots.txt, sitemap, decision pages, admin dashboard."""
 
+import secrets
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
 
 from . import __version__
@@ -25,6 +26,13 @@ def register_static_routes(app: FastAPI):
             "api": "/api/v1/health",
         }
 
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon():
+        p = _STATIC_DIR / "favicon.ico"
+        if p.exists():
+            return Response(p.read_bytes(), media_type="image/x-icon")
+        return Response(status_code=204)
+
     @app.get("/robots.txt", include_in_schema=False)
     def robots_txt():
         p = _STATIC_DIR / "robots.txt"
@@ -39,6 +47,19 @@ def register_static_routes(app: FastAPI):
             return Response(p.read_text(encoding="utf-8"), media_type="application/xml")
         return Response(status_code=404)
 
+    @app.get("/admin/dashboard", include_in_schema=False)
+    def admin_dashboard(key: str = Query("")):
+        """Admin analytics dashboard — requires admin key via ?key= query param."""
+        from .config import settings
+        if not settings.admin_api_key:
+            raise HTTPException(status_code=403, detail="Admin not configured")
+        if not key or not secrets.compare_digest(key, settings.admin_api_key):
+            raise HTTPException(status_code=403, detail="Invalid admin key")
+        p = _STATIC_DIR / "admin-dashboard.html"
+        if p.exists():
+            return HTMLResponse(p.read_text(encoding="utf-8"))
+        return Response(status_code=404)
+
     @app.get("/healthz", include_in_schema=False)
     def healthz():
         """Process-alive check (no RPC call). Use for container healthchecks."""
@@ -50,7 +71,7 @@ def register_static_routes(app: FastAPI):
         allowed = {
             "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
             "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
-            "bitcoin-fee-api", "bitcoin-mempool-api",
+            "bitcoin-fee-api", "bitcoin-mempool-api", "bitcoin-mcp-setup-guide",
             "terms", "privacy",
         }
         if page in allowed:

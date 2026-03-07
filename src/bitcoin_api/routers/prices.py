@@ -4,7 +4,7 @@ import time
 import logging
 import threading
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from ..models import ApiResponse, envelope
 
@@ -57,7 +57,7 @@ def _get_cached_price() -> dict:
         with _price_cache_lock:
             if _price_cache is not None:
                 return _price_cache
-        return {"USD": None, "EUR": None, "GBP": None, "JPY": None, "CAD": None, "AUD": None, "change_24h_pct": None, "error": "Price data temporarily unavailable"}
+        raise HTTPException(status_code=503, detail="BTC price service temporarily unavailable")
 
 
 _PRICES_EXAMPLE = {

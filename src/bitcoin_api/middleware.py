@@ -6,24 +6,26 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from .auth import authenticate
 from .cache import get_sync_progress
 from .config import settings
 from .db import log_usage
+from .exceptions import ERROR_TYPES
 from .models import ErrorResponse, ErrorDetail
 from .rate_limit import check_rate_limit, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
 log = logging.getLogger("bitcoin_api")
 
-_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json"}
+_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard"}
 
 _RATE_LIMIT_SKIP = {
     "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz",
     "/api/v1/stream/blocks", "/api/v1/stream/fees",
-    "/robots.txt", "/sitemap.xml",
+    "/robots.txt", "/sitemap.xml", "/favicon.ico",
     "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
     "/bitcoin-fee-api", "/bitcoin-mempool-api",
@@ -31,6 +33,9 @@ _RATE_LIMIT_SKIP = {
     "/api/v1/analytics/overview", "/api/v1/analytics/requests",
     "/api/v1/analytics/endpoints", "/api/v1/analytics/errors",
     "/api/v1/analytics/user-agents", "/api/v1/analytics/latency",
+    "/api/v1/analytics/keys", "/api/v1/analytics/growth",
+    "/api/v1/analytics/slow-endpoints", "/api/v1/analytics/retention",
+    "/admin/dashboard",
 }
 
 
@@ -65,6 +70,7 @@ def register_middleware(app: FastAPI):
                 status_code=401,
                 content=ErrorResponse(
                     error=ErrorDetail(
+                        type=ERROR_TYPES["unauthorized"],
                         status=401,
                         title="Unauthorized",
                         detail="API key not found or inactive",
@@ -79,10 +85,12 @@ def register_middleware(app: FastAPI):
 
         result = check_rate_limit(bucket, key_info.tier)
         if not result.allowed:
+            retry_after = max(1, int(result.reset - time.time()))
             resp = JSONResponse(
                 status_code=429,
                 content=ErrorResponse(
                     error=ErrorDetail(
+                        type=ERROR_TYPES["rate_limit"],
                         status=429,
                         title="Rate Limit Exceeded",
                         detail=f"Limit: {result.limit} req/min for {key_info.tier} tier",
@@ -94,6 +102,7 @@ def register_middleware(app: FastAPI):
             resp.headers["X-RateLimit-Limit"] = str(result.limit)
             resp.headers["X-RateLimit-Remaining"] = "0"
             resp.headers["X-RateLimit-Reset"] = str(int(result.reset))
+            resp.headers["Retry-After"] = str(retry_after)
             elapsed_ms = (time.monotonic() - start_time) * 1000
             log_usage(bucket, request.url.path, 429,
                       method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
@@ -105,6 +114,7 @@ def register_middleware(app: FastAPI):
                 status_code=429,
                 content=ErrorResponse(
                     error=ErrorDetail(
+                        type=ERROR_TYPES["rate_limit"],
                         status=429,
                         title="Daily Rate Limit Exceeded",
                         detail=f"Daily limit: {daily_result.limit} requests for {key_info.tier} tier",
@@ -115,6 +125,7 @@ def register_middleware(app: FastAPI):
             resp.headers["X-Request-ID"] = request_id
             resp.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
             resp.headers["X-RateLimit-Daily-Remaining"] = "0"
+            resp.headers["Retry-After"] = "3600"
             elapsed_ms = (time.monotonic() - start_time) * 1000
             log_usage(bucket, request.url.path, 429,
                       method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
@@ -130,6 +141,7 @@ def register_middleware(app: FastAPI):
                 status_code=500,
                 content=ErrorResponse(
                     error=ErrorDetail(
+                        type=ERROR_TYPES["internal"],
                         status=500,
                         title="Internal Server Error",
                         detail="An unexpected error occurred",
@@ -183,14 +195,19 @@ def register_middleware(app: FastAPI):
 
     # --- CORS (middle layer) ---
     _cors_origins = [o.strip() for o in settings.cors_origins.split(",")]
+    if "*" in _cors_origins and settings.api_host != "127.0.0.1":
+        raise ValueError("CORS_ORIGINS='*' is not allowed when API_HOST is not 127.0.0.1. Refusing to start.")
     if "*" in _cors_origins:
-        log.warning("CORS_ORIGINS contains '*' — all origins allowed. Not recommended for production.")
+        log.warning("CORS_ORIGINS contains '*' — all origins allowed (localhost only).")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins,
         allow_methods=["GET", "POST"],
         allow_headers=["X-API-Key"],
     )
+
+    # --- Response compression (runs before security headers on response) ---
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # --- Security headers (innermost — runs last) ---
     @app.middleware("http")

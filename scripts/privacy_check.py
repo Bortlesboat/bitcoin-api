@@ -65,11 +65,15 @@ def get_staged_diff() -> list[tuple[str, str]]:
             continue
         diff_result = subprocess.run(
             ["git", "diff", "--cached", "--", fname],
-            capture_output=True, text=True, cwd=ROOT,
+            capture_output=True, cwd=ROOT,
         )
+        try:
+            stdout = diff_result.stdout.decode("utf-8", errors="replace")
+        except Exception:
+            continue
         # Only check added lines (lines starting with +)
         added = "\n".join(
-            line[1:] for line in diff_result.stdout.split("\n")
+            line[1:] for line in stdout.split("\n")
             if line.startswith("+") and not line.startswith("+++")
         )
         if added:

@@ -24,6 +24,7 @@ class ApiResponse(BaseModel, Generic[T]):
 
 
 class ErrorDetail(BaseModel):
+    type: str = "about:blank"
     status: int
     title: str
     detail: str

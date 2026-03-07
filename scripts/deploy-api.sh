@@ -19,13 +19,17 @@ git pull --ff-only || { echo "FATAL: git pull failed (merge conflict?)"; exit 1;
 
 # 2. Run tests
 echo ""
-echo "[2/5] Running tests..."
+echo "[2/6] Running marketing sync check..."
+python scripts/marketing_sync.py || { echo "WARNING: Marketing materials have stale endpoint counts. Run: python scripts/marketing_sync.py --fix"; }
+
+echo ""
+echo "[3/6] Running tests..."
 PYTHONPATH=src python -m pytest tests/test_api.py -q || { echo "FATAL: Tests failed — aborting deploy"; exit 1; }
 echo "Tests passed."
 
 # 3. Find and kill existing uvicorn process on port 9332
 echo ""
-echo "[3/5] Stopping current uvicorn (port $PORT)..."
+echo "[4/6] Stopping current uvicorn (port $PORT)..."
 PIDS=$(netstat -ano 2>/dev/null | grep ":${PORT}" | grep "LISTENING" | awk '{print $NF}' | sort -u || true)
 
 if [ -n "$PIDS" ]; then
@@ -43,7 +47,7 @@ fi
 
 # 4. Start new uvicorn
 echo ""
-echo "[4/5] Starting uvicorn..."
+echo "[5/6] Starting uvicorn..."
 mkdir -p "$LOG_DIR"
 cd "$API_DIR"
 PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$PORT" >> "$LOG_FILE" 2>&1 &
@@ -52,7 +56,7 @@ echo "  Started uvicorn (PID $NEW_PID), logging to $LOG_FILE"
 
 # 5. Health check
 echo ""
-echo "[5/5] Health check (waiting 5s)..."
+echo "[6/6] Health check (waiting 5s)..."
 sleep 5
 
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/api/v1/health" 2>/dev/null || echo "000")

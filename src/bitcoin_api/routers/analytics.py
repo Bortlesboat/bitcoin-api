@@ -184,3 +184,155 @@ def analytics_latency(
             "count": n,
         }
     }
+
+
+@router.get("/keys", dependencies=[Depends(_require_admin)])
+def analytics_keys(
+    period: str = Query("24h", pattern="^(1h|6h|24h|7d|30d)$"),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """Per-key usage: hits, avg latency, error rate, last seen."""
+    conn = get_db()
+    offset = _period_sql(period)
+
+    rows = conn.execute(
+        "SELECT u.key_hash, k.prefix, COUNT(*) as hits, "
+        "AVG(u.response_time_ms) as avg_ms, "
+        "SUM(CASE WHEN u.status >= 400 THEN 1 ELSE 0 END) as errors, "
+        "MAX(u.ts) as last_seen "
+        "FROM usage_log u LEFT JOIN api_keys k ON u.key_hash = k.key_hash "
+        "WHERE u.ts >= datetime('now', ?) "
+        "GROUP BY u.key_hash ORDER BY hits DESC LIMIT ?",
+        (offset, limit),
+    ).fetchall()
+
+    return {
+        "data": [
+            {
+                "key_hash_short": (r["key_hash"] or "anonymous")[:8],
+                "prefix": r["prefix"],
+                "hits": r["hits"],
+                "avg_latency_ms": round(r["avg_ms"], 2) if r["avg_ms"] else None,
+                "error_rate": round(r["errors"] / r["hits"], 4) if r["hits"] else 0.0,
+                "last_seen": r["last_seen"],
+            }
+            for r in rows
+        ]
+    }
+
+
+@router.get("/growth", dependencies=[Depends(_require_admin)])
+def analytics_growth():
+    """Day-over-day and week-over-week request & key growth."""
+    conn = get_db()
+
+    today = conn.execute(
+        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-24 hours')"
+    ).fetchone()[0]
+    yesterday = conn.execute(
+        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours')"
+    ).fetchone()[0]
+
+    this_week = conn.execute(
+        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-7 days')"
+    ).fetchone()[0]
+    last_week = conn.execute(
+        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-14 days') AND ts < datetime('now', '-7 days')"
+    ).fetchone()[0]
+
+    keys_today = conn.execute(
+        "SELECT COUNT(DISTINCT key_hash) FROM usage_log WHERE ts >= datetime('now', '-24 hours')"
+    ).fetchone()[0]
+    keys_yesterday = conn.execute(
+        "SELECT COUNT(DISTINCT key_hash) FROM usage_log WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours')"
+    ).fetchone()[0]
+
+    def pct_change(current, previous):
+        if previous == 0:
+            return None
+        return round((current - previous) / previous * 100, 2)
+
+    return {
+        "data": {
+            "requests_today": today,
+            "requests_yesterday": yesterday,
+            "requests_dod_pct": pct_change(today, yesterday),
+            "requests_this_week": this_week,
+            "requests_last_week": last_week,
+            "requests_wow_pct": pct_change(this_week, last_week),
+            "keys_today": keys_today,
+            "keys_yesterday": keys_yesterday,
+            "keys_dod_pct": pct_change(keys_today, keys_yesterday),
+        }
+    }
+
+
+@router.get("/slow-endpoints", dependencies=[Depends(_require_admin)])
+def analytics_slow_endpoints(
+    period: str = Query("24h", pattern="^(1h|6h|24h|7d|30d)$"),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """Top N endpoints by p95 latency."""
+    conn = get_db()
+    offset = _period_sql(period)
+
+    rows = conn.execute(
+        "SELECT endpoint, response_time_ms FROM usage_log "
+        "WHERE ts >= datetime('now', ?) AND response_time_ms IS NOT NULL",
+        (offset,),
+    ).fetchall()
+
+    # Group by endpoint and compute p95
+    from collections import defaultdict
+    by_endpoint: dict[str, list[float]] = defaultdict(list)
+    for r in rows:
+        by_endpoint[r["endpoint"]].append(r["response_time_ms"])
+
+    results = []
+    for ep, latencies in by_endpoint.items():
+        latencies.sort()
+        n = len(latencies)
+        p95_idx = int(0.95 * (n - 1))
+        p95 = latencies[p95_idx] if n > 0 else 0
+        results.append({
+            "endpoint": ep,
+            "p95_ms": round(p95, 2),
+            "avg_ms": round(sum(latencies) / n, 2),
+            "sample_count": n,
+        })
+
+    results.sort(key=lambda x: x["p95_ms"], reverse=True)
+    return {"data": results[:limit]}
+
+
+@router.get("/retention", dependencies=[Depends(_require_admin)])
+def analytics_retention():
+    """Active keys in 24h/7d/30d vs total registered."""
+    conn = get_db()
+
+    total_keys = conn.execute("SELECT COUNT(*) FROM api_keys WHERE active = 1").fetchone()[0]
+
+    active_24h = conn.execute(
+        "SELECT COUNT(DISTINCT key_hash) FROM usage_log WHERE ts >= datetime('now', '-24 hours') AND key_hash IS NOT NULL"
+    ).fetchone()[0]
+    active_7d = conn.execute(
+        "SELECT COUNT(DISTINCT key_hash) FROM usage_log WHERE ts >= datetime('now', '-7 days') AND key_hash IS NOT NULL"
+    ).fetchone()[0]
+    active_30d = conn.execute(
+        "SELECT COUNT(DISTINCT key_hash) FROM usage_log WHERE ts >= datetime('now', '-30 days') AND key_hash IS NOT NULL"
+    ).fetchone()[0]
+
+    def rate(active, total):
+        return round(active / total * 100, 2) if total > 0 else 0.0
+
+    return {
+        "data": {
+            "total_registered_keys": total_keys,
+            "active_24h": active_24h,
+            "active_7d": active_7d,
+            "active_30d": active_30d,
+            "retention_24h_pct": rate(active_24h, total_keys),
+            "retention_7d_pct": rate(active_7d, total_keys),
+            "retention_30d_pct": rate(active_30d, total_keys),
+        }
+    }

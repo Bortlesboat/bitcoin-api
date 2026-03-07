@@ -44,9 +44,11 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <tbody>
 <tr><td>Email address</td><td>API key registration</td><td>Key management, abuse prevention</td><td>Until key deletion</td></tr>
 <tr><td>API key hash (SHA-256)</td><td>Registration</td><td>Authentication</td><td>Until key deletion</td></tr>
-<tr><td>IP address</td><td>Every request</td><td>Rate limiting, abuse prevention</td><td>30 days (access logs)</td></tr>
-<tr><td>Request path and method</td><td>Every request</td><td>Usage analytics, rate limiting</td><td>30 days</td></tr>
-<tr><td>HTTP status code</td><td>Every request</td><td>Error monitoring</td><td>30 days</td></tr>
+<tr><td>IP address</td><td>Every request</td><td>Rate limiting, abuse prevention</td><td>90 days (access logs)</td></tr>
+<tr><td>Request path and method</td><td>Every request</td><td>Usage analytics, rate limiting</td><td>90 days</td></tr>
+<tr><td>HTTP status code</td><td>Every request</td><td>Error monitoring</td><td>90 days</td></tr>
+<tr><td>User-Agent string</td><td>Every request</td><td>Usage analytics, abuse prevention</td><td>90 days</td></tr>
+<tr><td>Response time (milliseconds)</td><td>Every request</td><td>Performance monitoring</td><td>90 days</td></tr>
 </tbody>
 </table>
 
@@ -83,7 +85,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 
 <h2>6. Data Retention</h2>
 <ul>
-<li><strong>Access logs:</strong> Pruned automatically after 30 days.</li>
+<li><strong>Access logs:</strong> Pruned automatically after 90 days.</li>
 <li><strong>API key records:</strong> Retained until you request deletion.</li>
 <li><strong>Fee history data:</strong> Aggregate data retained for up to 90 days for the fee history endpoint.</li>
 </ul>

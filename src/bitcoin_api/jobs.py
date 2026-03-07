@@ -4,7 +4,7 @@ import logging
 import threading
 import time
 
-from .db import record_fee_snapshot, prune_fee_history
+from .db import record_fee_snapshot, prune_fee_history, prune_old_logs
 from .cache import record_mempool_snapshot
 
 log = logging.getLogger("bitcoin_api")
@@ -32,9 +32,12 @@ def get_job_health() -> dict:
     }
 
 
+_last_prune: float = 0.0
+
+
 def _fee_collector():
     """Background thread: snapshot mempool every 5 min for trend analysis + fee history."""
-    global _last_run_time, _last_success_time, _run_count, _error_count, _last_error
+    global _last_run_time, _last_success_time, _run_count, _error_count, _last_error, _last_prune
     from .dependencies import get_rpc as _get_rpc_dep
 
     while not _bg_stop.is_set():
@@ -73,6 +76,17 @@ def _fee_collector():
                 congestion=congestion,
             )
             _last_success_time = time.time()
+
+            # Auto-prune old data once per 24h
+            if time.time() - _last_prune > 86400:
+                try:
+                    pruned_logs = prune_old_logs(90)
+                    pruned_fees = prune_fee_history(30)
+                    _last_prune = time.time()
+                    log.info("Auto-prune: removed %d usage logs (>90d) and %d fee rows (>30d)",
+                             pruned_logs, pruned_fees)
+                except Exception as prune_exc:
+                    log.warning("Auto-prune failed: %s", prune_exc)
         except Exception as exc:
             _error_count += 1
             _last_error = str(exc)

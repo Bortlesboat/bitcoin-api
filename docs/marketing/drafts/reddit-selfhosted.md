@@ -1,6 +1,6 @@
 # Platform: r/selfhosted
 
-**Suggested Title:** Self-hosted Bitcoin REST API -- query your own node with 48 endpoints, zero third-party dependencies
+**Suggested Title:** Self-hosted Bitcoin REST API -- query your own node with 54 endpoints, zero third-party dependencies
 
 ---
 

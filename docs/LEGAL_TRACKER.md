@@ -32,11 +32,11 @@
 |------------|----------------|------------------------|-----------|
 | Email address | `/register` endpoint | Section 1, row 1 | Until key deletion |
 | API key hash | `/register` endpoint | Section 1, row 2 | Until key deletion |
-| IP address | Every request (middleware) | Section 1, row 3 | 30 days |
-| Request path/method | Every request (usage_log) | Section 1, row 4 | 30 days |
-| HTTP status code | Every request (usage_log) | Section 1, row 5 | 30 days |
-| User-Agent | Every request (usage_log) | Pending coverage | 30 days |
-| Response time | Every request (usage_log) | Not PII, no coverage needed | 30 days |
+| IP address | Every request (middleware) | Section 1, row 3 | 90 days |
+| Request path/method | Every request (usage_log) | Section 1, row 4 | 90 days |
+| HTTP status code | Every request (usage_log) | Section 1, row 5 | 90 days |
+| User-Agent | Every request (usage_log) | Section 1, row 6 | 90 days |
+| Response time | Every request (usage_log) | Section 1, row 7 | 90 days |
 
 ### 2.3 User Rights
 

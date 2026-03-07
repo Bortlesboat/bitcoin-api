@@ -1,9 +1,12 @@
 """TTL caching for expensive RPC calls — with cache registry."""
 
+import logging
 import threading
 import time
 from collections import deque
 from dataclasses import dataclass, field
+
+log = logging.getLogger("bitcoin_api.cache")
 
 from cachetools import LRUCache, TTLCache
 
@@ -92,8 +95,8 @@ def record_mempool_snapshot(rpc) -> None:
         }
         with _snapshot_lock:
             _mempool_snapshots.append(snapshot)
-    except Exception:
-        pass  # Don't crash background thread
+    except Exception as e:
+        log.warning("Failed to record mempool snapshot: %s", e)
 
 
 def get_mempool_snapshots() -> list[dict]:

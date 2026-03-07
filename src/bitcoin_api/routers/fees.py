@@ -184,13 +184,16 @@ def fees_history(
     interval: str = Query(default="10m", description="Interval (e.g. 5m, 10m, 30m, 1h)"),
 ):
     """Historical fee rates and mempool size. Returns time-series data with summary stats."""
-    # Parse interval
+    # Parse interval (e.g. "10m", "1h")
     interval_str = interval.lower().strip()
-    if interval_str.endswith("h"):
-        interval_minutes = int(interval_str[:-1]) * 60
-    elif interval_str.endswith("m"):
-        interval_minutes = int(interval_str[:-1])
-    else:
+    try:
+        if interval_str.endswith("h"):
+            interval_minutes = int(interval_str[:-1]) * 60
+        elif interval_str.endswith("m"):
+            interval_minutes = int(interval_str[:-1])
+        else:
+            interval_minutes = 10
+    except (ValueError, IndexError):
         interval_minutes = 10
 
     interval_minutes = max(1, min(interval_minutes, 360))

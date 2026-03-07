@@ -39,6 +39,13 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+    contact={"name": "Satoshi API Support", "email": "api@bitcoinsapi.com", "url": "https://bitcoinsapi.com"},
+    license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
+    terms_of_service="https://bitcoinsapi.com/terms",
+    servers=[
+        {"url": "https://bitcoinsapi.com", "description": "Production"},
+        {"url": "http://localhost:9332", "description": "Local development"},
+    ],
 )
 
 register_middleware(app)
