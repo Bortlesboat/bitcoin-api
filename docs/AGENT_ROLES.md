@@ -143,7 +143,7 @@ Track the last run of each agent for staleness detection.
 | Finance | 2026-03-07 | PASS | All-Hands | PM |
 | Legal | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Security, Marketing |
 | Marketing | 2026-03-07 | PASS WITH WARNINGS | All-Hands | — |
-| Security | 2026-03-07 | PASS WITH WARNINGS (3W) | /security-review | — |
+| Security | 2026-03-07 | PASS (pentest: 3 fixed, 0 outstanding) | /security-review + pentest | — |
 | Architect | 2026-03-07 | PASS (207/207 tests) | All-Hands | QA, Marketing |
 | QA | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Architect |
 | Analytics | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Legal, Security |
@@ -158,7 +158,7 @@ Track the last run of each agent for staleness detection.
 | Finance | 2026-03-07 | 0 | 0 | 1 |
 | Legal | 2026-03-07 | 2 | 2 | 2 |
 | Marketing | 2026-03-07 | 7 | 7 | 0 |
-| Security | 2026-03-07, 2026-03-07 | 5 | 5 | 2 |
+| Security | 2026-03-07, 2026-03-07, 2026-03-07 | 8 | 8 | 2 |
 | Architect | 2026-03-07 | 1 | 1 | 2 |
 | QA | 2026-03-07 | 2 | 2 | 1 |
 | Analytics | 2026-03-07 | 2 | 0 | 2 |

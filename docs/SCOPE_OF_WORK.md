@@ -35,7 +35,7 @@ Satoshi API (FastAPI, port 9332)
     |-- Structured access logging
     |
 Bitcoin Core RPC (port 8332, localhost only)
-    |-- rpcwhitelist restricts to 16 safe commands
+    |-- rpcwhitelist restricts to 21 safe commands
     |-- txindex=1 for full transaction lookups
 ```
 
@@ -232,7 +232,7 @@ Errors follow the same structure:
 | **Rate Limiting** | Per-minute + daily | Sliding window (memory) + DB-backed daily counts |
 | **Input Validation** | Regex + Pydantic | 64-hex txid, non-negative heights, hex-only bodies |
 | **Body Size** | 2MB limit | Pydantic `Field(max_length=2_000_000)` on hex inputs |
-| **Node Protection** | RPC whitelist | Only 17 safe commands allowed via `rpcwhitelist` |
+| **Node Protection** | RPC whitelist | Only 21 safe commands allowed via `rpcwhitelist` |
 | **Network** | Localhost-only RPC | `rpcbind=127.0.0.1`, `rpcallowip=127.0.0.1` |
 | **Broadcast Validation** | Decode-before-send | `decoderawtransaction` pre-check; RPC -25 → 409, -26 → 422, -27 → 409 |
 | **Information Hiding** | Version redaction | Node version/subversion hidden from anonymous users |
@@ -251,6 +251,11 @@ Errors follow the same structure:
 | **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
 | **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
 | **Circuit Breaker** | RPC fast-fail | 3 failures → OPEN (503 + Retry-After), 30s cooldown → HALF_OPEN probe, success → CLOSED. Non-RPC endpoints unaffected. |
+| **Metrics Auth** | Admin-only `/metrics` | Requires `X-Admin-Key` header with `secrets.compare_digest()` constant-time comparison |
+| **Registration Rate Limit** | Per-IP sliding window | 5 registrations/hour/IP + 3 keys/email hard cap |
+| **Input Length Limits** | Pydantic Field constraints | Email `max_length=254`, label `max_length=100` on registration |
+| **Privacy Enforcement** | Pre-commit hook | `scripts/privacy_check.py` blocks tracking code (GA, Mixpanel, fingerprinting) from being committed |
+| **Agent Trigger Advisory** | Pre-commit hook | `scripts/trigger_check.py` shows which agent reviews are needed for changed files |
 
 ### 4.2 Threat Model
 
@@ -266,6 +271,18 @@ Errors follow the same structure:
 | XSS via landing page | CSP blocks inline scripts (except landing page), nosniff header | Very low |
 | Clickjacking | X-Frame-Options DENY + CSP frame-ancestors 'none' | Very low |
 | Tab-napping via external links | All external links use `rel="noopener noreferrer"` | Very low |
+| Timing attack on auth | `secrets.compare_digest()` on all key comparisons | Very low |
+| Registration abuse | Per-IP rate limit (5/hr) + per-email cap (3 keys) + field length validation | Very low |
+| Metrics data exposure | `/metrics` gated behind `X-Admin-Key` admin auth | Very low |
+| Tracking code injection | Pre-commit hook blocks analytics/tracking patterns | Very low |
+
+### 4.3 Penetration Test Log
+
+| Date | Scope | Findings | Status |
+|------|-------|----------|--------|
+| 2026-03-07 | Full API surface (live site) | 3 findings: metrics public (HIGH), no email length limit (HIGH), no registration rate limit (MEDIUM) | All fixed, deployed, verified |
+
+**Pentest methodology:** Header injection, path traversal, SQL injection, XSS in user-agent, IDOR, timing attacks, input fuzzing, `.env` exposure, CORS misconfiguration, host header injection. Cloudflare Tunnel blocks most network-layer attacks.
 
 ---
 
@@ -325,6 +342,11 @@ Errors follow the same structure:
 26. **Registration email enumeration** -- `/register` no longer reveals whether an email is already registered
 27. **Cloudflare Insights tracking removed** -- Removed CF beacon from all HTML pages, CSP, and legal_audit checks
 
+**Pentest Hardening (Mar 7):**
+28. **Metrics endpoint publicly exposed** -- Added `X-Admin-Key` auth with `secrets.compare_digest()` on `/metrics` endpoint
+29. **No per-IP registration rate limit** -- Added sliding window (5 registrations/hour/IP) with `threading.Lock` + `time.monotonic()`
+30. **Unbounded email/label input** -- Added Pydantic `Field(max_length=254)` on email, `Field(max_length=100)` on label
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
@@ -366,6 +388,7 @@ Errors follow the same structure:
 | 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
 | 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
+| 23 | Consistency pass: complete guide catalog (all 73 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
 | **Total** | **73 endpoints, 21 routers** | **207 unit + 21 e2e** |
 
 ### 6.2 Files Delivered

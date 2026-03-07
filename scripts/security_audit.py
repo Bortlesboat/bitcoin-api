@@ -293,6 +293,78 @@ def check_db_security():
 
 
 # ---------------------------------------------------------------------------
+# 9. Admin endpoint protection
+# ---------------------------------------------------------------------------
+def check_admin_endpoints():
+    print("\n[9] Admin Endpoint Protection")
+
+    # Check /metrics requires admin auth
+    metrics_router = (SRC / "routers" / "metrics.py").read_text(encoding="utf-8")
+    if "secrets.compare_digest" in metrics_router or "_require_admin" in metrics_router:
+        note("/metrics endpoint requires admin auth")
+    else:
+        error("/metrics endpoint may be publicly accessible")
+
+    if "Depends(_require_admin)" in metrics_router or "dependencies=[Depends" in metrics_router:
+        note("/metrics uses FastAPI Depends() for auth")
+    else:
+        warn("/metrics auth may not be enforced via Depends()")
+
+    # Check analytics requires admin auth
+    analytics_router = (SRC / "routers" / "analytics.py").read_text(encoding="utf-8")
+    if "secrets.compare_digest" in analytics_router:
+        note("/analytics endpoints use constant-time key comparison")
+    else:
+        warn("/analytics may be vulnerable to timing attacks on admin key")
+
+    # Check admin dashboard requires admin auth
+    static_routes = (SRC / "static_routes.py").read_text(encoding="utf-8")
+    if "secrets.compare_digest" in static_routes:
+        note("/admin/dashboard uses constant-time key comparison")
+    else:
+        warn("/admin/dashboard may be vulnerable to timing attacks")
+
+
+# ---------------------------------------------------------------------------
+# 10. Registration hardening
+# ---------------------------------------------------------------------------
+def check_registration_hardening():
+    print("\n[10] Registration Hardening")
+
+    keys_router = (SRC / "routers" / "keys.py").read_text(encoding="utf-8")
+
+    # Check per-IP rate limiting
+    if "_check_reg_rate_limit" in keys_router or "reg_rate_limit" in keys_router:
+        note("Registration has per-IP rate limiting")
+    else:
+        error("Registration lacks per-IP rate limiting — abuse risk")
+
+    # Check email length validation
+    if "max_length" in keys_router:
+        note("Registration has input length validation")
+    else:
+        error("Registration lacks max_length on inputs — DoS risk via large payloads")
+
+    # Check email normalization
+    if ".strip().lower()" in keys_router:
+        note("Email is normalized (strip + lowercase)")
+    else:
+        warn("Email may not be normalized — duplicate accounts possible")
+
+    # Check per-email cap
+    if "count >= 3" in keys_router or "Registration limit" in keys_router:
+        note("Per-email key cap enforced (max 3)")
+    else:
+        warn("No per-email key cap found")
+
+    # Check ToS acceptance required
+    if "agreed_to_terms" in keys_router:
+        note("ToS acceptance required for registration")
+    else:
+        warn("Registration does not require ToS acceptance")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main():
@@ -308,6 +380,8 @@ def main():
     check_cors()
     check_rpc_whitelist()
     check_db_security()
+    check_admin_endpoints()
+    check_registration_hardening()
 
     # Summary
     print("\n" + "=" * 60)

@@ -81,7 +81,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
-| `scripts/security_audit.py` | Automated security audit (8 checks) |
+| `scripts/security_audit.py` | Automated security audit (10 checks) |
 | `scripts/privacy_check.py` | Pre-commit privacy enforcer (blocks secrets/PII) |
 | `scripts/trigger_check.py` | Pre-commit advisory (reports which agents to run) |
 | `scripts/install-hooks.sh` | Installs pre-commit hooks (privacy blocking + trigger advisory) |

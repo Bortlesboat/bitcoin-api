@@ -277,8 +277,14 @@ SATOSHI_API_KEY=<your-key> bash scripts/security_check.sh
 # Legal audit (checks license, ToS, privacy policy consistency)
 python scripts/legal_audit.py
 
-# Security audit (8 automated checks)
+# Security audit (10 automated checks)
 python scripts/security_audit.py
+
+# Privacy check (pre-commit hook, also runnable standalone)
+python scripts/privacy_check.py --all
+
+# Trigger advisory (shows which agents to run for changed files)
+python scripts/trigger_check.py
 ```
 
 ---
