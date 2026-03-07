@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Feature flags
     enable_exchange_compare: bool = True
 
+    # RPC timeout (seconds)
+    rpc_timeout: int = 30
+
     # Rate limits (requests per minute)
     rate_limit_anonymous: int = 30
     rate_limit_free: int = 100
