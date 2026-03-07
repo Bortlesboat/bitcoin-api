@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     enable_exchange_compare: bool = True
     enable_prices_router: bool = True
     enable_address_router: bool = True
+    enable_supply_router: bool = True
+    enable_stats_router: bool = True
+
+    # Whale transaction SSE threshold
+    whale_tx_threshold_btc: float = 10.0
 
     @property
     def feature_flags(self) -> dict[str, bool]:
@@ -34,6 +39,8 @@ class Settings(BaseSettings):
             "exchange_compare": self.enable_exchange_compare,
             "prices_router": self.enable_prices_router,
             "address_router": self.enable_address_router,
+            "enable_supply_router": self.enable_supply_router,
+            "enable_stats_router": self.enable_stats_router,
         }
 
     # Logging format ("text" or "json")

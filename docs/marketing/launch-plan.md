@@ -99,18 +99,17 @@ If any product change happened since drafts were written (new endpoint, feature,
 | Dev.to article | Mar 7 | Published | dev.to/bortlesboat/... |
 | Google Search Console | Mar 7 | Verified | |
 | IndexNow (Bing/Yandex) | Mar 7 | Submitted | |
-| MCP Server Finder email | Mar 7 | Draft in Gmail | info@mcpserverfinder.com |
-| bitcoin-mcp-setup-guide SEO page | Mar 7 | Live | /bitcoin-mcp-setup-guide |
+| MCP Server Finder email | Mar 7 | **Sent** | info@mcpserverfinder.com |
+| bitcoin-mcp-setup-guide SEO page | Mar 7 | **Live** | /bitcoin-mcp-setup-guide |
+| bitcoin-mcp v0.2.2 on PyPI | Mar 7 | **Published** | https://pypi.org/project/bitcoin-mcp/0.2.2/ |
+| MCP Registry (Anthropic official) | Mar 7 | **Published** | io.github.Bortlesboat/bitcoin-mcp |
 
 ## Pending Manual Steps
 
 | Action | Why | Command |
 |--------|-----|---------|
-| Publish bitcoin-mcp 0.2.1 to PyPI | Needed for MCP Registry verification | `cd ~/Bortlesboat/bitcoin-mcp && python -m twine upload dist/bitcoin_mcp-0.2.1*` |
-| Login to MCP Registry | GitHub OAuth required | `~/bin/mcp-publisher.exe login github` |
-| Publish to MCP Registry | Official Anthropic directory | `cd ~/Bortlesboat/bitcoin-mcp && ~/bin/mcp-publisher.exe publish` |
-| Submit to PulseMCP | Web form | https://www.pulsemcp.com/submit |
-| Submit to Smithery | CLI publish | `smithery mcp publish` (needs npm install) |
+| Submit to PulseMCP | Web form — MCP directory | https://www.pulsemcp.com/submit |
+| Submit to Smithery | CLI publish — MCP directory | `smithery mcp publish` (needs npm install) |
 
 ## Content Consistency Rules
 

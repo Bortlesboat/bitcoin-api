@@ -63,8 +63,15 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/cache.py` | TTL + LRU caching with registry + factory |
 | `src/bitcoin_api/usage_buffer.py` | Batch usage logging (50 rows / 30s flush) |
 | `src/bitcoin_api/db.py` | SQLite (WAL), key storage, fee history |
+| `src/bitcoin_api/metrics.py` | Prometheus metric definitions (counters, histograms, gauges) |
+| `src/bitcoin_api/pubsub.py` | In-process pub/sub hub for WebSocket push |
+| `src/bitcoin_api/stripe_client.py` | Stripe checkout session creation + webhook helpers |
+| `src/bitcoin_api/routers/metrics.py` | GET /metrics (Prometheus text format) |
+| `src/bitcoin_api/routers/websocket.py` | WS /api/v1/ws (real-time subscriptions) |
+| `src/bitcoin_api/routers/billing.py` | Stripe billing: checkout, webhook, status, cancel |
 | `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, serializers) |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
+| `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
 | `tests/test_api.py` | Unit tests (175) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |

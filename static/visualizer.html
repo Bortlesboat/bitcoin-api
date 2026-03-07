@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satoshi API — Visualizer</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', monospace; }
+  h1 { text-align: center; padding: 24px 0 8px; color: #f7931a; font-size: 1.6rem; }
+  .subtitle { text-align: center; color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 24px 24px; max-width: 1400px; margin: 0 auto; }
+  .chart-card { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 16px; }
+  .chart-card h2 { color: #f7931a; font-size: 0.95rem; margin-bottom: 8px; }
+  .chart { width: 100%; height: 320px; }
+  .full-width { grid-column: 1 / -1; }
+  .status { text-align: center; color: #666; font-size: 0.75rem; padding: 8px; }
+  .error { color: #e74c3c; }
+  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>Satoshi API Visualizer</h1>
+<p class="subtitle">Live Bitcoin network data — auto-refreshes every 60s</p>
+
+<div class="grid">
+  <div class="chart-card">
+    <h2>Mempool Fee Distribution</h2>
+    <div id="fee-dist" class="chart"></div>
+  </div>
+  <div class="chart-card">
+    <h2>Fee Estimates by Confirmation Target</h2>
+    <div id="fee-estimates" class="chart"></div>
+  </div>
+  <div class="chart-card full-width">
+    <h2>Mining Hashrate (Last 144 Blocks)</h2>
+    <div id="hashrate" class="chart" style="height:360px"></div>
+  </div>
+</div>
+
+<p class="status" id="status">Loading...</p>
+
+<script>
+const API = '/api/v1';
+const ACCENT = '#f7931a';
+const GRID = '#222';
+
+function darkTheme() {
+  return {
+    backgroundColor: 'transparent',
+    textStyle: { color: '#aaa' },
+    legend: { textStyle: { color: '#aaa' } },
+    tooltip: { backgroundColor: '#1a1a1a', borderColor: '#333', textStyle: { color: '#e0e0e0' } },
+  };
+}
+
+const feeDistChart = echarts.init(document.getElementById('fee-dist'), null, { renderer: 'canvas' });
+const feeEstChart = echarts.init(document.getElementById('fee-estimates'), null, { renderer: 'canvas' });
+const hashrateChart = echarts.init(document.getElementById('hashrate'), null, { renderer: 'canvas' });
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  const j = await r.json();
+  return j.data || j;
+}
+
+async function updateFeeDistribution() {
+  try {
+    const data = await fetchJSON(`${API}/fees/mempool-blocks`);
+    if (!Array.isArray(data)) return;
+    const labels = data.map((_, i) => `Block ${i + 1}`);
+    const minFees = data.map(b => b.min_fee_rate || 0);
+    const maxFees = data.map(b => b.max_fee_rate || 0);
+    feeDistChart.setOption({
+      ...darkTheme(),
+      xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: GRID } }, axisLabel: { color: '#aaa' } },
+      yAxis: { type: 'value', name: 'sat/vB', axisLine: { lineStyle: { color: GRID } }, splitLine: { lineStyle: { color: '#1a1a1a' } }, axisLabel: { color: '#aaa' } },
+      tooltip: { ...darkTheme().tooltip, trigger: 'axis' },
+      series: [
+        { name: 'Min Fee', type: 'bar', data: minFees, itemStyle: { color: '#3498db' } },
+        { name: 'Max Fee', type: 'bar', data: maxFees, itemStyle: { color: ACCENT } },
+      ],
+      legend: { ...darkTheme().legend, data: ['Min Fee', 'Max Fee'] },
+      grid: { left: 60, right: 20, bottom: 30, top: 40 },
+    });
+  } catch (e) { console.warn('Fee dist error:', e); }
+}
+
+async function updateFeeEstimates() {
+  try {
+    const data = await fetchJSON(`${API}/fees`);
+    if (!Array.isArray(data)) return;
+    const targets = data.map(e => `${e.conf_target} blk`);
+    const rates = data.map(e => e.fee_rate_sat_vb || 0);
+    feeEstChart.setOption({
+      ...darkTheme(),
+      xAxis: { type: 'category', data: targets, axisLine: { lineStyle: { color: GRID } }, axisLabel: { color: '#aaa' } },
+      yAxis: { type: 'value', name: 'sat/vB', axisLine: { lineStyle: { color: GRID } }, splitLine: { lineStyle: { color: '#1a1a1a' } }, axisLabel: { color: '#aaa' } },
+      tooltip: { ...darkTheme().tooltip, trigger: 'axis' },
+      series: [{ type: 'bar', data: rates, itemStyle: { color: '#2ecc71' } }],
+      grid: { left: 60, right: 20, bottom: 30, top: 30 },
+    });
+  } catch (e) { console.warn('Fee estimates error:', e); }
+}
+
+async function updateHashrate() {
+  try {
+    const data = await fetchJSON(`${API}/mining/hashrate/history?blocks=144`);
+    if (!Array.isArray(data)) return;
+    const heights = data.map(d => d.height);
+    const hashrates = data.map(d => d.hashrate_eh_s);
+    hashrateChart.setOption({
+      ...darkTheme(),
+      xAxis: { type: 'category', data: heights, axisLine: { lineStyle: { color: GRID } }, axisLabel: { color: '#aaa', rotate: 45 } },
+      yAxis: { type: 'value', name: 'EH/s', axisLine: { lineStyle: { color: GRID } }, splitLine: { lineStyle: { color: '#1a1a1a' } }, axisLabel: { color: '#aaa' } },
+      tooltip: { ...darkTheme().tooltip, trigger: 'axis', formatter: p => `Height: ${p[0].name}<br/>Hashrate: ${p[0].value} EH/s` },
+      series: [{ type: 'line', data: hashrates, smooth: true, lineStyle: { color: ACCENT }, itemStyle: { color: ACCENT }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(247,147,26,0.3)' }, { offset: 1, color: 'rgba(247,147,26,0)' }] } } }],
+      grid: { left: 60, right: 20, bottom: 60, top: 30 },
+      dataZoom: [{ type: 'inside' }],
+    });
+  } catch (e) { console.warn('Hashrate error:', e); }
+}
+
+async function refresh() {
+  document.getElementById('status').textContent = 'Updating...';
+  document.getElementById('status').className = 'status';
+  try {
+    await Promise.all([updateFeeDistribution(), updateFeeEstimates(), updateHashrate()]);
+    document.getElementById('status').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  } catch (e) {
+    document.getElementById('status').textContent = `Error: ${e.message}`;
+    document.getElementById('status').className = 'status error';
+  }
+}
+
+window.addEventListener('resize', () => {
+  feeDistChart.resize();
+  feeEstChart.resize();
+  hashrateChart.resize();
+});
+
+refresh();
+setInterval(refresh, 60000);
+</script>
+</body>
+</html>
