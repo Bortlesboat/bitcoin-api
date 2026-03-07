@@ -17,6 +17,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
 <meta name="twitter:title" content="Satoshi API — REST API for Your Bitcoin Node">
 <meta name="twitter:description" content="The fastest way to add a REST API to your Bitcoin node. One pip install. Analyzed data, not raw RPC. Open source.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
 <style>
   :root {
     --bg: #0d1117;
@@ -147,7 +148,7 @@
     <a href="#use-cases">Use Cases</a>
     <a href="#endpoints">Endpoints</a>
     <a href="#pricing">Pricing</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api">GitHub</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="/docs">API Docs</a>
     <span class="uptime-badge"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>99.9% uptime</span>
   </div>
@@ -160,7 +161,7 @@
     <p class="subtitle">One pip install. Analyzed data, not raw RPC dumps. Open source, self-hosted, zero vendor lock-in.</p>
     <div class="cta">
       <a href="/docs" class="btn-primary btn-playground">Open Interactive Playground</a>
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary">View on GitHub</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     </div>
     <div class="hero-code">
 <pre><code><span style="color: var(--muted)">$ </span>pip install satoshi-api
@@ -177,8 +178,8 @@
 
 <!-- Trust Badges -->
 <div class="trust-badges container">
-  <span class="trust-badge">Built by a <a href="https://github.com/Bortlesboat">Bitcoin Core contributor</a></span>
-  <span class="trust-badge">34 endpoints</span>
+  <span class="trust-badge">Built by a <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bitcoin Core contributor</a></span>
+  <span class="trust-badge">40 endpoints</span>
   <span class="trust-badge">&lt; 50ms response time</span>
   <span class="trust-badge">Open source (MIT)</span>
   <span class="trust-badge"><span class="dot"></span> 99.9% uptime monitored by UptimeRobot</span>
@@ -241,11 +242,11 @@
       </div>
       <div class="feature">
         <h3>AI-Agent Ready</h3>
-        <p>Pair with <a href="https://github.com/Bortlesboat/bitcoin-mcp">bitcoin-mcp</a> to give Claude or GPT direct access to your node via MCP tool calls.</p>
+        <p>Pair with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> to give Claude or GPT direct access to your node via MCP tool calls.</p>
       </div>
       <div class="feature">
         <h3>L402 Lightning Payments</h3>
-        <p>Optional <a href="https://docs.lightning.engineering/the-lightning-network/l402">L402</a> support for Bitcoin-native API access. Clients pay per-request via Lightning — no accounts, no API keys. Available as an extension.</p>
+        <p>Optional <a href="https://docs.lightning.engineering/the-lightning-network/l402" target="_blank" rel="noopener noreferrer">L402</a> support for Bitcoin-native API access. Clients pay per-request via Lightning — no accounts, no API keys. Available as an extension.</p>
       </div>
       <div class="feature">
         <h3>Self-Hosted</h3>
@@ -253,7 +254,7 @@
       </div>
       <div class="feature">
         <h3>Production Ready</h3>
-        <p>133 tests. Docker support. Cloudflare Tunnel deployment. Structured access logging. Graceful shutdown. Tested under load.</p>
+        <p>110 tests (89 unit + 21 e2e). Docker support. Cloudflare Tunnel deployment. Structured access logging. Graceful shutdown. Tested under load.</p>
       </div>
     </div>
   </div>
@@ -312,8 +313,8 @@
 <!-- Endpoints -->
 <section id="endpoints">
   <div class="container">
-    <h2 class="section-title">34 Endpoints</h2>
-    <p class="section-subtitle">Blocks, transactions, fees, mempool, mining, network, prices, status.</p>
+    <h2 class="section-title">40 Endpoints</h2>
+    <p class="section-subtitle">Blocks, transactions, fees, mempool, mining, network, prices, streams.</p>
     <table class="endpoint-table">
       <thead>
         <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
@@ -340,6 +341,9 @@
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees</code></td><td>Fee estimates (all targets)</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/recommended</code></td><td>Human-readable fee recommendation</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/{target}</code></td><td>Fee for specific confirmation target</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/landscape</code></td><td>Should I send now or wait? Decision engine</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/estimate-tx</code></td><td>Transaction size &amp; fee cost estimator</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/history</code></td><td>Historical fee rates &amp; cheapest hour</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/mempool-blocks</code></td><td>Fee distribution by projected blocks</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/mempool</code></td><td>Mempool analysis (congestion, fee buckets)</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/mempool/info</code></td><td>Raw mempool info</td></tr>
@@ -353,10 +357,13 @@
         <tr><td><span class="method method-get">GET</span></td><td><code>/network/difficulty</code></td><td>Current difficulty and retarget info</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/network/validate-address/{addr}</code></td><td>Validate a Bitcoin address</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/prices</code></td><td>BTC price in 6 fiat currencies</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/stream/blocks</code></td><td>Real-time new block events (SSE)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/stream/fees</code></td><td>Live fee rate updates every 30s (SSE)</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/register</code></td><td>Self-serve API key registration</td></tr>
       </tbody>
     </table>
     <p style="color: var(--muted); margin-top: 16px; font-size: 0.9em;">All endpoints prefixed with <code>/api/v1</code>. Interactive docs at <code>/docs</code> (Swagger UI) and <code>/redoc</code>.</p>
-    <p style="color: var(--muted); margin-top: 8px; font-size: 0.9em;"><strong>Roadmap:</strong> Address balance lookups, webhook notifications, WebSocket streaming, and a web-based block/transaction explorer UI at bitcoinsapi.com. <a href="https://github.com/Bortlesboat/bitcoin-api/issues">Follow progress on GitHub</a>.</p>
+    <p style="color: var(--muted); margin-top: 8px; font-size: 0.9em;"><strong>New:</strong> Fee landscape ("should I send now?"), tx cost estimator, historical fees, SSE real-time streams. <strong>Roadmap:</strong> Address lookups, Prometheus metrics, webhook notifications. <a href="https://github.com/Bortlesboat/bitcoin-api/issues" target="_blank" rel="noopener noreferrer">Follow progress on GitHub</a>.</p>
   </div>
 </section>
 
@@ -415,12 +422,12 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
         <div class="price">Free<span> forever</span></div>
         <ul>
           <li>Run on your own node</li>
-          <li>All 34 endpoints</li>
+          <li>All 40 endpoints</li>
           <li>Unlimited requests</li>
           <li>Full source code (MIT)</li>
           <li>Docker + pip install</li>
         </ul>
-        <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">View on GitHub</a>
+        <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" target="_blank" rel="noopener noreferrer">View on GitHub</a>
       </div>
       <div class="price-card">
         <h3>Hosted API</h3>
@@ -494,7 +501,7 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
     <h2>Your node already has the data. Give it a voice.</h2>
     <p>pip install satoshi-api and start building.</p>
     <div class="cta">
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary">Get Started</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" target="_blank" rel="noopener noreferrer">Get Started</a>
       <a href="/docs" class="btn-secondary">API Reference</a>
     </div>
   </div>
@@ -502,12 +509,12 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
 
 <footer>
   <div class="container">
-    <p>Satoshi API is open source under the MIT License. Built by <a href="https://github.com/Bortlesboat">Bortlesboat</a>.</p>
+    <p>Satoshi API is open source under the MIT License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
     <p style="margin-top: 8px;">
-      <a href="https://github.com/Bortlesboat/bitcoin-api">GitHub</a> &middot;
-      <a href="https://pypi.org/project/satoshi-api/">PyPI</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
       <a href="/docs">API Docs</a> &middot;
-      <a href="https://github.com/Bortlesboat/bitcoin-mcp">MCP Server</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
     </p>
   </div>
 </footer>

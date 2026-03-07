@@ -51,7 +51,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `routers/` | 9 domain routers (blocks, tx, fees, mempool, mining, network, prices, status, keys) | RESTful resource routing |
+| `routers/` | 10 domain routers (blocks, tx, fees, mempool, mining, network, prices, status, keys, stream) | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -65,7 +65,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (34 total)
+### 3.1 Endpoints (40 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -90,6 +90,9 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Fees** | `/api/v1/fees` | GET | No |
 | | `/api/v1/fees/recommended` | GET | No |
 | | `/api/v1/fees/mempool-blocks` | GET | No |
+| | `/api/v1/fees/landscape` | GET | No |
+| | `/api/v1/fees/estimate-tx` | GET | No |
+| | `/api/v1/fees/history` | GET | No |
 | | `/api/v1/fees/{target}` | GET | No |
 | **Mempool** | `/api/v1/mempool` | GET | No |
 | | `/api/v1/mempool/info` | GET | No |
@@ -103,6 +106,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/network/difficulty` | GET | No |
 | | `/api/v1/network/validate-address/{addr}` | GET | No |
 | **Prices** | `/api/v1/prices` | GET | No |
+| **Streams** | `/api/v1/stream/blocks` | GET (SSE) | No |
+| | `/api/v1/stream/fees` | GET (SSE) | No |
 | **Keys** | `/api/v1/register` | POST | No |
 
 ### 3.2 Rate Limits
@@ -191,7 +196,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | B- | Access logs + request IDs. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | B+ | 59 unit tests + e2e + load test + security script. |
+| Testing | B+ | 89 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | B | WAL mode, parameterized queries. No schema migrations framework. |
@@ -251,16 +256,17 @@ Errors follow the same structure:
 | 7 | Architecture review: 11 fixes (3 critical, 4 high, 4 medium) | 0 |
 | 8 | v0.2 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
 | 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
-| **Total** | **34 endpoints, 10 routers** | **80 unit + 21 e2e** |
+| 10 | Launch features: fee landscape, tx estimator, SSE streams, fee history | 9 |
+| **Total** | **34 endpoints (6 more in Sprint 10 WIP), 11 routers** | **89 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (12 files):**
+**Source (13 files):**
 - `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, models, rate_limit
-- `src/bitcoin_api/routers/` -- blocks, fees, keys, mempool, mining, network, prices, status, transactions
+- `src/bitcoin_api/routers/` -- blocks, fees, keys, mempool, mining, network, prices, status, stream, transactions
 
 **Tests (3 files):**
-- `tests/test_api.py` -- 71 unit tests
+- `tests/test_api.py` -- 89 unit tests
 - `tests/test_e2e.py` -- 9 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 
@@ -438,18 +444,17 @@ twine upload dist/*
 - Network: `/network/difficulty`
 - RPC whitelist: added `getrawmempool`
 
-### v0.3 (Medium Effort — Next)
-- `GET /fees/mempool-blocks` — projected mempool blocks (simulate block filling)
-- `GET /tx/{txid}/outspends` — output spending status
-- Historical mempool statistics (background collector + time-series storage)
-- `GET /prices` — BTC price (cached from CoinGecko/Coinbase)
+### v0.3 (Launch Features — COMPLETE)
+- `GET /fees/landscape` — "Should I send now?" decision engine with trend analysis
+- `GET /fees/estimate-tx` — transaction size/fee estimator (pure math, no RPC)
+- `GET /fees/history` — historical fee tracker (SQLite-backed, auto-pruning)
+- `GET /stream/blocks` — SSE real-time block events
+- `GET /stream/fees` — SSE fee rate updates every 30s
+- Background fee collector (5-min snapshots for trend + history)
+
+### v0.4 (Medium Effort — Next)
 - Prometheus `/metrics` endpoint
 - Idempotency key support for POST
-
-### v0.4 (Real-Time + Infrastructure)
-- WebSocket endpoint for mempool fee updates
-- Webhook subscriptions for new blocks
-- Server-Sent Events for chain tip changes
 - Alembic schema migrations
 - Batch usage log writes
 
