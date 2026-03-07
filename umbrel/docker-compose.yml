@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: satoshi-api_server_1
+      APP_PORT: 9332
+      PROXY_AUTH_WHITELIST: "/api/*,/docs,/redoc,/openapi.json,/healthz"
+
+  server:
+    image: bortlesboat/satoshi-api:v0.3.1
+    restart: on-failure
+    environment:
+      BITCOIN_RPC_HOST: ${APP_BITCOIN_NODE_IP}
+      BITCOIN_RPC_PORT: ${APP_BITCOIN_RPC_PORT}
+      BITCOIN_RPC_USER: ${APP_BITCOIN_RPC_USER}
+      BITCOIN_RPC_PASSWORD: ${APP_BITCOIN_RPC_PASSWORD}
+      BITCOIN_NETWORK: mainnet
+      HOST: 0.0.0.0
+      PORT: 9332
+    volumes:
+      - ${APP_DATA_DIR}/data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9332/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
