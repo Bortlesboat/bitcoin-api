@@ -1,9 +1,9 @@
-"""Network endpoints: /network, /network/forks, /network/difficulty."""
+"""Network endpoints: /network, /network/forks, /network/difficulty, /validate-address/{address}."""
 
 import time
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from starlette.requests import Request
 
 from bitcoinlib_rpc import BitcoinRPC
@@ -161,3 +161,41 @@ def difficulty_adjustment(rpc: BitcoinRPC = Depends(get_rpc)):
         "estimated_retarget_date": estimated_retarget,
     }
     return envelope(data, height=height, chain=info["chain"])
+
+
+_VALIDATE_EXAMPLE = {
+    200: {
+        "description": "Address validation result",
+        "content": {
+            "application/json": {
+                "example": {
+                    "data": {
+                        "isvalid": True,
+                        "address": "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+                        "scriptPubKey": "0014751e76e8199196d454941c45d1b3a323f1433bd6",
+                        "isscript": False,
+                        "iswitness": True,
+                        "witness_version": 0,
+                    },
+                    "meta": {"node_height": 881234, "chain": "main"},
+                }
+            }
+        },
+    }
+}
+
+
+@router.get(
+    "/validate-address/{address}",
+    response_model=ApiResponse[dict],
+    responses=_VALIDATE_EXAMPLE,
+    tags=["Network"],
+)
+def validate_address(
+    address: str = Path(description="Bitcoin address to validate"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Validate a Bitcoin address and return its properties."""
+    result = rpc.call("validateaddress", address)
+    info = cached_blockchain_info(rpc)
+    return envelope(result, height=info["blocks"], chain=info["chain"])

@@ -152,3 +152,62 @@ def test_tx_status():
     data = r.json()["data"]
     assert data["confirmed"] is True
     assert data["confirmations"] > 0
+
+
+@skip_if_no_api
+def test_tx_hex():
+    pizza_txid = "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"
+    r = httpx.get(f"{BASE_URL}/tx/{pizza_txid}/hex")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data, str)
+    assert len(data) > 0
+
+
+@skip_if_no_api
+def test_tx_outspends():
+    pizza_txid = "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"
+    r = httpx.get(f"{BASE_URL}/tx/{pizza_txid}/outspends")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert "spent" in data[0]
+
+
+@skip_if_no_api
+def test_block_header():
+    """Get genesis block header hex."""
+    genesis_hash = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+    r = httpx.get(f"{BASE_URL}/blocks/{genesis_hash}/header")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data, str)
+    assert len(data) == 160  # block header is 80 bytes = 160 hex chars
+
+
+@skip_if_no_api
+def test_fees_mempool_blocks():
+    r = httpx.get(f"{BASE_URL}/fees/mempool-blocks")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data, list)
+    if len(data) > 0:
+        assert "block_index" in data[0]
+        assert "min_fee_rate" in data[0]
+
+
+@skip_if_no_api
+def test_validate_address():
+    r = httpx.get(f"{BASE_URL}/network/validate-address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert "isvalid" in data
+
+
+@skip_if_no_api
+def test_prices():
+    r = httpx.get(f"{BASE_URL}/prices")
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert "USD" in data

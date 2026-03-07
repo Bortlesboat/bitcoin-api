@@ -1,4 +1,4 @@
-"""Block endpoints: /blocks/latest, /blocks/{id}, /blocks/{id}/stats, /blocks/{hash}/txids, /blocks/{hash}/txs, /blocks/tip/*."""
+"""Block endpoints: /blocks/latest, /blocks/{id}, /blocks/{id}/stats, /blocks/{hash}/txids, /blocks/{hash}/txs, /blocks/{hash}/header, /blocks/tip/*."""
 
 import re
 
@@ -219,6 +219,36 @@ def block_stats(
     stats = rpc.call("getblockstats", height)
     info = cached_blockchain_info(rpc)
     return envelope(stats, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/{block_hash}/header",
+    response_model=ApiResponse[str],
+    responses={
+        200: {
+            "description": "Block header as hex string",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": "0100000000000000000000000000000000000000000000000000000000000000...",
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid block hash format"},
+    },
+)
+def block_header(
+    block_hash: str = Path(description="Block hash (64 hex characters)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Block header as a hex string."""
+    if not _HASH_RE.match(block_hash):
+        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    header_hex = rpc.call("getblockheader", block_hash, False)
+    info = cached_blockchain_info(rpc)
+    return envelope(header_hex, height=info["blocks"], chain=info["chain"])
 
 
 @router.get(

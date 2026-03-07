@@ -1,4 +1,4 @@
-"""Transaction endpoints: /tx/{txid}, /tx/{txid}/raw, /tx/{txid}/status, /utxo/{txid}/{vout}."""
+"""Transaction endpoints: /tx/{txid}, /tx/{txid}/raw, /tx/{txid}/hex, /tx/{txid}/status, /tx/{txid}/outspends, /utxo/{txid}/{vout}."""
 
 import re
 
@@ -144,6 +144,79 @@ def get_tx_status(
         "confirmations": raw.get("confirmations", 0),
     }
     return envelope(data, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/tx/{txid}/hex",
+    response_model=ApiResponse[str],
+    responses={
+        200: {
+            "description": "Raw transaction hex string",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": "0200000001abcdef...",
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid txid format"},
+    },
+)
+def get_tx_hex(
+    txid: str = Path(description="Transaction ID (hex)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Raw transaction as a hex string (not decoded)."""
+    if not _TXID_RE.match(txid):
+        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    hex_str = rpc.call("getrawtransaction", txid, False)
+    info = cached_blockchain_info(rpc)
+    return envelope(hex_str, height=info["blocks"], chain=info["chain"])
+
+
+@router.get(
+    "/tx/{txid}/outspends",
+    response_model=ApiResponse[list[dict]],
+    responses={
+        200: {
+            "description": "Spending status of each transaction output",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": [
+                            {"vout": 0, "spent": True},
+                            {"vout": 1, "spent": False, "value": 0.5, "scriptPubKey_type": "witness_v0_keyhash"},
+                        ],
+                        "meta": {"node_height": 881234, "chain": "main"},
+                    }
+                }
+            },
+        },
+        422: {"description": "Invalid txid format"},
+    },
+)
+def get_tx_outspends(
+    txid: str = Path(description="Transaction ID (hex)"),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """Check spending status of each output in a transaction."""
+    if not _TXID_RE.match(txid):
+        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    raw = rpc.call("getrawtransaction", txid, True)
+    info = cached_blockchain_info(rpc)
+    outputs = raw.get("vout", [])
+    result = []
+    for out in outputs:
+        vout_index = out["n"]
+        utxo = rpc.call("gettxout", txid, vout_index)
+        entry = {"vout": vout_index, "spent": utxo is None}
+        if utxo is not None:
+            entry["value"] = utxo.get("value")
+            entry["scriptPubKey_type"] = utxo.get("scriptPubKey", {}).get("type")
+        result.append(entry)
+    return envelope(result, height=info["blocks"], chain=info["chain"])
 
 
 @router.get(

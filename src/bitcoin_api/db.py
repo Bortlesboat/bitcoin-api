@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
     prefix     TEXT NOT NULL,
     tier       TEXT NOT NULL DEFAULT 'free',
     label      TEXT,
+    email      TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     active     INTEGER NOT NULL DEFAULT 1
 );
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS usage_log (
 CREATE INDEX IF NOT EXISTS idx_usage_ts ON usage_log(ts);
 CREATE INDEX IF NOT EXISTS idx_usage_key ON usage_log(key_hash);
 CREATE INDEX IF NOT EXISTS idx_usage_key_ts ON usage_log(key_hash, ts);
+
 """
 
 
@@ -54,6 +56,11 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
                 _db_path.parent.mkdir(parents=True, exist_ok=True)
                 conn = _make_conn(_db_path)
                 conn.executescript(SCHEMA)
+                # Migration: add email column if missing
+                cols = [r[1] for r in conn.execute("PRAGMA table_info(api_keys)").fetchall()]
+                if "email" not in cols:
+                    conn.execute("ALTER TABLE api_keys ADD COLUMN email TEXT")
+                    conn.commit()
                 conn.close()
                 _initialized = True
 
@@ -102,3 +109,5 @@ def lookup_key(key_hash: str) -> dict | None:
     if row is None:
         return None
     return dict(row)
+
+

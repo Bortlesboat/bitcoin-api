@@ -3,7 +3,7 @@
 **Version:** 0.1.0
 **Date:** 2026-03-06
 **Author:** Andy Barnes
-**Status:** In Progress -- Security Hardening & Production Deployment
+**Status:** Live -- https://bitcoinsapi.com
 
 ---
 
@@ -51,7 +51,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `routers/` | 7 domain routers (blocks, tx, fees, mempool, mining, network, status) | RESTful resource routing |
+| `routers/` | 9 domain routers (blocks, tx, fees, mempool, mining, network, prices, status, keys) | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -65,7 +65,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (27 total)
+### 3.1 Endpoints (34 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -78,14 +78,18 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/blocks/{height}/stats` | GET | No |
 | | `/api/v1/blocks/{hash}/txids` | GET | No |
 | | `/api/v1/blocks/{hash}/txs` | GET | No |
+| | `/api/v1/blocks/{hash}/header` | GET | No |
 | **Transactions** | `/api/v1/tx/{txid}` | GET | No |
 | | `/api/v1/tx/{txid}/raw` | GET | No |
+| | `/api/v1/tx/{txid}/hex` | GET | No |
 | | `/api/v1/tx/{txid}/status` | GET | No |
+| | `/api/v1/tx/{txid}/outspends` | GET | No |
 | | `/api/v1/utxo/{txid}/{vout}` | GET | No |
 | | `/api/v1/decode` | POST | Yes (free+) |
 | | `/api/v1/broadcast` | POST | Yes (free+) |
 | **Fees** | `/api/v1/fees` | GET | No |
 | | `/api/v1/fees/recommended` | GET | No |
+| | `/api/v1/fees/mempool-blocks` | GET | No |
 | | `/api/v1/fees/{target}` | GET | No |
 | **Mempool** | `/api/v1/mempool` | GET | No |
 | | `/api/v1/mempool/info` | GET | No |
@@ -97,6 +101,9 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Network** | `/api/v1/network` | GET | No (redacted) |
 | | `/api/v1/network/forks` | GET | No |
 | | `/api/v1/network/difficulty` | GET | No |
+| | `/api/v1/network/validate-address/{addr}` | GET | No |
+| **Prices** | `/api/v1/prices` | GET | No |
+| **Keys** | `/api/v1/register` | POST | No |
 
 ### 3.2 Rate Limits
 
@@ -243,16 +250,17 @@ Errors follow the same structure:
 | 6 | Security hardening, production deployment, docs | 4 |
 | 7 | Architecture review: 11 fixes (3 critical, 4 high, 4 medium) | 0 |
 | 8 | v0.2 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
-| **Total** | **27 endpoints, 7 routers** | **71 unit + 9 e2e** |
+| 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
+| **Total** | **34 endpoints, 10 routers** | **80 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (11 files):**
+**Source (12 files):**
 - `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, models, rate_limit
-- `src/bitcoin_api/routers/` -- blocks, fees, mempool, mining, network, status, transactions
+- `src/bitcoin_api/routers/` -- blocks, fees, keys, mempool, mining, network, prices, status, transactions
 
 **Tests (3 files):**
-- `tests/test_api.py` -- 59 unit tests
+- `tests/test_api.py` -- 71 unit tests
 - `tests/test_e2e.py` -- 9 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 
@@ -311,10 +319,12 @@ Errors follow the same structure:
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
 - [x] Quick tunnel HTTPS verified via Cloudflare
-- [ ] Permanent domain + named Cloudflare Tunnel
+- [x] Permanent domain `bitcoinsapi.com` + named Cloudflare Tunnel `satoshi-api`
 - [x] Anonymous POST /broadcast returns 403
 - [x] Anonymous GET /network redacts version
-- [ ] UptimeRobot confirms /healthz reachable
+- [x] UptimeRobot monitors /api/v1/health (5-min interval)
+- [x] cloudflared Windows service auto-starts tunnel
+- [x] SatoshiAPI scheduled task auto-starts API on logon
 - [x] API key created for personal use
 - [x] Bitcoin Core RPC whitelist configured (17 commands)
 
@@ -344,15 +354,14 @@ A hosted API is a secondary revenue opportunity, not the primary business.
 
 ### 8.3 Pricing Model
 
-| Tier | Price | Limits | Target |
-|------|-------|--------|--------|
-| Open Source | Free forever | Self-hosted, unlimited | Node runners |
-| Free (Hosted) | $0/mo | 1,000 req/day, 30/min, read-only | Devs trying it out |
-| Builder | $9/mo | 10,000 req/day, 100/min, POST | Side projects |
-| Pro | $29/mo | 100,000 req/day, 500/min, priority | Small apps |
-| Enterprise | Custom | Unlimited, SLA, dedicated | Contact |
+| Tier | Price | Rate Limit | Daily Limit | POST Access | Target |
+|------|-------|-----------|-------------|-------------|--------|
+| **Self-Hosted** | Free forever | Unlimited | Unlimited | Yes | Node runners |
+| **Anonymous (Hosted)** | Free | 30/min | 1,000/day | No | Try it, no signup |
+| **Developer (Hosted)** | Free (with key) | 100/min | 10,000/day | Yes | Build & ship |
+| **Pro** | $19/mo | 500/min | 100,000/day | Yes | Production apps |
 
-**Launch strategy:** Free + open source only. Add paid tiers when demand materializes. Don't build Stripe integration for zero customers.
+**Launch strategy:** Free tiers at launch, Pro tier via Stripe when demand materializes. L402 Lightning payments available as optional extension (feature, not primary monetization). API keys are free — request via email or self-serve `/api/v1/register` endpoint.
 
 ### 8.4 Infrastructure Cost
 
@@ -443,6 +452,12 @@ twine upload dist/*
 - Server-Sent Events for chain tip changes
 - Alembic schema migrations
 - Batch usage log writes
+
+### L402 Lightning Payments (Extension Package)
+- Separated into `bitcoin-api-l402` package for clean base product
+- Layers on via `enable_l402(app, ...)` — no code in core API
+- Includes: macaroon minting/verification, Lightning client (Alby Hub + mock), endpoint pricing, FastAPI middleware
+- Repository: github.com/Bortlesboat/bitcoin-api-l402
 
 ### v0.5 (Address Lookups — Requires Electrs/Fulcrum)
 - `GET /address/{addr}` — address summary

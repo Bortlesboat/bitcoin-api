@@ -3,13 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "bitcoin-api"
+name = "satoshi-api"
 version = "0.1.0"
 description = "Satoshi API — developer-friendly Bitcoin REST API powered by your own node"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "Andy Barnes" }]
+authors = [{ name = "Bortlesboat" }]
 keywords = ["bitcoin", "api", "rest", "node", "blockchain"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -27,7 +27,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Bortlesboat/bitcoin-api"
+Homepage = "https://bitcoinsapi.com"
+Documentation = "https://bitcoinsapi.com/docs"
 Repository = "https://github.com/Bortlesboat/bitcoin-api"
 Issues = "https://github.com/Bortlesboat/bitcoin-api/issues"
 

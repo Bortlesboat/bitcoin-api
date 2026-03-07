@@ -62,9 +62,12 @@ All endpoints are under `/api/v1/`. Interactive docs at `/docs`.
 | `GET /blocks/{height}/stats` | Raw block statistics |
 | `GET /blocks/{hash}/txids` | Transaction IDs in a block |
 | `GET /blocks/{hash}/txs` | Full transactions in a block (paginated) |
+| `GET /blocks/{hash}/header` | Block header hex string |
 | `GET /tx/{txid}` | Transaction analysis (fees, SegWit, Taproot, inscriptions) |
 | `GET /tx/{txid}/raw` | Raw decoded transaction |
 | `GET /tx/{txid}/status` | Confirmation status |
+| `GET /tx/{txid}/hex` | Raw transaction hex string |
+| `GET /tx/{txid}/outspends` | Spending status of each output |
 | `GET /utxo/{txid}/{vout}` | UTXO lookup |
 | `GET /mempool` | Mempool analysis (fee buckets, congestion) |
 | `GET /mempool/info` | Raw mempool stats |
@@ -74,8 +77,11 @@ All endpoints are under `/api/v1/`. Interactive docs at `/docs`.
 | `GET /fees` | Fee estimates (1, 3, 6, 25, 144 blocks) |
 | `GET /fees/recommended` | Human-readable fee recommendation |
 | `GET /fees/{target}` | Fee estimate for specific block target |
+| `GET /fees/mempool-blocks` | Projected next blocks from mempool by fee rate |
 | `GET /mining` | Hashrate, difficulty, retarget estimate |
 | `GET /mining/nextblock` | Block template analysis |
+| `GET /network/validate-address/{addr}` | Validate a Bitcoin address |
+| `GET /prices` | BTC price in USD, EUR, GBP, JPY, CAD, AUD |
 | `POST /decode` | Decode raw transaction hex |
 | `POST /broadcast` | Broadcast signed transaction |
 
@@ -156,6 +162,22 @@ Errors:
 - Transaction IDs and block hashes must be exactly 64 hex characters
 - Invalid formats return 422 immediately (no wasted RPC calls)
 - Invalid API keys return 401 (not silent downgrade to anonymous)
+
+## Self-Serve API Key Registration
+
+Request a free API key programmatically:
+
+```bash
+curl -X POST https://bitcoinsapi.com/api/v1/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "label": "my-app"}'
+```
+
+Returns your API key once — save it, it won't be shown again. Max 3 keys per email.
+
+## L402 Lightning Payments
+
+Satoshi API supports [L402](https://docs.lightning.engineering/the-lightning-network/l402) (formerly LSAT) — the HTTP 402 + Lightning micropayment protocol by Lightning Labs. Clients can pay per-request via Lightning Network instead of using API keys. Available as an optional extension. See `bitcoin-api-l402` for details.
 
 ## Development
 

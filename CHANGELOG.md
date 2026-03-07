@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.1] - 2026-03-06
+
+### Added
+- `GET /tx/{txid}/hex` — raw transaction hex string
+- `GET /tx/{txid}/outspends` — spending status of each output (spent/unspent via UTXO set)
+- `GET /blocks/{hash}/header` — block header as hex string
+- `GET /fees/mempool-blocks` — projected next blocks from mempool, grouped by fee rate
+- `GET /prices` — BTC price in 6 currencies from CoinGecko (60s cache)
+- `GET /network/validate-address/{address}` — validate a Bitcoin address
+- 9 new unit tests + 6 new e2e tests (80 unit + 21 e2e total)
+
+### Changed
+- RPC whitelist: added `getblockheader`, `validateaddress` (now 19 commands)
+- Total endpoints: 27 → 33
+
 ## [0.2.0] - 2026-03-06
 
 ### Added

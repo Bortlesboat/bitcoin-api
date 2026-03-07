@@ -59,20 +59,26 @@ def make_mock_rpc():
             "networkhashps": 800_000_000_000_000_000_000,
             "chain": "main",
         },
-        "getrawtransaction": {
-            "txid": "abc" * 21 + "a",
-            "hash": "abc" * 21 + "a",
-            "version": 2,
-            "size": 225,
-            "vsize": 166,
-            "weight": 661,
-            "locktime": 0,
-            "vin": [{"txid": "def" * 21 + "d", "vout": 0}],
-            "vout": [{"value": 0.5, "n": 0}],
-            "blockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
-            "blockheight": 879000,
-            "confirmations": 1000,
-        },
+        "getrawtransaction": (
+            # verbose=False returns hex string, verbose=True returns dict
+            # args[0] = txid, args[1] = verbose (True/False)
+            "0200000001abcdef0123456789abcdef0123456789"
+            if len(args) >= 2 and args[1] is False
+            else {
+                "txid": "abc" * 21 + "a",
+                "hash": "abc" * 21 + "a",
+                "version": 2,
+                "size": 225,
+                "vsize": 166,
+                "weight": 661,
+                "locktime": 0,
+                "vin": [{"txid": "def" * 21 + "d", "vout": 0}],
+                "vout": [{"value": 0.5, "n": 0}, {"value": 0.3, "n": 1}],
+                "blockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72f9a4670",
+                "blockheight": 879000,
+                "confirmations": 1000,
+            }
+        ),
         "gettxout": (
             {
                 "bestblock": "abc123",
@@ -136,6 +142,29 @@ def make_mock_rpc():
                 "nTx": 2,
             }
         ),
+        "getblockheader": (
+            # verbose=False returns hex string
+            "0100000000000000000000000000000000000000000000000000000000000000"
+            "000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa"
+            "4b1e5e4a29ab5f49ffff001d1dac2b7c"
+            if args and len(args) > 1 and args[1] is False
+            else {
+                "hash": args[0] if args else "abc" * 21 + "a",
+                "confirmations": 880000,
+                "height": 0,
+                "version": 1,
+                "nTx": 1,
+            }
+        ),
+        "validateaddress": {
+            "isvalid": True,
+            "address": args[0] if args else "bc1qtest",
+            "scriptPubKey": "0014751e76e8199196d454941c45d1b3a323f1433bd6",
+            "isscript": False,
+            "iswitness": True,
+            "witness_version": 0,
+            "witness_program": "751e76e8199196d454941c45d1b3a323f1433bd6",
+        },
         "getchaintips": [
             {
                 "height": 880000,

@@ -743,3 +743,86 @@ def test_difficulty_adjustment(client):
     assert "blocks_remaining" in data
     assert "progress_percent" in data
     assert data["blocks_in_epoch"] + data["blocks_remaining"] == 2016
+
+
+# --- v0.2.1 endpoints ---
+
+
+def test_tx_hex(client):
+    txid = "a" * 64
+    resp = client.get(f"/api/v1/tx/{txid}/hex")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], str)
+    assert len(body["data"]) > 0
+
+
+def test_tx_hex_invalid_txid(client):
+    resp = client.get("/api/v1/tx/bad/hex")
+    assert resp.status_code == 422
+
+
+def test_tx_outspends(client):
+    txid = "abc" * 21 + "a"
+    resp = client.get(f"/api/v1/tx/{txid}/outspends")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], list)
+    assert len(body["data"]) == 2  # mock has 2 vouts
+    assert "spent" in body["data"][0]
+    assert "vout" in body["data"][0]
+
+
+def test_tx_outspends_invalid_txid(client):
+    resp = client.get("/api/v1/tx/xyz/outspends")
+    assert resp.status_code == 422
+
+
+def test_block_header(client):
+    block_hash = "abc" * 21 + "a"
+    resp = client.get(f"/api/v1/blocks/{block_hash}/header")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], str)
+    assert len(body["data"]) > 0
+
+
+def test_block_header_invalid_hash(client):
+    resp = client.get("/api/v1/blocks/not-a-hash/header")
+    assert resp.status_code == 422
+
+
+def test_fees_mempool_blocks(client):
+    resp = client.get("/api/v1/fees/mempool-blocks")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body["data"], list)
+    # With 2 mock mempool txs, should produce at least 1 block
+    if len(body["data"]) > 0:
+        block = body["data"][0]
+        assert "block_index" in block
+        assert "min_fee_rate" in block
+        assert "tx_count" in block
+        assert "total_weight" in block
+
+
+def test_validate_address(client):
+    resp = client.get("/api/v1/network/validate-address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["data"]["isvalid"] is True
+
+
+def test_prices(client):
+    from unittest.mock import patch
+    mock_price = {
+        "USD": 92000.0, "EUR": 84000.0, "GBP": 72000.0,
+        "JPY": 13800000.0, "CAD": 126000.0, "AUD": 141000.0,
+        "change_24h_pct": 2.5,
+    }
+    with patch("bitcoin_api.routers.prices._get_cached_price", return_value=mock_price):
+        resp = client.get("/api/v1/prices")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["data"]["USD"] == 92000.0
+        assert "change_24h_pct" in body["data"]

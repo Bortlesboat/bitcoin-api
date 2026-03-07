@@ -4,10 +4,12 @@ import logging
 import uuid
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from bitcoinlib_rpc.rpc import RPCError
 
@@ -17,7 +19,7 @@ from .db import get_db, log_usage, prune_old_logs
 from .models import ErrorResponse, ErrorDetail
 from .rate_limit import check_rate_limit, check_daily_limit
 from . import __version__
-from .routers import status, blocks, transactions, mempool, fees, mining, network
+from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys
 
 access_log = logging.getLogger("bitcoin_api.access")
 
@@ -57,7 +59,7 @@ app.add_middleware(
 )
 
 # Paths exempt from rate limiting
-_RATE_LIMIT_SKIP = {"/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz"}
+_RATE_LIMIT_SKIP = {"/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz", "/api/v1/register"}
 
 
 # --- Middleware: auth + rate limiting + usage logging ---
@@ -79,6 +81,7 @@ async def auth_and_rate_limit(request: Request, call_next):
         return response
 
     key_info = authenticate(request)
+
     request.state.tier = key_info.tier
 
     # Invalid key: provided but not found/active → 401
@@ -296,12 +299,19 @@ app.include_router(mempool.router, prefix=PREFIX)
 app.include_router(fees.router, prefix=PREFIX)
 app.include_router(mining.router, prefix=PREFIX)
 app.include_router(network.router, prefix=PREFIX)
+app.include_router(prices.router, prefix=PREFIX)
+app.include_router(keys.router, prefix=PREFIX)
 
 
 # --- Root redirect ---
 
+_LANDING_PAGE = Path(__file__).resolve().parent.parent.parent / "static" / "index.html"
+
+
 @app.get("/", include_in_schema=False)
 def root():
+    if _LANDING_PAGE.exists():
+        return HTMLResponse(_LANDING_PAGE.read_text(encoding="utf-8"))
     return {
         "name": "Satoshi API",
         "version": __version__,

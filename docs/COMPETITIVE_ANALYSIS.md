@@ -2,7 +2,7 @@
 
 ## Summary
 
-Satoshi API currently exposes **27 endpoints** (v0.2). mempool.space exposes **~161 endpoints**.
+Satoshi API currently exposes **33 endpoints** (v0.2.1). mempool.space exposes **~161 endpoints**.
 
 However, most of mempool.space's surface area falls outside our scope:
 
@@ -17,7 +17,7 @@ However, most of mempool.space's surface area falls outside our scope:
 | Wallet/Treasury tracking | ~10 | No |
 | RBF/CPFP/Audit | ~12 | No |
 
-**The real comparison is 19 vs ~50 core Bitcoin endpoints.** We cover the most important ones and have unique features they lack.
+**The real comparison is 25 vs ~50 core Bitcoin endpoints.** We cover the most important ones and have unique features they lack.
 
 ---
 

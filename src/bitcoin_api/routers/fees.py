@@ -1,4 +1,4 @@
-"""Fee endpoints: /fees, /fees/recommended, /fees/{target}."""
+"""Fee endpoints: /fees, /fees/recommended, /fees/mempool-blocks, /fees/{target}."""
 
 from fastapi import APIRouter, Depends, Path
 
@@ -8,6 +8,9 @@ from bitcoinlib_rpc.utils import fee_recommendation
 from ..cache import cached_blockchain_info, cached_fee_estimates
 from ..dependencies import get_rpc
 from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope
+
+# Max block weight (4 million weight units)
+_MAX_BLOCK_WEIGHT = 4_000_000
 
 router = APIRouter(prefix="/fees", tags=["Fees"])
 
@@ -112,6 +115,90 @@ def fees_recommended(rpc: BitcoinRPC = Depends(get_rpc)):
         height=info["blocks"],
         chain=info["chain"],
     )
+
+
+_MEMPOOL_BLOCKS_EXAMPLE = {
+    200: {
+        "description": "Projected next blocks from mempool, grouped by fee rate",
+        "content": {
+            "application/json": {
+                "example": {
+                    "data": [
+                        {
+                            "block_index": 0,
+                            "min_fee_rate": 15.0,
+                            "max_fee_rate": 250.0,
+                            "median_fee_rate": 25.0,
+                            "tx_count": 2800,
+                            "total_weight": 3990000,
+                            "total_fees_sat": 8500000,
+                        },
+                    ],
+                    "meta": {"node_height": 881234, "chain": "main"},
+                }
+            }
+        },
+    }
+}
+
+
+@router.get("/mempool-blocks", response_model=ApiResponse[list[dict]], responses=_MEMPOOL_BLOCKS_EXAMPLE)
+def fees_mempool_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
+    """Project the next N blocks from the current mempool, sorted by fee rate descending."""
+    raw = rpc.call("getrawmempool", True)
+    info = cached_blockchain_info(rpc)
+
+    # Build list of (fee_rate, weight, fee_sat) per tx
+    txs = []
+    for txid, entry in raw.items():
+        fee_sat = entry.get("fees", {}).get("base", 0) * 1e8
+        weight = entry.get("weight", entry.get("vsize", 0) * 4)
+        if weight > 0:
+            fee_rate = fee_sat / (weight / 4)  # sat/vB
+            txs.append((fee_rate, weight, fee_sat))
+
+    # Sort by fee rate descending (miners pick highest first)
+    txs.sort(key=lambda x: x[0], reverse=True)
+
+    blocks = []
+    block_weight = 0
+    block_txs = []
+
+    for fee_rate, weight, fee_sat in txs:
+        if block_weight + weight > _MAX_BLOCK_WEIGHT:
+            # Finalize current block
+            if block_txs:
+                rates = [t[0] for t in block_txs]
+                blocks.append({
+                    "block_index": len(blocks),
+                    "min_fee_rate": round(min(rates), 2),
+                    "max_fee_rate": round(max(rates), 2),
+                    "median_fee_rate": round(sorted(rates)[len(rates) // 2], 2),
+                    "tx_count": len(block_txs),
+                    "total_weight": block_weight,
+                    "total_fees_sat": round(sum(t[2] for t in block_txs)),
+                })
+            block_weight = 0
+            block_txs = []
+            if len(blocks) >= 8:
+                break
+        block_weight += weight
+        block_txs.append((fee_rate, weight, fee_sat))
+
+    # Don't forget the last partial block
+    if block_txs and len(blocks) < 8:
+        rates = [t[0] for t in block_txs]
+        blocks.append({
+            "block_index": len(blocks),
+            "min_fee_rate": round(min(rates), 2),
+            "max_fee_rate": round(max(rates), 2),
+            "median_fee_rate": round(sorted(rates)[len(rates) // 2], 2),
+            "tx_count": len(block_txs),
+            "total_weight": block_weight,
+            "total_fees_sat": round(sum(t[2] for t in block_txs)),
+        })
+
+    return envelope(blocks, height=info["blocks"], chain=info["chain"])
 
 
 @router.get("/{target}", response_model=ApiResponse[FeeEstimateData], responses=_FEE_TARGET_EXAMPLE)
