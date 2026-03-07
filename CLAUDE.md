@@ -65,7 +65,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/db.py` | SQLite (WAL), key storage, fee history |
 | `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, serializers) |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
-| `tests/test_api.py` | Unit tests (139) |
+| `tests/test_api.py` | Unit tests (175) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |

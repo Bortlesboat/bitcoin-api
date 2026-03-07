@@ -83,6 +83,17 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 - `ENABLE_ADDRESS_ROUTER=true` -- toggle address lookup endpoints
 - `ENABLE_EXCHANGE_COMPARE=true` -- toggle exchange comparison endpoint
 
+### Stripe Billing (optional)
+```ini
+STRIPE_SECRET_KEY=sk_live_...       # Stripe API secret key
+STRIPE_WEBHOOK_SECRET=whsec_...     # Stripe webhook signing secret
+STRIPE_PRICE_ID=price_...           # Stripe Price ID for Pro tier
+STRIPE_SUCCESS_URL=https://bitcoinsapi.com/billing/success
+STRIPE_CANCEL_URL=https://bitcoinsapi.com/billing/cancel
+```
+
+If these are not set, billing endpoints return **503 Service Unavailable** with a message that billing is not configured. The rest of the API is unaffected.
+
 ---
 
 ## 3. Analytics Dashboard (Admin Only)
