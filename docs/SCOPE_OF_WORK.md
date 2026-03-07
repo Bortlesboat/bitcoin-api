@@ -198,7 +198,11 @@ Errors follow the same structure:
 | **Secrets** | SecretStr for RPC password | Pydantic SecretStr prevents accidental logging |
 | **Access Logging** | Structured logs | IP, method, path, status, tier, request_id |
 | **CORS** | Allowlist-based | Configured origins, not wildcard in production |
-| **Security Headers** | Middleware-injected | CSP, X-Frame-Options DENY, HSTS, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, X-XSS-Protection |
+| **Security Headers** | Middleware-injected | CSP, X-Frame-Options DENY, HSTS, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, X-XSS-Protection, X-Data-Disclaimer |
+| **Terms of Service** | `/terms` static page | Acceptable use, liability limitation, financial disclaimer, FL governing law |
+| **Privacy Policy** | `/privacy` static page | Data collection transparency, retention periods, third-party services |
+| **ToS Acceptance** | `/register` endpoint | `agreed_to_terms: true` required for API key registration |
+| **CoinGecko Attribution** | Prices response + footer | Required by CoinGecko ToS; `attribution` field in /prices response |
 | **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
 | **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for Cloudflare analytics, inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
 | **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
@@ -305,6 +309,7 @@ Errors follow the same structure:
 | 11 | Security hardening (headers, CSP, HSTS), exchange compare tool, SEO comparison pages, robots.txt, sitemap.xml | 6 |
 | 12 | Production hardening: RPC timeout, Cache-Control, 404 JSON, address timeout guard, cached raw mempool | 3 |
 | 13 | Simplify for launch: feature flags for extended routers, 2-tier pricing presentation, README trim, Show HN draft | 0 |
+| 14 | Legal infrastructure: ToS, Privacy Policy, financial disclaimer header, CoinGecko attribution, ToS acceptance on /register, Apache 2.0 license, DCO | 0 |
 | **Total** | **42 endpoints, 13 routers** | **118 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
@@ -340,7 +345,12 @@ Errors follow the same structure:
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
 - `scripts/staging-check.sh` (pre-deploy validation: starts staging server, checks CSP/headers/docs/endpoints)
 
-**Website (10 files):**
+**Legal (3 files):**
+- `static/terms.html` -- Terms of Service (FL governing law, liability limitation, acceptable use)
+- `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
+- `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
+
+**Website (12 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -350,7 +360,9 @@ Errors follow the same structure:
 - `static/bitcoin-fee-api.html` -- SEO feature page: fee estimation endpoints
 - `static/bitcoin-mempool-api.html` -- SEO feature page: mempool analysis endpoints
 - `static/robots.txt` -- Search engine crawl directives (welcomes AI crawlers)
-- `static/sitemap.xml` -- XML sitemap for search engines (9 URLs)
+- `static/terms.html` -- Terms of Service page
+- `static/privacy.html` -- Privacy Policy page
+- `static/sitemap.xml` -- XML sitemap for search engines (11 URLs)
 
 ---
 

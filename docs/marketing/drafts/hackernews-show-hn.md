@@ -6,7 +6,7 @@
 
 **First comment (the "Show HN" comment):**
 
-Satoshi API wraps Bitcoin Core's JSON-RPC in a REST interface with 42 endpoints. `pip install satoshi-api`, set your RPC credentials, and you have a local API on port 9332.
+Satoshi API wraps Bitcoin Core's JSON-RPC in a REST interface with 49 endpoints. `pip install satoshi-api`, set your RPC credentials, and you have a local API on port 9332.
 
 I built this because every Bitcoin app I worked on ended up reimplementing the same layer: fee estimation with human-readable context, mempool congestion analysis, block lookups that handle both height and hash, reorg-aware caching. This packages all of that into a single install.
 

@@ -4,9 +4,9 @@
 
 | Fact | Value | Source of Truth |
 |------|-------|-----------------|
-| Version (live) | v0.3.0 | CHANGELOG.md |
-| Version (PyPI) | 0.2.1 — NEEDS UPDATE | pypi.org/project/satoshi-api |
-| Endpoints | 40+ | docs/SCOPE_OF_WORK.md |
+| Version (live) | v0.3.1 | CHANGELOG.md |
+| Version (PyPI) | 0.3.1 — NEEDS UPDATE | pypi.org/project/satoshi-api |
+| Endpoints | 49 | docs/SCOPE_OF_WORK.md |
 | Tests | 115 unit + 21 e2e | tests/ |
 | Install command | `pip install satoshi-api` | pypi |
 | Live URL | https://bitcoinsapi.com | Cloudflare Tunnel |
@@ -22,9 +22,9 @@
 - [x] IndexNow submitted to Bing/Yandex
 - [x] GitHub: 15 topics, description, homepage set
 - [x] GitHub: issue templates, PR template, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT
-- [x] GitHub: v0.3.0 release created
+- [x] GitHub: v0.3.1 release created
 - [x] Dev.to article published
-- [ ] PyPI: publish v0.3.0 (BLOCKER — marketing says "pip install" but PyPI is stale)
+- [ ] PyPI: publish v0.3.1 (BLOCKER — marketing says "pip install" but PyPI is stale)
 - [ ] GitHub social preview image uploaded
 - [ ] Bing Webmaster Tools setup
 
@@ -38,7 +38,7 @@
 | Reddit r/selfhosted | TODO | See drafts below | | |
 | Reddit r/Bitcoin | TODO | See drafts below | | |
 | Stacker News | TODO | See drafts below | | |
-| PyPI v0.3.0 publish | TODO | N/A | | |
+| PyPI v0.3.1 publish | TODO | N/A | | |
 | awesome-selfhosted PR | TODO | N/A | | |
 | awesome-fastapi PR | TODO | N/A | | |
 
@@ -98,7 +98,7 @@ When the product changes, these materials MUST be updated:
 
 ## Key Messages (use consistently across all channels)
 
-1. **Primary:** Self-hosted REST API for Bitcoin Core. 40+ endpoints. `pip install satoshi-api`.
+1. **Primary:** Self-hosted REST API for Bitcoin Core. 49 endpoints. `pip install satoshi-api`.
 2. **Differentiator:** Only Bitcoin API with native AI agent support (MCP).
 3. **Privacy angle:** Your node, your data. Queries never leave your network.
 4. **Developer angle:** Analyzed data, not raw RPC. Fees in sat/vB, congestion levels, human-readable recommendations.

@@ -1,6 +1,6 @@
 # Platform: r/BitcoinDev
 
-**Suggested Title:** Satoshi API: open-source REST wrapper for Bitcoin Core RPC (42 endpoints, pip install)
+**Suggested Title:** Satoshi API: open-source REST wrapper for Bitcoin Core RPC (49 endpoints, pip install)
 
 ---
 

@@ -23,11 +23,14 @@ CREATE TABLE IF NOT EXISTS api_keys (
 );
 
 CREATE TABLE IF NOT EXISTS usage_log (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    key_hash   TEXT,
-    endpoint   TEXT NOT NULL,
-    status     INTEGER NOT NULL,
-    ts         TEXT NOT NULL DEFAULT (datetime('now'))
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    key_hash        TEXT,
+    endpoint        TEXT NOT NULL,
+    status          INTEGER NOT NULL,
+    method          TEXT,
+    response_time_ms REAL,
+    user_agent      TEXT,
+    ts              TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_usage_ts ON usage_log(ts);

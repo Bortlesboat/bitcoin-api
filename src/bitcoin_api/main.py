@@ -134,10 +134,6 @@ async def security_headers(request: Request, call_next):
             "base-uri 'self'; "
             "form-action 'self'"
         )
-    # Financial data disclaimer on API responses
-    if path.startswith("/api/v1/"):
-        response.headers["X-Data-Disclaimer"] = "For informational purposes only. Not financial advice. See /terms"
-
     if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     progress = get_sync_progress()
@@ -146,6 +142,10 @@ async def security_headers(request: Request, call_next):
 
     # Cache-Control headers based on endpoint type
     path = request.url.path
+
+    # Financial data disclaimer on API responses
+    if path.startswith("/api/v1/"):
+        response.headers["X-Data-Disclaimer"] = "For informational purposes only. Not financial advice. See /terms"
     if "Cache-Control" not in response.headers:
         if path.startswith("/api/v1/fees") or path.startswith("/api/v1/mempool") or path.startswith("/api/v1/prices"):
             response.headers["Cache-Control"] = "public, max-age=10"
@@ -246,7 +246,9 @@ async def auth_and_rate_limit(request: Request, call_next):
         resp.headers["X-RateLimit-Limit"] = str(result.limit)
         resp.headers["X-RateLimit-Remaining"] = "0"
         resp.headers["X-RateLimit-Reset"] = str(int(result.reset))
-        log_usage(bucket, request.url.path, 429)
+        elapsed_ms = (time.monotonic() - start_time) * 1000
+        log_usage(bucket, request.url.path, 429,
+                  method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
         return resp
 
     # Daily rate limit
@@ -266,7 +268,9 @@ async def auth_and_rate_limit(request: Request, call_next):
         resp.headers["X-Request-ID"] = request_id
         resp.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
         resp.headers["X-RateLimit-Daily-Remaining"] = "0"
-        log_usage(bucket, request.url.path, 429)
+        elapsed_ms = (time.monotonic() - start_time) * 1000
+        log_usage(bucket, request.url.path, 429,
+                  method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
         return resp
 
     try:
@@ -287,7 +291,9 @@ async def auth_and_rate_limit(request: Request, call_next):
             ).model_dump(),
         )
         resp.headers["X-Request-ID"] = request_id
-        log_usage(bucket, request.url.path, 500)
+        elapsed_ms = (time.monotonic() - start_time) * 1000
+        log_usage(bucket, request.url.path, 500,
+                  method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
         return resp
 
     # Add request ID and auth tier headers
@@ -310,7 +316,9 @@ async def auth_and_rate_limit(request: Request, call_next):
     response.headers["X-RateLimit-Daily-Remaining"] = str(daily_result.remaining)
 
     # Log usage (use bucket so anonymous users are tracked by IP)
-    log_usage(bucket, request.url.path, response.status_code)
+    elapsed_ms = (time.monotonic() - start_time) * 1000
+    log_usage(bucket, request.url.path, response.status_code,
+              method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
 
     # Structured access logging
     client_ip = request.client.host if request.client else "unknown"
@@ -457,6 +465,9 @@ app.include_router(mining.router, prefix=PREFIX)
 app.include_router(network.router, prefix=PREFIX)
 app.include_router(stream.router, prefix=PREFIX)
 app.include_router(keys.router, prefix=PREFIX)
+
+from .routers.analytics import router as _analytics_router  # noqa: E402
+app.include_router(_analytics_router, prefix=PREFIX)
 
 # --- Extended (toggleable) ---
 if settings.enable_prices_router:

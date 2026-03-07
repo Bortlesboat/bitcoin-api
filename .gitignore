@@ -9,3 +9,7 @@ data/
 .venv/
 tasks/
 start-api.bat
+
+logs/
+docs/LLC_PREP.md
+docs/BUSINESS_PLAN.md
