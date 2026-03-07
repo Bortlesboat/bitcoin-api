@@ -10,10 +10,11 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from .auth import authenticate
-from .cache import get_sync_progress
+from .cache import get_cache_state, get_sync_progress
+from .circuit_breaker import CircuitOpenError, rpc_breaker
 from .config import settings
 from .db import log_usage
-from .exceptions import ERROR_TYPES
+from .exceptions import ERROR_TYPES, _GUIDE_URL, _guide_help_url
 from .models import ErrorResponse, ErrorDetail
 from .rate_limit import check_rate_limit, check_daily_limit
 
@@ -23,12 +24,12 @@ log = logging.getLogger("bitcoin_api")
 _DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard"}
 
 _RATE_LIMIT_SKIP = {
-    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz",
+    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
     "/api/v1/stream/blocks", "/api/v1/stream/fees",
     "/robots.txt", "/sitemap.xml", "/favicon.ico",
     "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
-    "/bitcoin-fee-api", "/bitcoin-mempool-api",
+    "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
     "/terms", "/privacy",
     "/api/v1/analytics/overview", "/api/v1/analytics/requests",
     "/api/v1/analytics/endpoints", "/api/v1/analytics/errors",
@@ -73,8 +74,9 @@ def register_middleware(app: FastAPI):
                         type=ERROR_TYPES["unauthorized"],
                         status=401,
                         title="Unauthorized",
-                        detail="API key not found or inactive",
+                        detail="API key not found or inactive. Get a free key: POST /api/v1/register",
                         request_id=request_id,
+                        help_url=_GUIDE_URL,
                     )
                 ).model_dump(),
             )
@@ -86,6 +88,9 @@ def register_middleware(app: FastAPI):
         result = check_rate_limit(bucket, key_info.tier)
         if not result.allowed:
             retry_after = max(1, int(result.reset - time.time()))
+            detail_msg = f"Limit: {result.limit} req/min for {key_info.tier} tier"
+            if key_info.tier == "anonymous":
+                detail_msg += ". Upgrade: POST /api/v1/register"
             resp = JSONResponse(
                 status_code=429,
                 content=ErrorResponse(
@@ -93,8 +98,9 @@ def register_middleware(app: FastAPI):
                         type=ERROR_TYPES["rate_limit"],
                         status=429,
                         title="Rate Limit Exceeded",
-                        detail=f"Limit: {result.limit} req/min for {key_info.tier} tier",
+                        detail=detail_msg,
                         request_id=request_id,
+                        help_url=_GUIDE_URL,
                     )
                 ).model_dump(),
             )
@@ -110,6 +116,9 @@ def register_middleware(app: FastAPI):
 
         daily_result = check_daily_limit(bucket, key_info.tier)
         if not daily_result.allowed:
+            daily_detail = f"Daily limit: {daily_result.limit} requests for {key_info.tier} tier"
+            if key_info.tier == "anonymous":
+                daily_detail += ". Upgrade: POST /api/v1/register"
             resp = JSONResponse(
                 status_code=429,
                 content=ErrorResponse(
@@ -117,8 +126,9 @@ def register_middleware(app: FastAPI):
                         type=ERROR_TYPES["rate_limit"],
                         status=429,
                         title="Daily Rate Limit Exceeded",
-                        detail=f"Daily limit: {daily_result.limit} requests for {key_info.tier} tier",
+                        detail=daily_detail,
                         request_id=request_id,
+                        help_url=_GUIDE_URL,
                     )
                 ).model_dump(),
             )
@@ -130,6 +140,41 @@ def register_middleware(app: FastAPI):
             log_usage(bucket, request.url.path, 429,
                       method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
             return resp
+
+        # Circuit breaker: fast-fail for RPC-dependent endpoints
+        path = request.url.path
+        _is_rpc_path = (
+            path.startswith("/api/v1/")
+            and not path.startswith("/api/v1/health")
+            and not path.startswith("/api/v1/keys")
+            and not path.startswith("/api/v1/register")
+            and not path.startswith("/api/v1/analytics")
+            and not path.startswith("/api/v1/guide")
+        )
+        if _is_rpc_path:
+            try:
+                rpc_breaker.before_call()
+            except CircuitOpenError:
+                remaining = rpc_breaker._recovery_timeout - (time.time() - rpc_breaker._last_failure_time)
+                retry_after = str(max(1, int(remaining)))
+                resp = JSONResponse(
+                    status_code=503,
+                    content=ErrorResponse(
+                        error=ErrorDetail(
+                            type=ERROR_TYPES["circuit_open"],
+                            status=503,
+                            title="Service Unavailable",
+                            detail="Circuit breaker OPEN -- Bitcoin node unavailable. Fast-failing to avoid delays.",
+                            request_id=request_id,
+                        )
+                    ).model_dump(),
+                )
+                resp.headers["X-Request-ID"] = request_id
+                resp.headers["Retry-After"] = retry_after
+                elapsed_ms = (time.monotonic() - start_time) * 1000
+                log_usage(bucket, request.url.path, 503,
+                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                return resp
 
         try:
             response = await call_next(request)
@@ -154,6 +199,10 @@ def register_middleware(app: FastAPI):
             log_usage(bucket, request.url.path, 500,
                       method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
             return resp
+
+        # Circuit breaker: record success for RPC paths with 2xx responses
+        if _is_rpc_path and 200 <= response.status_code < 300:
+            rpc_breaker.record_success()
 
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Auth-Tier"] = key_info.tier
@@ -247,5 +296,10 @@ def register_middleware(app: FastAPI):
                 response.headers["Cache-Control"] = "no-cache"
             elif path == "/api/v1/register":
                 response.headers["Cache-Control"] = "no-store"
+
+        # HTTP Age header for cached responses (RFC 7234)
+        is_cached, cache_age = get_cache_state()
+        if is_cached and cache_age is not None:
+            response.headers["Age"] = str(cache_age)
 
         return response
