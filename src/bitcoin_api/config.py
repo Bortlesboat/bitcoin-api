@@ -51,6 +51,16 @@ class Settings(BaseSettings):
     # Admin API key for analytics endpoints
     admin_api_key: str | None = None
 
+    # WebSocket
+    ws_max_connections: int = 100
+
+    # Stripe billing (all optional — billing disabled if stripe_secret_key is None)
+    stripe_secret_key: SecretStr | None = None
+    stripe_webhook_secret: SecretStr | None = None
+    stripe_price_id: str = ""
+    stripe_success_url: str = "https://bitcoinsapi.com?checkout=success"
+    stripe_cancel_url: str = "https://bitcoinsapi.com?checkout=cancel"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

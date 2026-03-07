@@ -16,6 +16,7 @@ from .config import settings
 from .db import log_usage
 from .exceptions import ERROR_TYPES, _GUIDE_URL, _guide_help_url
 from .models import ErrorResponse, ErrorDetail
+from .metrics import REQUEST_COUNT, REQUEST_LATENCY
 from .rate_limit import check_rate_limit, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
@@ -37,6 +38,9 @@ _RATE_LIMIT_SKIP = {
     "/api/v1/analytics/keys", "/api/v1/analytics/growth",
     "/api/v1/analytics/slow-endpoints", "/api/v1/analytics/retention",
     "/admin/dashboard",
+    "/metrics",
+    "/api/v1/ws",
+    "/api/v1/billing/webhook",
 }
 
 
@@ -203,6 +207,14 @@ def register_middleware(app: FastAPI):
         # Circuit breaker: record success for RPC paths with 2xx responses
         if _is_rpc_path and 200 <= response.status_code < 300:
             rpc_breaker.record_success()
+
+        elapsed_s = time.monotonic() - start_time
+        _endpoint = request.url.path
+        REQUEST_COUNT.labels(
+            method=req_method, endpoint=_endpoint,
+            status=str(response.status_code), tier=key_info.tier,
+        ).inc()
+        REQUEST_LATENCY.labels(method=req_method, endpoint=_endpoint).observe(elapsed_s)
 
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Auth-Tier"] = key_info.tier

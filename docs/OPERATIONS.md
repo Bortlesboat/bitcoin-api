@@ -216,7 +216,22 @@ python scripts/security_audit.py
 
 ---
 
-## 7. Agent Employees (10 Agents — Claude Code Skills)
+## 7. Interactive API Guide
+
+The `/api/v1/guide` endpoint returns curated code examples and use-case walkthroughs. No auth required.
+
+```bash
+# Full guide (all use cases, default language)
+curl https://bitcoinsapi.com/api/v1/guide
+
+# Filter by use case and language
+curl "https://bitcoinsapi.com/api/v1/guide?use_case=fees&lang=python"
+curl "https://bitcoinsapi.com/api/v1/guide?use_case=transactions&lang=curl"
+```
+
+---
+
+## 8. Agent Employees (10 Agents — Claude Code Skills)
 
 The project has 10 specialized agents (flat org, all report to CEO) you can run as slash commands:
 
@@ -242,7 +257,7 @@ After any code change, Claude will check the trigger matrix in `docs/AGENT_ROLES
 
 ---
 
-## 8. Building & Publishing
+## 9. Building & Publishing
 
 ### Build the PyPI package locally
 ```bash
@@ -263,7 +278,7 @@ python -m twine upload dist/satoshi_api-*.whl dist/satoshi_api-*.tar.gz
 
 ---
 
-## 9. Domain & HTTPS (Cloudflare)
+## 10. Domain & HTTPS (Cloudflare)
 
 - **Domain:** bitcoinsapi.com (Cloudflare Registrar)
 - **Tunnel:** `cloudflared` Windows service routes `bitcoinsapi.com` -> `localhost:9332`
@@ -284,7 +299,7 @@ Both are intentional and don't conflict. Do NOT delete either one. New HTML page
 
 ---
 
-## 10. Pending Setup (Manual Browser Actions)
+## 11. Pending Setup (Manual Browser Actions)
 
 ### Bing Webmaster Tools — DONE (2026-03-07)
 Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitted: `https://bitcoinsapi.com/sitemap.xml`. Token is in `static/index.html`.
@@ -296,11 +311,11 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 ---
 
-## 11. File Map
+## 12. File Map
 
 | Location | What's there |
 |----------|-------------|
-| `src/bitcoin_api/` | All source code (13 modules + 14 routers) |
+| `src/bitcoin_api/` | All source code (13 modules + 15 routers) |
 | `tests/` | Unit tests, e2e tests, load test, helpers |
 | `static/` | Landing page, SEO pages, legal pages, robots/sitemap |
 | `docs/` | SOW, self-hosting guide, marketing, legal |

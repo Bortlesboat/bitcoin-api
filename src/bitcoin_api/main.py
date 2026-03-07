@@ -12,7 +12,7 @@ from .jobs import start_background_jobs, stop_background_jobs
 from .middleware import register_middleware
 from .static_routes import register_static_routes
 from . import __version__
-from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address, health_deep
+from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address, health_deep, guide, metrics as metrics_router, websocket as ws_router, billing as billing_router
 
 log = logging.getLogger("bitcoin_api")
 
@@ -64,9 +64,20 @@ app.include_router(network.router, prefix=PREFIX)
 app.include_router(stream.router, prefix=PREFIX)
 app.include_router(keys.router, prefix=PREFIX)
 app.include_router(health_deep.router, prefix=PREFIX)
+app.include_router(guide.router, prefix=PREFIX)
 
 from .routers.analytics import router as _analytics_router  # noqa: E402
 app.include_router(_analytics_router, prefix=PREFIX)
+
+# Prometheus metrics (no prefix — served at /metrics)
+app.include_router(metrics_router.router)
+
+# WebSocket
+app.include_router(ws_router.router, prefix=PREFIX)
+
+# Stripe billing (conditional — only if configured)
+if settings.stripe_secret_key is not None:
+    app.include_router(billing_router.router, prefix=PREFIX)
 
 # Extended (toggleable via feature flags)
 _FEATURE_ROUTERS = {

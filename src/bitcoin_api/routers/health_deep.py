@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Request
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import get_cache_state, get_sync_progress, get_all_cache_stats
+from ..circuit_breaker import rpc_breaker
 from ..dependencies import get_rpc
 from ..jobs import get_job_health
 from ..migrations.runner import get_migration_status
@@ -63,6 +64,7 @@ def health_deep(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
             "caches": cache_stats,
         },
         "sync_progress": sync,
+        "circuit_breaker": rpc_breaker.get_status(),
         "background_jobs": get_job_health(),
         "usage_buffer_pending": usage_buffer.pending_count,
         "uptime_seconds": int(time.time() - _start_time),

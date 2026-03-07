@@ -58,7 +58,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 14 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 15 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -72,7 +72,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (50 total)
+### 3.1 Endpoints (51 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -130,6 +130,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/analytics/growth` | GET | Admin key |
 | | `/api/v1/analytics/slow-endpoints` | GET | Admin key |
 | | `/api/v1/analytics/retention` | GET | Admin key |
+| **Guide** | `/api/v1/guide` | GET | No |
 | **Admin UI** | `/admin/dashboard` | GET | Admin key (query param) |
 
 ### 3.2 Endpoint Tiers
@@ -223,12 +224,13 @@ Errors follow the same structure:
 | **Privacy Policy** | `/privacy` static page | Data collection transparency, retention periods, third-party services |
 | **ToS Acceptance** | `/register` endpoint | `agreed_to_terms: true` required for API key registration |
 | **CoinGecko Attribution** | Prices response + footer | Required by CoinGecko ToS; `attribution` field in /prices response |
-| **RFC 7807 Errors** | `type` URI on all error responses | 11 error type URIs at `https://bitcoinsapi.com/errors/*`, default `about:blank` |
+| **RFC 7807 Errors** | `type` URI on all error responses | 12 error type URIs at `https://bitcoinsapi.com/errors/*`, default `about:blank` |
 | **Retry-After** | Header on 429 responses | Per-minute: calculated from window reset; daily: 3600s |
 | **Gzip Compression** | GzipMiddleware | Responses ≥1000 bytes compressed automatically |
 | **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
 | **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
 | **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
+| **Circuit Breaker** | RPC fast-fail | 3 failures → OPEN (503 + Retry-After), 30s cooldown → HALF_OPEN probe, success → CLOSED. Non-RPC endpoints unaffected. |
 
 ### 4.2 Threat Model
 
@@ -260,7 +262,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A- | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (10 endpoints + visual dashboard), auto-pruning. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 139 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 148 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -341,14 +343,15 @@ Errors follow the same structure:
 | 17 | Service layer extraction (~300 lines from routers→services), enhanced migration runner (rollback, status, validation), structured JSON logging, migration status in /health/deep | 0 (existing 129 all pass) |
 | 18 | Industry Standards: RFC 7807 type URIs, Retry-After on 429s, OpenAPI metadata (contact/license/terms/servers), GzipMiddleware, favicon route | 0 (existing 129 all pass) |
 | 19 | Analytics infrastructure expansion: 4 new analytics endpoints (keys, growth, slow-endpoints, retention), auto-pruning in fee collector, admin dashboard (Chart.js), CSP + rate-limit skip updates | 10 |
-| **Total** | **50 endpoints, 14 routers** | **139 unit + 21 e2e** |
+| 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
+| **Total** | **51 endpoints, 15 routers** | **148 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (28 files):**
-- `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, exceptions, jobs, middleware, models, rate_limit, static_routes, usage_buffer
+**Source (29 files):**
+- `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, middleware, models, rate_limit, static_routes, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers
-- `src/bitcoin_api/routers/` -- address, analytics, blocks, exchanges, fees, health_deep, keys, mempool, mining, network, prices, status, stream, transactions
+- `src/bitcoin_api/routers/` -- address, analytics, blocks, exchanges, fees, guide, health_deep, keys, mempool, mining, network, prices, status, stream, transactions
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql
 
 **Tests (4 files):**
@@ -431,7 +434,7 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [x] All 139 unit tests pass
+- [x] All 148 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)

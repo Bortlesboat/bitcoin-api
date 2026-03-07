@@ -6,6 +6,8 @@ import time
 
 from .db import record_fee_snapshot, prune_fee_history, prune_old_logs
 from .cache import record_mempool_snapshot
+from .metrics import BLOCK_HEIGHT, JOB_ERRORS
+from .pubsub import hub
 
 log = logging.getLogger("bitcoin_api")
 
@@ -77,6 +79,31 @@ def _fee_collector():
             )
             _last_success_time = time.time()
 
+            # Update Prometheus gauge
+            block_count = rpc.call("getblockcount")
+            BLOCK_HEIGHT.set(block_count)
+
+            # Publish events to WebSocket subscribers
+            hub.publish("new_fees", {
+                "next_block_fee": round(next_block_fee, 2),
+                "median_fee": round(median_fee, 2),
+                "low_fee": round(low_fee, 2),
+                "congestion": congestion,
+                "timestamp": int(time.time()),
+            })
+            hub.publish("mempool_update", {
+                "size": mempool_size,
+                "vsize": mempool_vsize,
+                "congestion": congestion,
+                "timestamp": int(time.time()),
+            })
+            if hasattr(_fee_collector, "_last_block") and _fee_collector._last_block != block_count:
+                hub.publish("new_block", {
+                    "height": block_count,
+                    "timestamp": int(time.time()),
+                })
+            _fee_collector._last_block = block_count
+
             # Auto-prune old data once per 24h
             if time.time() - _last_prune > 86400:
                 try:
@@ -90,6 +117,7 @@ def _fee_collector():
         except Exception as exc:
             _error_count += 1
             _last_error = str(exc)
+            JOB_ERRORS.inc()
             log.warning("Background fee collector failed (attempt %d, errors %d): %s",
                         _run_count, _error_count, exc)
 

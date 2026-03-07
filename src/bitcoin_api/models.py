@@ -29,6 +29,7 @@ class ErrorDetail(BaseModel):
     title: str
     detail: str
     request_id: str | None = None
+    help_url: str | None = None
 
 
 class ErrorResponse(BaseModel):
