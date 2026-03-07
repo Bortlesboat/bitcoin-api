@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Satoshi API — REST API for Your Bitcoin Node</title>
 <meta name="description" content="Satoshi API is an open-source REST API for Bitcoin Core nodes. One pip install gives you 40 analyzed endpoints — fee recommendations, mempool analysis, mining stats, and real-time streams. Self-hosted, privacy-preserving, MCP-ready for AI agents.">
+<meta name="google-site-verification" content="AD9lQsKgOGRhHn2Lb6LvPs2caMbkUE9igca5A3A726U" />
 <meta name="keywords" content="bitcoin api, bitcoin rest api, self-hosted bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
 <link rel="canonical" href="https://bitcoinsapi.com">
 <meta property="og:title" content="Satoshi API — REST API for Your Bitcoin Node">
@@ -49,6 +50,7 @@
   nav .links { display: flex; gap: 24px; font-size: 0.9em; }
   nav .links a { color: var(--muted); }
   nav .links a:hover { color: var(--text); text-decoration: none; }
+  .nav-toggle { display: none; }
 
   /* Hero */
   .hero { text-align: center; padding: 100px 0 80px; }
@@ -133,10 +135,61 @@
   .uptime-badge { font-size: 0.75em; background: #3fb95018; color: var(--green); padding: 2px 8px; border-radius: 10px; border: 1px solid #3fb95030; }
 
   @media (max-width: 600px) {
-    .hero h1 { font-size: 2em; }
+    .hero h1 { font-size: 1.75em; letter-spacing: -0.5px; }
     .hero .subtitle { font-size: 1em; }
+    .hero { padding: 60px 0 48px; }
     section { padding: 48px 0; }
-    .trust-badges { gap: 8px; }
+
+    /* Nav: collapsible menu */
+    nav { padding: 12px 16px; flex-wrap: wrap; }
+    nav .links { display: none; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
+    nav .links.open { display: flex; }
+    .nav-toggle { display: block; background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+    .container { padding: 0 16px; }
+
+    /* CTA buttons stack vertically */
+    .hero .cta { flex-direction: column; align-items: center; gap: 10px; }
+    .hero .cta a { width: 100%; max-width: 300px; text-align: center; padding: 14px 20px; }
+
+    /* Code blocks: smaller font, don't overflow */
+    pre { font-size: 0.78em; padding: 14px; line-height: 1.6; word-break: break-word; }
+
+    /* Trust badges wrap nicely */
+    .trust-badges { gap: 8px; padding: 16px 0; }
+    .trust-badge { font-size: 0.8em; padding: 5px 12px; }
+
+    /* Feature/use-case grids: single column */
+    .features, .use-cases { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+    .feature, .use-case { padding: 20px; }
+
+    /* Pricing: single column */
+    .pricing-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+    .price-card { padding: 24px; }
+    .price-card .price { font-size: 1.6em; }
+
+    /* Tables: horizontal scroll wrapper */
+    .endpoint-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .endpoint-table th, .endpoint-table td { white-space: nowrap; padding: 8px; font-size: 0.82em; }
+
+    /* Stack diagram */
+    .stack-layer { padding: 14px 20px; font-size: 0.9em; }
+
+    /* Section titles */
+    .section-title { font-size: 1.4em; }
+    .section-subtitle { font-size: 0.95em; }
+
+    /* Registration form: stack on very small screens */
+    #register-form > div:first-child { flex-direction: column; }
+    #register-form input, #register-form button { width: 100%; }
+    #register-form button { padding: 12px; }
+
+    /* Bottom CTA */
+    .bottom-cta h2 { font-size: 1.4em; }
+    .bottom-cta .cta { flex-direction: column; align-items: center; gap: 10px; }
+    .bottom-cta .cta a { width: 100%; max-width: 300px; text-align: center; }
+
+    /* Footer links wrap */
+    footer p { line-height: 2; }
   }
 </style>
 <script type="application/ld+json">
@@ -265,6 +318,7 @@
 
 <nav>
   <div class="logo">Satoshi API</div>
+  <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="links">
     <a href="#features">Features</a>
     <a href="#use-cases">Use Cases</a>
@@ -284,6 +338,7 @@
     <p class="subtitle">One pip install. Analyzed data, not raw RPC dumps. Open source, self-hosted, zero vendor lock-in.</p>
     <div class="cta">
       <a href="/docs" class="btn-primary btn-playground">Open Interactive Playground</a>
+      <a href="#quickstart" class="btn-secondary">Start Querying Now</a>
       <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     </div>
     <div class="hero-code">
@@ -494,9 +549,44 @@
 <section id="quickstart">
   <div class="container">
     <h2 class="section-title">Quick Start</h2>
-    <p class="section-subtitle">From node to API in under a minute.</p>
+    <p class="section-subtitle">Start querying Bitcoin data in seconds.</p>
 
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 1: pip install</h3>
+    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 1: Use the hosted API (no setup)</h3>
+    <p style="color: var(--muted); margin-bottom: 12px;">No node, no install, no signup. Just start making requests:</p>
+<pre><code><span style="color: var(--muted)"># Get current fee recommendations</span>
+curl https://bitcoinsapi.com/api/v1/fees/recommended
+
+<span style="color: var(--muted)"># Latest block analysis</span>
+curl https://bitcoinsapi.com/api/v1/blocks/latest
+
+<span style="color: var(--muted)"># Mempool congestion</span>
+curl https://bitcoinsapi.com/api/v1/mempool
+
+<span style="color: var(--muted)"># Mining stats</span>
+curl https://bitcoinsapi.com/api/v1/mining</code></pre>
+    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">That's it. No API key needed for GET requests. <a href="/docs">Try all 41 endpoints in the interactive playground</a>.</p>
+
+    <h3 id="get-api-key" style="margin-top: 48px; margin-bottom: 12px;">Option 2: Get a free API key (10x higher limits)</h3>
+    <p style="color: var(--muted); margin-bottom: 16px;">Unlock 10,000 requests/day and POST access. Takes 5 seconds:</p>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 480px;">
+      <form id="register-form" onsubmit="return handleRegister(event)">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <input type="email" id="reg-email" placeholder="you@example.com" required
+            style="flex: 1; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95em; outline: none;"
+          >
+          <button type="submit" id="reg-btn"
+            style="padding: 10px 20px; border-radius: 6px; border: none; background: var(--accent); color: #000; font-weight: 600; cursor: pointer; font-size: 0.95em; white-space: nowrap;"
+          >Get Key</button>
+        </div>
+        <input type="text" id="reg-label" placeholder="Label (optional, e.g. my-wallet-app)"
+          style="width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95em; outline: none; margin-bottom: 8px;"
+        >
+      </form>
+      <div id="reg-result" style="display: none; margin-top: 12px;"></div>
+    </div>
+
+    <h3 style="margin-top: 48px; margin-bottom: 12px;">Option 3: Self-host on your own node</h3>
+    <p style="color: var(--muted); margin-bottom: 12px;">Run the full API on your own Bitcoin Core node. Unlimited requests, full privacy.</p>
 <pre><code><span style="color: var(--muted)"># Install</span>
 pip install satoshi-api
 
@@ -509,28 +599,7 @@ satoshi-api
 <span style="color: var(--green)"># API at http://localhost:9332</span>
 <span style="color: var(--green)"># Docs at http://localhost:9332/docs</span></code></pre>
 
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 2: Docker</h3>
-<pre><code><span style="color: var(--muted)"># Create env file</span>
-echo "BITCOIN_RPC_USER=your_user" > .env
-echo "BITCOIN_RPC_PASSWORD=your_password" >> .env
-
-<span style="color: var(--muted)"># Run</span>
-docker compose up -d</code></pre>
-
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Option 3: Create API Keys (optional)</h3>
-<pre><code><span style="color: var(--muted)"># Generate a key for your app</span>
-python scripts/create_api_key.py --tier pro --label "my-wallet"
-<span style="color: var(--green)"># Key: sk_abc123... (save this, it won't be shown again)</span>
-
-<span style="color: var(--muted)"># Use it</span>
-curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
-
-    <h3 style="margin-top: 32px; margin-bottom: 12px;">Prerequisites</h3>
-    <ul style="color: var(--muted); padding-left: 20px; line-height: 2;">
-      <li>Bitcoin Core running with <code>server=1</code> in bitcoin.conf</li>
-      <li>Python 3.10+ (for pip install) or Docker</li>
-      <li><code>txindex=1</code> recommended (required for transaction lookups by txid)</li>
-    </ul>
+    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Also available via Docker: <code>docker compose up -d</code>. Requires Bitcoin Core with <code>server=1</code> and Python 3.10+. <code>txindex=1</code> recommended.</p>
   </div>
 </section>
 
@@ -562,7 +631,7 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
           <li>All GET endpoints</li>
           <li>No signup needed</li>
         </ul>
-        <a href="/docs" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Try it Now</a>
+        <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Try it Now</a>
       </div>
       <div class="price-card">
         <h3>Developer (API key)</h3>
@@ -573,7 +642,7 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
           <li>POST access (decode, broadcast)</li>
           <li>Free API key via email</li>
         </ul>
-        <a href="mailto:api@bitcoinsapi.com?subject=Satoshi%20API%20Key%20Request" class="btn-secondary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Request API Key</a>
+        <a href="#get-api-key" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Get Free Key Instantly</a>
       </div>
       <div class="price-card">
         <h3>Pro</h3>
@@ -621,11 +690,12 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
 <!-- Bottom CTA -->
 <section class="bottom-cta">
   <div class="container">
-    <h2>Your node already has the data. Give it a voice.</h2>
-    <p>pip install satoshi-api and start building.</p>
+    <h2>Start building on Bitcoin in 30 seconds.</h2>
+    <p>No signup, no install. Just curl and go.</p>
     <div class="cta">
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" target="_blank" rel="noopener noreferrer">Get Started</a>
-      <a href="/docs" class="btn-secondary">API Reference</a>
+      <a href="#quickstart" class="btn-primary">Quick Start</a>
+      <a href="/docs" class="btn-secondary">Interactive Docs</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer">Self-Host (GitHub)</a>
     </div>
   </div>
 </section>
@@ -678,9 +748,69 @@ curl -H "X-API-Key: sk_abc123..." localhost:9332/api/v1/mempool</code></pre>
   if (container) {
     container.style.cursor = 'pointer';
     container.title = 'Click to open interactive playground';
-    container.addEventListener('click', function() { window.location.href = '/docs'; });
+    container.addEventListener('click', function() { window.open('/docs', '_blank'); });
   }
 })();
+
+/* API Key Registration */
+function handleRegister(e) {
+  e.preventDefault();
+  var btn = document.getElementById('reg-btn');
+  var result = document.getElementById('reg-result');
+  var email = document.getElementById('reg-email').value;
+  var label = document.getElementById('reg-label').value || undefined;
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+  result.style.display = 'none';
+
+  var body = { email: email };
+  if (label) body.label = label;
+
+  fetch('/api/v1/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+  .then(function(res) {
+    btn.disabled = false;
+    btn.textContent = 'Get Key';
+    result.style.display = 'block';
+    if (res.ok) {
+      var key = (res.data.data && res.data.data.api_key) || res.data.api_key || JSON.stringify(res.data);
+      result.innerHTML =
+        '<div style="background: #3fb95018; border: 1px solid #3fb95040; border-radius: 6px; padding: 16px;">' +
+          '<div style="color: var(--green); font-weight: 600; margin-bottom: 8px;">Your API key is ready:</div>' +
+          '<div style="display: flex; align-items: center; gap: 8px;">' +
+            '<code id="api-key-value" style="flex: 1; word-break: break-all; font-size: 0.9em; background: var(--bg); padding: 8px 12px; border-radius: 4px;">' + key + '</code>' +
+            '<button onclick="copyKey()" style="padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; font-size: 0.85em;" id="copy-key-btn">Copy</button>' +
+          '</div>' +
+          '<div style="color: var(--muted); font-size: 0.85em; margin-top: 10px;">Save this key — it won\'t be shown again. Use it with: <code>curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/mempool</code></div>' +
+        '</div>';
+    } else {
+      var msg = (res.data.error && res.data.error.detail) || res.data.detail || 'Registration failed. Try again.';
+      result.innerHTML = '<div style="color: #f85149; font-size: 0.9em;">' + msg + '</div>';
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Get Key';
+    result.style.display = 'block';
+    result.innerHTML = '<div style="color: #f85149; font-size: 0.9em;">Network error. Please try again.</div>';
+  });
+  return false;
+}
+
+function copyKey() {
+  var val = document.getElementById('api-key-value');
+  var btn = document.getElementById('copy-key-btn');
+  if (val && navigator.clipboard) {
+    navigator.clipboard.writeText(val.textContent).then(function() {
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+  }
+}
 </script>
 </body>
 </html>
