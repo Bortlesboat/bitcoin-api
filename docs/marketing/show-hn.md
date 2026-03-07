@@ -12,7 +12,7 @@ So I built Satoshi API. One command:
 
     pip install satoshi-api && satoshi-api
 
-That's it. You now have a REST API wrapping your node with 41 endpoints covering blocks, transactions, fees, mempool, mining, network, and price data. It returns analyzed, structured JSON -- not raw RPC output. Fee estimates come with recommendations, transactions come decoded with input/output analysis, blocks come with summary statistics.
+That's it. You now have a REST API wrapping your node with 43 endpoints covering blocks, transactions, fees, mempool, mining, network, and price data. It returns analyzed, structured JSON -- not raw RPC output. Fee estimates come with recommendations, transactions come decoded with input/output analysis, blocks come with summary statistics.
 
 What makes it different:
 

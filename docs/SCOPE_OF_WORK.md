@@ -46,12 +46,12 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `main.py` | App lifecycle, middleware stack, exception handlers | Middleware chain |
 | `auth.py` | API key validation, tier resolution | Strategy (tier-based) |
 | `rate_limit.py` | Per-minute sliding window + daily limits | Token bucket / sliding window |
-| `cache.py` | TTL caching with reorg-safe depth awareness | Cache-aside with lock-per-cache |
+| `cache.py` | TTL caching with reorg-safe depth awareness, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache |
 | `db.py` | SQLite (WAL mode), usage logging, key storage | Repository pattern |
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `routers/` | 12 domain routers (blocks, tx, fees, mempool, mining, network, prices, status, keys, stream, exchanges) | RESTful resource routing |
+| `routers/` | 13 domain routers (address, blocks, tx, fees, mempool, mining, network, prices, status, keys, stream, exchanges, tools) | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -106,6 +106,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/network/difficulty` | GET | No |
 | | `/api/v1/network/validate-address/{addr}` | GET | No |
 | **Prices** | `/api/v1/prices` | GET | No |
+| **Address** | `/api/v1/address/{address}` | GET | No |
+| | `/api/v1/address/{address}/utxos` | GET | No |
 | **Streams** | `/api/v1/stream/blocks` | GET (SSE) | No |
 | | `/api/v1/stream/fees` | GET (SSE) | No |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
@@ -183,7 +185,7 @@ Errors follow the same structure:
 | **CORS** | Allowlist-based | Configured origins, not wildcard in production |
 | **Security Headers** | Middleware-injected | CSP, X-Frame-Options DENY, HSTS, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, X-XSS-Protection |
 | **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
-| **CSP** | Strict policy | `default-src 'self'`, allowlists for Cloudflare analytics, inline styles (landing page), GitHub images |
+| **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for Cloudflare analytics, inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
 | **Clickjacking** | Frame denial | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` |
 
 ### 4.2 Threat Model
@@ -216,7 +218,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | B- | Access logs + request IDs. Missing: Prometheus metrics. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 110 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 115 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | B+ | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. No schema migrations framework. |
@@ -278,16 +280,16 @@ Errors follow the same structure:
 | 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
 | 10 | Launch features: fee landscape, tx estimator, SSE streams, fee history | 9 |
 | 11 | Security hardening (headers, CSP, HSTS), exchange compare tool, SEO comparison pages, robots.txt, sitemap.xml | 6 |
-| **Total** | **41 endpoints, 12 routers** | **95 unit + 21 e2e** |
+| **Total** | **43 endpoints, 13 routers** | **115 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (14 files):**
+**Source (15 files):**
 - `src/bitcoin_api/` -- main, auth, cache, config, db, dependencies, models, rate_limit
-- `src/bitcoin_api/routers/` -- blocks, exchanges, fees, keys, mempool, mining, network, prices, status, stream, transactions
+- `src/bitcoin_api/routers/` -- address, blocks, exchanges, fees, keys, mempool, mining, network, prices, status, stream, transactions
 
 **Tests (3 files):**
-- `tests/test_api.py` -- 95 unit tests
+- `tests/test_api.py` -- 115 unit tests
 - `tests/test_e2e.py` -- 9 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 
@@ -350,7 +352,7 @@ Errors follow the same structure:
 
 ### 7.3 Go-Live Checklist
 
-- [x] All 95 unit tests pass
+- [x] All 115 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -503,11 +505,11 @@ twine upload dist/*
 - Includes: macaroon minting/verification, Lightning client (Alby Hub + mock), endpoint pricing, FastAPI middleware
 - Repository: github.com/Bortlesboat/bitcoin-api-l402
 
-### v0.5 (Address Lookups — Requires Electrs/Fulcrum)
-- `GET /address/{addr}` — address summary
-- `GET /address/{addr}/txs` — address transaction history
-- `GET /address/{addr}/utxo` — address UTXOs
-- PostgreSQL backend option
+### v0.5 (Address Lookups — PARTIAL)
+- [x] `GET /address/{address}` — address balance and UTXO summary via `scantxoutset` (no Electrs needed)
+- [x] `GET /address/{address}/utxos` — list UTXOs for address via `scantxoutset` (sorted by value, paginated)
+- [ ] `GET /address/{addr}/txs` — address transaction history (requires Electrs/Fulcrum)
+- [ ] PostgreSQL backend option
 
 ---
 
