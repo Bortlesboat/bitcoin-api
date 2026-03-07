@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from bitcoinlib_rpc.rpc import RPCError
 
@@ -138,6 +139,19 @@ async def security_headers(request: Request, call_next):
     progress = get_sync_progress()
     if progress is not None and progress < 0.9999:
         response.headers["X-Node-Syncing"] = "true"
+
+    # Cache-Control headers based on endpoint type
+    path = request.url.path
+    if "Cache-Control" not in response.headers:
+        if path.startswith("/api/v1/fees") or path.startswith("/api/v1/mempool") or path.startswith("/api/v1/prices"):
+            response.headers["Cache-Control"] = "public, max-age=10"
+        elif path.startswith("/api/v1/blocks/"):
+            response.headers["Cache-Control"] = "public, max-age=3600"
+        elif path in ("/api/v1/health", "/healthz"):
+            response.headers["Cache-Control"] = "no-cache"
+        elif path == "/api/v1/register":
+            response.headers["Cache-Control"] = "no-store"
+
     return response
 
 
@@ -153,7 +167,7 @@ app.add_middleware(
 
 # Paths exempt from rate limiting
 _RATE_LIMIT_SKIP = {
-    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz", "/api/v1/register",
+    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/healthz",
     "/api/v1/stream/blocks", "/api/v1/stream/fees",
     "/robots.txt", "/sitemap.xml",
     "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
@@ -377,8 +391,8 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
     return resp
 
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     request_id = getattr(request.state, "request_id", None)
     resp = JSONResponse(
         status_code=exc.status_code,
@@ -421,17 +435,23 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # --- Routers ---
 
 PREFIX = "/api/v1"
+
+# --- Core (node-powered) ---
 app.include_router(status.router, prefix=PREFIX)
 app.include_router(blocks.router, prefix=PREFIX)
 app.include_router(transactions.router, prefix=PREFIX)
-app.include_router(mempool.router, prefix=PREFIX)
 app.include_router(fees.router, prefix=PREFIX)
+app.include_router(mempool.router, prefix=PREFIX)
 app.include_router(mining.router, prefix=PREFIX)
 app.include_router(network.router, prefix=PREFIX)
-app.include_router(prices.router, prefix=PREFIX)
-app.include_router(keys.router, prefix=PREFIX)
 app.include_router(stream.router, prefix=PREFIX)
-app.include_router(address.router, prefix=PREFIX)
+app.include_router(keys.router, prefix=PREFIX)
+
+# --- Extended (toggleable) ---
+if settings.enable_prices_router:
+    app.include_router(prices.router, prefix=PREFIX)
+if settings.enable_address_router:
+    app.include_router(address.router, prefix=PREFIX)
 if settings.enable_exchange_compare:
     app.include_router(exchanges.router, prefix=PREFIX)
 

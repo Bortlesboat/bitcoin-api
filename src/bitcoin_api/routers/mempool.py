@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 
 from bitcoinlib_rpc import BitcoinRPC
 
-from ..cache import cached_blockchain_info, cached_mempool_analysis
+from ..cache import cached_blockchain_info, cached_mempool_analysis, cached_raw_mempool
 from ..dependencies import get_rpc
 from ..models import ApiResponse, MempoolAnalysisData, envelope
 
@@ -223,7 +223,7 @@ def mempool_recent(
     if count > 100:
         count = 100
     # getrawmempool with verbose=True returns dict of txid -> entry details
-    raw = rpc.call("getrawmempool", True)
+    raw = cached_raw_mempool(rpc)
     # Sort by entry time descending, take most recent
     entries = sorted(raw.items(), key=lambda x: x[1].get("time", 0), reverse=True)[:count]
     result = []

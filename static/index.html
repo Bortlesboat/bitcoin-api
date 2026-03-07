@@ -326,7 +326,6 @@
     <a href="#pricing">Pricing</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="/docs">API Docs</a>
-    <a href="/best-bitcoin-api-for-developers">Compare</a>
     <span class="uptime-badge"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>99.9% uptime</span>
   </div>
 </nav>
@@ -334,8 +333,8 @@
 <!-- Hero -->
 <section class="hero">
   <div class="container">
-    <h1>REST API for your <span>Bitcoin node</span></h1>
-    <p class="subtitle">One pip install. Analyzed data, not raw RPC dumps. Open source, self-hosted, zero vendor lock-in.</p>
+    <h1>Your Bitcoin node, <span>as a REST API</span></h1>
+    <p class="subtitle">pip install satoshi-api. Analyzed data, not raw RPC dumps. Self-hosted, open source, zero vendor lock-in.</p>
     <div class="cta">
       <a href="/docs" class="btn-primary btn-playground">Open Interactive Playground</a>
       <a href="#quickstart" class="btn-secondary">Start Querying Now</a>
@@ -534,13 +533,13 @@
         <tr><td><span class="method method-get">GET</span></td><td><code>/network/forks</code></td><td>Chain tips and fork detection</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/network/difficulty</code></td><td>Current difficulty and retarget info</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/network/validate-address/{addr}</code></td><td>Validate a Bitcoin address</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td><code>/prices</code></td><td>BTC price in 6 fiat currencies</td></tr>
+        <tr style="opacity:0.6"><td><span class="method method-get">GET</span></td><td><code>/prices</code></td><td>BTC price in 6 fiat currencies <span style="font-size:0.75em;color:var(--muted);background:var(--border);padding:1px 6px;border-radius:3px;margin-left:4px;">Extended</span></td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/stream/blocks</code></td><td>Real-time new block events (SSE)</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/stream/fees</code></td><td>Live fee rate updates every 30s (SSE)</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td><code>/address/{address}</code></td><td>Address balance and UTXO summary</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td><code>/address/{address}/utxos</code></td><td>List unspent outputs for an address</td></tr>
+        <tr style="opacity:0.6"><td><span class="method method-get">GET</span></td><td><code>/address/{address}</code></td><td>Address balance and UTXO summary <span style="font-size:0.75em;color:var(--muted);background:var(--border);padding:1px 6px;border-radius:3px;margin-left:4px;">Extended</span></td></tr>
+        <tr style="opacity:0.6"><td><span class="method method-get">GET</span></td><td><code>/address/{address}/utxos</code></td><td>List unspent outputs for an address <span style="font-size:0.75em;color:var(--muted);background:var(--border);padding:1px 6px;border-radius:3px;margin-left:4px;">Extended</span></td></tr>
         <tr><td><span class="method method-post">POST</span></td><td><code>/register</code></td><td>Self-serve API key registration</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td><code>/tools/exchange-compare</code></td><td>Compare exchange prices &amp; fees</td></tr>
+        <tr style="opacity:0.6"><td><span class="method method-get">GET</span></td><td><code>/tools/exchange-compare</code></td><td>Compare exchange prices &amp; fees <span style="font-size:0.75em;color:var(--muted);background:var(--border);padding:1px 6px;border-radius:3px;margin-left:4px;">Extended</span></td></tr>
       </tbody>
     </table>
     <p style="color: var(--muted); margin-top: 16px; font-size: 0.9em;">All endpoints prefixed with <code>/api/v1</code>. Interactive docs at <code>/docs</code> (Swagger UI) and <code>/redoc</code>.</p>
@@ -628,26 +627,15 @@ satoshi-api
         <h3>Hosted API</h3>
         <div class="price">Free</div>
         <ul>
-          <li>No node required — use ours</li>
-          <li>1,000 requests/day</li>
-          <li>30 requests/min</li>
-          <li>All GET endpoints</li>
-          <li>No signup needed</li>
+          <li>No node needed — use ours</li>
+          <li>1,000 requests/day (no signup)</li>
+          <li>Get a free API key for 10,000/day</li>
+          <li>All GET endpoints + POST with key</li>
         </ul>
         <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Try it Now</a>
       </div>
-      <div class="price-card">
-        <h3>Developer (API key)</h3>
-        <div class="price">Free</div>
-        <ul>
-          <li>10,000 requests/day</li>
-          <li>100 requests/min</li>
-          <li>POST access (decode, broadcast)</li>
-          <li>Free API key via email</li>
-        </ul>
-        <a href="#get-api-key" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Get Free Key Instantly</a>
-      </div>
-      <div class="price-card">
+      <!-- Pro tier preserved but hidden until demand materializes -->
+      <div class="price-card" style="display:none">
         <h3>Pro</h3>
         <div class="price">$19<span>/mo</span></div>
         <ul>

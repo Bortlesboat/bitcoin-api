@@ -19,6 +19,7 @@ def _create_rpc() -> BitcoinRPC:
         user=settings.bitcoin_rpc_user,
         password=settings.bitcoin_rpc_password.get_secret_value() if settings.bitcoin_rpc_password else None,
         datadir=settings.bitcoin_datadir,
+        timeout=settings.rpc_timeout,
     )
 
 

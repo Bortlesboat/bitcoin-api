@@ -2,6 +2,7 @@
 
 import re
 
+import requests.exceptions
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from starlette.requests import Request
 from bitcoinlib_rpc import BitcoinRPC
@@ -32,6 +33,8 @@ def _scan_address(address: str, rpc: BitcoinRPC) -> dict:
     descriptor = f"addr({address})"
     try:
         result = rpc.call("scantxoutset", "start", [descriptor])
+    except requests.exceptions.ReadTimeout:
+        raise HTTPException(status_code=504, detail="Address scan timed out — try again later or use a smaller address")
     except RPCError as exc:
         if exc.code == -8:
             raise HTTPException(status_code=400, detail=f"Address not scannable: {exc.message}")

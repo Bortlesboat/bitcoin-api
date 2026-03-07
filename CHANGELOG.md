@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.1] - 2026-03-07
+
+### Added
+- `GET /address/{address}` — address balance and UTXO summary via UTXO set scan
+- `GET /address/{address}/utxos` — list UTXOs for an address (sorted by value, paginated)
+- 5 address endpoint tests + 3 hardening tests
+- RPC timeout configuration (`RPC_TIMEOUT` env var, default 30s)
+- Cache-Control headers middleware (fee/mempool: 10s, blocks: 1hr, health: no-cache, register: no-store)
+- Timeout guard on address endpoint `scantxoutset` (returns 504 on timeout)
+- Cached raw mempool for mempool/recent and fees/mempool-blocks (5s TTL)
+
+### Fixed
+- 404 on `/api/v1/*` routes now returns JSON error envelope instead of HTML
+- `/api/v1/register` now subject to rate limiting (removed from skip set)
+
+### Changed
+- Total endpoints: 40 → 42
+- Unit tests: 115 → 118+
+
 ## [0.3.0] - 2026-03-07
 
 ### Added
