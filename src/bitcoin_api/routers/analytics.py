@@ -25,11 +25,12 @@ _INTERVAL_MAP = {
 
 
 def _require_admin(request: Request):
+    import secrets
     from ..config import settings
     if not settings.admin_api_key:
         raise HTTPException(status_code=403, detail="Analytics not configured")
     key = request.headers.get("X-Admin-Key", "")
-    if key != settings.admin_api_key:
+    if not secrets.compare_digest(key, settings.admin_api_key):
         raise HTTPException(status_code=403, detail="Invalid admin key")
 
 
