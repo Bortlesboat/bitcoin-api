@@ -1893,7 +1893,9 @@ def test_billing_checkout_503_when_not_configured(authed_client):
     """Billing checkout should return 503 when Stripe is not configured."""
     resp = authed_client.post("/api/v1/billing/checkout")
     assert resp.status_code == 503
-    assert "not configured" in resp.json()["detail"].lower()
+    body = resp.json()
+    detail = body.get("detail", "") or body.get("error", {}).get("detail", "")
+    assert "not configured" in detail.lower()
 
 
 def test_billing_status_503_when_not_configured(authed_client):
