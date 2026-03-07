@@ -64,7 +64,7 @@ cp .env.production.example .env.production
 # Edit .env.production with your RPC credentials
 
 # Run
-bitcoin-api
+satoshi-api
 # -> http://localhost:9332/docs
 ```
 

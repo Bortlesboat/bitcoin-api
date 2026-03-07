@@ -58,7 +58,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 21 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 20 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -79,6 +79,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Status** | `/api/v1/health` | GET | No |
 | | `/api/v1/health/deep` | GET | Yes (free+) |
 | | `/api/v1/status` | GET | No |
+| | `/healthz` | GET | No |
 | **Blocks** | `/api/v1/blocks/latest` | GET | No |
 | | `/api/v1/blocks/tip/height` | GET | No |
 | | `/api/v1/blocks/tip/hash` | GET | No |
@@ -142,6 +143,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/analytics/growth` | GET | Admin key |
 | | `/api/v1/analytics/slow-endpoints` | GET | Admin key |
 | | `/api/v1/analytics/retention` | GET | Admin key |
+| | `/api/v1/analytics/client-types` | GET | Admin key |
+| | `/api/v1/analytics/mcp-funnel` | GET | Admin key |
 | **Guide** | `/api/v1/guide` | GET | No |
 | **Metrics** | `/metrics` | GET | No |
 | **WebSocket** | `/api/v1/ws` | WS | Yes (free+) |
@@ -297,7 +300,7 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (10 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (73 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
 | Testing | A- | 207 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
@@ -357,6 +360,7 @@ Errors follow the same structure:
 | ~~No schema migrations~~ | ~~Manual ALTER TABLE for DB changes~~ | **RESOLVED** -- SQL migration runner in `migrations/` |
 | Daily limit COUNT(*) | O(n) per request at scale | v0.2 -- cache count in memory |
 | ~~No webhook support~~ | ~~Clients must poll~~ | **RESOLVED** -- WebSocket `/api/v1/ws` with pub/sub |
+| No address transaction history | Cannot provide `/address/{addr}/txs` | Deliberate -- Bitcoin Core RPC has no `getaddresshistory`. Requires external indexer (Electrs, Fulcrum). We offer `scantxoutset` via POST `/address/utxos` for UTXO lookup by address. Adding Electrs increases deployment complexity significantly. |
 
 ---
 
@@ -373,7 +377,7 @@ Errors follow the same structure:
 | 5 | Thread safety, usage logging, Docker, CI | 10 |
 | 6 | Security hardening, production deployment, docs | 4 |
 | 7 | Architecture review: 11 fixes (3 critical, 4 high, 4 medium) | 0 |
-| 8 | v0.2 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
+| 8 | v0.73 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
 | 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
 | 10 | Launch features: fee landscape, tx estimator, SSE streams, fee history | 9 |
 | 11 | Security hardening (headers, CSP, HSTS), exchange compare tool, SEO comparison pages, robots.txt, sitemap.xml | 6 |
@@ -389,7 +393,8 @@ Errors follow the same structure:
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
 | 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
 | 23 | Consistency pass: complete guide catalog (all 73 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
-| **Total** | **73 endpoints, 21 routers** | **207 unit + 21 e2e** |
+| 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 0 |
+| **Total** | **73 endpoints, 20 routers** | **207 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -397,7 +402,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, supply, stats, transactions, websocket
-- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql
+- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql
 
 **Tests (4 files):**
 - `tests/test_api.py` -- 207 unit tests

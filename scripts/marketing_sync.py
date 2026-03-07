@@ -64,6 +64,26 @@ def get_product_state() -> dict:
         e2e_tests = len(re.findall(r'\ndef test_', content))
         state["e2e_tests"] = e2e_tests
 
+    # Migration count
+    migrations_dir = ROOT / "src" / "bitcoin_api" / "migrations"
+    if migrations_dir.exists():
+        mig_files = [f for f in migrations_dir.glob("*.sql") if not f.name.endswith(".down.sql")]
+        state["migration_count"] = len(mig_files)
+
+    # Cross-repo: bitcoin-mcp counts (if sibling repo exists)
+    mcp_root = ROOT.parent / "bitcoin-mcp"
+    mcp_server = mcp_root / "src" / "bitcoin_mcp" / "server.py"
+    if mcp_server.exists():
+        content = mcp_server.read_text()
+        state["mcp_tools"] = len(re.findall(r'@mcp\.tool\(\)', content))
+        state["mcp_prompts"] = len(re.findall(r'@mcp\.prompt\(\)', content))
+        state["mcp_resources"] = len(re.findall(r'@mcp\.resource\(', content))
+        mcp_pyproject = mcp_root / "pyproject.toml"
+        if mcp_pyproject.exists():
+            m = re.search(r'version\s*=\s*"([^"]+)"', mcp_pyproject.read_text())
+            if m:
+                state["mcp_version"] = m.group(1)
+
     # Install command (always satoshi-api for now)
     state["install_cmd"] = "pip install satoshi-api"
     state["live_url"] = "https://bitcoinsapi.com"
@@ -166,6 +186,20 @@ def check_file(filepath: Path, description: str, state: dict) -> list[dict]:
                         "issue": f"Mentions version {mentioned_ver}, current is {version}",
                         "line_approx": content[:m.start()].count('\n') + 1,
                     })
+
+    # Check bitcoin-mcp tool count mentions (cross-repo)
+    mcp_tools = state.get("mcp_tools", 0)
+    if mcp_tools:
+        for m in re.finditer(r'(\d+)\s*tools?,\s*(\d+)\s*prompts?,\s*(\d+)\s*resources?', content, re.IGNORECASE):
+            t, p, r = int(m.group(1)), int(m.group(2)), int(m.group(3))
+            mcp_prompts = state.get("mcp_prompts", 0)
+            mcp_resources = state.get("mcp_resources", 0)
+            if t != mcp_tools or p != mcp_prompts or r != mcp_resources:
+                issues.append({
+                    "file": rel, "desc": description, "severity": "error",
+                    "issue": f"Says '{m.group(0)}' but bitcoin-mcp has {mcp_tools} tools, {mcp_prompts} prompts, {mcp_resources} resources",
+                    "line_approx": content[:m.start()].count('\n') + 1,
+                })
 
     # Check test count mentions
     unit = state.get("unit_tests", 0)

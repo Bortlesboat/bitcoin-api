@@ -22,7 +22,25 @@ from .rate_limit import check_rate_limit, check_daily_limit
 access_log = logging.getLogger("bitcoin_api.access")
 log = logging.getLogger("bitcoin_api")
 
-_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard"}
+_AI_AGENT_PATTERNS = ("claude", "openai", "anthropic", "langchain", "autogpt")
+_SDK_PATTERNS = ("python-requests", "httpx", "axios", "node-fetch", "curl")
+_BROWSER_PATTERNS = ("mozilla", "chrome", "safari", "firefox")
+
+
+def classify_client(user_agent: str) -> str:
+    """Classify a request's client type from its User-Agent header."""
+    ua = user_agent.lower()
+    if "bitcoin-mcp" in ua:
+        return "bitcoin-mcp"
+    if any(p in ua for p in _AI_AGENT_PATTERNS):
+        return "ai-agent"
+    if any(p in ua for p in _SDK_PATTERNS):
+        return "sdk"
+    if any(p in ua for p in _BROWSER_PATTERNS):
+        return "browser"
+    return "unknown"
+
+_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/visualizer"}
 
 _RATE_LIMIT_SKIP = {
     "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
@@ -37,6 +55,7 @@ _RATE_LIMIT_SKIP = {
     "/api/v1/analytics/user-agents", "/api/v1/analytics/latency",
     "/api/v1/analytics/keys", "/api/v1/analytics/growth",
     "/api/v1/analytics/slow-endpoints", "/api/v1/analytics/retention",
+    "/api/v1/analytics/client-types", "/api/v1/analytics/mcp-funnel",
     "/admin/dashboard",
     "/metrics",
     "/api/v1/ws",
@@ -56,6 +75,8 @@ def register_middleware(app: FastAPI):
         start_time = time.monotonic()
         req_method = request.method
         req_user_agent = request.headers.get("user-agent", "")
+        req_client_type = classify_client(req_user_agent)
+        req_referrer = request.headers.get("referer", "")
 
         if request.url.path in _RATE_LIMIT_SKIP:
             response = await call_next(request)
@@ -64,7 +85,8 @@ def register_middleware(app: FastAPI):
             if request.url.path == "/api/v1/health":
                 key_info = authenticate(request)
                 log_usage(key_info.key_hash, request.url.path, response.status_code,
-                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
+                          client_type=req_client_type, referrer=req_referrer)
             # Record skipped-path metrics for Prometheus visibility
             REQUEST_COUNT.labels(
                 method=req_method, endpoint=request.url.path,
@@ -123,7 +145,8 @@ def register_middleware(app: FastAPI):
             resp.headers["Retry-After"] = str(retry_after)
             elapsed_ms = (time.monotonic() - start_time) * 1000
             log_usage(bucket, request.url.path, 429,
-                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
+                          client_type=req_client_type, referrer=req_referrer)
             return resp
 
         daily_result = check_daily_limit(bucket, key_info.tier)
@@ -150,7 +173,8 @@ def register_middleware(app: FastAPI):
             resp.headers["Retry-After"] = "3600"
             elapsed_ms = (time.monotonic() - start_time) * 1000
             log_usage(bucket, request.url.path, 429,
-                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
+                          client_type=req_client_type, referrer=req_referrer)
             return resp
 
         # Circuit breaker: fast-fail for RPC-dependent endpoints
@@ -188,7 +212,8 @@ def register_middleware(app: FastAPI):
                 resp.headers["Retry-After"] = retry_after
                 elapsed_ms = (time.monotonic() - start_time) * 1000
                 log_usage(bucket, request.url.path, 503,
-                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
+                          client_type=req_client_type, referrer=req_referrer)
                 return resp
 
         try:
@@ -213,7 +238,8 @@ def register_middleware(app: FastAPI):
             resp.headers["X-Request-ID"] = request_id
             elapsed_ms = (time.monotonic() - start_time) * 1000
             log_usage(bucket, request.url.path, 500,
-                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
+                          client_type=req_client_type, referrer=req_referrer)
             return resp
 
         # Circuit breaker: record success for RPC paths with 2xx responses
@@ -245,7 +271,8 @@ def register_middleware(app: FastAPI):
 
         elapsed_ms = (time.monotonic() - start_time) * 1000
         log_usage(bucket, request.url.path, response.status_code,
-                  method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent)
+                  method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
+                          client_type=req_client_type, referrer=req_referrer)
 
         client_ip = request.client.host if request.client else "unknown"
         tier = key_info.tier

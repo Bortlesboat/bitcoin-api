@@ -61,7 +61,7 @@ curl http://localhost:9332/api/v1/fees/recommended | jq
 
 ## For AI Agents
 
-**[bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)** — the only Bitcoin MCP server on the official Anthropic MCP Registry — gives AI assistants direct access to your Bitcoin node via [Model Context Protocol](https://modelcontextprotocol.io/). 32 tools, 6 prompts, 6 resources.
+**[bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)** — the first Bitcoin MCP server on the official Anthropic MCP Registry — gives AI assistants direct access to your Bitcoin node via [Model Context Protocol](https://modelcontextprotocol.io/). 35 tools, 6 prompts, 7 resources.
 
 ```bash
 # Install and point at your Satoshi API instance

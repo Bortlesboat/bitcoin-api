@@ -137,7 +137,7 @@
       "name": "What is bitcoin-mcp?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "bitcoin-mcp is an open-source MCP (Model Context Protocol) server that wraps Satoshi API's 50 Bitcoin endpoints as AI tool calls. It lets AI agents like Claude, ChatGPT, Cursor, and Windsurf query real-time Bitcoin blockchain data — fees, blocks, mempool, transactions, mining stats — directly during a conversation, without custom code or API wrappers."
+        "text": "bitcoin-mcp is an open-source MCP (Model Context Protocol) server that wraps Satoshi API's 75+ Bitcoin endpoints as AI tool calls. It lets AI agents like Claude, ChatGPT, Cursor, and Windsurf query real-time Bitcoin blockchain data — fees, blocks, mempool, transactions, mining stats — directly during a conversation, without custom code or API wrappers."
       }
     },
     {
@@ -145,7 +145,7 @@
       "name": "Can I use bitcoin-mcp without running a full node?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. You can point bitcoin-mcp at the hosted Satoshi API endpoint (https://bitcoinsapi.com) instead of running your own node. This gives you instant access to all 71 endpoints without any node setup. For maximum privacy and sovereignty, self-hosting with your own Bitcoin Core node is recommended."
+        "text": "Yes. You can point bitcoin-mcp at the hosted Satoshi API endpoint (https://bitcoinsapi.com) instead of running your own node. This gives you instant access to all 73 endpoints without any node setup. For maximum privacy and sovereignty, self-hosting with your own Bitcoin Core node is recommended."
       }
     },
     {
@@ -184,7 +184,7 @@
 <section class="hero">
   <div class="container">
     <h1><span>Bitcoin MCP Server</span> — Connect AI Agents to Your Node in 60 Seconds</h1>
-    <p class="subtitle">bitcoin-mcp is the open-source MCP server for Bitcoin Core. Give Claude, Cursor, Windsurf, or any AI agent direct tool-call access to 50 Bitcoin endpoints — fees, blocks, mempool, mining, transactions, and more.</p>
+    <p class="subtitle">bitcoin-mcp is the open-source MCP server for Bitcoin Core. Give Claude, Cursor, Windsurf, or any AI agent direct tool-call access to 75+ Bitcoin endpoints — fees, blocks, mempool, mining, transactions, and more.</p>
     <div class="cta" style="margin-top: 8px;">
       <a href="#setup" class="btn-primary" style="text-decoration: none;">Get Started</a>
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" class="btn-secondary" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">View on GitHub</a>
@@ -219,12 +219,12 @@
   "mcpServers": {
     "bitcoin": {
       "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
+      "env": {"SATOSHI_API_URL": "http://localhost:9332"}
     }
   }
 }</code></pre>
           <p style="margin-top: 12px;">No node? Point at the hosted endpoint instead:</p>
-<pre><code>"args": ["--api-url", "https://bitcoinsapi.com"]</code></pre>
+<pre><code>"env": {"SATOSHI_API_URL": "https://bitcoinsapi.com"}</code></pre>
         </div>
       </div>
       <div class="step">
@@ -305,7 +305,7 @@ for confirmation within ~30 minutes.</code></pre>
   "mcpServers": {
     "bitcoin": {
       "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
+      "env": {"SATOSHI_API_URL": "http://localhost:9332"}
     }
   }
 }</code></pre>
@@ -314,13 +314,13 @@ for confirmation within ~30 minutes.</code></pre>
 
     <div id="claude-code" class="config-panel">
       <p style="color: var(--muted); margin-bottom: 16px;">Add via the CLI or edit <code>.claude/settings.json</code>:</p>
-<pre><code><span style="color: var(--muted)">$ </span>claude mcp add bitcoin -- bitcoin-mcp --api-url http://localhost:9332</code></pre>
+<pre><code><span style="color: var(--muted)">$ </span>claude mcp add bitcoin -e SATOSHI_API_URL=http://localhost:9332 -- bitcoin-mcp</code></pre>
       <p style="color: var(--muted); margin-top: 16px;">Or add manually to <code>.claude/settings.json</code>:</p>
 <pre><code>{
   "mcpServers": {
     "bitcoin": {
       "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
+      "env": {"SATOSHI_API_URL": "http://localhost:9332"}
     }
   }
 }</code></pre>
@@ -332,7 +332,7 @@ for confirmation within ~30 minutes.</code></pre>
   "mcpServers": {
     "bitcoin": {
       "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
+      "env": {"SATOSHI_API_URL": "http://localhost:9332"}
     }
   }
 }</code></pre>
@@ -345,7 +345,7 @@ for confirmation within ~30 minutes.</code></pre>
   "mcpServers": {
     "bitcoin": {
       "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
+      "env": {"SATOSHI_API_URL": "http://localhost:9332"}
     }
   }
 }</code></pre>
@@ -407,11 +407,11 @@ for confirmation within ~30 minutes.</code></pre>
       </div>
       <div class="faq-item">
         <div class="faq-question">What is bitcoin-mcp?</div>
-        <div class="faq-answer">bitcoin-mcp is an open-source MCP (Model Context Protocol) server that wraps Satoshi API's 50 Bitcoin endpoints as AI tool calls. It's the bridge between AI agents and Bitcoin blockchain data. Install it with <code>pip install bitcoin-mcp</code> and configure your AI client to use it. Source code: <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">github.com/Bortlesboat/bitcoin-mcp</a>.</div>
+        <div class="faq-answer">bitcoin-mcp is an open-source MCP (Model Context Protocol) server that wraps Satoshi API's 75+ Bitcoin endpoints as AI tool calls. It's the bridge between AI agents and Bitcoin blockchain data. Install it with <code>pip install bitcoin-mcp</code> and configure your AI client to use it. Source code: <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">github.com/Bortlesboat/bitcoin-mcp</a>.</div>
       </div>
       <div class="faq-item">
         <div class="faq-question">Can I use bitcoin-mcp without running a full node?</div>
-        <div class="faq-answer">Yes. Point bitcoin-mcp at the hosted Satoshi API endpoint (<code>https://bitcoinsapi.com</code>) instead of <code>localhost:9332</code>. You get instant access to all 71 endpoints with no node setup. For maximum privacy and sovereignty, self-hosting with your own Bitcoin Core node is recommended — but it's not required to get started.</div>
+        <div class="faq-answer">Yes. Point bitcoin-mcp at the hosted Satoshi API endpoint (<code>https://bitcoinsapi.com</code>) instead of <code>localhost:9332</code>. You get instant access to all 73 endpoints with no node setup. For maximum privacy and sovereignty, self-hosting with your own Bitcoin Core node is recommended — but it's not required to get started.</div>
       </div>
       <div class="faq-item">
         <div class="faq-question">What AI agents work with bitcoin-mcp?</div>
@@ -454,7 +454,7 @@ for confirmation within ~30 minutes.</code></pre>
 <section class="bottom-cta">
   <div class="container">
     <h2>Connect your AI agent to Bitcoin.</h2>
-    <p>One pip install. One JSON config. 71 endpoints at your agent's fingertips.</p>
+    <p>One pip install. One JSON config. 73 endpoints at your agent's fingertips.</p>
     <div class="cta">
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" class="btn-primary" target="_blank" rel="noopener noreferrer">Get bitcoin-mcp</a>
       <a href="https://pypi.org/project/bitcoin-mcp/" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on PyPI</a>

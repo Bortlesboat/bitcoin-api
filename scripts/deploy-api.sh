@@ -14,7 +14,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') — Starting deploy"
 
 # 1. Pull latest code
 echo ""
-echo "[1/5] Pulling latest from git..."
+echo "[1/6] Pulling latest from git..."
 git pull --ff-only || { echo "FATAL: git pull failed (merge conflict?)"; exit 1; }
 
 # 2. Run tests

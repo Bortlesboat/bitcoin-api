@@ -2,7 +2,7 @@
 
 ## Summary
 
-Satoshi API currently exposes **33 endpoints** (v0.2.1). mempool.space exposes **~161 endpoints**.
+Satoshi API currently exposes **77 endpoints** (v0.2.1). mempool.space exposes **~77 endpoints**.
 
 However, most of mempool.space's surface area falls outside our scope:
 
@@ -94,14 +94,14 @@ However, most of mempool.space's surface area falls outside our scope:
 
 | Feature Area | mempool.space Endpoints | Why We Skip |
 |---|---|---|
-| **Lightning Network** | 24 endpoints (nodes, channels, stats, liquidity rankings) | Requires a separate LN node (LND/CLN). Completely different infrastructure. Could be a separate project. |
-| **Liquid Network** | 20 endpoints (L-BTC, assets, pegs, federation) | Sidechain with niche usage. Elements node required. Not core Bitcoin. |
-| **Accelerator** | 12 endpoints (bid, estimate, history) | Paid transaction acceleration service. Requires mining pool partnerships and business relationships. |
-| **Mining pool tracking** | 22 endpoints (pool rankings, hashrates, block counts, rewards) | Requires a database of pool identifiers + coinbase transaction parsing + historical data collection. Large ongoing data effort. |
-| **Wallet/Treasury tracking** | ~10 endpoints (known wallets, balances) | Manual address curation and labeling. Editorial, not API. |
-| **RBF tracking** | ~5 endpoints (replacements, full-RBF history) | Requires continuous mempool monitoring and replacement event tracking. High memory/storage cost. |
-| **CPFP analysis** | ~3 endpoints (effective fee rates, package analysis) | Complex parent/child fee calculation across transaction graphs. Specialized mempool analysis. |
-| **Block audit/template prediction** | ~4 endpoints (audit scores, predicted blocks) | Requires their block template prediction system and post-hoc comparison. Proprietary methodology. |
+| **Lightning Network** | 77 endpoints (nodes, channels, stats, liquidity rankings) | Requires a separate LN node (LND/CLN). Completely different infrastructure. Could be a separate project. |
+| **Liquid Network** | 77 endpoints (L-BTC, assets, pegs, federation) | Sidechain with niche usage. Elements node required. Not core Bitcoin. |
+| **Accelerator** | 77 endpoints (bid, estimate, history) | Paid transaction acceleration service. Requires mining pool partnerships and business relationships. |
+| **Mining pool tracking** | 77 endpoints (pool rankings, hashrates, block counts, rewards) | Requires a database of pool identifiers + coinbase transaction parsing + historical data collection. Large ongoing data effort. |
+| **Wallet/Treasury tracking** | ~77 endpoints (known wallets, balances) | Manual address curation and labeling. Editorial, not API. |
+| **RBF tracking** | ~77 endpoints (replacements, full-RBF history) | Requires continuous mempool monitoring and replacement event tracking. High memory/storage cost. |
+| **CPFP analysis** | ~77 endpoints (effective fee rates, package analysis) | Complex parent/child fee calculation across transaction graphs. Specialized mempool analysis. |
+| **Block audit/template prediction** | ~77 endpoints (audit scores, predicted blocks) | Requires their block template prediction system and post-hoc comparison. Proprietary methodology. |
 | **Address prefix search** | `GET /api/address-prefix/{prefix}` | Explorer UI feature. Requires full address index. Low API value. |
 | **Block raw/header hex** | `GET /api/block/{hash}/raw`, `/header` | Raw hex dumps. Niche use case. Available directly from Bitcoin Core RPC for anyone self-hosting. |
 
@@ -145,7 +145,7 @@ Designed to run against your own Bitcoin Core node. Your node, your data, your r
 
 ## Roadmap Impact
 
-### v0.2 — Core Completeness (Target: +8-12 endpoints)
+### v0.2 — Core Completeness (Target: +8-77 endpoints)
 
 **New endpoints from gap analysis:**
 - `GET /mempool/txids` — list all mempool transaction IDs
@@ -162,7 +162,7 @@ Designed to run against your own Bitcoin Core node. Your node, your data, your r
 - Batch RPC connection pooling
 - Response caching layer
 
-### v0.3 — Extended Data (Target: +4-6 endpoints)
+### v0.3 — Extended Data (Target: +4-77 endpoints)
 
 **New endpoints from gap analysis:**
 - `GET /mempool/blocks` — projected next blocks from mempool

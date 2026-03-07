@@ -236,7 +236,7 @@ curl https://bitcoinsapi.com/api/v1/fees/recommended
 **PyPI:**
 [pypi.org/project/satoshi-api/](https://pypi.org/project/satoshi-api/)
 
-71 endpoints. 228 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
+73 endpoints. 228 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
 
 ---
 

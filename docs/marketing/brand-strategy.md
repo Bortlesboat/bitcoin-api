@@ -266,7 +266,7 @@ Options ranked by strength:
 
 #### Level 2: Elevator Pitch (30 seconds / 2 sentences)
 
-> "Satoshi API turns your Bitcoin Core node into a production-ready REST API. One pip install, 71 endpoints, zero third-party dependencies — your data never leaves your machine."
+> "Satoshi API turns your Bitcoin Core node into a production-ready REST API. One pip install, 73 endpoints, zero third-party dependencies — your data never leaves your machine."
 
 #### Level 3: Full Description (website "About" section)
 
@@ -280,7 +280,7 @@ Options ranked by strength:
 
 #### Level 4: Technical One-Liner (for READMEs, package descriptions)
 
-> "Production-ready REST API for Bitcoin Core. Self-hosted. 71 endpoints. pip install satoshi-api."
+> "Production-ready REST API for Bitcoin Core. Self-hosted. 73 endpoints. pip install satoshi-api."
 
 ### 3.4 Logo Concepts
 
@@ -341,7 +341,7 @@ Three horizontal lines of decreasing width, stacked vertically — suggesting bo
 
 4. **Blog the journey.** Monthly posts: "Building the Bitcoin Data Suite, Part N." Rivian's RAD team approach — make the building process itself into content.
 
-5. **Never use "will" without "today."** Every future claim should be paired with a current capability. "Today, 71 endpoints for real-time Bitcoin data. Tomorrow, full historical analytics with time-series queries."
+5. **Never use "will" without "today."** Every future claim should be paired with a current capability. "Today, 73 endpoints for real-time Bitcoin data. Tomorrow, full historical analytics with time-series queries."
 
 ### 3.6 Landing Page Redesign — Apple-Inspired
 
@@ -359,7 +359,7 @@ Your Bitcoin node,
 ready for production.
 
 [Subhead, Inter 400, 20px, #8B949E, centered]
-One pip install. 71 endpoints. Zero third-party dependencies.
+One pip install. 73 endpoints. Zero third-party dependencies.
 
 [Two CTAs, horizontally centered]
 [Bitcoin orange button]  Get Started →    [Ghost button]  View on GitHub →
@@ -368,7 +368,7 @@ One pip install. 71 endpoints. Zero third-party dependencies.
 $ pip install satoshi-api
 $ satoshi-api --rpc-host=localhost --rpc-port=8332
   Satoshi API running on http://localhost:9332
-  71 endpoints ready. Your data stays here.
+  73 endpoints ready. Your data stays here.
 ```
 
 **Why this works:** States what you get (API for your node), how fast (one install), and the differentiator (zero dependencies, your data) — all above the fold. The code block IS the hero image. Developers read code faster than marketing copy.
@@ -439,7 +439,7 @@ Right: Response example (code block, syntax-highlighted)
   }
 
 [Below the code, muted text]
-71 endpoints across blocks, transactions, addresses,
+73 endpoints across blocks, transactions, addresses,
 mempool, fees, network, and raw operations.
 
 [Link in orange] Explore all endpoints →
@@ -471,7 +471,7 @@ Starting with an API. Building a data suite.
 [Timeline/roadmap, vertical, left-aligned]
 
   [Bitcoin orange dot, bright]  NOW — REST API
-  71 endpoints. Production-ready. pip installable.
+  73 endpoints. Production-ready. pip installable.
 
   [Dimmed dot]  NEXT — WebSocket Streaming
   Real-time block and mempool event feeds.

@@ -1950,34 +1950,42 @@ def test_billing_checkout_requires_auth(client):
     """Billing checkout should reject anonymous users."""
     from bitcoin_api.config import settings
     original = settings.stripe_secret_key
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_price_id = "price_test_fake"
     try:
         resp = client.post("/api/v1/billing/checkout")
         assert resp.status_code == 401
     finally:
         settings.stripe_secret_key = original
+        settings.stripe_price_id = original_price
 
 
 def test_billing_status_requires_auth(client):
     """Billing status should reject anonymous users."""
     from bitcoin_api.config import settings
     original = settings.stripe_secret_key
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_price_id = "price_test_fake"
     try:
         resp = client.get("/api/v1/billing/status")
         assert resp.status_code == 401
     finally:
         settings.stripe_secret_key = original
+        settings.stripe_price_id = original_price
 
 
 def test_billing_status_no_subscription(authed_client):
     """Billing status should return none when no subscription exists."""
     from bitcoin_api.config import settings
     original = settings.stripe_secret_key
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_price_id = "price_test_fake"
     try:
         resp = authed_client.get("/api/v1/billing/status")
         assert resp.status_code == 200
@@ -1986,6 +1994,7 @@ def test_billing_status_no_subscription(authed_client):
         assert data["subscription_id"] is None
     finally:
         settings.stripe_secret_key = original
+        settings.stripe_price_id = original_price
 
 
 def test_billing_webhook_rejects_bad_signature(authed_client):
@@ -1993,9 +2002,11 @@ def test_billing_webhook_rejects_bad_signature(authed_client):
     from bitcoin_api.config import settings
     original_key = settings.stripe_secret_key
     original_secret = settings.stripe_webhook_secret
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
     settings.stripe_webhook_secret = SecretStr("whsec_test_fake")
+    settings.stripe_price_id = "price_test_fake"
     try:
         resp = authed_client.post(
             "/api/v1/billing/webhook",
@@ -2006,6 +2017,7 @@ def test_billing_webhook_rejects_bad_signature(authed_client):
     finally:
         settings.stripe_secret_key = original_key
         settings.stripe_webhook_secret = original_secret
+        settings.stripe_price_id = original_price
 
 
 def test_billing_webhook_checkout_completed(authed_client):
@@ -2016,9 +2028,11 @@ def test_billing_webhook_checkout_completed(authed_client):
 
     original_key = settings.stripe_secret_key
     original_secret = settings.stripe_webhook_secret
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
     settings.stripe_webhook_secret = SecretStr("whsec_test_fake")
+    settings.stripe_price_id = "price_test_fake"
 
     # Get the key hash from the authed_client
     key_hash = hashlib.sha256("test-authed-key-fixture".encode()).hexdigest()
@@ -2070,6 +2084,7 @@ def test_billing_webhook_checkout_completed(authed_client):
 
     settings.stripe_secret_key = original_key
     settings.stripe_webhook_secret = original_secret
+    settings.stripe_price_id = original_price
 
 
 def test_billing_webhook_subscription_canceled(authed_client):
@@ -2080,9 +2095,11 @@ def test_billing_webhook_subscription_canceled(authed_client):
 
     original_key = settings.stripe_secret_key
     original_secret = settings.stripe_webhook_secret
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
     settings.stripe_webhook_secret = SecretStr("whsec_test_fake")
+    settings.stripe_price_id = "price_test_fake"
 
     key_hash = hashlib.sha256("test-authed-key-fixture".encode()).hexdigest()
 
@@ -2134,6 +2151,7 @@ def test_billing_webhook_subscription_canceled(authed_client):
 
     settings.stripe_secret_key = original_key
     settings.stripe_webhook_secret = original_secret
+    settings.stripe_price_id = original_price
 
 
 def test_billing_cancel_no_subscription(authed_client):
@@ -2142,8 +2160,10 @@ def test_billing_cancel_no_subscription(authed_client):
     from bitcoin_api.db import get_db
 
     original = settings.stripe_secret_key
+    original_price = settings.stripe_price_id
     from pydantic import SecretStr
     settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_price_id = "price_test_fake"
 
     db = get_db()
     db.execute("""CREATE TABLE IF NOT EXISTS subscriptions (
@@ -2162,6 +2182,7 @@ def test_billing_cancel_no_subscription(authed_client):
         assert resp.status_code == 404
     finally:
         settings.stripe_secret_key = original
+        settings.stripe_price_id = original_price
 
 
 def test_billing_webhook_no_rate_limit(client):
@@ -2231,9 +2252,9 @@ def test_mining_hashrate_history_default(client):
     assert resp.status_code == 200
 
 
-def test_mining_revenue(client):
+def test_mining_revenue(authed_client):
     """Mining revenue returns fee/subsidy breakdown."""
-    resp = client.get("/api/v1/mining/revenue?blocks=3")
+    resp = authed_client.get("/api/v1/mining/revenue?blocks=3")
     assert resp.status_code == 200
     body = resp.json()
     data = body["data"]
@@ -2243,11 +2264,12 @@ def test_mining_revenue(client):
     assert "total_revenue_btc" in data
     assert "fee_percentage" in data
     assert data["blocks_analyzed"] == 3
+    assert "max_blocks" in body["meta"]
 
 
-def test_mining_pools(client):
+def test_mining_pools(authed_client):
     """Mining pools returns pool identification data."""
-    resp = client.get("/api/v1/mining/pools?blocks=3")
+    resp = authed_client.get("/api/v1/mining/pools?blocks=3")
     assert resp.status_code == 200
     body = resp.json()
     data = body["data"]
@@ -2255,6 +2277,7 @@ def test_mining_pools(client):
     assert "pools" in data
     assert isinstance(data["pools"], list)
     assert "unknown_count" in data
+    assert "max_blocks" in body["meta"]
 
 
 def test_mining_difficulty_history(client):
@@ -2270,9 +2293,9 @@ def test_mining_difficulty_history(client):
         assert "difficulty" in data[0]
 
 
-def test_mining_revenue_history(client):
+def test_mining_revenue_history(authed_client):
     """Revenue history returns per-block data."""
-    resp = client.get("/api/v1/mining/revenue/history?blocks=3")
+    resp = authed_client.get("/api/v1/mining/revenue/history?blocks=3")
     assert resp.status_code == 200
     body = resp.json()
     data = body["data"]
@@ -2282,6 +2305,7 @@ def test_mining_revenue_history(client):
         assert "subsidy_btc" in data[0]
         assert "fees_btc" in data[0]
         assert "total_btc" in data[0]
+    assert "max_blocks" in body["meta"]
 
 
 # --- Raw Block Endpoint ---
@@ -2326,9 +2350,9 @@ def test_merkle_proof_invalid_txid(client):
 # --- Stats Router Tests ---
 
 
-def test_stats_utxo_set(client):
+def test_stats_utxo_set(authed_client):
     """UTXO set returns summary data."""
-    resp = client.get("/api/v1/stats/utxo-set")
+    resp = authed_client.get("/api/v1/stats/utxo-set")
     if resp.status_code == 200:
         body = resp.json()
         data = body["data"]
@@ -2337,9 +2361,9 @@ def test_stats_utxo_set(client):
         assert "total_amount_btc" in data
 
 
-def test_stats_segwit_adoption(client):
+def test_stats_segwit_adoption(authed_client):
     """SegWit adoption returns type distribution."""
-    resp = client.get("/api/v1/stats/segwit-adoption?blocks=2")
+    resp = authed_client.get("/api/v1/stats/segwit-adoption?blocks=2")
     if resp.status_code == 200:
         body = resp.json()
         data = body["data"]
@@ -2348,11 +2372,12 @@ def test_stats_segwit_adoption(client):
         assert "type_distribution" in data
         assert "segwit_percentage" in data
         assert "taproot_percentage" in data
+        assert "max_blocks" in body["meta"]
 
 
-def test_stats_op_returns(client):
+def test_stats_op_returns(authed_client):
     """OP_RETURN stats returns usage data."""
-    resp = client.get("/api/v1/stats/op-returns?blocks=2")
+    resp = authed_client.get("/api/v1/stats/op-returns?blocks=2")
     if resp.status_code == 200:
         body = resp.json()
         data = body["data"]
@@ -2360,6 +2385,7 @@ def test_stats_op_returns(client):
         assert "total_op_returns" in data
         assert "total_bytes" in data
         assert "samples" in data
+        assert "max_blocks" in body["meta"]
 
 
 # --- Whale TX SSE Stream ---
@@ -2517,15 +2543,231 @@ def test_mining_difficulty_invalid_epochs(client):
     assert resp.status_code == 422
 
 
-def test_stats_segwit_invalid_blocks(client):
+def test_stats_segwit_invalid_blocks(authed_client):
     """SegWit adoption rejects blocks > 1000."""
-    resp = client.get("/api/v1/stats/segwit-adoption?blocks=5000")
+    resp = authed_client.get("/api/v1/stats/segwit-adoption?blocks=5000")
     if resp.status_code != 404:  # feature flag may be off
         assert resp.status_code == 422
 
 
-def test_stats_op_returns_invalid_blocks(client):
+def test_stats_op_returns_invalid_blocks(authed_client):
     """OP_RETURN stats rejects blocks > 1000."""
-    resp = client.get("/api/v1/stats/op-returns?blocks=5000")
+    resp = authed_client.get("/api/v1/stats/op-returns?blocks=5000")
     if resp.status_code != 404:
         assert resp.status_code == 422
+
+
+# --- classify_client Unit Tests ---
+
+
+def test_classify_client_bitcoin_mcp():
+    """classify_client should detect bitcoin-mcp user agents."""
+    from bitcoin_api.middleware import classify_client
+    assert classify_client("bitcoin-mcp/0.3.0") == "bitcoin-mcp"
+
+
+def test_classify_client_browser():
+    """classify_client should detect browser user agents."""
+    from bitcoin_api.middleware import classify_client
+    assert classify_client("Mozilla/5.0 Chrome/120") == "browser"
+
+
+def test_classify_client_sdk():
+    """classify_client should detect SDK user agents."""
+    from bitcoin_api.middleware import classify_client
+    assert classify_client("python-requests/2.31") == "sdk"
+
+
+def test_classify_client_ai_agent():
+    """classify_client should detect AI agent user agents (case insensitive)."""
+    from bitcoin_api.middleware import classify_client
+    assert classify_client("Claude-Agent/1.0") == "ai-agent"
+
+
+def test_classify_client_empty():
+    """classify_client should return unknown for empty user agent."""
+    from bitcoin_api.middleware import classify_client
+    assert classify_client("") == "unknown"
+
+
+def test_classify_client_unknown():
+    """classify_client should return unknown for unrecognized user agents."""
+    from bitcoin_api.middleware import classify_client
+    assert classify_client("SomeRandomBot/1.0") == "unknown"
+
+
+# --- Analytics client-types & mcp-funnel Endpoints ---
+
+
+def test_analytics_client_types_with_admin_key(admin_client):
+    """Analytics client-types should return 200 with breakdown data."""
+    resp = admin_client.get("/api/v1/analytics/client-types?period=7d")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "total" in data
+    assert "breakdown" in data
+    assert isinstance(data["breakdown"], list)
+
+
+def test_analytics_client_types_requires_admin(client):
+    """Analytics client-types should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/client-types")
+    assert resp.status_code == 403
+
+
+def test_analytics_mcp_funnel_with_admin_key(admin_client):
+    """Analytics mcp-funnel should return 200 with funnel data."""
+    resp = admin_client.get("/api/v1/analytics/mcp-funnel?period=7d")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "total_requests" in data
+    assert "unique_api_keys" in data
+    assert "top_endpoints" in data
+    assert isinstance(data["top_endpoints"], list)
+
+
+def test_analytics_mcp_funnel_requires_admin(client):
+    """Analytics mcp-funnel should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/mcp-funnel")
+    assert resp.status_code == 403
+
+
+# --- Migration 005: client_type column ---
+
+
+def test_migration_005_client_type_column():
+    """Migration 005 should add client_type column to usage_log."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(usage_log)").fetchall()]
+    assert "client_type" in cols
+
+
+def test_migration_005_client_type_index():
+    """Migration 005 should create index on client_type."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    indexes = [r[1] for r in conn.execute("PRAGMA index_list(usage_log)").fetchall()]
+    assert "idx_usage_log_client_type" in indexes
+
+
+# --- Tier Gating Tests (anonymous -> 403) ---
+
+
+def test_whale_stream_requires_auth(client):
+    """Whale tx stream requires API key."""
+    resp = client.get("/api/v1/stream/whale-txs")
+    assert resp.status_code == 403
+    body = resp.json()
+    detail = body.get("detail", "") or body.get("error", {}).get("detail", "")
+    assert "API key required" in detail
+
+
+def test_mining_pools_requires_auth(client):
+    """Mining pools requires API key."""
+    resp = client.get("/api/v1/mining/pools")
+    assert resp.status_code == 403
+
+
+def test_mining_revenue_requires_auth(client):
+    """Mining revenue requires API key."""
+    resp = client.get("/api/v1/mining/revenue")
+    assert resp.status_code == 403
+
+
+def test_mining_revenue_history_requires_auth(client):
+    """Mining revenue history requires API key."""
+    resp = client.get("/api/v1/mining/revenue/history")
+    assert resp.status_code == 403
+
+
+def test_stats_utxo_set_requires_auth(client):
+    """UTXO set info requires API key."""
+    resp = client.get("/api/v1/stats/utxo-set")
+    if resp.status_code != 404:  # feature flag may be off
+        assert resp.status_code == 403
+
+
+def test_stats_segwit_requires_auth(client):
+    """SegWit adoption stats requires API key."""
+    resp = client.get("/api/v1/stats/segwit-adoption")
+    if resp.status_code != 404:
+        assert resp.status_code == 403
+
+
+def test_stats_op_returns_requires_auth(client):
+    """OP_RETURN stats requires API key."""
+    resp = client.get("/api/v1/stats/op-returns")
+    if resp.status_code != 404:
+        assert resp.status_code == 403
+
+
+# --- Block Caps Tests ---
+
+
+def test_cap_blocks_param_unit():
+    """Unit test cap_blocks_param for all tiers."""
+    from bitcoin_api.auth import cap_blocks_param
+    assert cap_blocks_param(500, "anonymous") == 144
+    assert cap_blocks_param(500, "free") == 144
+    assert cap_blocks_param(500, "pro") == 500
+    assert cap_blocks_param(2000, "pro") == 1008
+    assert cap_blocks_param(2016, "enterprise") == 2016
+    assert cap_blocks_param(100, "unknown_tier") == 100  # under default cap
+
+
+def test_mining_hashrate_anonymous_capped(client):
+    """Anonymous hashrate history gets capped to 144 blocks."""
+    resp = client.get("/api/v1/mining/hashrate/history?blocks=500")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["meta"]["max_blocks"] == 144
+
+
+def test_authed_blocks_cap(authed_client):
+    """Free tier with blocks=2016 gets capped to 144."""
+    resp = authed_client.get("/api/v1/mining/revenue?blocks=2016")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["meta"]["max_blocks"] == 144
+    assert body["data"]["blocks_analyzed"] <= 144
+
+
+# --- Billing Guard Tests ---
+
+
+def test_billing_checkout_no_price_id(authed_client):
+    """Checkout returns 503 when stripe_price_id is empty."""
+    from bitcoin_api.config import settings
+    from pydantic import SecretStr
+    original_key = settings.stripe_secret_key
+    original_price = settings.stripe_price_id
+    settings.stripe_secret_key = SecretStr("sk_test_fake")
+    settings.stripe_price_id = ""
+    try:
+        resp = authed_client.post("/api/v1/billing/checkout")
+        assert resp.status_code == 503
+        body = resp.json()
+        detail = body.get("detail", "") or body.get("error", {}).get("detail", "")
+        assert "price ID" in detail
+    finally:
+        settings.stripe_secret_key = original_key
+        settings.stripe_price_id = original_price
+
+
+# --- Auth Helper Unit Test ---
+
+
+def test_require_api_key_anonymous_rejected():
+    """require_api_key raises 403 for anonymous tier."""
+    from unittest.mock import MagicMock
+    from fastapi import HTTPException
+    from bitcoin_api.auth import require_api_key
+    import pytest
+
+    mock_request = MagicMock()
+    mock_request.state.tier = "anonymous"
+    with pytest.raises(HTTPException) as exc_info:
+        require_api_key(mock_request, "test endpoint")
+    assert exc_info.value.status_code == 403
+    assert "test endpoint" in exc_info.value.detail

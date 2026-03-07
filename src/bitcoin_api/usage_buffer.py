@@ -16,9 +16,9 @@ class UsageBuffer:
         self._lock = threading.Lock()
         self._timer: threading.Timer | None = None
 
-    def log(self, key_hash, endpoint, status_code, method=None, response_time_ms=None, user_agent=None):
+    def log(self, key_hash, endpoint, status_code, method=None, response_time_ms=None, user_agent=None, client_type="unknown", referrer=""):
         with self._lock:
-            self._buffer.append((key_hash, endpoint, status_code, method, response_time_ms, user_agent, time.time()))
+            self._buffer.append((key_hash, endpoint, status_code, method, response_time_ms, user_agent, client_type, referrer, time.time()))
             if len(self._buffer) >= self.FLUSH_SIZE:
                 self._flush_locked()
             elif self._timer is None:
@@ -44,7 +44,7 @@ class UsageBuffer:
             self._timer.cancel()
             self._timer = None
 
-        # Release lock before DB write
+        # Write batch to DB (lock is still held)
         try:
             self._write_batch(batch)
         except Exception as e:
@@ -55,9 +55,9 @@ class UsageBuffer:
         from .db import get_db
         conn = get_db()
         conn.executemany(
-            "INSERT INTO usage_log (key_hash, endpoint, status, method, response_time_ms, user_agent) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            [(row[0], row[1], row[2], row[3], row[4], row[5]) for row in batch],
+            "INSERT INTO usage_log (key_hash, endpoint, status, method, response_time_ms, user_agent, client_type, referrer) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]) for row in batch],
         )
         conn.commit()
 

@@ -135,18 +135,44 @@ async with websockets.connect(
 
 Four billing endpoints under `/api/v1/billing/`. All return **503** if Stripe env vars are not configured.
 
-```bash
-# Create a checkout session for Pro tier upgrade
-curl -X POST -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/checkout
+### Stripe Setup
 
-# Check subscription status
-curl -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/status
+1. **Create product + price in Stripe Dashboard:**
+   - Go to Products -> Add Product
+   - Create "Satoshi API Pro" with a recurring monthly price
+   - Copy the price ID (starts with `price_...`)
 
-# Cancel subscription
-curl -X POST -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/cancel
-```
+2. **Set environment variables** in `.env`:
+   ```ini
+   STRIPE_SECRET_KEY=sk_live_...       # From Stripe Dashboard -> Developers -> API Keys
+   STRIPE_WEBHOOK_SECRET=whsec_...     # Generated when creating webhook endpoint
+   STRIPE_PRICE_ID=price_...           # From step 1
+   ```
+   All three are required. If `STRIPE_SECRET_KEY` or `STRIPE_PRICE_ID` is missing, billing endpoints return 503.
 
-The `/api/v1/billing/webhook` endpoint receives Stripe webhook events (signature-verified via `STRIPE_WEBHOOK_SECRET`). Configure the webhook URL in Stripe Dashboard to point at `https://bitcoinsapi.com/api/v1/billing/webhook`.
+3. **Test locally** with Stripe CLI:
+   ```bash
+   stripe listen --forward-to localhost:9332/api/v1/billing/webhook
+   ```
+   This prints a webhook signing secret (`whsec_...`) for local testing.
+
+4. **Verify the flow:**
+   ```bash
+   # Create checkout session (requires API key)
+   curl -X POST -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/checkout
+   # -> Returns checkout_url, open in browser to complete payment
+   # -> Stripe sends webhook -> tier upgrades to "pro"
+
+   # Check subscription status
+   curl -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/status
+
+   # Cancel subscription
+   curl -X POST -H "X-API-Key: YOUR_KEY" http://localhost:9332/api/v1/billing/cancel
+   ```
+
+5. **Production webhook:** Configure in Stripe Dashboard -> Developers -> Webhooks:
+   - URL: `https://bitcoinsapi.com/api/v1/billing/webhook`
+   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
 
 Subscription data is stored in the `subscriptions` table (created by `migrations/004_add_subscriptions.sql`), with `stripe_customer_id` linked to the API key.
 
@@ -304,9 +330,9 @@ curl "https://bitcoinsapi.com/api/v1/guide?use_case=transactions&lang=curl"
 
 ---
 
-## 11. Agent Employees (10 Agents — Claude Code Skills)
+## 11. Agent Employees (11 Agents — Claude Code Skills)
 
-The project has 10 specialized agents (flat org, all report to CEO) you can run as slash commands:
+The project has 11 specialized agents (flat org, all report to CEO) you can run as slash commands:
 
 | Command | Role | What it does |
 |---------|------|-------------|
@@ -320,7 +346,8 @@ The project has 10 specialized agents (flat org, all report to CEO) you can run 
 | `/qa-review` | QA Lead | Test coverage, test-to-SOW sync, regression scanning |
 | `/analytics-review` | Analytics | Audits data collection, logging, analytics endpoints |
 | `/ops-review` | Chief of Staff | Data lifecycle, metrics, process automation, standards, org maintenance |
-| `/all-hands` | Orchestrator | Runs ALL 10 agents, consolidated dashboard, conflict detection, CEO action items |
+| `/admin-assistant` | Admin Assistant | Endpoint count stamping, doc consistency, guide catalog sync, cross-file reference audits |
+| `/all-hands` | Orchestrator | Runs ALL 11 agents, consolidated dashboard, conflict detection, CEO action items |
 
 **Deprecated wrappers** (backward compat — run successor agents):
 | `/code-review` | → `/qa-review` + `/architecture-review` |

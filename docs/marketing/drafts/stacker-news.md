@@ -8,7 +8,7 @@ Running a full node is sovereign. Querying someone else's API to read your own b
 
 I kept building small tools on top of Bitcoin Core and hitting the same friction: fee estimates with no context, mempool data scattered across multiple RPC calls, caching that breaks near the tip because of reorgs. So I built Satoshi API -- an open-source REST layer that sits on top of your node and handles the annoying parts.
 
-`pip install satoshi-api` and you have 71 endpoints wrapping your node in structured JSON. Apache-2.0 licensed. Everything stays local.
+`pip install satoshi-api` and you have 73 endpoints wrapping your node in structured JSON. Apache-2.0 licensed. Everything stays local.
 
 **What's actually useful about it:**
 
@@ -21,7 +21,7 @@ I kept building small tools on top of Bitcoin Core and hitting the same friction
 
 **Self-hosting is the entire point.** Docker supported. Rate limiting and API keys built in if you want to share on your LAN or expose through a tunnel. There's a free hosted version at bitcoinsapi.com for trying it, but the real use case is your node, your API, your data.
 
-I also built an MCP companion server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query your node directly. It is listed on the official Anthropic MCP Registry -- the only Bitcoin MCP server that talks to your local node instead of a third-party API.
+I also built an MCP companion server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query your node directly. It is listed on the official Anthropic MCP Registry -- the first Bitcoin MCP server that talks to your local node instead of a third-party API.
 
 - **GitHub:** https://github.com/Bortlesboat/bitcoin-api
 - **MCP server:** https://github.com/Bortlesboat/bitcoin-mcp

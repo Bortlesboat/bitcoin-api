@@ -305,6 +305,75 @@ def analytics_slow_endpoints(
     return {"data": results[:limit]}
 
 
+@router.get("/client-types", dependencies=[Depends(_require_admin)])
+def analytics_client_types(
+    period: str = Query("7d", pattern="^(1h|6h|24h|7d|30d)$"),
+):
+    """Breakdown of requests by client_type over a configurable period."""
+    conn = get_db()
+    offset = _period_sql(period)
+
+    rows = conn.execute(
+        "SELECT client_type, COUNT(*) as cnt "
+        "FROM usage_log WHERE ts >= datetime('now', ?) "
+        "GROUP BY client_type ORDER BY cnt DESC",
+        (offset,),
+    ).fetchall()
+
+    total = sum(r["cnt"] for r in rows)
+    return {
+        "data": {
+            "total": total,
+            "breakdown": [
+                {
+                    "client_type": r["client_type"] or "unknown",
+                    "count": r["cnt"],
+                    "pct": round(r["cnt"] / total * 100, 2) if total > 0 else 0.0,
+                }
+                for r in rows
+            ],
+        }
+    }
+
+
+@router.get("/mcp-funnel", dependencies=[Depends(_require_admin)])
+def analytics_mcp_funnel(
+    period: str = Query("7d", pattern="^(1h|6h|24h|7d|30d)$"),
+):
+    """MCP-specific metrics: total requests, unique keys, top endpoints."""
+    conn = get_db()
+    offset = _period_sql(period)
+
+    total = conn.execute(
+        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', ?) AND client_type = 'bitcoin-mcp'",
+        (offset,),
+    ).fetchone()[0]
+
+    unique_keys = conn.execute(
+        "SELECT COUNT(DISTINCT key_hash) FROM usage_log "
+        "WHERE ts >= datetime('now', ?) AND client_type = 'bitcoin-mcp' AND key_hash IS NOT NULL",
+        (offset,),
+    ).fetchone()[0]
+
+    top_endpoints = conn.execute(
+        "SELECT endpoint, COUNT(*) as hits "
+        "FROM usage_log WHERE ts >= datetime('now', ?) AND client_type = 'bitcoin-mcp' "
+        "GROUP BY endpoint ORDER BY hits DESC LIMIT 10",
+        (offset,),
+    ).fetchall()
+
+    return {
+        "data": {
+            "total_requests": total,
+            "unique_api_keys": unique_keys,
+            "top_endpoints": [
+                {"endpoint": r["endpoint"], "hits": r["hits"]}
+                for r in top_endpoints
+            ],
+        }
+    }
+
+
 @router.get("/retention", dependencies=[Depends(_require_admin)])
 def analytics_retention():
     """Active keys in 24h/7d/30d vs total registered."""

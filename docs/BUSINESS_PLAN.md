@@ -97,7 +97,7 @@ Use in scripts          Use in web apps         Use in AI agents
 | Product | What It Does | Status |
 |---------|-------------|--------|
 | **bitcoinlib-rpc** | Typed Python wrapper for Bitcoin Core RPC + 6 analysis tools | v0.3.1, stable |
-| **Satoshi API** | REST API with auth, caching, rate limiting, 71 endpoints | v0.3.1, production-ready |
+| **Satoshi API** | REST API with auth, caching, rate limiting, 73 endpoints | v0.3.1, production-ready |
 | **bitcoin-mcp** | MCP server exposing 20 tools for AI agents | v0.3.1, tested |
 
 ### 4.1 API Endpoints (19)

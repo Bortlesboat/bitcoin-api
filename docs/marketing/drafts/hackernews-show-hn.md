@@ -6,7 +6,7 @@
 
 **First comment (the "Show HN" comment):**
 
-Satoshi API wraps Bitcoin Core's JSON-RPC in a REST interface with 71 endpoints. `pip install satoshi-api`, set your RPC credentials, and you have a local API on port 9332.
+Satoshi API wraps Bitcoin Core's JSON-RPC in a REST interface with 73 endpoints. `pip install satoshi-api`, set your RPC credentials, and you have a local API on port 9332.
 
 I built this because every Bitcoin app I worked on ended up reimplementing the same layer: fee estimation with human-readable context, mempool congestion analysis, block lookups that handle both height and hash, reorg-aware caching. This packages all of that into a single install.
 
@@ -16,7 +16,7 @@ A few technical decisions that might be interesting:
 - **Rate limiting is hybrid.** Per-minute limits use an in-memory sliding window (fast, no I/O). Daily limits use SQLite (survives restarts). Both are per-API-key with tier-based thresholds.
 - **RPC surface is whitelisted.** The API only calls 17 read-only RPC commands (plus `sendrawtransaction` behind auth). No wallet, no debug, no admin RPCs.
 
-I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query Bitcoin data via Model Context Protocol. It is listed on the official Anthropic MCP Registry (`io.github.Bortlesboat/bitcoin-mcp`) and on PyPI. This is probably niche, but it is the only Bitcoin MCP server that talks directly to your local node -- the others all use third-party APIs like mempool.space.
+I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)) so AI agents can query Bitcoin data via Model Context Protocol. It is listed on the official Anthropic MCP Registry (`io.github.Bortlesboat/bitcoin-mcp`) and on PyPI. This is probably niche, but it is the first Bitcoin MCP server that talks directly to your local node -- the others all use third-party APIs like mempool.space.
 
 The hosted version at bitcoinsapi.com has a free tier (no signup for GET endpoints). But the main use case is self-hosting -- your node, your data, no third-party dependencies.
 

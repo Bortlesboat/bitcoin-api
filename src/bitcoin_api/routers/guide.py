@@ -116,7 +116,7 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/fees/recommended", "Smart fee recommendation with context"),
                 _ep("GET", "/api/v1/fees/3", "Fee estimate for a specific block target"),
                 _ep("GET", "/api/v1/fees/landscape", "Full fee landscape across all targets"),
-                _ep("POST", "/api/v1/fees/estimate-tx", "Estimate fee for a specific transaction", auth=True),
+                _ep("GET", "/api/v1/fees/estimate-tx", "Estimate fee for a specific transaction"),
                 _ep("GET", "/api/v1/fees/history", "Historical fee data"),
                 _ep("GET", "/api/v1/fees/mempool-blocks", "Projected mempool blocks with fee ranges"),
             ],
@@ -252,6 +252,8 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/analytics/growth", "Growth analytics", auth=True),
                 _ep("GET", "/api/v1/analytics/slow-endpoints", "Slowest endpoint analytics", auth=True),
                 _ep("GET", "/api/v1/analytics/retention", "User retention analytics", auth=True),
+                _ep("GET", "/api/v1/analytics/client-types", "Client type breakdown", auth=True),
+                _ep("GET", "/api/v1/analytics/mcp-funnel", "MCP adoption funnel", auth=True),
             ],
         },
     ]
@@ -359,8 +361,9 @@ def guide(
         for step in quickstart:
             step["examples"] = _filter_examples(step["examples"], lang_val)
 
+    total = sum(len(c["endpoints"]) for c in categories)
     data = {
-        "welcome": "Satoshi API — Bitcoin data for developers. 70+ endpoints, zero vendor lock-in.",
+        "welcome": f"Satoshi API — Bitcoin data for developers. {total}+ endpoints, zero vendor lock-in.",
         "quickstart": quickstart,
         "categories": categories,
         "auth": _build_auth_info(),

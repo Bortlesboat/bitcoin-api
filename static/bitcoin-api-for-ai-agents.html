@@ -160,7 +160,7 @@
       "name": "What Bitcoin data can an AI agent access through Satoshi API?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "An AI agent can access 71 endpoints including fee recommendations (sat/vB), mempool congestion analysis, block details and statistics, transaction lookups, mining stats (difficulty, hashrate, next retarget), network information, price data, and real-time streams for new blocks and fee changes."
+        "text": "An AI agent can access 73 endpoints including fee recommendations (sat/vB), mempool congestion analysis, block details and statistics, transaction lookups, mining stats (difficulty, hashrate, next retarget), network information, price data, and real-time streams for new blocks and fee changes."
       }
     }
   ]
@@ -222,7 +222,7 @@
       <div class="stack-arrow">&#8595;</div>
       <div class="stack-layer active">
         <strong style="color: var(--accent);">Satoshi API</strong><br>
-        <span style="color: var(--muted); font-size: 0.85em;">REST API &mdash; 50 analyzed endpoints</span>
+        <span style="color: var(--muted); font-size: 0.85em;">REST API &mdash; 75+ analyzed endpoints</span>
       </div>
       <div class="stack-arrow">&#8595;</div>
       <div class="stack-layer">
@@ -302,12 +302,12 @@
   "mcpServers": {
     "bitcoin": {
       "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
+      "env": {"SATOSHI_API_URL": "http://localhost:9332"}
     }
   }
 }</code></pre>
           <p style="margin-top: 12px;">For hosted API access without running a node, point at the public endpoint:</p>
-<pre><code>"args": ["--api-url", "https://bitcoinsapi.com"]</code></pre>
+<pre><code>"env": {"SATOSHI_API_URL": "https://bitcoinsapi.com"}</code></pre>
         </div>
       </div>
     </div>
@@ -347,7 +347,7 @@
       As of 2026, no other Bitcoin API — BlockCypher, mempool.space, Blockchain.com, Blockstream, or any other provider — offers native MCP integration. Developers who want to give AI agents access to Bitcoin data through other APIs must build custom function-calling wrappers, handle authentication, parse responses, and manage error handling manually.
     </p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 24px;">
-      Satoshi API and bitcoin-mcp provide this out of the box. One <code>pip install</code> for the API, one for the MCP server, and the AI agent has structured tool-call access to 50 Bitcoin endpoints with typed responses, error handling, and rate limiting already built in.
+      Satoshi API and bitcoin-mcp provide this out of the box. One <code>pip install</code> for the API, one for the MCP server, and the AI agent has structured tool-call access to 75+ Bitcoin endpoints with typed responses, error handling, and rate limiting already built in.
     </p>
     <table class="compare-table">
       <thead>

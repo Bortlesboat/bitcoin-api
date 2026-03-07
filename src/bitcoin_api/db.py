@@ -51,10 +51,12 @@ def log_usage(
     method: str | None = None,
     response_time_ms: float | None = None,
     user_agent: str | None = None,
+    client_type: str = "unknown",
+    referrer: str = "",
 ) -> None:
     """Buffer a usage log entry for batch insertion."""
     from .usage_buffer import usage_buffer
-    usage_buffer.log(key_hash, endpoint, status_code, method, response_time_ms, user_agent)
+    usage_buffer.log(key_hash, endpoint, status_code, method, response_time_ms, user_agent, client_type, referrer)
 
 
 def count_daily_usage(key_hash: str) -> int:

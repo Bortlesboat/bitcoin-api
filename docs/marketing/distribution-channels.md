@@ -68,13 +68,13 @@
 #### e) r/Python (1.3M members)
 **URL:** https://reddit.com/r/Python
 **What to write:** Focus on the Python/FastAPI implementation. Code quality, typing, testing.
-**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 71 endpoints, 228 tests, pip installable"
+**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 73 endpoints, 228 tests, pip installable"
 **Rules:** Must be about the Python aspects, not Bitcoin evangelism.
 
 #### f) r/FastAPI (~30K members)
 **URL:** https://reddit.com/r/FastAPI
 **What to write:** Architecture showcase. How you structured routers, middleware, auth, caching.
-**Draft title:** "FastAPI in production: Bitcoin REST API with tiered auth, rate limiting, caching, and 71 endpoints"
+**Draft title:** "FastAPI in production: Bitcoin REST API with tiered auth, rate limiting, caching, and 73 endpoints"
 
 #### g) r/node (~30K members)
 **URL:** https://reddit.com/r/node
@@ -109,7 +109,7 @@
 #### a) Official MCP Registry -- DONE (Mar 7, 2026)
 **URL:** https://registry.modelcontextprotocol.io/
 **Status:** **PUBLISHED** as `io.github.Bortlesboat/bitcoin-mcp`. Also on PyPI as `bitcoin-mcp` v0.2.2.
-**Impact:** Major distribution win. 10,000+ MCP servers in the registry, but we are the only Bitcoin MCP server that queries a local node. Competitors (AbdelStark, JamesANZ, tiero) all use third-party APIs.
+**Impact:** Major distribution win. 10,000+ MCP servers in the registry, but we are the first Bitcoin MCP server that queries a local node. Competitors (AbdelStark, JamesANZ, tiero) all use third-party APIs.
 
 #### b) modelcontextprotocol/servers GitHub repo
 **URL:** https://github.com/modelcontextprotocol/servers
@@ -294,7 +294,7 @@ Alternatives aren't great:
 
 So I built Satoshi API. One command: pip install satoshi-api
 
-71 endpoints. Analyzed data (fee recommendations, mempool scoring).
+73 endpoints. Analyzed data (fee recommendations, mempool scoring).
 AI agent integration via MCP. Self-hosted on your own node.
 
 Open source, Apache-2.0 licensed, free forever for self-hosting.
@@ -571,7 +571,7 @@ What's the most painful API integration you've dealt with?
 "Self-hosted REST API for Bitcoin Core with analyzed data, MCP integration, and pip install."
 
 ### Two-liner (for awesome-lists):
-"Turn your Bitcoin node into a developer-friendly REST API. One command install, 71 endpoints with analyzed data (fee recommendations, mempool scoring), AI agent integration via MCP."
+"Turn your Bitcoin node into a developer-friendly REST API. One command install, 73 endpoints with analyzed data (fee recommendations, mempool scoring), AI agent integration via MCP."
 
 ### Elevator pitch (for forums/posts):
 "Satoshi API is the SQLite of Bitcoin APIs. One `pip install` gives you a REST API wrapping your Bitcoin Core node with analyzed data -- fee recommendations, mempool congestion scores, decoded transactions -- not raw RPC output. It's the only Bitcoin API with MCP integration for AI agents. Self-hosted, open-source, Apache-2.0 licensed."

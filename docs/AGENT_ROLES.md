@@ -1,10 +1,10 @@
 # Agent Employee Coordination — Satoshi API
 
-This document defines the 10 agent "employees" that maintain Satoshi API, their responsibilities, and the trigger matrix that coordinates their work.
+This document defines the 11 agent "employees" that maintain Satoshi API, their responsibilities, and the trigger matrix that coordinates their work.
 
-## The 10 Employees
+## The 11 Employees
 
-All 10 agents report directly to the CEO (Andy). Fully flat org — no intermediate management layers.
+All 11 agents report directly to the CEO (Andy). Fully flat org — no intermediate management layers.
 
 ### Strategic
 | Role | Skill | Responsibility |
@@ -23,6 +23,7 @@ All 10 agents report directly to the CEO (Andy). Fully flat org — no intermedi
 | **QA Lead** | `/qa-review` | N/A (agent-only) | Tests, coverage gaps, regressions, test-to-docs sync |
 | **Analytics** | `/analytics-review` | N/A (agent-only) | Data collection changes, logging, metrics |
 | **Chief of Staff** | `/ops-review` | N/A (agent-only) | Data lifecycle, metrics design, process automation, standards enforcement, org maintenance, headcount planning |
+| **Admin Assistant** | `/admin-assistant` | `scripts/stamp_endpoint_count.py` | Endpoint count stamping, doc consistency, guide catalog sync, cross-file reference audits |
 
 ### Deprecated Wrappers (backward compat)
 | Old Skill | Replacement | Notes |
@@ -51,7 +52,7 @@ Based on research into multi-agent patterns (Cursor's Planner/Worker/Judge hiera
 
 Key insight from Mike Mason's 2026 analysis: "Orchestrated agents on bounded tasks with human oversight produce value. Autonomous agents don't work reliably." Google's DORA Report confirms: 90% AI adoption increase → 9% bug rate climb when agents run unsupervised.
 
-**Why flat at 10:** At 10 agents with 1 human, hierarchy demotes key functions (Security under Product? Legal under Finance? No). The trigger matrix already coordinates cross-agent work. Real startups at this size are flat.
+**Why flat at 11:** At 11 agents with 1 human, hierarchy demotes key functions (Security under Product? Legal under Finance? No). The trigger matrix already coordinates cross-agent work. Real startups at this size are flat.
 
 ## Agent Run Protocol
 
@@ -86,17 +87,17 @@ When a change of the given type occurs, the listed agents should be triggered fo
 
 | Change Type | Triggers |
 |-------------|----------|
-| New endpoint added | Marketing, Security, QA Lead, Architect, PM, Ops |
+| New endpoint added | Marketing, Security, QA Lead, Architect, PM, Ops, **Admin Assistant** |
 | New data collection (PII) | Legal, Security |
 | New third-party integration | Legal, Security |
 | Pricing/tier change | Legal, Marketing, PM, Finance |
 | License change | Legal, Marketing, Architect |
 | New marketing claim | Legal |
 | Auth/rate-limit change | Security, Marketing |
-| Test count change | Marketing, QA Lead |
-| New static page | Marketing (sitemap), Architect (CSP whitelist) |
+| Test count change | Marketing, QA Lead, Admin Assistant |
+| New static page | Marketing (sitemap), Architect (CSP whitelist), Admin Assistant (sitemap audit) |
 | DB schema change | Security, Architect |
-| Config/env var change | Architect, Security, **update OPERATIONS.md** |
+| Config/env var change | Architect, Security, Admin Assistant (env doc sync), **update OPERATIONS.md** |
 | Deployment/process change | Architect, **update OPERATIONS.md** |
 | Customer journey change | PM, UX, Marketing |
 | Infrastructure cost change | Finance, Architect |
@@ -106,31 +107,37 @@ When a change of the given type occurs, the listed agents should be triggered fo
 | Logging/observability change | Analytics, Security, Architect |
 | Landing page / docs UX change | UX, Marketing |
 | Error message change | UX, QA Lead |
-| Agent added/removed/split | Ops (update AGENT_ROLES.md, all downstream docs) |
+| Agent added/removed/split | Ops (update AGENT_ROLES.md, all downstream docs), Admin Assistant (count sync) |
 | Data retention policy change | Ops, Legal, Analytics |
 | Process/automation change | Ops, Architect |
-| Cross-doc inconsistency found | Ops (sync all references) |
+| Cross-doc inconsistency found | Ops (sync all references), Admin Assistant (full audit) |
+| Version bump | Admin Assistant (version refs), Marketing (claims) |
+| Pre-deploy gate | Admin Assistant (full consistency sweep) |
 
 ## Cross-Reference: Who Cares About What
 
-| File/Area | PM | UX | Finance | Legal | Marketing | Security | Architect | QA | Analytics | Ops |
-|-----------|----|----|---------|-------|-----------|----------|-----------|-----|-----------|-----|
-| `static/terms.html` | - | - | - | Owner | - | - | - | - | - | - |
-| `static/privacy.html` | - | - | - | Owner | - | Reads | - | - | Reads | Reads |
-| `static/index.html` | Reads | Owner | - | Reads | Owner | Reads | - | - | - | - |
-| `middleware.py` | - | - | - | Reads | - | Owner | Reads | - | - | - |
-| `config.py` (pricing/tiers) | Reads | - | Reads | - | - | Reads | Owner | - | - | - |
-| `routers/*.py` | Reads | Reads | - | Reads | Reads | Reads | Owner | Reads | Reads | - |
-| `services/*.py` | - | - | - | - | Reads | Reads | Owner | - | - | - |
-| `db.py` / migrations | - | - | - | - | - | Reads | Owner | - | Owner | Reads |
-| `docs/SCOPE_OF_WORK.md` | Reads | - | Reads | Reads | Reads | Reads | Owner | Reads | - | Reads |
-| `docs/AGENT_ROLES.md` | - | - | - | - | - | - | - | - | - | Owner |
-| `docs/OPERATIONS.md` | - | - | - | - | - | - | Reads | - | - | Owner |
-| `tests/` | - | - | - | - | Reads | - | - | Owner | - | - |
-| SEO pages (`static/*.html`) | Reads | Reads | - | - | Owner | Reads | - | - | - | - |
-| Competitor pages (`vs-*.html`) | Owner | - | Reads | - | Reads | - | - | - | - | - |
-| `scripts/security_check.sh` | - | - | - | - | - | Owner | - | - | - | - |
-| Error messages (HTTPException) | - | Owner | - | - | - | - | - | Reads | - | - |
+| File/Area | PM | UX | Finance | Legal | Marketing | Security | Architect | QA | Analytics | Ops | Admin |
+|-----------|----|----|---------|-------|-----------|----------|-----------|-----|-----------|-----|-------|
+| `static/terms.html` | - | - | - | Owner | - | - | - | - | - | - | - |
+| `static/privacy.html` | - | - | - | Owner | - | Reads | - | - | Reads | Reads | - |
+| `static/index.html` | Reads | Owner | - | Reads | Owner | Reads | - | - | - | - | Counts |
+| `middleware.py` | - | - | - | Reads | - | Owner | Reads | - | - | - | - |
+| `config.py` (pricing/tiers) | Reads | - | Reads | - | - | Reads | Owner | - | - | - | Flags |
+| `routers/*.py` | Reads | Reads | - | Reads | Reads | Reads | Owner | Reads | Reads | - | Catalog |
+| `services/*.py` | - | - | - | - | Reads | Reads | Owner | - | - | - | - |
+| `db.py` / migrations | - | - | - | - | - | Reads | Owner | - | Owner | Reads | - |
+| `docs/SCOPE_OF_WORK.md` | Reads | - | Reads | Reads | Reads | Reads | Owner | Reads | - | Reads | Counts |
+| `docs/AGENT_ROLES.md` | - | - | - | - | - | - | - | - | - | Owner | Counts |
+| `docs/OPERATIONS.md` | - | - | - | - | - | - | Reads | - | - | Owner | - |
+| `CLAUDE.md` | - | - | - | - | - | - | Owner | - | - | - | KeyFiles |
+| `tests/` | - | - | - | - | Reads | - | - | Owner | - | - | Count |
+| SEO pages (`static/*.html`) | Reads | Reads | - | - | Owner | Reads | - | - | - | - | Counts |
+| Competitor pages (`vs-*.html`) | Owner | - | Reads | - | Reads | - | - | - | - | - | - |
+| `scripts/security_check.sh` | - | - | - | - | - | Owner | - | - | - | - | - |
+| Error messages (HTTPException) | - | Owner | - | - | - | - | - | Reads | - | - | - |
+| `.env.example` | - | - | - | - | - | - | - | - | - | - | EnvSync |
+| `static/sitemap.xml` | - | - | - | - | Reads | - | - | - | - | - | URLs |
+| `pyproject.toml` (version) | - | - | - | - | - | - | - | - | - | - | Version |
 
 ## Audit Trail
 
@@ -148,6 +155,7 @@ Track the last run of each agent for staleness detection.
 | QA | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Architect |
 | Analytics | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Legal, Security |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |
+| Admin Assistant | 2026-03-07 | PASS (77 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
 
 ## Performance Tracking
 
@@ -163,6 +171,7 @@ Track the last run of each agent for staleness detection.
 | QA | 2026-03-07 | 2 | 2 | 1 |
 | Analytics | 2026-03-07 | 2 | 0 | 2 |
 | Ops | 2026-03-07 | — | — | — |
+| Admin Assistant | 2026-03-07 | 5 | 5 | 2 |
 
 ## Conflict Resolution Protocol
 
@@ -198,7 +207,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >100 endpoints | 73 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >77 endpoints | 77 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---
@@ -209,9 +218,9 @@ When two agents disagree, apply this priority order (highest wins):
                                     CEO (Andy)
        _____________________________________________________________
       |     |      |      |     |      |      |     |     |         |
-     PM    UX    CFO   Legal  Mktg  Security Arch   QA  Analytics  Ops
+     PM    UX    CFO   Legal  Mktg  Security Arch   QA  Analytics  Ops  Admin
 ```
 
 All agents are peers. Collaboration pairs (documented above) handle cross-functional coordination. The trigger matrix handles change propagation. No intermediate management needed at this scale.
 
-*This file is read by all 10 agent skills at the start of every run. Update it when adding new change types, agents, or cross-references.*
+*This file is read by all 11 agent skills at the start of every run. Update it when adding new change types, agents, or cross-references.*
