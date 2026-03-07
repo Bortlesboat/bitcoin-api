@@ -2,7 +2,7 @@
 
 # Satoshi API
 
-**REST API for your Bitcoin node. One `pip install`, 71 endpoints.**
+**REST API for your Bitcoin node. One `pip install`, 73 endpoints.**
 
 [![CI](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/satoshi-api?color=orange)](https://pypi.org/project/satoshi-api/)
@@ -59,17 +59,22 @@ curl http://localhost:9332/api/v1/fees/recommended | jq
 
 ...and more (prices, address lookups, exchange comparison). [Full interactive docs at `/docs`](https://bitcoinsapi.com/docs).
 
-## AI Agent Integration (MCP)
+## For AI Agents
 
-Pairs with [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) to give AI assistants direct access to your Bitcoin node via [Model Context Protocol](https://modelcontextprotocol.io/).
+**[bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)** — the only Bitcoin MCP server on the official Anthropic MCP Registry — gives AI assistants direct access to your Bitcoin node via [Model Context Protocol](https://modelcontextprotocol.io/). 32 tools, 6 prompts, 6 resources.
+
+```bash
+# Install and point at your Satoshi API instance
+pip install bitcoin-mcp
+SATOSHI_API_URL=https://bitcoinsapi.com bitcoin-mcp
+```
+
+Or connect to a local node directly:
 
 ```json
 {
   "mcpServers": {
-    "bitcoin": {
-      "command": "bitcoin-mcp",
-      "args": ["--api-url", "http://localhost:9332"]
-    }
+    "bitcoin": { "command": "bitcoin-mcp" }
   }
 }
 ```
