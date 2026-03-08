@@ -49,23 +49,42 @@ The API itself listens on port 9332. With Cloudflare Tunnel, you don't need to o
 
 ## 3. API Installation
 
-### Option A: pip install
+### Option A: pip install (from PyPI)
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install satoshi-api
+
+# Configure
+cp .env.production.example .env.production
+# Edit .env.production with your RPC credentials
+# (grab the example from the GitHub repo if you don't have it)
+
+# Run
+satoshi-api
+# or: bitcoin-api (both commands work)
+# -> http://localhost:9332/docs
+```
+
+**Optional extras** -- install only what you need:
+
+```bash
+pip install satoshi-api[all]        # billing + email + redis + analytics
+pip install satoshi-api[billing]    # Stripe billing
+pip install satoshi-api[email]      # Resend transactional email
+pip install satoshi-api[redis]      # Upstash Redis rate limiting
+pip install satoshi-api[analytics]  # PostHog analytics
+```
+
+#### Development install (from source)
 
 ```bash
 git clone https://github.com/Bortlesboat/bitcoin-api.git
 cd bitcoin-api
 python -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/Bortlesboat/bitcoinlib-rpc.git
-pip install .
-
-# Configure
-cp .env.production.example .env.production
-# Edit .env.production with your RPC credentials
-
-# Run
-satoshi-api
-# -> http://localhost:9332/docs
+pip install -e .
 ```
 
 ### Option B: Docker
@@ -114,7 +133,11 @@ sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
 ```
 
-## 5. Monitoring
+## 5. Optional External Services
+
+The API can optionally integrate with Upstash Redis (persistent rate limiting), Resend (transactional email), and PostHog (landing page analytics). **All default to disabled and are not required for self-hosting.** In-memory rate limiting works fine for single-instance deployments. See `.env.production.example` for configuration details.
+
+## 6. Monitoring
 
 ### UptimeRobot
 
@@ -139,7 +162,7 @@ For non-Docker deployments, configure logrotate:
 }
 ```
 
-## 6. Security Checklist
+## 7. Security Checklist
 
 - [ ] `rpcpassword` is a strong random value (not the default)
 - [ ] `rpcbind=127.0.0.1` is set in bitcoin.conf

@@ -1,6 +1,6 @@
 """Exchange fee comparison: /tools/exchange-compare — net BTC after fees."""
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
 from ..models import ApiResponse, envelope
 from ..services.exchanges import get_cached_price, rank_exchanges
@@ -146,9 +146,7 @@ def compare_exchanges(
     """
     btc_price = get_cached_price()
     if btc_price is None:
-        return envelope(
-            {"error": "BTC price temporarily unavailable. Try again shortly."}
-        )
+        raise HTTPException(status_code=503, detail="Bitcoin price temporarily unavailable")
 
     results, best = rank_exchanges(EXCHANGE_FEES, amount_usd, btc_price)
 

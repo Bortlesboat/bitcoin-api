@@ -26,7 +26,7 @@ Raw RPC is a power tool. Most apps need a product.
 [Satoshi API](https://bitcoinsapi.com) is a thin REST layer over Bitcoin Core. `pip install`, point at your node, get 40 clean endpoints with analyzed data.
 
 ```bash
-pip install bitcoin-api
+pip install satoshi-api
 export BITCOIN_RPC_USER=your_user
 export BITCOIN_RPC_PASSWORD=your_password
 bitcoin-api  # http://localhost:9332/docs
@@ -149,4 +149,4 @@ The API currently covers blocks, transactions, mempool, fees, mining, and networ
 - **PyPI**: [pypi.org/project/satoshi-api/](https://pypi.org/project/satoshi-api/)
 - **Comparison with other Bitcoin APIs**: [bitcoinsapi.com/best-bitcoin-api-for-developers](https://bitcoinsapi.com/best-bitcoin-api-for-developers)
 
-Apache-2.0 licensed, 175 unit tests + 21 E2E tests (196 total), CI pipeline. If you run a node and want a clean API on top of it, I'd love feedback — open an issue or drop a comment below.
+Apache-2.0 licensed, 335 unit tests + 21 e2e tests (356 total), CI pipeline. If you run a node and want a clean API on top of it, I'd love feedback — open an issue or drop a comment below.

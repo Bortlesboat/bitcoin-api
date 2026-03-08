@@ -20,7 +20,7 @@ def require_api_key(request: Request, endpoint_name: str = "this endpoint") -> s
     if tier == "anonymous":
         raise HTTPException(
             status_code=403,
-            detail=f"API key required for {endpoint_name}. Get a free key at /docs",
+            detail=f"API key required for {endpoint_name}. Register a free key: POST /api/v1/register",
         )
     return tier
 

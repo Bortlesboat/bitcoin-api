@@ -1,0 +1,1 @@
+ALTER TABLE api_keys ADD COLUMN email_opt_out INTEGER NOT NULL DEFAULT 0;

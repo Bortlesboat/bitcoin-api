@@ -1,6 +1,7 @@
 """Tests for bitcoin-api endpoints."""
 
 from unittest.mock import patch, MagicMock
+from pydantic import SecretStr
 
 
 
@@ -674,8 +675,7 @@ def test_mempool_recent(client):
 
 def test_mempool_recent_max_count(client):
     resp = client.get("/api/v1/mempool/recent?count=200")
-    assert resp.status_code == 200
-    # Should cap at 100, but we only have 2 in mock
+    assert resp.status_code == 422  # Query validation rejects count > 100
 
 
 def test_block_tip_height(client):
@@ -711,7 +711,10 @@ def test_block_txs(client):
     resp = client.get(f"/api/v1/blocks/{block_hash}/txs?start=0&limit=10")
     assert resp.status_code == 200
     body = resp.json()
-    assert isinstance(body["data"], list)
+    assert isinstance(body["data"], dict)
+    assert "transactions" in body["data"]
+    assert "total_tx_count" in body["data"]
+    assert isinstance(body["data"]["transactions"], list)
 
 
 def test_block_txs_invalid_hash(client):
@@ -799,12 +802,12 @@ def test_fees_mempool_blocks(client):
     body = resp.json()
     assert isinstance(body["data"], list)
     # With 2 mock mempool txs, should produce at least 1 block
-    if len(body["data"]) > 0:
-        block = body["data"][0]
-        assert "block_index" in block
-        assert "min_fee_rate" in block
-        assert "tx_count" in block
-        assert "total_weight" in block
+    assert len(body["data"]) > 0
+    block = body["data"][0]
+    assert "block_index" in block
+    assert "min_fee_rate" in block
+    assert "tx_count" in block
+    assert "total_weight" in block
 
 
 def test_validate_address(client):
@@ -1061,14 +1064,12 @@ def test_exchange_compare_invalid_amount(client):
 
 
 def test_exchange_compare_price_unavailable(client, monkeypatch):
-    """Returns error message when BTC price is unavailable."""
+    """Returns 503 when BTC price is unavailable."""
     monkeypatch.setattr(
         "bitcoin_api.routers.exchanges.get_cached_price", lambda: None
     )
     resp = client.get("/api/v1/tools/exchange-compare")
-    assert resp.status_code == 200
-    body = resp.json()
-    assert "error" in body["data"]
+    assert resp.status_code == 503
 
 
 # --- Security tests ---
@@ -1297,9 +1298,9 @@ def test_broadcast_policy_rejection(authed_client):
 # --- Address endpoints ---
 
 
-def test_address_summary(client):
+def test_address_summary(authed_client):
     """Address summary returns balance, utxo count, and address info."""
-    resp = client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
+    resp = authed_client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
     assert resp.status_code == 200
     body = resp.json()
     data = body["data"]
@@ -1312,9 +1313,9 @@ def test_address_summary(client):
     assert body["meta"]["node_height"] == 880000
 
 
-def test_address_utxos(client):
+def test_address_utxos(authed_client):
     """Address UTXOs returns list of unspent outputs."""
-    resp = client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4/utxos")
+    resp = authed_client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4/utxos")
     assert resp.status_code == 200
     body = resp.json()
     data = body["data"]
@@ -1330,9 +1331,9 @@ def test_address_utxos(client):
     assert "value_sats" in data["utxos"][0]
 
 
-def test_address_utxos_limit(client):
+def test_address_utxos_limit(authed_client):
     """UTXO limit parameter should cap results."""
-    resp = client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4/utxos?limit=1")
+    resp = authed_client.get("/api/v1/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4/utxos?limit=1")
     assert resp.status_code == 200
     data = resp.json()["data"]
     assert data["utxo_count"] == 2  # total count stays
@@ -1340,13 +1341,13 @@ def test_address_utxos_limit(client):
     assert len(data["utxos"]) == 1
 
 
-def test_address_invalid_format(client):
+def test_address_invalid_format(authed_client):
     """Garbage address format should return 422."""
-    resp = client.get("/api/v1/address/!!invalid!!")
+    resp = authed_client.get("/api/v1/address/!!invalid!!")
     assert resp.status_code == 422
 
 
-def test_address_invalid_address(client, mock_rpc):
+def test_address_invalid_address(authed_client, mock_rpc):
     """Valid format but invalid address should return 400."""
     original = mock_rpc.call.side_effect
 
@@ -1356,7 +1357,7 @@ def test_address_invalid_address(client, mock_rpc):
         return original(method, *args)
 
     mock_rpc.call.side_effect = addr_invalid
-    resp = client.get("/api/v1/address/1InvalidAddressNotRealButLongEnough")
+    resp = authed_client.get("/api/v1/address/1InvalidAddressNotRealButLongEnough")
     assert resp.status_code == 400
 
 
@@ -1407,32 +1408,18 @@ def test_analytics_overview_rejects_wrong_key(client):
     assert resp.status_code == 403
 
 
-def _admin_client(mock_rpc):
-    """Create a test client with admin key configured."""
-    from bitcoin_api.main import app
-    from bitcoin_api.dependencies import get_rpc
-    from bitcoin_api.config import settings
-
-    original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
-    app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    from fastapi.testclient import TestClient
-    c = TestClient(app, headers={"X-Admin-Key": "test-admin-secret"})
-    yield c
-    settings.admin_api_key = original
-    app.dependency_overrides.clear()
-
 
 import pytest
 
 @pytest.fixture
 def admin_client(mock_rpc):
+    from pydantic import SecretStr
     from bitcoin_api.main import app
     from bitcoin_api.dependencies import get_rpc
     from bitcoin_api.config import settings
 
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
     from fastapi.testclient import TestClient
     with TestClient(app, headers={"X-Admin-Key": "test-admin-secret"}) as c:
@@ -1609,7 +1596,7 @@ def test_admin_dashboard_rejects_wrong_key(client):
 def test_admin_dashboard_with_valid_key(admin_client):
     """Admin dashboard should return HTML with valid key."""
     from bitcoin_api.config import settings
-    resp = admin_client.get(f"/admin/dashboard?key={settings.admin_api_key}")
+    resp = admin_client.get(f"/admin/dashboard?key={settings.admin_api_key.get_secret_value()}")
     assert resp.status_code == 200
     assert "Admin Dashboard" in resp.text
 
@@ -1716,7 +1703,7 @@ def test_metrics_endpoint_returns_prometheus_format(client):
     """GET /metrics should return Prometheus text exposition format."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
         assert resp.status_code == 200
@@ -1731,7 +1718,7 @@ def test_metrics_no_rate_limit(client):
     """Metrics endpoint should not be rate limited."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         for _ in range(35):
             resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
@@ -1744,7 +1731,7 @@ def test_metrics_request_count_increments(client):
     """After hitting an endpoint, http_requests_total should increment."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         client.get("/api/v1/fees")
         resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
@@ -1758,7 +1745,7 @@ def test_metrics_latency_histogram_present(client):
     """Latency histogram should be present after requests."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         client.get("/api/v1/fees")
         resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
@@ -1772,7 +1759,7 @@ def test_metrics_block_height_gauge(client):
     """bitcoin_block_height gauge should be present."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
         assert "bitcoin_block_height" in resp.text
@@ -1784,7 +1771,7 @@ def test_metrics_job_errors_counter(client):
     """background_job_errors_total counter should be present."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
-    settings.admin_api_key = "test-admin-secret"
+    settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
         assert "background_job_errors_total" in resp.text
@@ -2232,9 +2219,9 @@ def test_supply_math_correctness(client):
 # --- Mining Expansion Tests ---
 
 
-def test_mining_hashrate_history(client):
+def test_mining_hashrate_history(authed_client):
     """Hashrate history returns list of data points."""
-    resp = client.get("/api/v1/mining/hashrate/history?blocks=3")
+    resp = authed_client.get("/api/v1/mining/hashrate/history?blocks=3")
     assert resp.status_code == 200
     body = resp.json()
     assert "data" in body
@@ -2246,9 +2233,9 @@ def test_mining_hashrate_history(client):
         assert "difficulty" in data[0]
 
 
-def test_mining_hashrate_history_default(client):
+def test_mining_hashrate_history_default(authed_client):
     """Hashrate history works with default blocks param."""
-    resp = client.get("/api/v1/mining/hashrate/history")
+    resp = authed_client.get("/api/v1/mining/hashrate/history")
     assert resp.status_code == 200
 
 
@@ -2716,12 +2703,10 @@ def test_cap_blocks_param_unit():
     assert cap_blocks_param(100, "unknown_tier") == 100  # under default cap
 
 
-def test_mining_hashrate_anonymous_capped(client):
-    """Anonymous hashrate history gets capped to 144 blocks."""
+def test_mining_hashrate_anonymous_rejected(client):
+    """Anonymous hashrate history is rejected (requires API key)."""
     resp = client.get("/api/v1/mining/hashrate/history?blocks=500")
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["meta"]["max_blocks"] == 144
+    assert resp.status_code == 403
 
 
 def test_authed_blocks_cap(authed_client):
@@ -2771,3 +2756,56 @@ def test_require_api_key_anonymous_rejected():
         require_api_key(mock_request, "test endpoint")
     assert exc_info.value.status_code == 403
     assert "test endpoint" in exc_info.value.detail
+
+
+# --- Phase 0 integration: registration triggers notifications ---
+
+
+def test_register_calls_send_welcome_email(client):
+    """Registration endpoint calls send_welcome_email."""
+    with patch("bitcoin_api.routers.keys.send_welcome_email") as mock_email:
+        resp = client.post("/api/v1/register", json={
+            "email": "welcome@example.com",
+            "agreed_to_terms": True,
+        })
+    assert resp.status_code == 200
+    mock_email.assert_called_once()
+    args = mock_email.call_args[0]
+    assert args[0] == "welcome@example.com"  # to_email
+    assert args[1].startswith("btc_")  # api_key
+
+
+def test_register_calls_track_registration(client):
+    """Registration endpoint calls track_registration."""
+    with patch("bitcoin_api.routers.keys.track_registration") as mock_track:
+        resp = client.post("/api/v1/register", json={
+            "email": "track@example.com",
+            "agreed_to_terms": True,
+        })
+    assert resp.status_code == 200
+    mock_track.assert_called_once()
+    args = mock_track.call_args[0]
+    assert args[0] == "track@example.com"
+    assert args[1] == "free"
+
+
+def test_register_succeeds_when_email_fails(client):
+    """Registration returns 200 even when send_welcome_email returns False (email failed internally)."""
+    with patch("bitcoin_api.routers.keys.send_welcome_email", return_value=False):
+        resp = client.post("/api/v1/register", json={
+            "email": "fail-email@example.com",
+            "agreed_to_terms": True,
+        })
+    assert resp.status_code == 200
+    assert "api_key" in resp.json()["data"]
+
+
+def test_register_succeeds_when_posthog_fails(client):
+    """Registration returns 200 even when track_registration returns None (analytics failed internally)."""
+    with patch("bitcoin_api.routers.keys.track_registration", return_value=None):
+        resp = client.post("/api/v1/register", json={
+            "email": "fail-posthog@example.com",
+            "agreed_to_terms": True,
+        })
+    assert resp.status_code == 200
+    assert "api_key" in resp.json()["data"]

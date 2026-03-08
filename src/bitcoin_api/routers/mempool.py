@@ -2,7 +2,7 @@
 
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from bitcoinlib_rpc import BitcoinRPC
 
@@ -202,7 +202,7 @@ def mempool_txids(rpc: BitcoinRPC = Depends(get_rpc)):
     },
 )
 def mempool_recent(
-    count: int = 10,
+    count: int = Query(10, ge=1, le=100),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Most recent transactions entering the mempool, sorted by entry time (newest first).

@@ -1,8 +1,8 @@
 # Satoshi API -- Scope of Work
 
-**Version:** 0.3.1
+**Version:** 0.3.2
 **Date:** 2026-03-07
-**Author:** Andy Barnes
+**Author:** Bortlesboat
 **Status:** Live -- https://bitcoinsapi.com
 
 ---
@@ -31,6 +31,9 @@ cloudflared tunnel (localhost relay)
 Satoshi API (FastAPI, port 9332)
     |-- Auth middleware (API key via X-API-Key header)
     |-- Rate limiter (sliding window per-minute + daily DB-backed)
+    |-- Optional: Upstash Redis (persistent rate limit state)
+    |-- Optional: Resend (transactional email on registration)
+    |-- Optional: PostHog (landing page + registration analytics)
     |-- TTL cache (reorg-safe, per-cache locks)
     |-- Structured access logging
     |
@@ -51,7 +54,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
 | `migrations/` | SQL migration files + runner, tracked in `schema_migrations` | Sequential migrations |
 | `auth.py` | API key validation, tier resolution | Strategy (tier-based) |
-| `rate_limit.py` | Per-minute sliding window + daily limits | Token bucket / sliding window |
+| `rate_limit.py` | Per-minute sliding window (in-memory or Upstash Redis) + daily limits | Token bucket / sliding window |
+| `notifications.py` | Transactional email (Resend) + analytics events (PostHog) | Fire-and-forget side effects |
 | `cache.py` | TTL caching with reorg-safe depth awareness, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache |
 | `db.py` | SQLite (WAL mode), usage logging, key storage | Repository pattern |
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
@@ -153,6 +157,10 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/billing/status` | GET | Yes (free+) |
 | | `/api/v1/billing/cancel` | POST | Yes (free+) |
 | **Admin UI** | `/admin/dashboard` | GET | Admin key (query param) |
+| **Indexed** | `/api/v1/indexed/address/{addr}/balance` | GET | Yes (free+) |
+| | `/api/v1/indexed/address/{addr}/txs` | GET | Yes (free+) |
+| | `/api/v1/indexed/tx/{txid}` | GET | Yes (free+) |
+| | `/api/v1/indexed/status` | GET | No |
 
 ### 3.2 Endpoint Tiers
 
@@ -166,6 +174,7 @@ Endpoints are grouped into Core (always on) and Extended (toggleable via feature
 | **Extended** | exchanges | `ENABLE_EXCHANGE_COMPARE` (default: true) |
 | **Extended** | supply | `ENABLE_SUPPLY_ROUTER` (default: true) |
 | **Extended** | stats | `ENABLE_STATS_ROUTER` (default: true) |
+| **Indexer** | indexed address, indexed tx, indexer status | `ENABLE_INDEXER` (default: false) |
 
 All flags default to `true` so tests pass unchanged and Swagger `/docs` shows everything. Production `.env` controls what's actually exposed.
 
@@ -232,7 +241,7 @@ Errors follow the same structure:
 | **Transport** | HTTPS via Cloudflare Tunnel | TLS termination at edge, no home IP exposed |
 | **Authentication** | API key (SHA256 hashed) | X-API-Key header, deprecated query param with sunset |
 | **Authorization** | Tier-based access | Anonymous: read-only GET. Free+: POST + expensive GET (mining/stats). Block-walking caps per tier (anon/free: 144, pro: 1008, enterprise: 2016) |
-| **Rate Limiting** | Per-minute + daily | Sliding window (memory) + DB-backed daily counts |
+| **Rate Limiting** | Per-minute + daily | Sliding window (in-memory or Upstash Redis) + DB-backed daily counts |
 | **Input Validation** | Regex + Pydantic | 64-hex txid, non-negative heights, hex-only bodies |
 | **Body Size** | 2MB limit | Pydantic `Field(max_length=2_000_000)` on hex inputs |
 | **Node Protection** | RPC whitelist | Only 21 safe commands allowed via `rpcwhitelist` |
@@ -302,7 +311,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (73 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 207 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 335 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -361,6 +370,7 @@ Errors follow the same structure:
 | Daily limit COUNT(*) | O(n) per request at scale | v0.2 -- cache count in memory |
 | ~~No webhook support~~ | ~~Clients must poll~~ | **RESOLVED** -- WebSocket `/api/v1/ws` with pub/sub |
 | No address transaction history | Cannot provide `/address/{addr}/txs` | Deliberate -- Bitcoin Core RPC has no `getaddresshistory`. Requires external indexer (Electrs, Fulcrum). We offer `scantxoutset` via POST `/address/utxos` for UTXO lookup by address. Adding Electrs increases deployment complexity significantly. |
+| Email delivery depends on Resend | Welcome email fails silently if Resend is down | Graceful degradation -- registration succeeds regardless, key always returned in response |
 
 ---
 
@@ -377,7 +387,7 @@ Errors follow the same structure:
 | 5 | Thread safety, usage logging, Docker, CI | 10 |
 | 6 | Security hardening, production deployment, docs | 4 |
 | 7 | Architecture review: 11 fixes (3 critical, 4 high, 4 medium) | 0 |
-| 8 | v0.73 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
+| 8 | v0.77 endpoints: mempool txids/recent, block txids/txs, tip height/hash, tx status, difficulty | 12 |
 | 9 | L402 Lightning payments | Moved to separate extension package (bitcoin-api-l402) |
 | 10 | Launch features: fee landscape, tx estimator, SSE streams, fee history | 9 |
 | 11 | Security hardening (headers, CSP, HSTS), exchange compare tool, SEO comparison pages, robots.txt, sitemap.xml | 6 |
@@ -395,18 +405,31 @@ Errors follow the same structure:
 | 23 | Consistency pass: complete guide catalog (all 73 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
 | 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 12 |
 | 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
-| **Total** | **73 endpoints, 20 routers** | **231 unit + 21 e2e** |
+| 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
+| 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
+| **Total** | **73 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **335 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (36 files):**
-- `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
+**Source (50 files):**
+- `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql
+- `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
+- `src/bitcoin_api/indexer/services/` -- address, transaction
+- `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
+- `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (4 files):**
-- `tests/test_api.py` -- 231 unit tests
+**Tests (9 files):**
+- `tests/test_api.py` -- 235 unit tests (incl. 4 integration tests for notifications)
+- `tests/test_notifications.py` -- 9 unit tests (Resend email + PostHog analytics)
+- `tests/test_rate_limit_redis.py` -- 6 unit tests (Redis rate limiting + fallback)
+- `tests/test_indexer_parser.py` -- 25 unit tests (block parser, satoshi conversion, hex helpers)
+- `tests/test_indexer_reorg.py` -- 15 unit tests (reorg detection, fork point with RPC, rollback logic, first_seen/last_seen recalc)
+- `tests/test_indexer_routers.py` -- 14 unit tests (indexed endpoints, auth, validation, ENABLE_INDEXER=false)
+- `tests/test_indexer_worker.py` -- 19 unit tests (RPC retry, sync_blocks, _index_block, version check, shutdown)
+- `tests/test_indexer_services.py` -- 12 unit tests (address balance/history, transaction detail)
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
@@ -474,7 +497,17 @@ Errors follow the same structure:
 | HTTPS + DDoS | Cloudflare Tunnel (free) | $0 |
 | Monitoring | UptimeRobot (free tier) | $0 |
 
-### 7.2 Deployment Steps
+### 7.2 External Services (all optional)
+
+| Service | Purpose | Cost | Fallback if disabled |
+|---------|---------|------|---------------------|
+| **Upstash Redis** | Persistent, distributed rate limit state (sorted sets) | Free tier sufficient | In-memory sliding window (resets on restart) |
+| **Resend** | Welcome email with API key on registration, usage alerts | Free tier (100 emails/day) | Key shown once in registration response only |
+| **PostHog** | Landing page analytics, CTA tracking, registration funnel | Free tier (1M events/mo) | No landing page visitor visibility (API metrics unaffected) |
+
+All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTHOG_ENABLED`, `RATE_LIMIT_BACKEND=redis`). The API functions fully without any of them.
+
+### 7.3 Deployment Steps
 
 1. Buy domain, add to Cloudflare
 2. Install `cloudflared`, create tunnel
@@ -484,9 +517,9 @@ Errors follow the same structure:
 6. Set up UptimeRobot on `https://api.domain.dev/healthz`
 7. Create initial API keys via `scripts/create_api_key.py`
 
-### 7.3 Go-Live Checklist
+### 7.4 Go-Live Checklist
 
-- [x] All 207 unit tests pass
+- [x] All 335 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -508,7 +541,7 @@ Errors follow the same structure:
 
 Satoshi API serves three strategic purposes:
 
-1. **Open source product** -- `pip install bitcoin-api` is the fastest path from a Bitcoin node to a REST API. Value = convenience + developer experience.
+1. **Open source product** -- `pip install satoshi-api` is the fastest path from a Bitcoin node to a REST API. Value = convenience + developer experience.
 2. **Portfolio/credibility piece** -- Demonstrates Bitcoin protocol + Python + production engineering competence. Signals to Upwork clients, employers, and the Bitcoin dev community.
 3. **Consulting funnel** -- "I built this, I can build custom Bitcoin tooling for you." Leads to paid work.
 
@@ -586,7 +619,7 @@ These would be v1.0+ features, not v0.1 scope.
 | r/BitcoinDev | Technical announcement | High |
 | r/Bitcoin | Brief announcement | Medium |
 | Nostr | Thread with examples | Medium |
-| PyPI | `pip install bitcoin-api` | High |
+| PyPI | `pip install satoshi-api` | High |
 | MCP directories | modelcontextprotocol/servers PR, Smithery, MCP Hub | Medium |
 
 ### 9.2 PyPI Publishing
@@ -629,7 +662,13 @@ twine upload dist/*
 - Pre-commit hooks: privacy enforcer (blocking) + trigger advisory (non-blocking)
 - Unit tests expanded (139 → 207 across sprints 19-22)
 
-### v0.3.2 (Security Hardening — Next)
+### v0.3.2 (External Integrations — COMPLETE)
+- Resend transactional email (welcome email on registration, usage alerts)
+- Upstash Redis as optional rate limiting backend (persistent, distributed)
+- PostHog analytics on landing page + server-side registration tracking
+- Privacy-first PostHog config: no autocapture, no session recording, IP anonymized
+
+### v0.3.3 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)
 - Subresource Integrity (SRI) for any external scripts
 - API key rotation endpoint (issue new key, deprecate old)

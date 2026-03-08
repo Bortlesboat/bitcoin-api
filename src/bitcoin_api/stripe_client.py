@@ -2,14 +2,13 @@
 
 import logging
 
-import stripe
-
 from .config import settings
 
 log = logging.getLogger("bitcoin_api.stripe")
 
 
-def get_stripe_client() -> stripe.StripeClient:
+def get_stripe_client():
+    import stripe
     key = settings.stripe_secret_key
     if key is None:
         raise RuntimeError("Stripe not configured")
@@ -33,6 +32,7 @@ def create_checkout_session(api_key_hash: str) -> str:
 
 def verify_webhook_signature(payload: bytes, sig_header: str) -> dict:
     """Verify Stripe webhook signature and return the event dict."""
+    import stripe
     secret = settings.stripe_webhook_secret
     if secret is None:
         raise RuntimeError("Stripe webhook secret not configured")

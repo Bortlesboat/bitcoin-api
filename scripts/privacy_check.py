@@ -41,6 +41,25 @@ APPROVED_EXTERNAL_DOMAINS = {
     "www.coingecko.com",
     "api.coingecko.com",
     "cdn.jsdelivr.net",
+    "us.i.posthog.com",
+    "us-assets.i.posthog.com",
+}
+
+SECRET_PATTERNS = [
+    r"sk_live_[a-zA-Z0-9]+",           # Stripe live key
+    r"sk_test_[a-zA-Z0-9]+",           # Stripe test key
+    r"re_[a-zA-Z0-9]{20,}",            # Resend API key
+    r"whsec_[a-zA-Z0-9]+",             # Stripe webhook secret
+    r"UPSTASH_[A-Z_]*=\S+",            # Upstash credentials in assignment
+    r"phc_[a-zA-Z0-9]{30,}",           # PostHog project key (flag if in .py files)
+    r"btc_[0-9a-f]{32}",               # Satoshi API key
+]
+
+# Files where PostHog project key is expected (client-side, public by design)
+SECRET_ALLOWLIST = {
+    "static/index.html", "static\\index.html",
+    "static/vs-mempool.html", "static\\vs-mempool.html",
+    "static/vs-blockcypher.html", "static\\vs-blockcypher.html",
 }
 
 SCAN_EXTENSIONS = {".py", ".html", ".js", ".ts", ".css"}
@@ -168,6 +187,39 @@ def main():
             text_violations = scan_text(content, fname)
             for source, line, pattern in text_violations:
                 violations.append((source, 0, line, pattern))
+
+    # Secret/credential scanning
+    if scan_all:
+        for ext in SCAN_EXTENSIONS:
+            for filepath in ROOT.rglob(f"*{ext}"):
+                if ".git" in filepath.parts or "node_modules" in filepath.parts:
+                    continue
+                rel = str(filepath.relative_to(ROOT))
+                if rel in SELF_EXCLUDE or rel.replace("/", "\\") in SELF_EXCLUDE:
+                    continue
+                try:
+                    content = filepath.read_text(encoding="utf-8", errors="ignore")
+                except (OSError, UnicodeDecodeError):
+                    continue
+                for i, line in enumerate(content.split("\n"), 1):
+                    for pattern in SECRET_PATTERNS:
+                        if re.search(pattern, line):
+                            # Allow PostHog public key in HTML files
+                            if "phc_" in pattern and (rel in SECRET_ALLOWLIST or rel.replace("/", "\\") in SECRET_ALLOWLIST):
+                                continue
+                            warnings.append(f"{rel}:{i} — possible secret: matched '{pattern}'")
+                            break
+    else:
+        for fname, content in (diffs if not scan_all else []):
+            if fname in SELF_EXCLUDE or fname.replace("/", "\\") in SELF_EXCLUDE:
+                continue
+            for line in content.split("\n"):
+                for pattern in SECRET_PATTERNS:
+                    if re.search(pattern, line):
+                        if "phc_" in pattern and (fname in SECRET_ALLOWLIST or fname.replace("/", "\\") in SECRET_ALLOWLIST):
+                            continue
+                        warnings.append(f"{fname} — possible secret in staged change: matched '{pattern}'")
+                        break
 
     # Always check CSP and static HTML
     middleware = ROOT / "src" / "bitcoin_api" / "middleware.py"

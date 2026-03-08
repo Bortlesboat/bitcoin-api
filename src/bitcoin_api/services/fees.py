@@ -41,11 +41,14 @@ def analyze_mempool_blocks(raw_mempool: dict) -> list[dict]:
         if block_weight + weight > MAX_BLOCK_WEIGHT:
             if block_txs:
                 rates = [t[0] for t in block_txs]
+                s = sorted(rates)
+                mid = len(s) // 2
+                median = (s[mid - 1] + s[mid]) / 2 if len(s) % 2 == 0 else s[mid]
                 blocks.append({
                     "block_index": len(blocks),
                     "min_fee_rate": round(min(rates), 2),
                     "max_fee_rate": round(max(rates), 2),
-                    "median_fee_rate": round(sorted(rates)[len(rates) // 2], 2),
+                    "median_fee_rate": round(median, 2),
                     "tx_count": len(block_txs),
                     "total_weight": block_weight,
                     "total_fees_sat": round(sum(t[2] for t in block_txs)),
@@ -60,11 +63,14 @@ def analyze_mempool_blocks(raw_mempool: dict) -> list[dict]:
     # Don't forget the last partial block
     if block_txs and len(blocks) < 8:
         rates = [t[0] for t in block_txs]
+        s = sorted(rates)
+        mid = len(s) // 2
+        median = (s[mid - 1] + s[mid]) / 2 if len(s) % 2 == 0 else s[mid]
         blocks.append({
             "block_index": len(blocks),
             "min_fee_rate": round(min(rates), 2),
             "max_fee_rate": round(max(rates), 2),
-            "median_fee_rate": round(sorted(rates)[len(rates) // 2], 2),
+            "median_fee_rate": round(median, 2),
             "tx_count": len(block_txs),
             "total_weight": block_weight,
             "total_fees_sat": round(sum(t[2] for t in block_txs)),

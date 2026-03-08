@@ -151,7 +151,7 @@ def fees_mempool_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
 
 
 
-@router.get("/landscape")
+@router.get("/landscape", response_model=ApiResponse[dict])
 def fees_landscape(rpc: BitcoinRPC = Depends(get_rpc)):
     """Should I send now or wait? Fee landscape with trend analysis and actionable recommendation."""
     estimates = cached_fee_estimates(rpc)
@@ -162,7 +162,7 @@ def fees_landscape(rpc: BitcoinRPC = Depends(get_rpc)):
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/estimate-tx")
+@router.get("/estimate-tx", response_model=ApiResponse[dict])
 def fees_estimate_tx(
     rpc: BitcoinRPC = Depends(get_rpc),
     inputs: int = Query(default=1, ge=1, le=100, description="Number of inputs"),
@@ -178,7 +178,7 @@ def fees_estimate_tx(
     return envelope(data, height=info["blocks"], chain=info["chain"])
 
 
-@router.get("/history")
+@router.get("/history", response_model=ApiResponse[dict])
 def fees_history(
     hours: int = Query(default=24, ge=1, le=720, description="Hours of history to return"),
     interval: str = Query(default="10m", description="Interval (e.g. 5m, 10m, 30m, 1h)"),

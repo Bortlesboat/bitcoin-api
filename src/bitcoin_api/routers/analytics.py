@@ -30,7 +30,7 @@ def _require_admin(request: Request):
     if not settings.admin_api_key:
         raise HTTPException(status_code=403, detail="Analytics not configured")
     key = request.headers.get("X-Admin-Key", "")
-    if not secrets.compare_digest(key, settings.admin_api_key):
+    if not secrets.compare_digest(key, settings.admin_api_key.get_secret_value()):
         raise HTTPException(status_code=403, detail="Invalid admin key")
 
 
@@ -80,11 +80,11 @@ def analytics_requests(
     interval_secs = _INTERVAL_MAP.get(interval, 3600)
 
     rows = conn.execute(
-        "SELECT strftime('%s', ts) as epoch, COUNT(*) as cnt "
+        "SELECT (CAST(strftime('%s', ts) AS INTEGER) / ?) * ? as epoch, COUNT(*) as cnt "
         "FROM usage_log WHERE ts >= datetime('now', ?) "
         "GROUP BY CAST(strftime('%s', ts) AS INTEGER) / ? "
         "ORDER BY epoch",
-        (offset, interval_secs),
+        (interval_secs, interval_secs, offset, interval_secs),
     ).fetchall()
 
     return {"data": [{"timestamp": int(r[0]), "count": r[1]} for r in rows]}
@@ -278,7 +278,7 @@ def analytics_slow_endpoints(
 
     rows = conn.execute(
         "SELECT endpoint, response_time_ms FROM usage_log "
-        "WHERE ts >= datetime('now', ?) AND response_time_ms IS NOT NULL",
+        "WHERE ts >= datetime('now', ?) AND response_time_ms IS NOT NULL LIMIT 100000",
         (offset,),
     ).fetchall()
 

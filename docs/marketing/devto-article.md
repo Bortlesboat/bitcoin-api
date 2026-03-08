@@ -216,7 +216,6 @@ No project is complete, and I'd rather be upfront about the gaps:
 - **Address lookups are limited.** Uses `scantxoutset` which shows current UTXOs but not transaction history. Full address indexing needs Electrs/Fulcrum.
 - **Single chain.** Bitcoin mainnet, testnet, and signet only. No Liquid, no altchains.
 - **Single node.** No clustering, no failover. If your node goes down, the API goes down. Fine for personal use, not for production SLAs.
-- **SSE only, no WebSocket.** Real-time streaming uses Server-Sent Events for new blocks and fee updates. WebSocket support is on the roadmap.
 
 ## Try it
 
@@ -236,7 +235,7 @@ curl https://bitcoinsapi.com/api/v1/fees/recommended
 **PyPI:**
 [pypi.org/project/satoshi-api/](https://pypi.org/project/satoshi-api/)
 
-73 endpoints. 228 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
+73 endpoints. 356 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
 
 ---
 

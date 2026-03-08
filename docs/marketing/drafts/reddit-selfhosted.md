@@ -20,7 +20,7 @@ That is it. API runs on port 9332, interactive docs at `/docs`.
 
 **What it gives you:**
 
-- 71 REST endpoints: blocks, transactions, fees, mempool, mining, network, address lookups, real-time SSE streams
+- 73 REST endpoints: blocks, transactions, fees, mempool, mining, network, address lookups, real-time SSE streams
 - Fee recommendations with context ("Fees are low. Good time to send.")
 - Mempool congestion scoring
 - Smart caching so you do not hammer your node (depth-aware TTLs, reorg-safe)
@@ -30,7 +30,7 @@ That is it. API runs on port 9332, interactive docs at `/docs`.
 
 **If you want to expose it publicly:** I use a free Cloudflare Tunnel for HTTPS and DDoS protection without opening ports. There is a self-hosting guide in the docs.
 
-Apache-2.0 licensed, ~15 source files, minimal dependencies (FastAPI, httpx, bitcoinlib-rpc).
+Apache-2.0 licensed, ~36 source files, 356 tests, minimal dependencies (FastAPI, httpx, bitcoinlib-rpc).
 
 - **GitHub:** https://github.com/Bortlesboat/bitcoin-api
 - **Self-hosting guide:** https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/self-hosting.md

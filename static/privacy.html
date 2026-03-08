@@ -6,6 +6,7 @@
 <title>Privacy Policy — Satoshi API</title>
 <meta name="description" content="Privacy Policy for the Satoshi API hosted service at bitcoinsapi.com.">
 <link rel="canonical" href="https://bitcoinsapi.com/privacy">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <style>
 :root {
   --bg: #0d1117; --surface: #161b22; --border: #30363d;
@@ -54,11 +55,11 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 
 <h2>2. Information We Do NOT Collect</h2>
 <ul>
-<li>We do not use cookies or browser tracking.</li>
+<li>We do not use cookies. We use PostHog with in-memory persistence for anonymous page view analytics — no data persists in your browser between sessions.</li>
 <li>We do not collect personal information beyond email (for key registration) and IP addresses (for rate limiting).</li>
 <li>We do not store your API key in plaintext. Only the SHA-256 hash is stored.</li>
 <li>We do not log the content of your API requests or responses (e.g., transaction hex data you broadcast is not stored).</li>
-<li>We do not sell, rent, or share your data with third parties.</li>
+<li>We do not sell, rent, or share your data with third parties, except as necessary for payment processing (see Section 3).</li>
 </ul>
 
 <h2>3. Third-Party Services</h2>
@@ -66,6 +67,10 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <ul>
 <li><strong>Cloudflare:</strong> HTTPS termination, DDoS protection, and CDN. Cloudflare may process your IP address and request headers according to their <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">privacy policy</a>.</li>
 <li><strong>CoinGecko:</strong> Price data source. Your requests to our price endpoint do not go directly to CoinGecko; we fetch and cache data server-side.</li>
+<li><strong>Stripe, Inc.:</strong> Payment processing for Pro tier subscriptions. When you subscribe to a paid plan, we share your email address, payment method details, and billing address with Stripe to process payments. We do not store your full payment card number. Stripe's handling of your data is governed by the <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>.</li>
+<li><strong>Resend:</strong> Processes email addresses to deliver transactional emails (welcome email with API key, usage alerts). Data retained per <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Resend's privacy policy</a>.</li>
+<li><strong>Upstash:</strong> Processes IP addresses as ephemeral rate limit keys. Data automatically expires within 60 seconds via TTL. See <a href="https://upstash.com/trust/privacy.html" target="_blank" rel="noopener noreferrer">Upstash's privacy policy</a>.</li>
+<li><strong>PostHog:</strong> Receives anonymous page view events and CTA click events from our landing page. IP anonymization is enabled. No autocapture, no session recording. Registration events use hashed email (not raw PII). See <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">PostHog's privacy policy</a>.</li>
 </ul>
 
 <h2>4. How We Use Your Information</h2>
@@ -98,16 +103,28 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 </ul>
 <p>Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> for data requests.</p>
 
-<h2>8. Self-Hosted Instances</h2>
+<h2>8. European Privacy Rights (GDPR)</h2>
+<p>If you are located in the European Economic Area (EEA), the following applies to our processing of your personal data:</p>
+<ul>
+<li><strong>Lawful basis:</strong> We process IP addresses and API key hashes under legitimate interest for rate limiting and service operation. Email addresses are processed on the basis of consent provided at registration.</li>
+<li><strong>Data portability:</strong> You have the right to receive your personal data in a structured, machine-readable format. Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> to request a data export.</li>
+<li><strong>Supervisory authority:</strong> You have the right to lodge a complaint with your local data protection supervisory authority.</li>
+<li><strong>International transfers:</strong> Your data is processed in the United States. By using the Service, you consent to this transfer.</li>
+</ul>
+
+<h2>9. California Privacy Rights (CCPA)</h2>
+<p>California residents have the right to know what personal information is collected, request deletion, and opt out of sale. We do not sell personal information. Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> for data requests.</p>
+
+<h2>10. Self-Hosted Instances</h2>
 <p>This Privacy Policy applies only to the hosted service at bitcoinsapi.com. If you self-host Satoshi API, you are responsible for your own data handling practices. The open-source software does not phone home or transmit data to us.</p>
 
-<h2>9. Children's Privacy</h2>
+<h2>11. Children's Privacy</h2>
 <p>The Service is not directed at children under 13. We do not knowingly collect information from children.</p>
 
-<h2>10. Changes to This Policy</h2>
+<h2>12. Changes to This Policy</h2>
 <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date.</p>
 
-<h2>11. Contact</h2>
+<h2>13. Contact</h2>
 <p>For privacy questions or data requests, contact us at <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
 
 </div>

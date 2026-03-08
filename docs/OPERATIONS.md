@@ -100,10 +100,10 @@ If these are not set, billing endpoints return **503 Service Unavailable** with 
 
 ## 3. Prometheus Metrics
 
-The `/metrics` endpoint exposes Prometheus-format metrics. No auth required.
+The `/metrics` endpoint exposes Prometheus-format metrics. Requires `X-Admin-Key` header.
 
 ```bash
-curl http://localhost:9332/metrics
+curl -H "X-Admin-Key: $ADMIN_API_KEY" http://localhost:9332/metrics
 ```
 
 Returns standard Prometheus text format with counters, histograms, and gauges for request latency, error rates, cache hit rates, and active connections. Point your Prometheus scraper at this endpoint.
@@ -178,7 +178,55 @@ Subscription data is stored in the `subscriptions` table (created by `migrations
 
 ---
 
-## 6. Analytics Dashboard (Admin Only)
+## 6. External Services (all optional)
+
+All three services default to disabled. The API functions fully without them.
+
+### Resend (Transactional Email)
+
+Sends a welcome email with API key + curl quickstart on registration. Fire-and-forget (never blocks registration).
+
+```ini
+RESEND_API_KEY=re_...            # From https://resend.com/api-keys
+RESEND_FROM_EMAIL=Satoshi API <noreply@bitcoinsapi.com>
+RESEND_ENABLED=true              # Set to false to disable (default)
+```
+
+**Verify:** Register a new API key and check the email arrives. Check API logs for `Welcome email sent` or `Welcome email failed`.
+
+**Disable:** Set `RESEND_ENABLED=false` in `.env` and restart. Registration still works; key is shown in the response.
+
+### Upstash Redis (Rate Limiting Backend)
+
+Replaces in-memory sliding window with Redis sorted sets. Rate limits persist across restarts and work across multiple workers.
+
+```ini
+UPSTASH_REDIS_URL=https://....upstash.io   # From https://console.upstash.com
+UPSTASH_REDIS_TOKEN=AX...                   # REST API token
+RATE_LIMIT_BACKEND=redis                    # "redis" or "memory" (default)
+```
+
+**Verify:** Check startup logs for `Rate limit backend: redis`. If Redis is unreachable, it falls back to in-memory automatically.
+
+**Disable:** Set `RATE_LIMIT_BACKEND=memory` in `.env` and restart. In-memory works fine for single-instance deployments.
+
+### PostHog (Landing Page Analytics)
+
+Privacy-first analytics on landing page and SEO comparison pages. Server-side registration event tracking. No autocapture, no session recording, IP anonymized.
+
+```ini
+POSTHOG_API_KEY=phc_...          # From https://us.posthog.com/settings/project-api-key
+POSTHOG_HOST=https://us.i.posthog.com
+POSTHOG_ENABLED=true             # Set to false to disable (default)
+```
+
+**Verify:** Visit the landing page and check PostHog dashboard for page views. Register an API key and check for `api_key_registered` event.
+
+**Disable:** Set `POSTHOG_ENABLED=false` in `.env` and restart. The JS snippet on HTML pages checks the flag server-side and is not injected when disabled.
+
+---
+
+## 7. Analytics Dashboard (Admin Only)
 
 Ten endpoints + a visual dashboard that show how people use your API. All require the admin key.
 
@@ -236,7 +284,7 @@ In `~/Bortlesboat/bitcoin-api/.env`, the `ADMIN_API_KEY` line.
 
 ---
 
-## 7. API Keys (for users)
+## 8. API Keys (for users)
 
 ### Create a new API key
 ```bash
@@ -250,7 +298,7 @@ Users can POST to `/api/v1/register` with `agreed_to_terms: true` to get a free 
 
 ---
 
-## 8. SEO & Marketing Toolkit
+## 9. SEO & Marketing Toolkit
 
 ### Run SEO metrics check
 ```bash
@@ -283,7 +331,7 @@ This Claude Code skill audits all marketing files against the actual codebase an
 
 ---
 
-## 9. Running Tests
+## 10. Running Tests
 
 ```bash
 cd ~/Bortlesboat/bitcoin-api
@@ -315,7 +363,7 @@ python scripts/trigger_check.py
 
 ---
 
-## 10. Interactive API Guide
+## 11. Interactive API Guide
 
 The `/api/v1/guide` endpoint returns curated code examples and use-case walkthroughs. No auth required.
 
@@ -330,7 +378,7 @@ curl "https://bitcoinsapi.com/api/v1/guide?use_case=transactions&lang=curl"
 
 ---
 
-## 11. Agent Employees (11 Agents — Claude Code Skills)
+## 12. Agent Employees (11 Agents — Claude Code Skills)
 
 The project has 11 specialized agents (flat org, all report to CEO) you can run as slash commands:
 
@@ -357,7 +405,7 @@ After any code change, Claude will check the trigger matrix in `docs/AGENT_ROLES
 
 ---
 
-## 12. Building & Publishing
+## 13. Building & Publishing
 
 ### Build the PyPI package locally
 ```bash
@@ -378,7 +426,7 @@ python -m twine upload dist/satoshi_api-*.whl dist/satoshi_api-*.tar.gz
 
 ---
 
-## 13. Domain & HTTPS (Cloudflare)
+## 14. Domain & HTTPS (Cloudflare)
 
 - **Domain:** bitcoinsapi.com (Cloudflare Registrar)
 - **Tunnel:** `cloudflared` Windows service routes `bitcoinsapi.com` -> `localhost:9332`
@@ -390,16 +438,12 @@ python -m twine upload dist/satoshi_api-*.whl dist/satoshi_api-*.tar.gz
 - **Tunnel:** dash.cloudflare.com -> Zero Trust -> Tunnels
 - **Web Analytics:** dash.cloudflare.com -> Analytics & Logs -> Web Analytics
 
-### Cloudflare Analytics — DONE (2026-03-07)
-Two analytics entries exist for bitcoinsapi.com:
-1. **JS Snippet (manual)** — token `be5b86b8738d40218e1832ce1dd743ef`, embedded in all 8 HTML pages via `beacon.min.js`. Tracks page-level visits.
-2. **Automatic setup (RUM)** — enabled via Speed > RUM. Cloudflare auto-injects at the edge. Tracks performance (load time, TTFB).
-
-Both are intentional and don't conflict. Do NOT delete either one. New HTML pages need the beacon snippet added.
+### Cloudflare Analytics — REVISED (2026-03-07)
+The manual JS beacon (`beacon.min.js`) was **removed** from all HTML pages (Sprint 25 — replaced by PostHog). Only the automatic RUM setup (Speed > RUM) remains active. Cloudflare auto-injects at the edge for performance metrics (load time, TTFB). PostHog handles page-level analytics.
 
 ---
 
-## 14. Pending Setup (Manual Browser Actions)
+## 15. Pending Setup (Manual Browser Actions)
 
 ### Bing Webmaster Tools — DONE (2026-03-07)
 Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitted: `https://bitcoinsapi.com/sitemap.xml`. Token is in `static/index.html`.
@@ -411,7 +455,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 ---
 
-## 15. File Map
+## 16. File Map
 
 | Location | What's there |
 |----------|-------------|

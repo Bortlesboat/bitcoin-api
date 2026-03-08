@@ -273,7 +273,7 @@ def block_txids(
 
 @router.get(
     "/{block_hash}/txs",
-    response_model=ApiResponse[list[dict]],
+    response_model=ApiResponse[dict],
     responses={
         200: {
             "description": "Full transactions in a block (paginated)",
@@ -307,9 +307,10 @@ def block_txs(
     if not _HASH_RE.match(block_hash):
         raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
     block = rpc.call("getblock", block_hash, 2)
-    txs = block.get("tx", [])[start:start + limit]
+    all_txs = block.get("tx", [])
+    txs = all_txs[start:start + limit]
     info = cached_blockchain_info(rpc)
-    return envelope(txs, height=info["blocks"], chain=info["chain"])
+    return envelope({"transactions": txs, "total_tx_count": len(all_txs)}, height=info["blocks"], chain=info["chain"])
 
 
 @router.get(

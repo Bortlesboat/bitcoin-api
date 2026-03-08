@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     rate_limit_enterprise: int = 2000
 
     # Admin API key for analytics endpoints
-    admin_api_key: str | None = None
+    admin_api_key: SecretStr | None = None
 
     # WebSocket
     ws_max_connections: int = 100
@@ -67,6 +67,24 @@ class Settings(BaseSettings):
     stripe_price_id: str = ""
     stripe_success_url: str = "https://bitcoinsapi.com?checkout=success"
     stripe_cancel_url: str = "https://bitcoinsapi.com?checkout=cancel"
+
+    # Resend (transactional email)
+    resend_api_key: SecretStr | None = None
+    resend_from_email: str = "Satoshi API <noreply@bitcoinsapi.com>"
+    resend_enabled: bool = False
+
+    # Upstash Redis (rate limiting backend)
+    upstash_redis_url: str = ""
+    upstash_redis_token: SecretStr | None = None
+    rate_limit_backend: str = "memory"  # "redis" or "memory"
+
+    # PostHog Analytics (privacy-first: no autocapture, no session recording)
+    posthog_api_key: SecretStr | None = None
+    posthog_host: str = "https://us.i.posthog.com"
+    posthog_enabled: bool = False
+
+    # Blockchain indexer (siloed — see indexer/config.py for indexer-specific settings)
+    enable_indexer: bool = False
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

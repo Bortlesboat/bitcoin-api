@@ -46,7 +46,7 @@ def _circulating_supply(height: int) -> float:
     """Calculate circulating supply from block height using the halving schedule."""
     supply = 0.0
     subsidy = INITIAL_SUBSIDY
-    remaining = height
+    remaining = height + 1
 
     while remaining > 0 and subsidy > 0:
         era_blocks = min(remaining, HALVING_INTERVAL)

@@ -1,6 +1,7 @@
 """Address endpoints: /address/{address}, /address/{address}/utxos."""
 
 import re
+import threading
 
 import requests.exceptions
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -8,14 +9,31 @@ from starlette.requests import Request
 from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.rpc import RPCError
 
+from ..auth import require_api_key
 from ..cache import cached_blockchain_info
 from ..dependencies import get_rpc
 from ..models import ApiResponse, envelope
 
 router = APIRouter(prefix="/address", tags=["Address"])
 
+# Limit concurrent scantxoutset calls to 1 — each is O(UTXO set), 30-60s.
+_scan_semaphore = threading.Semaphore(1)
+_SCAN_WAIT_TIMEOUT = 30  # seconds to wait for semaphore before returning 503
+
 # Basic address format check — let Bitcoin Core do the real validation
 _ADDR_RE = re.compile(r"^[a-zA-Z0-9]{25,90}$")
+
+
+def _detect_address_type(address: str) -> str:
+    if address.startswith(("bc1q", "tb1q")):
+        return "witness_v0_keyhash" if len(address) == 42 or len(address) == 62 else "witness_v0_scripthash"
+    elif address.startswith(("bc1p", "tb1p")):
+        return "witness_v1_taproot"
+    elif address.startswith(("1", "m", "n")):
+        return "pubkeyhash"
+    elif address.startswith(("3", "2")):
+        return "scripthash"
+    return "unknown"
 
 
 def _validate_address(address: str, rpc: BitcoinRPC) -> dict:
@@ -29,19 +47,32 @@ def _validate_address(address: str, rpc: BitcoinRPC) -> dict:
 
 
 def _scan_address(address: str, rpc: BitcoinRPC) -> dict:
-    """Scan UTXO set for address. Returns scantxoutset result."""
-    descriptor = f"addr({address})"
+    """Scan UTXO set for address. Returns scantxoutset result.
+
+    Only one scantxoutset runs at a time (semaphore). If the semaphore
+    cannot be acquired within _SCAN_WAIT_TIMEOUT seconds, returns 503.
+    """
+    acquired = _scan_semaphore.acquire(timeout=_SCAN_WAIT_TIMEOUT)
+    if not acquired:
+        raise HTTPException(
+            status_code=503,
+            detail="Address lookup is busy, please retry shortly",
+        )
     try:
-        result = rpc.call("scantxoutset", "start", [descriptor])
-    except requests.exceptions.ReadTimeout:
-        raise HTTPException(status_code=504, detail="Address scan timed out — try again later or use a smaller address")
-    except RPCError as exc:
-        if exc.code == -8:
-            raise HTTPException(status_code=400, detail=f"Address not scannable: {exc.message}")
-        raise
-    if not result or not result.get("success", False):
-        raise HTTPException(status_code=502, detail="UTXO set scan failed — node may be busy")
-    return result
+        descriptor = f"addr({address})"
+        try:
+            result = rpc.call("scantxoutset", "start", [descriptor])
+        except requests.exceptions.ReadTimeout:
+            raise HTTPException(status_code=504, detail="Address scan timed out — try again later or use a smaller address")
+        except RPCError as exc:
+            if exc.code == -8:
+                raise HTTPException(status_code=400, detail=f"Address not scannable: {exc.message}")
+            raise
+        if not result or not result.get("success", False):
+            raise HTTPException(status_code=502, detail="UTXO set scan failed — node may be busy")
+        return result
+    finally:
+        _scan_semaphore.release()
 
 
 _SUMMARY_EXAMPLE = {
@@ -82,6 +113,7 @@ def address_summary(
     Returns confirmed balance only (unspent outputs currently in the UTXO set).
     Does not include mempool/unconfirmed transactions.
     """
+    require_api_key(request, "address summary")
     addr_info = _validate_address(address, rpc)
     scan = _scan_address(address, rpc)
     info = cached_blockchain_info(rpc)
@@ -91,7 +123,7 @@ def address_summary(
 
     data = {
         "address": address,
-        "type": addr_info.get("scriptPubKey", {}).get("type") if isinstance(addr_info.get("scriptPubKey"), dict) else None,
+        "type": _detect_address_type(address),
         "script_pub_key": addr_info.get("scriptPubKey"),
         "is_witness": addr_info.get("iswitness", False),
         "witness_version": addr_info.get("witness_version"),
@@ -158,6 +190,7 @@ def address_utxos(
     Returns confirmed UTXOs from the UTXO set scan.
     Results are sorted by value (largest first). Use limit to control response size.
     """
+    require_api_key(request, "address utxos")
     _validate_address(address, rpc)
     scan = _scan_address(address, rpc)
     info = cached_blockchain_info(rpc)

@@ -344,7 +344,7 @@ def decode_transaction(
     """Decode a raw transaction hex string without broadcasting."""
     tier = getattr(request.state, "tier", "anonymous")
     if tier == "anonymous":
-        raise HTTPException(status_code=403, detail="API key required for POST endpoints. Get a free key at /docs")
+        raise HTTPException(status_code=403, detail="API key required for POST endpoints. Register a free key: POST /api/v1/register")
     if not _HEX_RE.match(body.hex):
         raise HTTPException(status_code=422, detail="Invalid hex string")
     decoded = rpc.call("decoderawtransaction", body.hex)
@@ -377,7 +377,7 @@ def broadcast_transaction(
     """Broadcast a signed raw transaction to the network."""
     tier = getattr(request.state, "tier", "anonymous")
     if tier == "anonymous":
-        raise HTTPException(status_code=403, detail="API key required for POST endpoints. Get a free key at /docs")
+        raise HTTPException(status_code=403, detail="API key required for POST endpoints. Register a free key: POST /api/v1/register")
     if not _HEX_RE.match(body.hex):
         raise HTTPException(status_code=422, detail="Invalid hex string")
 

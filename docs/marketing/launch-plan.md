@@ -14,10 +14,10 @@ If any product change happened since drafts were written (new endpoint, feature,
 
 | Fact | Value | Source of Truth |
 |------|-------|-----------------|
-| Version (live) | v0.3.1 | CHANGELOG.md |
-| Version (PyPI) | 0.3.1 — NEEDS UPDATE | pypi.org/project/satoshi-api |
-| Endpoints | 71 | router files (marketing_sync.py) |
-| Tests | 207 unit + 21 e2e (228 total) | tests/ |
+| Version (live) | v0.3.2 | CHANGELOG.md |
+| Version (PyPI) | 0.3.2 — NEEDS UPDATE | pypi.org/project/satoshi-api |
+| Endpoints | 73 | router files (marketing_sync.py) |
+| Tests | 335 unit + 21 e2e (356 total) | tests/ |
 | Install command | `pip install satoshi-api` | pypi |
 | Live URL | https://bitcoinsapi.com | Cloudflare Tunnel |
 | GitHub stars | 0 | github.com/Bortlesboat/bitcoin-api |
@@ -35,9 +35,9 @@ If any product change happened since drafts were written (new endpoint, feature,
 - [x] IndexNow submitted to Bing/Yandex
 - [x] GitHub: 15 topics, description, homepage set
 - [x] GitHub: issue templates, PR template, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT
-- [x] GitHub: v0.3.1 release created
+- [x] GitHub: v0.3.2 release created
 - [x] Dev.to article published
-- [ ] PyPI: publish v0.3.1 (BLOCKER — marketing says "pip install" but PyPI is stale). Build verified locally.
+- [ ] PyPI: publish v0.3.2 (BLOCKER — marketing says "pip install" but PyPI is stale). Build verified locally.
 - [ ] GitHub social preview image uploaded (og-image.svg ready in static/)
 - [ ] Bing Webmaster Tools setup
 - [x] All marketing drafts synced to 73 endpoints + Apache-2.0 license
@@ -55,7 +55,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 | Reddit r/selfhosted | TODO | See drafts below | | |
 | Reddit r/Bitcoin | TODO | See drafts below | | |
 | Stacker News | TODO | See drafts below | | |
-| PyPI v0.3.1 publish | TODO | N/A | | |
+| PyPI v0.3.2 publish | TODO | N/A | | |
 | awesome-selfhosted PR | TODO | N/A | | |
 | awesome-fastapi PR | TODO | N/A | | |
 

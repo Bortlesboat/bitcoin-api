@@ -60,6 +60,6 @@ def broadcast_with_validation(rpc: BitcoinRPC, hex_data: str) -> str:
         if exc.code in BROADCAST_ERRORS:
             status, detail = BROADCAST_ERRORS[exc.code]
             raise HTTPException(status_code=status, detail=detail)
-        raise
+        raise HTTPException(status_code=502, detail=f"Node rejected transaction: {exc.message}")
 
     return txid

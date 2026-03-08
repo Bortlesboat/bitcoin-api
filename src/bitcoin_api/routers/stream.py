@@ -129,9 +129,8 @@ async def _whale_tx_generator(rpc: BitcoinRPC, min_btc: float):
             yield f"event: error\ndata: {json.dumps({'error': 'mempool_fetch_failed'})}\n\n"
             continue
 
-        for txid in raw_mempool:
-            if txid in seen_txids:
-                continue
+        new_txids = [txid for txid in raw_mempool if txid not in seen_txids][:200]
+        for txid in new_txids:
             try:
                 tx = rpc.call("getrawtransaction", txid, True)
                 total_value = sum(vout.get("value", 0) for vout in tx.get("vout", []))
@@ -149,7 +148,8 @@ async def _whale_tx_generator(rpc: BitcoinRPC, min_btc: float):
 
         # Prevent unbounded memory growth
         if len(seen_txids) > max_seen:
-            seen_txids.clear()
+            to_remove = list(seen_txids)[:len(seen_txids) // 2]
+            seen_txids -= set(to_remove)
 
         if time.time() - last_keepalive >= keepalive_interval:
             yield ": keepalive\n\n"

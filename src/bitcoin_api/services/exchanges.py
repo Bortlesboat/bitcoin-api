@@ -57,7 +57,7 @@ def calculate_net_btc(amount_usd: float, exchange: dict, btc_price: float) -> di
     effective_usd = amount_usd - trading_fee - spread_cost
 
     gross_btc = effective_usd / btc_price
-    gross_sats = int(gross_btc * 1e8)
+    gross_sats = round(gross_btc * 1e8)
 
     withdrawal_fee_sats = exchange["withdrawal_fee_sats"]
     net_sats = max(0, gross_sats - withdrawal_fee_sats)

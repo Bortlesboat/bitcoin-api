@@ -17,6 +17,11 @@ echo ""
 echo "[1/6] Pulling latest from git..."
 git pull --ff-only || { echo "FATAL: git pull failed (merge conflict?)"; exit 1; }
 
+# 1.5. Install/update dependencies
+echo ""
+echo "[1.5/6] Installing dependencies..."
+pip install -e . --quiet || { echo "FATAL: pip install failed"; exit 1; }
+
 # 2. Run tests
 echo ""
 echo "[2/6] Running marketing sync check..."

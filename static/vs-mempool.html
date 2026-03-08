@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Satoshi API vs Mempool.space — Which Bitcoin API Should You Use?">
 <meta name="twitter:description" content="Side-by-side comparison of Satoshi API and Mempool.space. Different tools for different jobs — find out which one fits your project.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 
 <script type="application/ld+json">
 {
@@ -138,16 +138,31 @@
     nav .links { gap: 12px; font-size: 0.8em; }
   }
 </style>
+<!-- PostHog Analytics (privacy-first: no autocapture, no session recording, IP anonymized) -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+    posthog.init('phc_G0KrOSwtDJ0sKTs6v30ryCObqyHDPvESx7mpfouulRi', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
 </head>
 <body>
 
 <nav>
-  <div class="logo"><a href="/">Satoshi API</a></div>
+  <div class="logo"><a href="/" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'home'})">Satoshi API</a></div>
   <div class="links">
-    <a href="/">Home</a>
-    <a href="/docs">API Docs</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
-    <a href="/best-bitcoin-api-for-developers">Compare</a>
+    <a href="/" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'home'})">Home</a>
+    <a href="/docs" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'docs'})">API Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'github'})">GitHub</a>
+    <a href="/best-bitcoin-api-for-developers" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'compare'})">Compare</a>
   </div>
 </nav>
 
@@ -161,8 +176,8 @@
 
 <!-- Opening -->
 <section class="content">
-  <p><a href="https://mempool.space" target="_blank" rel="noopener noreferrer">Mempool.space</a> is a widely-used open-source block explorer and mempool visualizer. It provides a browser-based interface for exploring blocks, transactions, and addresses, and exposes an API for programmatic access to that data.</p>
-  <p><a href="https://bitcoinsapi.com">Satoshi API</a> is a self-hosted REST API layer that connects directly to a Bitcoin Core node. It provides analyzed endpoints (fee recommendations in sat/vB, congestion scores, UTXO analysis), reorg-aware caching, and MCP integration for AI agents. It does not include a visual explorer.</p>
+  <p><a href="https://mempool.space" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('comparison_outbound_click', {page: 'vs-mempool', target: 'mempool.space'})">Mempool.space</a> is a widely-used open-source block explorer and mempool visualizer. It provides a browser-based interface for exploring blocks, transactions, and addresses, and exposes an API for programmatic access to that data.</p>
+  <p><a href="https://bitcoinsapi.com" onclick="posthog.capture('comparison_cta_click', {page: 'vs-mempool', target: 'homepage'})">Satoshi API</a> is a self-hosted REST API layer that connects directly to a Bitcoin Core node. It provides analyzed endpoints (fee recommendations in sat/vB, congestion scores, UTXO analysis), reorg-aware caching, and MCP integration for AI agents. It does not include a visual explorer.</p>
   <p>The two tools occupy different niches. Choosing between them depends on whether the goal is visual exploration and address lookups, or building production applications on a private node.</p>
 </section>
 
@@ -186,7 +201,7 @@
       <tr>
         <td>Hosting</td>
         <td>Hosted SaaS (self-host option available)</td>
-        <td>Self-hosted only</td>
+        <td>Self-hosted + hosted free tier</td>
       </tr>
       <tr>
         <td>Privacy</td>
@@ -226,7 +241,7 @@
       <tr>
         <td>Address lookups</td>
         <td><span class="check">Full address history, balance, UTXOs</span></td>
-        <td class="muted">Not available (Bitcoin Core limitation)</td>
+        <td><span class="check">UTXO balance + UTXOs via scantxoutset (requires API key)</span></td>
       </tr>
       <tr>
         <td>Visual explorer</td>
@@ -300,19 +315,19 @@
   <h2>Related Pages</h2>
   <div class="use-cards">
     <div class="use-card">
-      <h3><a href="/vs-blockcypher" style="color: var(--accent);">Compare with BlockCypher</a></h3>
+      <h3><a href="/vs-blockcypher" style="color: var(--accent);" onclick="posthog.capture('comparison_crosslink', {from: 'mempool', to: 'blockcypher'})">Compare with BlockCypher</a></h3>
       <p>Self-hosted Bitcoin Core API vs hosted multi-chain service.</p>
     </div>
     <div class="use-card">
-      <h3><a href="/bitcoin-fee-api" style="color: var(--accent);">Fee API Details</a></h3>
+      <h3><a href="/bitcoin-fee-api" style="color: var(--accent);" onclick="posthog.capture('comparison_cta_click', {page: 'vs-mempool', target: 'fee-api'})">Fee API Details</a></h3>
       <p>Endpoints for fee estimation, fee landscape, and congestion scoring.</p>
     </div>
     <div class="use-card">
-      <h3><a href="/bitcoin-mempool-api" style="color: var(--accent);">Mempool API Details</a></h3>
+      <h3><a href="/bitcoin-mempool-api" style="color: var(--accent);" onclick="posthog.capture('comparison_cta_click', {page: 'vs-mempool', target: 'mempool-api'})">Mempool API Details</a></h3>
       <p>Real-time mempool analysis, distribution, and transaction monitoring.</p>
     </div>
     <div class="use-card">
-      <h3><a href="/self-hosted-bitcoin-api" style="color: var(--accent);">Self-Hosting Guide</a></h3>
+      <h3><a href="/self-hosted-bitcoin-api" style="color: var(--accent);" onclick="posthog.capture('comparison_cta_click', {page: 'vs-mempool', target: 'self-hosting'})">Self-Hosting Guide</a></h3>
       <p>Run Satoshi API on your own Bitcoin Core node with full privacy.</p>
     </div>
   </div>
@@ -320,10 +335,10 @@
 
 <footer>
   <div class="footer-links">
-    <a href="/">Satoshi API Home</a>
-    <a href="/docs">API Docs</a>
-    <a href="/best-bitcoin-api-for-developers">All Comparisons</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="/" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'home'})">Satoshi API Home</a>
+    <a href="/docs" onclick="posthog.capture('comparison_cta_click', {page: 'vs-mempool', target: 'docs'})">API Docs</a>
+    <a href="/best-bitcoin-api-for-developers" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'compare'})">All Comparisons</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'github'})">GitHub</a>
   </div>
   <p>Satoshi API is open-source software under the Apache-2.0 License.</p>
 </footer>

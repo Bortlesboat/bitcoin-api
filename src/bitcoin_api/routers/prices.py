@@ -86,6 +86,5 @@ _PRICES_EXAMPLE = {
 @router.get("/prices", response_model=ApiResponse[dict], responses=_PRICES_EXAMPLE)
 def get_prices():
     """Current BTC price in USD, EUR, GBP, JPY, CAD, AUD with 24h change. Cached for 60s. Data provided by CoinGecko."""
-    price = _get_cached_price()
-    price["attribution"] = "Price data provided by CoinGecko (https://www.coingecko.com)"
+    price = {**_get_cached_price(), "attribution": "Price data provided by CoinGecko (https://www.coingecko.com)"}
     return envelope(price)

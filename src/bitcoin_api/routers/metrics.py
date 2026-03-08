@@ -16,7 +16,7 @@ def _require_admin(request: Request):
     if not settings.admin_api_key:
         raise HTTPException(status_code=403, detail="Metrics not configured")
     key = request.headers.get("X-Admin-Key", "")
-    if not secrets.compare_digest(key, settings.admin_api_key):
+    if not secrets.compare_digest(key, settings.admin_api_key.get_secret_value()):
         raise HTTPException(status_code=403, detail="Invalid admin key")
 
 

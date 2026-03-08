@@ -8,7 +8,7 @@ from starlette.requests import Request
 
 from bitcoinlib_rpc import BitcoinRPC
 
-from ..cache import cached_blockchain_info
+from ..cache import cached_blockchain_info, cached_network_info
 from ..dependencies import get_rpc
 from ..models import ApiResponse, NetworkData, envelope
 
@@ -83,7 +83,7 @@ _FORKS_EXAMPLE = {
 @router.get("", response_model=ApiResponse[NetworkData], responses=_NETWORK_EXAMPLE)
 def network(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
     """Network info: version, subversion, connections, relay fee."""
-    net = rpc.call("getnetworkinfo")
+    net = cached_network_info(rpc)
     info = cached_blockchain_info(rpc)
     tier = getattr(request.state, "tier", "anonymous")
     data = {

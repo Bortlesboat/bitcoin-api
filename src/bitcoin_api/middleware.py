@@ -1,5 +1,6 @@
 """HTTP middleware: security headers, CORS setup, auth + rate limiting."""
 
+import json
 import logging
 import time
 import uuid
@@ -16,7 +17,7 @@ from .config import settings
 from .db import log_usage
 from .exceptions import ERROR_TYPES, _GUIDE_URL, _guide_help_url
 from .models import ErrorResponse, ErrorDetail
-from .metrics import REQUEST_COUNT, REQUEST_LATENCY
+from .metrics import REQUEST_COUNT, REQUEST_LATENCY, normalize_endpoint
 from .rate_limit import check_rate_limit, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
@@ -88,11 +89,12 @@ def register_middleware(app: FastAPI):
                           method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
                           client_type=req_client_type, referrer=req_referrer)
             # Record skipped-path metrics for Prometheus visibility
+            _norm = normalize_endpoint(request.url.path)
             REQUEST_COUNT.labels(
-                method=req_method, endpoint=request.url.path,
+                method=req_method, endpoint=_norm,
                 status=str(response.status_code), tier="unknown",
             ).inc()
-            REQUEST_LATENCY.labels(method=req_method, endpoint=request.url.path).observe(elapsed_ms / 1000)
+            REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe(elapsed_ms / 1000)
             return response
 
         key_info = authenticate(request)
@@ -113,8 +115,9 @@ def register_middleware(app: FastAPI):
                 ).model_dump(),
             )
             resp.headers["X-Request-ID"] = request_id
-            REQUEST_COUNT.labels(method=req_method, endpoint=request.url.path, status="401", tier="invalid").inc()
-            REQUEST_LATENCY.labels(method=req_method, endpoint=request.url.path).observe((time.monotonic() - start_time))
+            _norm = normalize_endpoint(request.url.path)
+            REQUEST_COUNT.labels(method=req_method, endpoint=_norm, status="401", tier="invalid").inc()
+            REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe((time.monotonic() - start_time))
             return resp
 
         bucket = key_info.key_hash or request.client.host if request.client else "unknown"
@@ -247,7 +250,7 @@ def register_middleware(app: FastAPI):
             rpc_breaker.record_success()
 
         elapsed_s = time.monotonic() - start_time
-        _endpoint = request.url.path
+        _endpoint = normalize_endpoint(request.url.path)
         REQUEST_COUNT.labels(
             method=req_method, endpoint=_endpoint,
             status=str(response.status_code), tier=key_info.tier,
@@ -278,7 +281,6 @@ def register_middleware(app: FastAPI):
         tier = key_info.tier
         log_level = logging.WARNING if response.status_code in (401, 429) else logging.INFO
         if settings.log_format == "json":
-            import json
             access_log.log(log_level, json.dumps({
                 "client_ip": client_ip,
                 "method": request.method,
@@ -321,10 +323,10 @@ def register_middleware(app: FastAPI):
         if request.url.path not in _DOCS_PATHS:
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline'; "
+                "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com; "
                 "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "
-                "connect-src 'self' https://bitcoinsapi.com; "
+                "connect-src 'self' https://bitcoinsapi.com https://us.i.posthog.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self'"

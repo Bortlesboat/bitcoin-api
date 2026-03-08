@@ -15,6 +15,7 @@ from cachetools import LRUCache, TTLCache
 
 @dataclass
 class CacheEntry:
+    name: str
     cache: TTLCache | LRUCache
     lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -23,7 +24,7 @@ _registry: dict[str, CacheEntry] = {}
 
 def create_cache(name: str, cache: TTLCache | LRUCache) -> CacheEntry:
     """Register a named cache with its own lock."""
-    entry = CacheEntry(cache=cache)
+    entry = CacheEntry(name=name, cache=cache)
     _registry[name] = entry
     return entry
 
@@ -118,9 +119,12 @@ def get_mempool_snapshots() -> list[dict]:
 
 def _cached_rpc(entry: CacheEntry, rpc, fetcher, cache_key: str = "_"):
     """Generic cache-through: check cache → miss → fetch → store → return."""
+    from .metrics import CACHE_HITS, CACHE_MISSES
     with entry.lock:
         if cache_key in entry.cache:
+            CACHE_HITS.labels(cache_name=entry.name).inc()
             return entry.cache[cache_key]
+    CACHE_MISSES.labels(cache_name=entry.name).inc()
     result = fetcher(rpc)
     with entry.lock:
         entry.cache[cache_key] = result
@@ -131,11 +135,14 @@ _info_fetched_at: float | None = None
 
 
 def cached_blockchain_info(rpc):
+    from .metrics import CACHE_HITS, CACHE_MISSES
     global _info_fetched_at
     key = "info"
     with _blockchain_info.lock:
         if key in _blockchain_info.cache:
+            CACHE_HITS.labels(cache_name="blockchain_info").inc()
             return _blockchain_info.cache[key]
+    CACHE_MISSES.labels(cache_name="blockchain_info").inc()
     result = rpc.call("getblockchaininfo")
     with _blockchain_info.lock:
         _blockchain_info.cache[key] = result
@@ -201,13 +208,16 @@ def cached_utxo_set_info(rpc):
 
 def cached_block_analysis(rpc, height: int):
     from bitcoinlib_rpc.blocks import analyze_block
+    from .metrics import CACHE_HITS, CACHE_MISSES
 
     tip = cached_block_count(rpc)
 
     if (tip - height) < REORG_SAFE_DEPTH:
         with _recent_block.lock:
             if height in _recent_block.cache:
+                CACHE_HITS.labels(cache_name="recent_block").inc()
                 return _recent_block.cache[height]
+        CACHE_MISSES.labels(cache_name="recent_block").inc()
         result = analyze_block(rpc, height)
         with _recent_block.lock:
             _recent_block.cache[height] = result
@@ -215,7 +225,9 @@ def cached_block_analysis(rpc, height: int):
 
     with _block.lock:
         if height in _block.cache:
+            CACHE_HITS.labels(cache_name="block").inc()
             return _block.cache[height]
+    CACHE_MISSES.labels(cache_name="block").inc()
     result = analyze_block(rpc, height)
     with _block.lock:
         _block.cache[height] = result
@@ -225,15 +237,19 @@ def cached_block_analysis(rpc, height: int):
 def cached_block_by_hash(rpc, block_hash: str):
     """Analyze a block by hash, caching the result by resolved height."""
     from bitcoinlib_rpc.blocks import analyze_block
+    from .metrics import CACHE_HITS, CACHE_MISSES
 
     with _block.lock:
         height = _hash_to_height.cache.get(block_hash)
         if height is not None:
             if height in _block.cache:
+                CACHE_HITS.labels(cache_name="block").inc()
                 return _block.cache[height]
             if height in _recent_block.cache:
+                CACHE_HITS.labels(cache_name="recent_block").inc()
                 return _recent_block.cache[height]
 
+    CACHE_MISSES.labels(cache_name="block").inc()
     result = analyze_block(rpc, block_hash)
     data = result.model_dump() if hasattr(result, "model_dump") else result
     resolved_height = data.get("height")
@@ -249,3 +265,10 @@ def cached_block_by_hash(rpc, block_hash: str):
 def cached_next_block(rpc):
     from bitcoinlib_rpc.nextblock import analyze_next_block
     return _cached_rpc(_nextblock, rpc, lambda r: analyze_next_block(r))
+
+
+_network_info = create_cache("network_info", TTLCache(maxsize=1, ttl=30))
+
+
+def cached_network_info(rpc):
+    return _cached_rpc(_network_info, rpc, lambda r: r.call("getnetworkinfo"))

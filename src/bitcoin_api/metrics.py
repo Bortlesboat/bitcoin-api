@@ -1,8 +1,25 @@
 """Prometheus metric definitions on a custom registry."""
 
+import re
+
 from prometheus_client import CollectorRegistry, Counter, Histogram, Gauge
 
 REGISTRY = CollectorRegistry()
+
+# Patterns for normalizing dynamic path segments to prevent label cardinality explosion
+_PATH_NORMALIZERS = [
+    (re.compile(r"/blocks/[0-9a-fA-F]{64}"), "/blocks/{hash}"),
+    (re.compile(r"/blocks/\d+"), "/blocks/{height}"),
+    (re.compile(r"/tx/[0-9a-fA-F]{64}"), "/tx/{txid}"),
+    (re.compile(r"/address/[a-zA-Z0-9]+"), "/address/{addr}"),
+]
+
+
+def normalize_endpoint(path: str) -> str:
+    """Replace dynamic path segments with placeholders for Prometheus labels."""
+    for pattern, replacement in _PATH_NORMALIZERS:
+        path = pattern.sub(replacement, path)
+    return path
 
 REQUEST_COUNT = Counter(
     "http_requests_total",
@@ -28,5 +45,31 @@ BLOCK_HEIGHT = Gauge(
 JOB_ERRORS = Counter(
     "background_job_errors_total",
     "Total background job errors",
+    registry=REGISTRY,
+)
+
+WS_CONNECTIONS_ACTIVE = Gauge(
+    "websocket_connections_active",
+    "Number of active WebSocket connections",
+    registry=REGISTRY,
+)
+
+API_KEYS_REGISTERED = Gauge(
+    "api_keys_registered_total",
+    "Total registered API keys",
+    registry=REGISTRY,
+)
+
+CACHE_HITS = Counter(
+    "cache_hits_total",
+    "Total cache hits",
+    ["cache_name"],
+    registry=REGISTRY,
+)
+
+CACHE_MISSES = Counter(
+    "cache_misses_total",
+    "Total cache misses",
+    ["cache_name"],
     registry=REGISTRY,
 )

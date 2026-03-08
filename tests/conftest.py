@@ -1,5 +1,10 @@
 """Test fixtures for bitcoin-api."""
 
+import os
+os.environ.setdefault("RATE_LIMIT_BACKEND", "memory")
+os.environ.setdefault("RESEND_ENABLED", "false")
+os.environ.setdefault("POSTHOG_ENABLED", "false")
+
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
@@ -267,7 +272,13 @@ def mock_rpc():
 def reset_rate_limits():
     """Clear rate limit state between tests."""
     from bitcoin_api.rate_limit import _windows
+    import bitcoin_api.rate_limit as rl
     _windows.clear()
+    rl.TIER_LIMITS.clear()
+    original_client = rl._redis_client
+    rl._redis_client = None
+    yield
+    rl._redis_client = original_client
 
 
 @pytest.fixture(autouse=True)

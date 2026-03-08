@@ -4,6 +4,8 @@ __pycache__/
 dist/
 build/
 .env
+.env.production
+.env.local
 *.db
 data/
 .venv/

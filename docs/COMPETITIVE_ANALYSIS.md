@@ -1,190 +1,180 @@
-# Competitive Analysis: Satoshi API vs mempool.space
+# Competitive Analysis: Satoshi API v0.3.2
 
-## Summary
+## Overview
 
-Satoshi API currently exposes **77 endpoints** (v0.2.1). mempool.space exposes **~77 endpoints**.
+Satoshi API v0.3.2 provides **73 endpoints across 20 routers**, installable via `pip install satoshi-api` (Apache-2.0). It is part of a three-layer product suite:
 
-However, most of mempool.space's surface area falls outside our scope:
+**bitcoinlib-rpc** (Python RPC client) → **Satoshi API** (REST/WS/SSE) → **bitcoin-mcp** (MCP for AI agents)
 
-| Category | mempool.space Endpoints | In Our Scope? |
+Live at [bitcoinsapi.com](https://bitcoinsapi.com) with Swagger docs at `/docs`. Self-hosted by default against your own Bitcoin Core node; a hosted free tier is also available.
+
+This document compares Satoshi API against the major Bitcoin data API providers.
+
+---
+
+## Competitor Overview
+
+| Provider | Model | Auth | Endpoints | Address Index | Self-Hostable | AI Integration |
+|---|---|---|---|---|---|---|
+| **Satoshi API** | Open-source (Apache-2.0) | API key (4 tiers) | 73 | Optional (asyncpg+zmq) | Yes (primary mode) | MCP server (bitcoin-mcp) |
+| **mempool.space** | Open-source (AGPL) | None (IP rate limit) | ~140+ | Electrs required | Yes (heavyweight) | None |
+| **BlockCypher** | Hosted SaaS | API token | ~40 | Hosted only | No | None |
+| **Esplora** (Blockstream) | Open-source (MIT) | None | ~30 | Electrs-based | Yes | None |
+| **GetBlock** | Hosted SaaS | API key | RPC passthrough | Hosted only | No | None |
+| **QuickNode** | Hosted SaaS | API key | RPC passthrough | Hosted only | No | None |
+
+---
+
+## Detailed Comparisons
+
+### vs mempool.space
+
+mempool.space is the closest competitor in scope. Most of their ~140+ endpoints cover areas outside Satoshi API's focus:
+
+| mempool.space Category | Approx. Endpoints | In Our Scope? |
 |---|---|---|
-| Core Bitcoin (blocks, txs, mempool, fees, mining) | ~50 | Yes |
-| Lightning Network | 24 | No |
-| Liquid Network | 20 | No |
-| Accelerator | 12 | No |
-| Mining pool history/tracking | 22 | No |
-| About/Meta/Internal | 11 | No |
+| Core Bitcoin (blocks, txs, mempool, fees, mining) | ~50 | Yes — covered |
+| Lightning Network | ~24 | No |
+| Liquid Network | ~20 | No |
+| Accelerator | ~12 | No |
+| Mining pool history/tracking | ~22 | No |
 | Wallet/Treasury tracking | ~10 | No |
 | RBF/CPFP/Audit | ~12 | No |
 
-**The real comparison is 25 vs ~50 core Bitcoin endpoints.** We cover the most important ones and have unique features they lack.
+Within core Bitcoin, Satoshi API has full parity or leads on blocks, transactions, mempool, fees, mining, and network data. Areas where Satoshi API goes beyond mempool.space:
+
+- **API key auth with 4 tiers** (anon/free/pro/enterprise) vs no auth
+- **Rate limit headers** (`X-RateLimit-*`) on every response vs opaque 429s
+- **WebSocket real-time subscriptions** (new blocks, mempool events) with topic-based channels
+- **SSE streaming** (whale transactions, new blocks) via `/stream`
+- **Supply/halving tracking** with live inflation rate and countdown
+- **Exchange price comparison** endpoints
+- **Analytics endpoints** (network-level statistics, UTXO set composition, SegWit adoption)
+- **Block template analysis** (`/mining/nextblock`) from actual `getblocktemplate` RPC
+- **Transaction decode without broadcast** (`POST /decode`)
+- **Prometheus metrics** endpoint for operational monitoring
+- **Circuit breaker** for RPC resilience
+- **MCP integration** via bitcoin-mcp for AI agent workflows
+- **One-liner install** (`pip install satoshi-api`) vs Docker + Electrs + MariaDB
+
+mempool.space leads in: Lightning Network data, Liquid Network, mining pool historical tracking, RBF/CPFP analysis, transaction acceleration, and raw hex endpoints.
+
+### vs BlockCypher
+
+BlockCypher is a hosted-only SaaS with ~40 endpoints focused on multi-chain support (BTC, ETH, LTC, DOGE). Comparison:
+
+| Dimension | Satoshi API | BlockCypher |
+|---|---|---|
+| Self-hosting | Yes (primary) | No |
+| Open source | Yes (Apache-2.0) | No |
+| Bitcoin depth | Deep (73 endpoints, mining, mempool, supply, analytics) | Moderate (~15 BTC-specific) |
+| Address lookups | Yes (optional indexer) | Yes (hosted) |
+| WebHooks/streaming | WebSocket + SSE | WebHooks (push to your URL) |
+| Pricing | Free self-hosted; hosted free tier | Free tier (3 req/sec), paid plans |
+| Multi-chain | Bitcoin only | BTC, ETH, LTC, DOGE |
+
+BlockCypher's advantage is zero setup (hosted) and multi-chain. Satoshi API's advantage is depth of Bitcoin-specific data, self-sovereignty, and the full product suite (RPC client + REST API + MCP).
+
+### vs Esplora (Blockstream)
+
+Esplora is Blockstream's open-source block explorer API, powering blockstream.info.
+
+| Dimension | Satoshi API | Esplora |
+|---|---|---|
+| Install | `pip install satoshi-api` | Rust binary + Electrs |
+| Endpoints | 73 | ~30 |
+| Auth/tiers | API key with 4 tiers | None |
+| Rate limiting | In-memory + Upstash Redis, per-tier | IP-based only |
+| Streaming | WebSocket + SSE | None |
+| Caching | TTL with reorg-safe depth awareness | None built-in |
+| Metrics | Prometheus endpoint | None |
+| AI integration | MCP server | None |
+
+Esplora is lightweight and reliable for basic block/tx/address queries. Satoshi API offers a richer feature set (streaming, auth, caching, metrics, AI integration) with an easier install path.
+
+### vs GetBlock / QuickNode
+
+Both are hosted RPC-passthrough services — they proxy your JSON-RPC calls to their managed nodes.
+
+| Dimension | Satoshi API | GetBlock / QuickNode |
+|---|---|---|
+| Abstraction | REST API with structured responses | Raw JSON-RPC passthrough |
+| Self-hosting | Yes | No |
+| Price | Free (self-hosted) | $0-$500+/mo depending on usage |
+| Response format | Structured JSON with `{ data, meta }` envelope | Raw Bitcoin Core RPC responses |
+| Streaming | WebSocket + SSE | WebSocket (limited) |
+| Auth | Built-in tier system | API key (single tier) |
+| Value-add | Fee recommendations, congestion scoring, supply tracking, analytics | Node management only |
+
+These services solve a different problem (managed node access). Satoshi API adds a structured data layer on top of the node, with features that don't exist in raw RPC.
 
 ---
 
-## Feature Parity Table
+## Satoshi API Unique Advantages
 
-| # | Satoshi API Endpoint | mempool.space Equivalent | Status |
-|---|---|---|---|
-| 1 | `GET /block/latest` | `GET /api/blocks/tip/hash` + `GET /api/block/{hash}` | **Parity** — same data, we combine into one call |
-| 2 | `GET /block/{hash}` | `GET /api/block/{hash}` | **Parity** |
-| 3 | `GET /block/height/{height}` | `GET /api/block-height/{height}` | **Parity** |
-| 4 | `GET /blocks` | `GET /api/v1/blocks/{startHeight}` | **Parity** |
-| 5 | `GET /tx/{txid}` | `GET /api/tx/{txid}` | **Parity** |
-| 6 | `POST /tx/broadcast` | `POST /api/tx` | **Parity** |
-| 7 | `POST /decode` | *None* | **Ahead** — unique to Satoshi API |
-| 8 | `GET /fees` | `GET /api/v1/fees/recommended` | **Ahead** — we add per-target flexibility, text recommendations |
-| 9 | `GET /fees/estimates` | `GET /api/v1/fees/recommended` | **Parity** |
-| 10 | `GET /mempool` | `GET /api/mempool` | **Parity** — we add congestion score |
-| 11 | `GET /mempool/fees` | `GET /api/mempool` (embedded) | **Parity** |
-| 12 | `GET /mining/hashrate` | `GET /api/v1/mining/hashrate/{timePeriod}` | **Behind** — they have historical timeseries |
-| 13 | `GET /mining/difficulty` | `GET /api/v1/difficulty-adjustment` | **Parity** |
-| 14 | `GET /mining/nextblock` | *None* | **Ahead** — block template analysis is unique |
-| 15 | `GET /network/info` | `GET /api/v1/lightning/statistics/latest` (partial) | **Parity** — different data shape |
-| 16 | `GET /utxo/{txid}/{vout}` | `GET /api/tx/{txid}/outspend/{vout}` (partial) | **Ahead** — direct UTXO lookup vs outspend check |
-| 17 | `GET /health` | *None (internal)* | **Parity** — standard ops endpoint |
-| 18 | `GET /info` | *None* | **Ahead** — API metadata |
-| 19 | `GET /` | *None* | **Parity** — root/welcome |
+### Architecture & Operations
+1. **One-liner install** — `pip install satoshi-api` gets you a running API server. No Docker, no database prerequisites, no multi-service orchestration.
+2. **Self-hosted by default** — Your node, your data, no third-party dependency. Hosted free tier available for those who don't run a node.
+3. **Apache-2.0 license** — Permissive. Fork it, embed it, build on it commercially.
+4. **Circuit breaker for RPC** — Automatic failover and recovery when Bitcoin Core is temporarily unavailable.
+5. **TTL caching with reorg-safe depth** — Cache invalidation accounts for chain reorganizations. Bounded LRU for hash mappings.
+6. **Prometheus metrics** — `/metrics` endpoint for Grafana dashboards, alerting, and operational visibility.
 
-**Score: 5 Ahead, 13 Parity, 1 Behind**
+### Security & Auth
+7. **4-tier API key system** — Anonymous, Free, Pro, Enterprise with distinct rate limits and endpoint access.
+8. **Tier-gated endpoints** — 7 expensive endpoints (mining/stats/analytics) require Free+ API key. Block count caps per tier (anon/free: 144, pro: 1008, enterprise: 2016).
+9. **Rate limiting with headers** — Sliding window (in-memory or Upstash Redis) + daily caps. Standard `X-RateLimit-*` headers on every response.
+10. **SecretStr for all secrets** — RPC passwords and API keys never appear in logs or error messages.
+11. **CAN-SPAM compliant emails** — Transactional email via Resend with proper unsubscribe handling.
+12. **GDPR privacy policy** — Published and enforced.
 
----
+### Data & Endpoints
+13. **20 routers** — status, blocks, tx, fees, mempool, mining, network, stream, keys, supply, stats, prices, address, exchanges, analytics, admin, cache, billing, metrics, websocket.
+14. **SSE streaming** — Real-time whale transaction alerts and new block notifications via `/stream`.
+15. **WebSocket subscriptions** — Topic-based real-time data push (`/api/v1/ws`).
+16. **Supply and halving tracking** — Circulating supply, inflation rate, halving countdown, subsidy schedule.
+17. **Exchange price comparison** — Cross-exchange BTC price data.
+18. **Block template analysis** — `/mining/nextblock` exposes actual `getblocktemplate` data (fee range, weight, tx count).
+19. **Transaction decode without broadcast** — `POST /decode` inspects raw transactions without submitting them.
+20. **Address lookups** — Optional asyncpg+zmq indexer for address balance, transaction history, and UTXO queries.
+21. **Network analytics** — UTXO set composition, SegWit adoption rates, OP_RETURN statistics.
+22. **Congestion scoring** — Mempool endpoint includes human-readable congestion level (low/medium/high/critical).
+23. **Fee recommendations** — Per-target estimates with human-readable text ("High priority: 25 sat/vB for ~1 block confirmation").
 
-## Gaps We Should Close (v0.2-v0.3)
+### AI & Developer Experience
+24. **Three-layer product suite** — bitcoinlib-rpc (library) → Satoshi API (REST) → bitcoin-mcp (MCP). Developers pick the abstraction level they need.
+25. **MCP integration** — bitcoin-mcp provides 35 tools for AI agents (Claude, GPT, etc.) to query Bitcoin data natively. No other Bitcoin API has this.
+26. **Swagger UI** — Interactive API documentation at `/docs` with try-it-out for every endpoint.
+27. **Structured responses** — Consistent `{ data, meta }` envelope with `request_id` tracing on all responses.
 
-### Low Effort (v0.2 — wrappers around existing Bitcoin Core RPCs)
-
-| Endpoint | mempool.space Equivalent | Notes |
-|---|---|---|
-| `GET /mempool/txids` | `GET /api/mempool/txids` | `getrawmempool` RPC |
-| `GET /mempool/recent` | `GET /api/mempool/recent` | `getrawmempool` + sort by time |
-| `GET /block/{hash}/txids` | `GET /api/block/{hash}/txids` | `getblock` verbosity=1 |
-| `GET /block/{hash}/txs` | `GET /api/block/{hash}/txs/{startIndex}` | `getblock` verbosity=2, paginated |
-| `GET /tx/{txid}/status` | `GET /api/tx/{txid}/status` | `gettxout` + `getrawtransaction` |
-| `GET /chain/tip/height` | `GET /api/blocks/tip/height` | `getblockcount` |
-| `GET /chain/tip/hash` | `GET /api/blocks/tip/hash` | `getbestblockhash` |
-| `GET /difficulty-adjustment` | `GET /api/v1/difficulty-adjustment` | Compute from `getblockchaininfo` |
-
-**Estimated effort:** 1-2 days. All data available from Bitcoin Core with no additional infrastructure.
-
-### Medium Effort (v0.2-v0.3)
-
-| Endpoint | mempool.space Equivalent | Notes |
-|---|---|---|
-| `GET /mempool/blocks` | `GET /api/v1/fees/mempool-blocks` | Projected blocks from mempool — requires fee bucketing logic |
-| `GET /tx/{txid}/outspends` | `GET /api/tx/{txid}/outspends` | Check if each output is spent — needs UTXO set scanning |
-| `GET /mempool/stats` | `GET /api/v1/statistics/{timePeriod}` | Historical mempool size/fee stats — requires periodic snapshots |
-| `GET /price` | `GET /api/v1/prices` | BTC price — needs external API (CoinGecko, etc.) |
-
-**Estimated effort:** 3-5 days. Some require background jobs or external data sources.
-
-### High Effort (v0.3+)
-
-| Endpoint | mempool.space Equivalent | Notes |
-|---|---|---|
-| `GET /address/{address}` | `GET /api/address/{address}` | Address balance, tx count, UTXO list |
-| `GET /address/{address}/txs` | `GET /api/address/{address}/txs` | Transaction history for address |
-| `GET /address/{address}/utxo` | `GET /api/address/{address}/utxo` | Unspent outputs for address |
-| `GET /scripthash/{hash}` | `GET /api/scripthash/{hash}` | Script hash lookups |
-
-**Estimated effort:** 1-2 weeks. Requires an address index (Electrs, Fulcrum, or similar). Bitcoin Core alone cannot efficiently look up transactions by address. This is the single biggest architectural decision for v0.3.
+### Testing & Quality
+28. **356 tests** — 335 unit + 21 end-to-end. Comprehensive coverage across all routers and edge cases.
 
 ---
 
 ## Gaps We Intentionally Skip
 
-| Feature Area | mempool.space Endpoints | Why We Skip |
-|---|---|---|
-| **Lightning Network** | 77 endpoints (nodes, channels, stats, liquidity rankings) | Requires a separate LN node (LND/CLN). Completely different infrastructure. Could be a separate project. |
-| **Liquid Network** | 77 endpoints (L-BTC, assets, pegs, federation) | Sidechain with niche usage. Elements node required. Not core Bitcoin. |
-| **Accelerator** | 77 endpoints (bid, estimate, history) | Paid transaction acceleration service. Requires mining pool partnerships and business relationships. |
-| **Mining pool tracking** | 77 endpoints (pool rankings, hashrates, block counts, rewards) | Requires a database of pool identifiers + coinbase transaction parsing + historical data collection. Large ongoing data effort. |
-| **Wallet/Treasury tracking** | ~77 endpoints (known wallets, balances) | Manual address curation and labeling. Editorial, not API. |
-| **RBF tracking** | ~77 endpoints (replacements, full-RBF history) | Requires continuous mempool monitoring and replacement event tracking. High memory/storage cost. |
-| **CPFP analysis** | ~77 endpoints (effective fee rates, package analysis) | Complex parent/child fee calculation across transaction graphs. Specialized mempool analysis. |
-| **Block audit/template prediction** | ~77 endpoints (audit scores, predicted blocks) | Requires their block template prediction system and post-hoc comparison. Proprietary methodology. |
-| **Address prefix search** | `GET /api/address-prefix/{prefix}` | Explorer UI feature. Requires full address index. Low API value. |
-| **Block raw/header hex** | `GET /api/block/{hash}/raw`, `/header` | Raw hex dumps. Niche use case. Available directly from Bitcoin Core RPC for anyone self-hosting. |
+| Feature Area | Why |
+|---|---|
+| **Lightning Network** | Requires separate LN node infrastructure. Different protocol entirely. |
+| **Liquid Network** | Sidechain with niche adoption. Requires Elements node. |
+| **Transaction acceleration** | Requires mining pool business partnerships. |
+| **Mining pool historical tracking** | Requires ongoing coinbase parsing and pool identification database. |
+| **RBF/CPFP analysis** | Requires continuous mempool monitoring with high memory/storage cost. |
+| **Multi-chain support** | Bitcoin-only focus is a feature, not a limitation. |
 
 ---
 
-## Our Unique Advantages
+## What's Next
 
-Things Satoshi API offers that mempool.space does not:
+Near-term priorities for Satoshi API:
 
-### 1. `POST /decode` — Transaction Decode Without Broadcast
-Decode a raw transaction hex to inspect inputs, outputs, scripts, and fees without broadcasting. mempool.space has no equivalent — you either broadcast or get nothing.
-
-### 2. `GET /mining/nextblock` — Block Template Analysis
-Real-time view of what the next block would look like if mined now: transaction count, total fees, weight, fee range. Built on `getblocktemplate` RPC. mempool.space projects mempool into blocks but doesn't expose actual template data.
-
-### 3. `GET /utxo/{txid}/{vout}` — Point UTXO Lookup
-Direct lookup of a specific UTXO by txid and output index. Returns value, scriptPubKey, confirmation status. mempool.space only has outspend checks (is it spent?), not UTXO state queries.
-
-### 4. `GET /fees` — Per-Target Flexibility with Human-Readable Text
-Fee estimates with configurable confirmation targets and human-readable recommendations ("High priority: 25 sat/vB for ~1 block confirmation"). mempool.space returns fixed buckets (fastest, halfHour, hour, economy, minimum) without explanatory text.
-
-### 5. Congestion Scoring on `/mempool`
-Mempool endpoint includes a congestion score (low/medium/high/critical) based on size and fee pressure. mempool.space returns raw stats without interpretation.
-
-### 6. API Key Authentication with Tiers
-Built-in API key system with configurable rate limit tiers (free, pro, enterprise). mempool.space's public API has no auth — just IP-based rate limiting with no guaranteed SLA.
-
-### 7. Rate Limiting with Headers
-Standard `X-RateLimit-*` headers on every response so clients can manage their usage. mempool.space returns 429s without rate limit metadata.
-
-### 8. MCP / AI Agent Integration Layer
-First-class Model Context Protocol (MCP) server for AI agent integration. Claude, GPT, and other LLM agents can query Bitcoin data natively. No equivalent exists for mempool.space.
-
-### 9. `pip install` One-Liner
-`pip install satoshi-api` and you have a running Bitcoin API server. mempool.space requires Docker, a full Electrs index, MariaDB, and significant configuration.
-
-### 10. Self-Hosted by Default
-Designed to run against your own Bitcoin Core node. Your node, your data, your rules. mempool.space is primarily a hosted service — self-hosting is possible but heavyweight.
+- **SDK clients** — Python and TypeScript client libraries for typed API access
+- **Docker Compose** — One-command deployment with optional Electrs address indexer
+- **Historical mempool statistics** — Periodic snapshots for trend analysis
+- **Multi-node failover** — Automatic fallback across multiple Bitcoin Core instances
+- **Webhook push notifications** — Configurable alerts for address activity, large transactions, new blocks
 
 ---
 
-## Roadmap Impact
-
-### v0.2 — Core Completeness (Target: +8-77 endpoints)
-
-**New endpoints from gap analysis:**
-- `GET /mempool/txids` — list all mempool transaction IDs
-- `GET /mempool/recent` — recently broadcast transactions
-- `GET /block/{hash}/txids` — transaction IDs in a block
-- `GET /block/{hash}/txs` — full transactions in a block (paginated)
-- `GET /tx/{txid}/status` — confirmation status of a transaction
-- `GET /chain/tip/height` — current block height
-- `GET /chain/tip/hash` — current best block hash
-- `GET /difficulty-adjustment` — difficulty epoch progress and estimates
-
-**Also in v0.2:**
-- WebSocket support for new blocks and mempool events
-- Batch RPC connection pooling
-- Response caching layer
-
-### v0.3 — Extended Data (Target: +4-77 endpoints)
-
-**New endpoints from gap analysis:**
-- `GET /mempool/blocks` — projected next blocks from mempool
-- `GET /tx/{txid}/outspends` — spent status of transaction outputs
-- `GET /price` — BTC price from external feeds
-- `GET /mempool/stats` — historical mempool statistics (requires snapshot storage)
-
-**Also in v0.3:**
-- Address lookups (requires Electrs/Fulcrum integration decision)
-  - `GET /address/{address}` — balance and tx count
-  - `GET /address/{address}/txs` — transaction history
-  - `GET /address/{address}/utxo` — unspent outputs
-- Optional Electrs backend configuration
-
-### v0.4 — Production Hardening
-
-- Prometheus metrics and Grafana dashboards
-- Multi-node failover
-- Docker Compose with optional Electrs
-- SDK clients (Python, TypeScript)
-- Hosted tier (if demand warrants)
-
----
-
-*Last updated: 2026-03-06*
+*Last updated: 2026-03-07 — Satoshi API v0.3.2 (73 endpoints, 356 tests, 20 routers)*

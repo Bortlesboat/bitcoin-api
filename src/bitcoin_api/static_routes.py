@@ -33,6 +33,22 @@ def register_static_routes(app: FastAPI):
             return Response(p.read_bytes(), media_type="image/x-icon")
         return Response(status_code=204)
 
+    _IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp"}
+
+    @app.get("/{filename}.{ext}", include_in_schema=False)
+    def static_asset(filename: str, ext: str):
+        """Serve static image assets (png, jpg, svg, webp) from the static directory."""
+        suffix = f".{ext}"
+        if suffix not in _IMAGE_TYPES:
+            return Response(status_code=404)
+        # Prevent path traversal
+        if "/" in filename or "\\" in filename or ".." in filename:
+            return Response(status_code=404)
+        p = _STATIC_DIR / f"{filename}{suffix}"
+        if p.exists():
+            return Response(p.read_bytes(), media_type=_IMAGE_TYPES[suffix])
+        return Response(status_code=404)
+
     @app.get("/robots.txt", include_in_schema=False)
     def robots_txt():
         p = _STATIC_DIR / "robots.txt"
@@ -53,7 +69,7 @@ def register_static_routes(app: FastAPI):
         from .config import settings
         if not settings.admin_api_key:
             raise HTTPException(status_code=403, detail="Admin not configured")
-        if not key or not secrets.compare_digest(key, settings.admin_api_key):
+        if not key or not secrets.compare_digest(key, settings.admin_api_key.get_secret_value()):
             raise HTTPException(status_code=403, detail="Invalid admin key")
         p = _STATIC_DIR / "admin-dashboard.html"
         if p.exists():

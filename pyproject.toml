@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "satoshi-api"
-version = "0.3.1"
+version = "0.3.2"
 description = "Satoshi API — developer-friendly Bitcoin REST API powered by your own node"
 readme = "README.md"
 license = "Apache-2.0"
@@ -26,7 +26,6 @@ dependencies = [
     "cachetools>=5.3",
     "requests>=2.28.0",
     "prometheus-client>=0.20.0",
-    "stripe>=7.0.0",
 ]
 
 [project.urls]
@@ -36,6 +35,12 @@ Repository = "https://github.com/Bortlesboat/bitcoin-api"
 Issues = "https://github.com/Bortlesboat/bitcoin-api/issues"
 
 [project.optional-dependencies]
+billing = ["stripe>=7.0.0"]
+email = ["resend>=2.0.0"]
+redis = ["upstash-redis>=1.0.0"]
+analytics = ["posthog>=3.0.0"]
+all = ["stripe>=7.0.0", "resend>=2.0.0", "upstash-redis>=1.0.0", "posthog>=3.0.0"]
+indexer = ["asyncpg>=0.29.0", "pyzmq>=25.0.0"]
 dev = ["pytest", "httpx", "pytest-asyncio", "ruff", "pytest-cov", "locust"]
 
 [project.scripts]

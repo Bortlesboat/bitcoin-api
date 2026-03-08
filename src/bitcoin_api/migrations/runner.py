@@ -43,7 +43,13 @@ def run_pending(conn: sqlite3.Connection) -> list[str]:
         version = migration_file.stem
         sql = migration_file.read_text(encoding="utf-8")
         try:
-            conn.executescript(sql)
+            # executescript implicitly commits, so run statements individually
+            # inside a transaction for atomicity with the version record.
+            conn.execute("BEGIN")
+            for statement in sql.split(";"):
+                statement = statement.strip()
+                if statement:
+                    conn.execute(statement)
             conn.execute(
                 "INSERT INTO schema_migrations (version) VALUES (?)",
                 (version,),
@@ -52,6 +58,7 @@ def run_pending(conn: sqlite3.Connection) -> list[str]:
             applied.append(version)
             log.info("Applied migration: %s", version)
         except Exception:
+            conn.rollback()
             log.error("Failed to apply migration: %s", version, exc_info=True)
             raise
 

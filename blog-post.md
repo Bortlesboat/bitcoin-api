@@ -4,7 +4,7 @@ I run a Bitcoin full node. I wanted to query it programmatically -- check fees b
 
 RPC works, but it's clunky. Authentication is HTTP basic auth over plaintext. The responses are raw and inconsistent. There's no input validation, no caching, no rate limiting if you want to expose it to other apps on your network. So I built a thin REST layer on top of it.
 
-The result is **Satoshi API** -- 73 endpoints, FastAPI, typed responses, and analyzed data instead of raw RPC dumps. It's [open source](https://github.com/Bortlesboat/bitcoin-api) and on PyPI as `bitcoin-api`.
+The result is **Satoshi API** -- 73 endpoints, FastAPI, typed responses, and analyzed data instead of raw RPC dumps. It's [open source](https://github.com/Bortlesboat/bitcoin-api) and on PyPI as `satoshi-api`.
 
 ## What It Does
 
@@ -142,7 +142,7 @@ For anyone building Bitcoin-aware AI agents or chatbots, this stack gives you a 
 ### pip install
 
 ```bash
-pip install bitcoin-api
+pip install satoshi-api
 
 export BITCOIN_RPC_USER=your_user
 export BITCOIN_RPC_PASSWORD=your_password
@@ -182,7 +182,7 @@ If you need address queries, pair it with Electrs or Fulcrum. Satoshi API is com
 - **More analysis endpoints** -- UTXO set stats, peer geographic distribution, historical fee trends
 - **WebSocket support** -- real-time mempool fee updates
 
-The codebase is 228 tests (207 unit + 21 e2e), CI pipeline, Apache-2.0 licensed. If you run a node and want a clean API on top of it, give it a try: [github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api).
+The codebase is 356 tests (335 unit + 21 e2e), CI pipeline, Apache-2.0 licensed. If you run a node and want a clean API on top of it, give it a try: [github.com/Bortlesboat/bitcoin-api](https://github.com/Bortlesboat/bitcoin-api).
 
 Feedback welcome -- open an issue or find me on Nostr.
 

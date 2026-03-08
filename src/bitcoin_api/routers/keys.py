@@ -1,18 +1,23 @@
 """Self-serve API key registration."""
 
+import re
 import secrets
 import time
 import threading
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ..auth import hash_key
 from ..cache import get_cached_node_info
 from ..db import get_db
+from ..metrics import API_KEYS_REGISTERED
 from ..models import envelope
+from ..notifications import send_welcome_email, track_registration
 
 router = APIRouter(tags=["Keys"])
+
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 # Per-IP registration rate limiter: max 5 registrations per hour
 _reg_attempts: dict[str, list[float]] = {}
@@ -55,8 +60,8 @@ def register(body: RegisterRequest, request: Request):
         raise HTTPException(status_code=429, detail="Too many registration attempts. Try again later.")
 
     email = body.email.strip().lower()
-    if "@" not in email or "." not in email or len(email) < 5:
-        raise HTTPException(status_code=422, detail="Invalid email address")
+    if not _EMAIL_RE.match(email) or len(email) > 254:
+        raise HTTPException(status_code=422, detail="Invalid email format. Example: you@example.com")
 
     conn = get_db()
     count = conn.execute(
@@ -74,6 +79,27 @@ def register(body: RegisterRequest, request: Request):
         (key_hash, prefix, body.label, email),
     )
     conn.commit()
+    API_KEYS_REGISTERED.inc()
+
+    # Send welcome email (fire-and-forget, never blocks registration)
+    send_welcome_email(email, raw_key, body.label or "default")
+
+    # PostHog server-side registration event (fire-and-forget)
+    track_registration(email, "free", body.label or "default")
 
     height, chain = get_cached_node_info()
     return envelope({"api_key": raw_key, "tier": "free", "label": body.label}, height=height, chain=chain)
+
+
+@router.post("/unsubscribe")
+def unsubscribe_emails(request: Request, api_key: str = Header(alias="X-API-Key")):
+    """Opt out of usage alert emails."""
+    key_hash = hash_key(api_key)
+    conn = get_db()
+    row = conn.execute("SELECT key_hash FROM api_keys WHERE key_hash = ?", (key_hash,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="API key not found")
+    conn.execute("UPDATE api_keys SET email_opt_out = 1 WHERE key_hash = ?", (key_hash,))
+    conn.commit()
+    height, chain = get_cached_node_info()
+    return envelope({"unsubscribed": True}, height=height, chain=chain)

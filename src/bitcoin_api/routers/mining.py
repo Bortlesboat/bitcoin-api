@@ -185,7 +185,7 @@ def hashrate_history(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Hashrate history derived from difficulty over recent blocks."""
-    tier = getattr(request.state, "tier", "anonymous")
+    tier = require_api_key(request, "hashrate history")
     blocks = cap_blocks_param(blocks, tier)
     info = cached_blockchain_info(rpc)
     current_hash = info["bestblockhash"]

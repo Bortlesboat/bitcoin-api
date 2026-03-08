@@ -22,8 +22,9 @@ The SOW is the single source of truth for what this project is, what it does, an
 - **Entry point:** `src/bitcoin_api/main.py`
 - **Config:** Pydantic Settings from env vars (`config.py`), RPC password is `SecretStr`
 - **Auth:** API key via `X-API-Key` header, tier-based (anonymous/free/pro/enterprise). Anonymous: lightweight GET only. Free+: expensive GET (mining/stats/whale-stream). Block caps: anon/free=144, pro=1008, enterprise=2016. Helpers: `require_api_key()`, `cap_blocks_param()` in `auth.py`.
-- **Rate limiting:** Sliding window (in-memory) + daily (DB-backed)
+- **Rate limiting:** Sliding window (in-memory or Upstash Redis) + daily (DB-backed)
 - **Caching:** Per-cache locks, reorg-safe depth awareness, bounded LRU for hash mappings
+- **External services (all optional, default disabled):** Upstash Redis (rate limit persistence), Resend (transactional email), PostHog (landing page analytics). API functions fully without any of them.
 
 ## Testing
 
@@ -59,7 +60,8 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/static_routes.py` | Landing page, robots.txt, sitemap, decision pages, favicon |
 | `src/bitcoin_api/config.py` | Settings from env vars + feature_flags property |
 | `src/bitcoin_api/auth.py` | API key auth |
-| `src/bitcoin_api/rate_limit.py` | Rate limiting |
+| `src/bitcoin_api/rate_limit.py` | Rate limiting (in-memory or Upstash Redis) |
+| `src/bitcoin_api/notifications.py` | Transactional email (Resend) + analytics events (PostHog) |
 | `src/bitcoin_api/cache.py` | TTL + LRU caching with registry + factory |
 | `src/bitcoin_api/usage_buffer.py` | Batch usage logging (50 rows / 30s flush) |
 | `src/bitcoin_api/db.py` | SQLite (WAL), key storage, fee history |
@@ -77,7 +79,9 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
 | `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
 | `static/visualizer.html` | ECharts live visualization dashboard |
-| `tests/test_api.py` | Unit tests (207) |
+| `tests/test_api.py` | Unit + integration tests (235). Total: 335 unit + 21 e2e = 356 tests |
+| `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
+| `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |

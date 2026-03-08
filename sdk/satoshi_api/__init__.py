@@ -362,6 +362,18 @@ class SatoshiAPI:
 
     # --- Key Management ---
 
-    def register(self) -> Response:
-        """Register for a free API key. Requires existing API key."""
-        return self._post("/register", {})
+    def register(self, email: str, label: str | None = None) -> Response:
+        """Register for a free API key.
+
+        Args:
+            email: Email address for the new key.
+            label: Optional label for the key (max 100 chars).
+
+        Returns:
+            Response with data containing ``api_key``, ``tier``, and ``label``.
+        """
+        body: dict[str, Any] = {"email": email, "agreed_to_terms": True}
+        if label is not None:
+            body["label"] = label
+        resp = self._post("/register", body)
+        return resp

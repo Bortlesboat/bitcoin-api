@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.3.2] - 2026-03-07
+
+### Added
+- Resend transactional email integration (welcome email on registration, usage alerts)
+- Upstash Redis as optional rate limiting backend (persistent, distributed)
+- PostHog analytics on landing page + server-side registration tracking
+- Privacy-first PostHog config: no autocapture, no session recording, IP anonymized
+- `POST /api/v1/keys/unsubscribe` — CAN-SPAM compliant email opt-out endpoint
+- `email_opt_out` column on api_keys table (migration 006)
+- Physical mailing address in email footer (CAN-SPAM compliance)
+- GDPR section in privacy policy (lawful basis, data portability, supervisory authority)
+- Prometheus endpoint normalization — prevents cardinality explosion from dynamic paths
+- `total_tx_count` in paginated block transaction responses
+- `response_model` annotations on fee endpoints (landscape, estimate-tx, history)
+- Age restriction in Terms of Service (must be 13+)
+- `.env.production` and `.env.local` in .gitignore
+
+### Fixed
+- **Usage buffer lock contention** — DB writes no longer block request threads (drain under lock, write outside)
+- **Redis rate limiter unbounded growth** — 2-phase pipeline checks `zcard` before `zadd`
+- **SecretStr migration** — all 7 secrets in config.py use Pydantic SecretStr, all call sites use `.get_secret_value()`
+- **Migration runner atomicity** — replaced `executescript()` with `BEGIN` + individual `execute()` + `commit()` with rollback
+- **Stripe lazy import** — prevents crash when stripe package not installed
+- **Analytics SQL epoch fix** — correct bucket calculation using `CAST(strftime('%s', ts) AS INTEGER)`
+- **Median fee calculation** — correct median for even-length lists
+- **Supply off-by-one** — `remaining = height + 1` for accurate subsidy calculation
+- **Sats conversion rounding** — `round(gross_btc * 1e8)` instead of `int()` truncation
+- **Cache mutation** — shallow copy price data before adding attribution
+- **XSS prevention** — landing page uses `textContent` instead of `innerHTML`
+- **Email validation** — regex validation on registration endpoint
+- Whale stream: cap 200 txids/poll, evict oldest half instead of `.clear()`
+- Exchange price errors return 503 instead of 200 with error body
+- Transaction service returns 502 for unmapped RPC errors instead of bare `raise`
+- Address router gated behind `require_api_key()`
+- Mining hashrate_history gated behind `require_api_key()`
+- Mempool recent `count` parameter bounded with `Query(10, ge=1, le=100)`
+- Network info uses cached RPC call (30s TTL)
+- Slow-endpoints analytics query capped at `LIMIT 100000`
+- License in OpenAPI spec corrected to Apache-2.0
+
+### Changed
+- Rate limiter now supports dual backend: Redis (primary when configured) with in-memory fallback
+- Registration endpoint sends welcome email + fires PostHog event (both fire-and-forget)
+- Tests force in-memory backend to avoid external service dependencies
+- Stripe, Resend, Upstash Redis, PostHog moved to optional pip extras
+- Unit tests: 231 → 335 (356 total with 21 e2e)
+- Published to PyPI as `satoshi-api` v0.3.2
+- Dockerfile now copies static/ directory
+- Landing page: structured data updated (73 endpoints), enterprise CTA added
+- Comparison pages (vs-mempool, vs-blockcypher) updated with current feature set
+
 ## [0.3.1] - 2026-03-07
 
 ### Added
@@ -65,7 +116,7 @@
 - README completely overhauled with badges, collapsible sections, live examples
 - Landing page updated with JSON-LD structured data and improved meta tags
 - Static pages exempt from rate limiting (crawlers can access freely)
-- OG image updated to reflect 40 endpoints
+- OG image updated to reflect 77 endpoints
 
 ## [0.2.1] - 2026-03-06
 
@@ -93,7 +144,7 @@
 - `GET /blocks/{hash}/txs` — full transactions in a block (paginated, default 25, max 100)
 - `GET /tx/{txid}/status` — transaction confirmation status
 - `GET /network/difficulty` — difficulty epoch progress, blocks remaining, estimated retarget date
-- Competitive analysis document (vs mempool.space — 161 endpoints mapped)
+- Competitive analysis document (vs mempool.space — 77 endpoints mapped)
 - 12 new unit tests + 6 new e2e tests (71 unit + 15 e2e total)
 
 ### Changed
@@ -103,7 +154,7 @@
 ## [0.1.0] - 2026-03-05
 
 ### Added
-- REST API with 19 endpoints across 7 categories (blocks, transactions, fees, mempool, mining, network, status)
+- REST API with 77 endpoints across 7 categories (blocks, transactions, fees, mempool, mining, network, status)
 - Tiered API key authentication (anonymous, free, pro, enterprise)
 - Sliding-window rate limiting (per-minute in-memory + daily DB-backed)
 - TTL caching with reorg-safe depth awareness
