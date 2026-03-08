@@ -32,7 +32,7 @@ def main():
     )
     db.commit()
 
-    print(f"API Key created:")
+    print("API Key created:")
     print(f"  Key:    {raw_key}")
     print(f"  Tier:   {args.tier}")
     print(f"  Label:  {args.label or '(none)'}")

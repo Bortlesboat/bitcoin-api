@@ -28,7 +28,8 @@ The SOW is the single source of truth for what this project is, what it does, an
 
 ## Testing
 
-- Run tests: `python -m pytest tests/test_api.py -q`
+- Run tests: `python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.py`
+- Run domain tests: `python -m pytest tests/test_fees.py -q` (or any domain file)
 - E2E (requires running API): `python -m pytest tests/test_e2e.py -m e2e`
 - Load test: `locust -f tests/locustfile.py --host http://localhost:9332`
 - Security check: `SATOSHI_API_KEY=<key> bash scripts/security_check.sh`
@@ -79,7 +80,19 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
 | `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
 | `static/visualizer.html` | ECharts live visualization dashboard |
-| `tests/test_api.py` | Unit + integration tests (235). Total: 235 + 9 notifications + 6 redis + 85 indexer = 335 unit + 21 e2e = 356 tests |
+| `tests/test_health.py` | Health, root, status, healthz endpoints (11 tests) |
+| `tests/test_blocks.py` | Block-related endpoints (18 tests) |
+| `tests/test_fees.py` | Fee endpoint tests (16 tests) |
+| `tests/test_transactions.py` | Transaction endpoint tests (27 tests) |
+| `tests/test_mempool.py` | Mempool endpoint tests (7 tests) |
+| `tests/test_mining.py` | Mining endpoint + service tests (21 tests) |
+| `tests/test_network.py` | Network, rate limit, error handling tests (26 tests) |
+| `tests/test_keys.py` | API key registration & auth tests (12 tests) |
+| `tests/test_billing.py` | Stripe billing tests (12 tests) |
+| `tests/test_guide.py` | Guide endpoint tests (8 tests) |
+| `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (26 tests) |
+| `tests/test_misc.py` | Supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations (51 tests) |
+| | Total: 235 unit/integration + 9 notifications + 6 redis + 85 indexer = 335 unit + 21 e2e = 356 tests |
 | `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |

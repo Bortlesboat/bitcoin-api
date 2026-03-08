@@ -1,9 +1,7 @@
 """Tests for indexer reorg detection and rollback."""
 
-import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from dataclasses import dataclass
 
 from bitcoin_api.indexer.reorg import detect_reorg, rollback_to_height
 from bitcoin_api.indexer.parser import ParsedBlock

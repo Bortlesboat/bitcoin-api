@@ -10,9 +10,8 @@ from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.rpc import RPCError
 
 from ..auth import require_api_key
-from ..cache import cached_blockchain_info
 from ..dependencies import get_rpc
-from ..models import ApiResponse, envelope
+from ..models import ApiResponse, rpc_envelope
 
 router = APIRouter(prefix="/address", tags=["Address"])
 
@@ -116,7 +115,6 @@ def address_summary(
     require_api_key(request, "address summary")
     addr_info = _validate_address(address, rpc)
     scan = _scan_address(address, rpc)
-    info = cached_blockchain_info(rpc)
 
     balance_btc = scan.get("total_amount", 0)
     utxos = scan.get("unspents", [])
@@ -133,7 +131,7 @@ def address_summary(
         "total_input_value_btc": scan.get("total_amount", 0),
         "searched_items": scan.get("txouts_searched", 0),
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 _UTXOS_EXAMPLE = {
@@ -193,7 +191,6 @@ def address_utxos(
     require_api_key(request, "address utxos")
     _validate_address(address, rpc)
     scan = _scan_address(address, rpc)
-    info = cached_blockchain_info(rpc)
 
     raw_utxos = scan.get("unspents", [])
     balance_btc = scan.get("total_amount", 0)
@@ -223,4 +220,4 @@ def address_utxos(
         "balance_sats": int(round(balance_btc * 1e8)),
         "utxos": utxos,
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)

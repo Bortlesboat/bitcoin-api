@@ -7,8 +7,6 @@ from bitcoin_api.config import settings
 from bitcoin_api.rate_limit import (
     init_redis,
     check_rate_limit,
-    _check_rate_limit_memory,
-    TIER_LIMITS,
 )
 
 
@@ -115,7 +113,7 @@ def test_check_rate_limit_memory_basic():
     try:
         # First 3 should pass
         for i in range(3):
-            result = check_rate_limit(f"mem-test", "free")
+            result = check_rate_limit("mem-test", "free")
             assert result.allowed is True, f"Request {i+1} should be allowed"
 
         # 4th should be denied

@@ -10,7 +10,7 @@ from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_network_info
 from ..dependencies import get_rpc
-from ..models import ApiResponse, NetworkData, envelope
+from ..models import ApiResponse, NetworkData, envelope, rpc_envelope
 
 router = APIRouter(prefix="/network", tags=["Network"])
 
@@ -107,8 +107,7 @@ def network(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
 def chain_forks(rpc: BitcoinRPC = Depends(get_rpc)):
     """Chain tips from getchaintips — shows active chain and any forks/orphans."""
     tips = rpc.call("getchaintips")
-    info = cached_blockchain_info(rpc)
-    return envelope(tips, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(tips, rpc)
 
 
 _DIFFICULTY_EXAMPLE = {
@@ -197,5 +196,4 @@ def validate_address(
 ):
     """Validate a Bitcoin address and return its properties."""
     result = rpc.call("validateaddress", address)
-    info = cached_blockchain_info(rpc)
-    return envelope(result, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(result, rpc)

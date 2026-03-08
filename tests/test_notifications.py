@@ -3,7 +3,6 @@
 import hashlib
 from unittest.mock import patch, MagicMock
 
-from pydantic import SecretStr
 
 from bitcoin_api.config import settings
 from bitcoin_api.notifications import send_welcome_email, send_usage_alert, track_registration

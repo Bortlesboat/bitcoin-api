@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from .config import indexer_settings
 
 if TYPE_CHECKING:
-    import asyncpg
+    pass
 
 log = logging.getLogger(__name__)
 

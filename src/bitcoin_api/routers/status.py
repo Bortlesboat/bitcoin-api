@@ -6,7 +6,7 @@ from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_status
 from ..dependencies import get_rpc
-from ..models import ApiResponse, HealthData, envelope
+from ..models import ApiResponse, HealthData, envelope, rpc_envelope
 
 router = APIRouter(tags=["Status"])
 
@@ -72,7 +72,6 @@ def health(rpc: BitcoinRPC = Depends(get_rpc)):
 def status(rpc: BitcoinRPC = Depends(get_rpc)):
     """Full node status with sync progress, peers, disk usage."""
     node = cached_status(rpc)
-    info = cached_blockchain_info(rpc)
-    return envelope(node.model_dump(), height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(node.model_dump(), rpc)
 
 

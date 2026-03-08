@@ -15,13 +15,87 @@ from .cache import get_cache_state, get_sync_progress
 from .circuit_breaker import CircuitOpenError, rpc_breaker
 from .config import settings
 from .db import log_usage
-from .exceptions import ERROR_TYPES, _GUIDE_URL, _guide_help_url
+from .exceptions import ERROR_TYPES, _GUIDE_URL
 from .models import ErrorResponse, ErrorDetail
 from .metrics import REQUEST_COUNT, REQUEST_LATENCY, normalize_endpoint
 from .rate_limit import check_rate_limit, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
 log = logging.getLogger("bitcoin_api")
+
+
+# ---------------------------------------------------------------------------
+# Helper functions (extracted from auth_and_rate_limit)
+# ---------------------------------------------------------------------------
+
+def _get_client_ip(request: Request) -> str:
+    """Extract the real client IP, preferring Cloudflare's header."""
+    return (request.headers.get("CF-Connecting-IP")
+            or (request.client.host if request.client else "unknown"))
+
+
+def _error_response(status: int, title: str, detail: str, request_id: str,
+                    *, error_type_key: str,
+                    extra_headers: dict | None = None) -> JSONResponse:
+    """Build a standardised JSON error response with X-Request-ID."""
+    resp = JSONResponse(
+        status_code=status,
+        content=ErrorResponse(
+            error=ErrorDetail(
+                type=ERROR_TYPES[error_type_key],
+                status=status,
+                title=title,
+                detail=detail,
+                request_id=request_id,
+                help_url=_GUIDE_URL,
+            )
+        ).model_dump(),
+    )
+    resp.headers["X-Request-ID"] = request_id
+    if extra_headers:
+        for k, v in extra_headers.items():
+            resp.headers[k] = v
+    return resp
+
+
+def _log_and_respond(bucket, path: str, status: int, *, request_id: str,
+                     start_time: float, method: str, user_agent: str,
+                     client_type: str, referrer: str,
+                     response: JSONResponse,
+                     record_metrics: bool = True,
+                     tier: str = "unknown") -> JSONResponse:
+    """Calculate elapsed time, log usage, optionally record Prometheus metrics, return response."""
+    elapsed_ms = (time.monotonic() - start_time) * 1000
+    log_usage(bucket, path, status,
+              method=method, response_time_ms=elapsed_ms, user_agent=user_agent,
+              client_type=client_type, referrer=referrer)
+    if record_metrics:
+        _norm = normalize_endpoint(path)
+        REQUEST_COUNT.labels(
+            method=method, endpoint=_norm, status=str(status), tier=tier,
+        ).inc()
+        REQUEST_LATENCY.labels(method=method, endpoint=_norm).observe(elapsed_ms / 1000)
+    return response
+
+
+def _emit_access_log(client_ip: str, method: str, path: str, status: int,
+                     tier: str, request_id: str, elapsed_ms: float) -> None:
+    """Write a structured or plain-text access log entry."""
+    log_level = logging.WARNING if status in (401, 429) else logging.INFO
+    if settings.log_format == "json":
+        access_log.log(log_level, json.dumps({
+            "client_ip": client_ip, "method": method, "path": path,
+            "status": status, "tier": tier,
+            "request_id": request_id, "latency_ms": round(elapsed_ms, 1),
+        }))
+    else:
+        access_log.log(log_level, "%s %s %s %d %s %s",
+                       client_ip, method, path, status, tier, request_id)
+
+
+# ---------------------------------------------------------------------------
+# Client classification
+# ---------------------------------------------------------------------------
 
 _AI_AGENT_PATTERNS = ("claude", "openai", "anthropic", "langchain", "autogpt")
 _SDK_PATTERNS = ("python-requests", "httpx", "axios", "node-fetch", "curl")
@@ -78,111 +152,74 @@ def register_middleware(app: FastAPI):
         req_user_agent = request.headers.get("user-agent", "")
         req_client_type = classify_client(req_user_agent)
         req_referrer = request.headers.get("referer", "")
+        _common = dict(request_id=request_id, start_time=start_time, method=req_method,
+                       user_agent=req_user_agent, client_type=req_client_type, referrer=req_referrer)
 
+        # --- Skip-path fast path ---
         if request.url.path in _RATE_LIMIT_SKIP:
             response = await call_next(request)
-            elapsed_ms = (time.monotonic() - start_time) * 1000
             response.headers["X-Request-ID"] = request_id
             if request.url.path == "/api/v1/health":
                 key_info = authenticate(request)
-                log_usage(key_info.key_hash, request.url.path, response.status_code,
-                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                          client_type=req_client_type, referrer=req_referrer)
+                _log_and_respond(key_info.key_hash, request.url.path, response.status_code,
+                                 response=response, record_metrics=False, **_common)
             # Record skipped-path metrics for Prometheus visibility
             _norm = normalize_endpoint(request.url.path)
-            REQUEST_COUNT.labels(
-                method=req_method, endpoint=_norm,
-                status=str(response.status_code), tier="unknown",
-            ).inc()
+            elapsed_ms = (time.monotonic() - start_time) * 1000
+            REQUEST_COUNT.labels(method=req_method, endpoint=_norm,
+                                 status=str(response.status_code), tier="unknown").inc()
             REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe(elapsed_ms / 1000)
             return response
 
+        # --- Authentication ---
         key_info = authenticate(request)
         request.state.tier = key_info.tier
 
         if key_info.tier == "invalid":
-            resp = JSONResponse(
-                status_code=401,
-                content=ErrorResponse(
-                    error=ErrorDetail(
-                        type=ERROR_TYPES["unauthorized"],
-                        status=401,
-                        title="Unauthorized",
-                        detail="API key not found or inactive. Get a free key: POST /api/v1/register",
-                        request_id=request_id,
-                        help_url=_GUIDE_URL,
-                    )
-                ).model_dump(),
-            )
-            resp.headers["X-Request-ID"] = request_id
+            resp = _error_response(401, "Unauthorized",
+                                   "API key not found or inactive. Get a free key: POST /api/v1/register",
+                                   request_id, error_type_key="unauthorized")
             _norm = normalize_endpoint(request.url.path)
             REQUEST_COUNT.labels(method=req_method, endpoint=_norm, status="401", tier="invalid").inc()
-            REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe((time.monotonic() - start_time))
+            REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe(time.monotonic() - start_time)
             return resp
 
-        client_ip = (request.headers.get("CF-Connecting-IP")
-                     or (request.client.host if request.client else "unknown"))
+        client_ip = _get_client_ip(request)
         bucket = key_info.key_hash or client_ip
 
+        # --- Per-minute rate limit ---
         result = check_rate_limit(bucket, key_info.tier)
         if not result.allowed:
             retry_after = max(1, int(result.reset - time.time()))
             detail_msg = f"Limit: {result.limit} req/min for {key_info.tier} tier"
             if key_info.tier == "anonymous":
                 detail_msg += ". Upgrade: POST /api/v1/register"
-            resp = JSONResponse(
-                status_code=429,
-                content=ErrorResponse(
-                    error=ErrorDetail(
-                        type=ERROR_TYPES["rate_limit"],
-                        status=429,
-                        title="Rate Limit Exceeded",
-                        detail=detail_msg,
-                        request_id=request_id,
-                        help_url=_GUIDE_URL,
-                    )
-                ).model_dump(),
-            )
-            resp.headers["X-Request-ID"] = request_id
-            resp.headers["X-RateLimit-Limit"] = str(result.limit)
-            resp.headers["X-RateLimit-Remaining"] = "0"
-            resp.headers["X-RateLimit-Reset"] = str(int(result.reset))
-            resp.headers["Retry-After"] = str(retry_after)
-            elapsed_ms = (time.monotonic() - start_time) * 1000
-            log_usage(bucket, request.url.path, 429,
-                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                          client_type=req_client_type, referrer=req_referrer)
-            return resp
+            resp = _error_response(429, "Rate Limit Exceeded", detail_msg, request_id,
+                                   error_type_key="rate_limit", extra_headers={
+                                       "X-RateLimit-Limit": str(result.limit),
+                                       "X-RateLimit-Remaining": "0",
+                                       "X-RateLimit-Reset": str(int(result.reset)),
+                                       "Retry-After": str(retry_after),
+                                   })
+            return _log_and_respond(bucket, request.url.path, 429,
+                                    response=resp, record_metrics=False, **_common)
 
+        # --- Daily rate limit ---
         daily_result = check_daily_limit(bucket, key_info.tier)
         if not daily_result.allowed:
             daily_detail = f"Daily limit: {daily_result.limit} requests for {key_info.tier} tier"
             if key_info.tier == "anonymous":
                 daily_detail += ". Upgrade: POST /api/v1/register"
-            resp = JSONResponse(
-                status_code=429,
-                content=ErrorResponse(
-                    error=ErrorDetail(
-                        type=ERROR_TYPES["rate_limit"],
-                        status=429,
-                        title="Daily Rate Limit Exceeded",
-                        detail=daily_detail,
-                        request_id=request_id,
-                        help_url=_GUIDE_URL,
-                    )
-                ).model_dump(),
-            )
-            resp.headers["X-Request-ID"] = request_id
-            resp.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
-            resp.headers["X-RateLimit-Daily-Remaining"] = "0"
-            resp.headers["Retry-After"] = "3600"
-            elapsed_ms = (time.monotonic() - start_time) * 1000
-            log_usage(bucket, request.url.path, 429,
-                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                          client_type=req_client_type, referrer=req_referrer)
-            return resp
+            resp = _error_response(429, "Daily Rate Limit Exceeded", daily_detail, request_id,
+                                   error_type_key="rate_limit", extra_headers={
+                                       "X-RateLimit-Daily-Limit": str(daily_result.limit),
+                                       "X-RateLimit-Daily-Remaining": "0",
+                                       "Retry-After": "3600",
+                                   })
+            return _log_and_respond(bucket, request.url.path, 429,
+                                    response=resp, record_metrics=False, **_common)
 
-        # Circuit breaker: fast-fail for RPC-dependent endpoints
+        # --- Circuit breaker: fast-fail for RPC-dependent endpoints ---
         path = request.url.path
         _is_rpc_path = (
             path.startswith("/api/v1/")
@@ -199,66 +236,35 @@ def register_middleware(app: FastAPI):
                 rpc_breaker.before_call()
             except CircuitOpenError:
                 remaining = rpc_breaker._recovery_timeout - (time.time() - rpc_breaker._last_failure_time)
-                retry_after = str(max(1, int(remaining)))
-                resp = JSONResponse(
-                    status_code=503,
-                    content=ErrorResponse(
-                        error=ErrorDetail(
-                            type=ERROR_TYPES["circuit_open"],
-                            status=503,
-                            title="Service Unavailable",
-                            detail="Circuit breaker OPEN -- Bitcoin node unavailable. Fast-failing to avoid delays.",
-                            request_id=request_id,
-                            help_url=_GUIDE_URL,
-                        )
-                    ).model_dump(),
-                )
-                resp.headers["X-Request-ID"] = request_id
-                resp.headers["Retry-After"] = retry_after
-                elapsed_ms = (time.monotonic() - start_time) * 1000
-                log_usage(bucket, request.url.path, 503,
-                          method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                          client_type=req_client_type, referrer=req_referrer)
-                return resp
+                resp = _error_response(503, "Service Unavailable",
+                                       "Circuit breaker OPEN -- Bitcoin node unavailable. Fast-failing to avoid delays.",
+                                       request_id, error_type_key="circuit_open",
+                                       extra_headers={"Retry-After": str(max(1, int(remaining)))})
+                return _log_and_respond(bucket, path, 503,
+                                        response=resp, record_metrics=False, **_common)
 
+        # --- Call downstream ---
         try:
             response = await call_next(request)
         except Exception:
-            logging.getLogger("bitcoin_api").exception(
-                "Unhandled exception: %s %s [%s]", request.method, request.url.path, request_id
-            )
-            resp = JSONResponse(
-                status_code=500,
-                content=ErrorResponse(
-                    error=ErrorDetail(
-                        type=ERROR_TYPES["internal"],
-                        status=500,
-                        title="Internal Server Error",
-                        detail="An unexpected error occurred",
-                        request_id=request_id,
-                        help_url=_GUIDE_URL,
-                    )
-                ).model_dump(),
-            )
-            resp.headers["X-Request-ID"] = request_id
-            elapsed_ms = (time.monotonic() - start_time) * 1000
-            log_usage(bucket, request.url.path, 500,
-                      method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                          client_type=req_client_type, referrer=req_referrer)
-            return resp
+            log.exception("Unhandled exception: %s %s [%s]", request.method, path, request_id)
+            resp = _error_response(500, "Internal Server Error", "An unexpected error occurred",
+                                   request_id, error_type_key="internal")
+            return _log_and_respond(bucket, path, 500,
+                                    response=resp, record_metrics=False, **_common)
 
         # Circuit breaker: record success for RPC paths with 2xx responses
         if _is_rpc_path and 200 <= response.status_code < 300:
             rpc_breaker.record_success()
 
+        # --- Prometheus metrics ---
         elapsed_s = time.monotonic() - start_time
-        _endpoint = normalize_endpoint(request.url.path)
-        REQUEST_COUNT.labels(
-            method=req_method, endpoint=_endpoint,
-            status=str(response.status_code), tier=key_info.tier,
-        ).inc()
+        _endpoint = normalize_endpoint(path)
+        REQUEST_COUNT.labels(method=req_method, endpoint=_endpoint,
+                             status=str(response.status_code), tier=key_info.tier).inc()
         REQUEST_LATENCY.labels(method=req_method, endpoint=_endpoint).observe(elapsed_s)
 
+        # --- Response headers ---
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Auth-Tier"] = key_info.tier
 
@@ -270,32 +276,16 @@ def register_middleware(app: FastAPI):
         response.headers["X-RateLimit-Limit"] = str(result.limit)
         response.headers["X-RateLimit-Remaining"] = str(result.remaining)
         response.headers["X-RateLimit-Reset"] = str(int(result.reset))
-
         response.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
         response.headers["X-RateLimit-Daily-Remaining"] = str(daily_result.remaining)
 
+        # --- Log usage + access log ---
         elapsed_ms = (time.monotonic() - start_time) * 1000
-        log_usage(bucket, request.url.path, response.status_code,
+        log_usage(bucket, path, response.status_code,
                   method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                          client_type=req_client_type, referrer=req_referrer)
-
-        client_ip = (request.headers.get("CF-Connecting-IP")
-                     or (request.client.host if request.client else "unknown"))
-        tier = key_info.tier
-        log_level = logging.WARNING if response.status_code in (401, 429) else logging.INFO
-        if settings.log_format == "json":
-            access_log.log(log_level, json.dumps({
-                "client_ip": client_ip,
-                "method": request.method,
-                "path": request.url.path,
-                "status": response.status_code,
-                "tier": tier,
-                "request_id": request_id,
-                "latency_ms": round(elapsed_ms, 1),
-            }))
-        else:
-            access_log.log(log_level, "%s %s %s %d %s %s", client_ip, request.method, request.url.path, response.status_code, tier, request_id)
-
+                  client_type=req_client_type, referrer=req_referrer)
+        _emit_access_log(client_ip, request.method, path, response.status_code,
+                         key_info.tier, request_id, elapsed_ms)
         return response
 
     # --- CORS (middle layer) ---

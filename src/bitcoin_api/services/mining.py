@@ -1,6 +1,5 @@
 """Mining analysis services: pool identification, hashrate calculation."""
 
-import re
 
 KNOWN_POOLS: dict[str, str] = {
     "Foundry USA": "foundry",

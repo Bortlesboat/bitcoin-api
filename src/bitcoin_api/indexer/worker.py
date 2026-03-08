@@ -6,7 +6,6 @@ import asyncio
 import json
 import logging
 import time
-from datetime import datetime, timezone
 
 from .config import indexer_settings
 from .db import get_pool

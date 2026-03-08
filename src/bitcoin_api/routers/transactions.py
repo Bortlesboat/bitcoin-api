@@ -11,11 +11,10 @@ from ..cache import cached_blockchain_info
 from ..dependencies import get_rpc
 from ..models import (
     ApiResponse, BroadcastData, BroadcastRequest, DecodeRequest,
-    TransactionAnalysisData, envelope,
+    TransactionAnalysisData, envelope, rpc_envelope,
 )
 from ..services.transactions import check_outspends, broadcast_with_validation
-
-_TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
+from ..validators import validate_txid
 
 router = APIRouter(tags=["Transactions"])
 
@@ -55,11 +54,9 @@ def get_transaction(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Full transaction analysis: inputs, outputs, fees, SegWit/Taproot flags, inscription detection."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     analysis = analyze_transaction(rpc, txid)
-    info = cached_blockchain_info(rpc)
-    return envelope(analysis.model_dump(), height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(analysis.model_dump(), rpc)
 
 
 @router.get(
@@ -98,11 +95,9 @@ def get_raw_transaction(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Raw decoded transaction from getrawtransaction."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     raw = rpc.call("getrawtransaction", txid, True)
-    info = cached_blockchain_info(rpc)
-    return envelope(raw, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(raw, rpc)
 
 
 @router.get(
@@ -133,10 +128,8 @@ def get_tx_status(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Check confirmation status of a transaction."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     raw = rpc.call("getrawtransaction", txid, True)
-    info = cached_blockchain_info(rpc)
     confirmed = "blockhash" in raw
     data = {
         "confirmed": confirmed,
@@ -144,7 +137,7 @@ def get_tx_status(
         "block_hash": raw.get("blockhash"),
         "confirmations": raw.get("confirmations", 0),
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get(
@@ -170,11 +163,9 @@ def get_tx_hex(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Raw transaction as a hex string (not decoded)."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     hex_str = rpc.call("getrawtransaction", txid, False)
-    info = cached_blockchain_info(rpc)
-    return envelope(hex_str, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(hex_str, rpc)
 
 
 @router.get(
@@ -203,12 +194,10 @@ def get_tx_outspends(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Check spending status of each output in a transaction."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     raw = rpc.call("getrawtransaction", txid, True)
-    info = cached_blockchain_info(rpc)
     result = check_outspends(rpc, txid, raw.get("vout", []))
-    return envelope(result, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(result, rpc)
 
 
 @router.get(
@@ -238,8 +227,7 @@ def get_merkle_proof(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Merkle proof for a confirmed transaction (gettxoutproof)."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
 
     # Get block hash from the transaction
     raw = rpc.call("getrawtransaction", txid, True)
@@ -248,11 +236,9 @@ def get_merkle_proof(
         raise HTTPException(status_code=404, detail="Transaction is unconfirmed — merkle proof requires a confirmed transaction")
 
     proof_hex = rpc.call("gettxoutproof", [txid], block_hash)
-    info = cached_blockchain_info(rpc)
-    return envelope(
+    return rpc_envelope(
         {"proof_hex": proof_hex, "block_hash": block_hash},
-        height=info["blocks"],
-        chain=info["chain"],
+        rpc,
     )
 
 
@@ -290,8 +276,7 @@ def get_utxo(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Check if a UTXO is unspent (gettxout)."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     result = rpc.call("gettxout", txid, vout)
     info = cached_blockchain_info(rpc)
     if result is None:
@@ -348,8 +333,7 @@ def decode_transaction(
     if not _HEX_RE.match(body.hex):
         raise HTTPException(status_code=422, detail="Invalid hex string")
     decoded = rpc.call("decoderawtransaction", body.hex)
-    info = cached_blockchain_info(rpc)
-    return envelope(decoded, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(decoded, rpc)
 
 
 _BROADCAST_EXAMPLE = {
@@ -382,5 +366,4 @@ def broadcast_transaction(
         raise HTTPException(status_code=422, detail="Invalid hex string")
 
     txid = broadcast_with_validation(rpc, body.hex)
-    info = cached_blockchain_info(rpc)
-    return envelope({"txid": txid}, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope({"txid": txid}, rpc)

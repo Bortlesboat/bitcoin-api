@@ -1,6 +1,5 @@
 """Tests for the indexer block parser."""
 
-import pytest
 from bitcoin_api.indexer.parser import parse_block, _sat, _hex_to_bytes, ParsedBlock
 
 

@@ -6,7 +6,7 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..auth import require_api_key, cap_blocks_param, BLOCKS_CAP
 from ..dependencies import get_rpc
 from ..cache import cached_blockchain_info, cached_utxo_set_info
-from ..models import ApiResponse, envelope
+from ..models import ApiResponse, envelope, rpc_envelope
 from ..services.stats import classify_outputs, parse_op_returns
 
 router = APIRouter(prefix="/stats", tags=["Statistics"])
@@ -66,7 +66,6 @@ _OP_RETURNS_EXAMPLE = {
 def utxo_set(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
     """UTXO set summary from gettxoutsetinfo. Note: this RPC call can be slow."""
     require_api_key(request, "UTXO set info")
-    info = cached_blockchain_info(rpc)
     utxo_info = cached_utxo_set_info(rpc)
     data = {
         "height": utxo_info.get("height"),
@@ -76,7 +75,7 @@ def utxo_set(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
         "disk_size_bytes": utxo_info.get("disk_size"),
         "bogosize": utxo_info.get("bogosize"),
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get("/segwit-adoption", response_model=ApiResponse[dict], responses=_SEGWIT_ADOPTION_EXAMPLE)

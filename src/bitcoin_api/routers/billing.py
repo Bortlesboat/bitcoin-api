@@ -2,13 +2,13 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from ..auth import authenticate, clear_auth_cache
 from ..config import settings
 from ..db import get_db
-from ..models import ApiResponse, envelope
+from ..models import envelope
 from ..stripe_client import create_checkout_session, verify_webhook_signature
 
 log = logging.getLogger("bitcoin_api.billing")

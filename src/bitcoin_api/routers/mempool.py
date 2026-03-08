@@ -1,15 +1,14 @@
 """Mempool endpoints: /mempool, /mempool/info, /mempool/tx/{txid}, /mempool/txids, /mempool/recent."""
 
-import re
-
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Path, Query
 
 from bitcoinlib_rpc import BitcoinRPC
 
-from ..cache import cached_blockchain_info, cached_mempool_analysis, cached_raw_mempool
+from ..cache import cached_mempool_analysis, cached_raw_mempool
 from ..dependencies import get_rpc
-from ..models import ApiResponse, MempoolAnalysisData, envelope
+from ..models import ApiResponse, MempoolAnalysisData, rpc_envelope
 from ..services.serializers import sanitize_for_json
+from ..validators import validate_txid
 
 router = APIRouter(prefix="/mempool", tags=["Mempool"])
 
@@ -111,14 +110,10 @@ _MEMPOOL_ENTRY_EXAMPLE = {
 }
 
 
-_TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
-
-
 @router.get("", response_model=ApiResponse[MempoolAnalysisData], responses=_MEMPOOL_ANALYSIS_EXAMPLE)
 def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
     """Full mempool analysis: fee buckets, congestion level, next-block minimum fee."""
     summary = cached_mempool_analysis(rpc)
-    info = cached_blockchain_info(rpc)
     raw = summary.model_dump(mode="json")
     # Map bitcoinlib-rpc field names to API field names
     if "total_bytes" in raw:
@@ -126,15 +121,14 @@ def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
     if "buckets" in raw:
         raw.setdefault("fee_buckets", raw.pop("buckets"))
     data = sanitize_for_json(raw)
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get("/info", response_model=ApiResponse[dict], responses=_MEMPOOL_INFO_EXAMPLE)
 def mempool_info(rpc: BitcoinRPC = Depends(get_rpc)):
     """Raw mempool info from getmempoolinfo RPC."""
     mpi = rpc.call("getmempoolinfo")
-    info = cached_blockchain_info(rpc)
-    return envelope(mpi, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(mpi, rpc)
 
 
 @router.get("/tx/{txid}", response_model=ApiResponse[dict], responses=_MEMPOOL_ENTRY_EXAMPLE)
@@ -143,11 +137,9 @@ def mempool_entry(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Get mempool entry for a specific transaction."""
-    if not _TXID_RE.match(txid):
-        raise HTTPException(status_code=422, detail="Invalid txid: must be 64 hex characters")
+    validate_txid(txid)
     entry = rpc.call("getmempoolentry", txid)
-    info = cached_blockchain_info(rpc)
-    return envelope(entry, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(entry, rpc)
 
 
 @router.get(
@@ -173,8 +165,7 @@ def mempool_entry(
 def mempool_txids(rpc: BitcoinRPC = Depends(get_rpc)):
     """List all transaction IDs in the mempool."""
     txids = rpc.call("getrawmempool", False)
-    info = cached_blockchain_info(rpc)
-    return envelope(txids, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(txids, rpc)
 
 
 @router.get(
@@ -225,5 +216,4 @@ def mempool_recent(
             "fee_rate": round(fee_sat / vsize, 2) if vsize > 0 else 0,
             "time": entry.get("time", 0),
         })
-    info = cached_blockchain_info(rpc)
-    return envelope(result, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(result, rpc)

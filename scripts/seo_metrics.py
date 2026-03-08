@@ -13,10 +13,8 @@ Usage:
 
 import argparse
 import json
-import os
 import sqlite3
 import subprocess
-import sys
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
@@ -190,7 +188,7 @@ def check_issue_status():
 def check_search_indexing():
     """Check if pages appear in Bing index using site: query."""
     try:
-        url = f"https://www.bing.com/search?q=site%3Abitcoinsapi.com"
+        url = "https://www.bing.com/search?q=site%3Abitcoinsapi.com"
         req = urllib.request.Request(url)
         req.add_header("User-Agent", "Mozilla/5.0 (compatible; SEO-Metrics/1.0)")
         resp = urllib.request.urlopen(req, timeout=10)
@@ -351,7 +349,7 @@ def run_all_checks(conn):
         print(f"  Errors (24h): {api_stats['errors_24h']} ({api_stats['error_rate']*100:.1f}%)")
         if api_stats["avg_response_time_ms"] is not None:
             print(f"  Avg response time: {api_stats['avg_response_time_ms']:.1f}ms")
-        print(f"  Top endpoints:")
+        print("  Top endpoints:")
         for ep, cnt in api_stats["top_endpoints"]:
             print(f"    {ep}: {cnt}")
     else:

@@ -209,3 +209,10 @@ def envelope(
         data=data,
         meta=build_meta(height=height, chain=chain, request_id=request_id),
     ).model_dump()
+
+
+def rpc_envelope(data: Any, rpc) -> dict:
+    """Fetch blockchain info and wrap data in standard envelope."""
+    from .cache import cached_blockchain_info
+    info = cached_blockchain_info(rpc)
+    return envelope(data, height=info["blocks"], chain=info["chain"])

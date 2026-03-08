@@ -8,7 +8,7 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..auth import require_api_key, cap_blocks_param, BLOCKS_CAP
 from ..cache import cached_blockchain_info, cached_next_block
 from ..dependencies import get_rpc
-from ..models import ApiResponse, MiningData, NextBlockData, envelope
+from ..models import ApiResponse, MiningData, NextBlockData, envelope, rpc_envelope
 from ..services.mining import parse_coinbase_tag, extract_coinbase_hex, calculate_hashrate
 
 router = APIRouter(prefix="/mining", tags=["Mining"])
@@ -149,7 +149,6 @@ _REVENUE_HISTORY_EXAMPLE = {
 @router.get("", response_model=ApiResponse[MiningData], responses=_MINING_SUMMARY_EXAMPLE)
 def mining_summary(rpc: BitcoinRPC = Depends(get_rpc)):
     """Mining summary: hashrate, difficulty, next retarget estimate."""
-    info = cached_blockchain_info(rpc)
     mining = rpc.call("getmininginfo")
     data = {
         "blocks": mining["blocks"],
@@ -159,14 +158,13 @@ def mining_summary(rpc: BitcoinRPC = Depends(get_rpc)):
         "next_retarget_height": ((mining["blocks"] // 2016) + 1) * 2016,
         "blocks_until_retarget": ((mining["blocks"] // 2016) + 1) * 2016 - mining["blocks"],
     }
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get("/nextblock", response_model=ApiResponse[NextBlockData], responses=_NEXT_BLOCK_EXAMPLE)
 def next_block(rpc: BitcoinRPC = Depends(get_rpc)):
     """Analyze the current block template — what the next block would look like if mined now."""
     data = dict(cached_next_block(rpc))
-    info = cached_blockchain_info(rpc)
     # Convert top_5 tuples to dicts for JSON
     if data.get("top_5"):
         data["top_5"] = [
@@ -175,7 +173,7 @@ def next_block(rpc: BitcoinRPC = Depends(get_rpc)):
         ]
     # Remove raw fee_rates list (too large for API response)
     data.pop("fee_rates", None)
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get("/hashrate/history", response_model=ApiResponse[list], responses=_HASHRATE_HISTORY_EXAMPLE)

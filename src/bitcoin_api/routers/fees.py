@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, Path, Query
 from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.utils import fee_recommendation
 
-from ..cache import cached_blockchain_info, cached_fee_estimates, cached_raw_mempool, get_mempool_snapshots
+from ..cache import cached_fee_estimates, cached_raw_mempool, get_mempool_snapshots
 from ..db import get_fee_history
 from ..dependencies import get_rpc
-from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope
+from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope, rpc_envelope
 from ..services.fees import analyze_mempool_blocks, calculate_fee_landscape, estimate_tx_fees, summarize_fee_history
 
 router = APIRouter(prefix="/fees", tags=["Fees"])
@@ -40,12 +40,7 @@ _FEES_EXAMPLE = {
 def fees(rpc: BitcoinRPC = Depends(get_rpc)):
     """Fee estimates for standard confirmation targets (1, 3, 6, 25, 144 blocks)."""
     estimates = cached_fee_estimates(rpc)
-    info = cached_blockchain_info(rpc)
-    return envelope(
-        [e.model_dump() for e in estimates],
-        height=info["blocks"],
-        chain=info["chain"],
-    )
+    return rpc_envelope([e.model_dump() for e in estimates], rpc)
 
 
 _FEES_RECOMMENDED_EXAMPLE = {
@@ -105,14 +100,12 @@ def fees_recommended(rpc: BitcoinRPC = Depends(get_rpc)):
     estimates = cached_fee_estimates(rpc)
     fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
     recommendation = fee_recommendation(fee_dict)
-    info = cached_blockchain_info(rpc)
-    return envelope(
+    return rpc_envelope(
         {
             "recommendation": recommendation,
             "estimates": {e.conf_target: e.fee_rate_sat_vb for e in estimates},
         },
-        height=info["blocks"],
-        chain=info["chain"],
+        rpc,
     )
 
 
@@ -145,9 +138,8 @@ _MEMPOOL_BLOCKS_EXAMPLE = {
 def fees_mempool_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
     """Project the next N blocks from the current mempool, sorted by fee rate descending."""
     raw = cached_raw_mempool(rpc)
-    info = cached_blockchain_info(rpc)
     blocks = analyze_mempool_blocks(raw)
-    return envelope(blocks, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(blocks, rpc)
 
 
 
@@ -155,11 +147,10 @@ def fees_mempool_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
 def fees_landscape(rpc: BitcoinRPC = Depends(get_rpc)):
     """Should I send now or wait? Fee landscape with trend analysis and actionable recommendation."""
     estimates = cached_fee_estimates(rpc)
-    info = cached_blockchain_info(rpc)
     fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
     snapshots = get_mempool_snapshots()
     data = calculate_fee_landscape(fee_dict, snapshots)
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get("/estimate-tx", response_model=ApiResponse[dict])
@@ -172,10 +163,9 @@ def fees_estimate_tx(
 ):
     """Estimate transaction size and fee cost without building a transaction."""
     estimates = cached_fee_estimates(rpc)
-    info = cached_blockchain_info(rpc)
     fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
     data = estimate_tx_fees(fee_dict, inputs, outputs, input_type, output_type)
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get("/history", response_model=ApiResponse[dict])
@@ -218,18 +208,16 @@ def fee_for_target(
 ):
     """Fee estimate for a specific confirmation target."""
     result = rpc.call("estimatesmartfee", target)
-    info = cached_blockchain_info(rpc)
 
     fee_rate_btc_kvb = result.get("feerate", 0)
     fee_rate_sat_vb = fee_rate_btc_kvb * 100_000 if fee_rate_btc_kvb else 0
 
-    return envelope(
+    return rpc_envelope(
         {
             "conf_target": target,
             "fee_rate_btc_kvb": fee_rate_btc_kvb,
             "fee_rate_sat_vb": round(fee_rate_sat_vb, 2),
             "errors": result.get("errors", []),
         },
-        height=info["blocks"],
-        chain=info["chain"],
+        rpc,
     )

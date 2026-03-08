@@ -1,16 +1,13 @@
 """Block endpoints: /blocks/latest, /blocks/{id}, /blocks/{id}/stats, /blocks/{hash}/txids, /blocks/{hash}/txs, /blocks/{hash}/header, /blocks/tip/*."""
 
-import re
-
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis, cached_block_by_hash
 from ..dependencies import get_rpc
-from ..models import ApiResponse, BlockAnalysisData, envelope
+from ..models import ApiResponse, BlockAnalysisData, envelope, rpc_envelope
 from ..services.serializers import serialize_block
-
-_HASH_RE = re.compile(r"^[a-fA-F0-9]{64}$")
+from ..validators import validate_block_hash
 
 router = APIRouter(prefix="/blocks", tags=["Blocks"])
 
@@ -150,8 +147,8 @@ def get_block(
 
     if isinstance(identifier, int) and identifier < 0:
         raise HTTPException(status_code=422, detail="Block height must be non-negative")
-    if isinstance(identifier, str) and not _HASH_RE.match(identifier):
-        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    if isinstance(identifier, str):
+        validate_block_hash(identifier)
 
     # Use cache for both height and hash lookups
     if isinstance(identifier, int):
@@ -160,8 +157,7 @@ def get_block(
         analysis = cached_block_by_hash(rpc, identifier)
 
     data = serialize_block(analysis.model_dump())
-    info = cached_blockchain_info(rpc)
-    return envelope(data, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(data, rpc)
 
 
 @router.get(
@@ -204,8 +200,7 @@ def block_stats(
 ):
     """Raw block statistics from getblockstats RPC."""
     stats = rpc.call("getblockstats", height)
-    info = cached_blockchain_info(rpc)
-    return envelope(stats, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(stats, rpc)
 
 
 @router.get(
@@ -231,11 +226,9 @@ def block_header(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Block header as a hex string."""
-    if not _HASH_RE.match(block_hash):
-        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    validate_block_hash(block_hash)
     header_hex = rpc.call("getblockheader", block_hash, False)
-    info = cached_blockchain_info(rpc)
-    return envelope(header_hex, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(header_hex, rpc)
 
 
 @router.get(
@@ -264,11 +257,9 @@ def block_txids(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """List all transaction IDs in a block."""
-    if not _HASH_RE.match(block_hash):
-        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    validate_block_hash(block_hash)
     block = rpc.call("getblock", block_hash, 1)
-    info = cached_blockchain_info(rpc)
-    return envelope(block["tx"], height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(block["tx"], rpc)
 
 
 @router.get(
@@ -304,13 +295,11 @@ def block_txs(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Full transactions in a block, paginated. Default 25 per page, max 100."""
-    if not _HASH_RE.match(block_hash):
-        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    validate_block_hash(block_hash)
     block = rpc.call("getblock", block_hash, 2)
     all_txs = block.get("tx", [])
     txs = all_txs[start:start + limit]
-    info = cached_blockchain_info(rpc)
-    return envelope({"transactions": txs, "total_tx_count": len(all_txs)}, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope({"transactions": txs, "total_tx_count": len(all_txs)}, rpc)
 
 
 @router.get(
@@ -336,8 +325,6 @@ def block_raw(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Raw serialized block as hex string (verbosity 0)."""
-    if not _HASH_RE.match(block_hash):
-        raise HTTPException(status_code=422, detail="Invalid block hash: must be 64 hex characters")
+    validate_block_hash(block_hash)
     raw_hex = rpc.call("getblock", block_hash, 0)
-    info = cached_blockchain_info(rpc)
-    return envelope(raw_hex, height=info["blocks"], chain=info["chain"])
+    return rpc_envelope(raw_hex, rpc)

@@ -4,7 +4,6 @@ Powered by bitcoinsapi.com — Free Bitcoin API for developers.
 """
 import requests
 import time
-import json
 
 API_URL = "https://bitcoinsapi.com/api/v1/mempool"
 

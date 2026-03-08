@@ -34,7 +34,7 @@ async def _block_event_generator(rpc: BitcoinRPC):
 
         try:
             current_height = cached_block_count(rpc)
-        except Exception as e:
+        except Exception:
             yield f"event: error\ndata: {json.dumps({'error': 'Node temporarily unavailable'})}\n\n"
             current_height = last_height
 
