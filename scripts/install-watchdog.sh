@@ -6,7 +6,9 @@ set -euo pipefail
 
 TASK_NAME="SatoshiAPIWatchdog"
 OLD_TASK_NAME="SatoshiAPI"
-SCRIPT_PATH='C:\Users\andre\Bortlesboat\bitcoin-api\scripts\watchdog-api.sh'
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -W 2>/dev/null || pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+SCRIPT_PATH="${REPO_DIR}\\scripts\\watchdog-api.sh"
 # Git Bash path - adjust if bash is elsewhere
 BASH_EXE='C:\Program Files\Git\bin\bash.exe'
 
@@ -26,7 +28,7 @@ if [[ ! -f "/c/Program Files/Git/bin/bash.exe" ]]; then
 fi
 
 # Ensure logs directory exists
-mkdir -p "C:/Users/andre/Bortlesboat/bitcoin-api/logs"
+mkdir -p "$REPO_DIR/logs"
 
 # Step 1: Delete old broken SatoshiAPI task if it exists
 echo "[1/3] Checking for old '$OLD_TASK_NAME' task..."

@@ -6,7 +6,7 @@
 set -euo pipefail
 
 API_PORT=9332
-API_DIR="C:/Users/andre/Bortlesboat/bitcoin-api"
+API_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 LOG_DIR="$API_DIR/logs"
 WATCHDOG_LOG="$LOG_DIR/watchdog.log"
 API_LOG="$LOG_DIR/api.log"

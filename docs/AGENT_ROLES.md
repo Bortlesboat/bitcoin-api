@@ -51,7 +51,7 @@ Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
 
 ## The 12 Employees
 
-All 12 agents report directly to the CEO (Andy). Fully flat org — no intermediate management layers.
+All 12 agents report directly to the CEO. Fully flat org — no intermediate management layers.
 
 ### Strategic
 | Role | Skill | Responsibility |
@@ -273,7 +273,7 @@ When two agents disagree, apply this priority order (highest wins):
 ## Org Chart
 
 ```
-                                         CEO (Andy)
+                                           CEO
        ________________________________________________________________________
       |     |      |      |       |     |      |      |     |     |         |      |
      PM    UX    CFO   Agent    Legal  Mktg  Security Arch   QA  Analytics  Ops  Admin

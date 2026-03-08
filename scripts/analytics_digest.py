@@ -22,7 +22,7 @@ from urllib.error import URLError
 
 API_BASE = os.getenv("SATOSHI_API_URL", "https://bitcoinsapi.com")
 ADMIN_KEY = os.getenv("SATOSHI_ADMIN_KEY", "") or os.getenv("ADMIN_API_KEY", "")
-DEFAULT_TO = "andrew.jaguars@gmail.com"
+DEFAULT_TO = os.getenv("DIGEST_EMAIL", "")
 
 # Known bot/scanner patterns in endpoints — not real API usage
 BOT_ENDPOINTS = {
