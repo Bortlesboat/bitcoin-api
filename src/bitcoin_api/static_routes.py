@@ -49,22 +49,6 @@ def register_static_routes(app: FastAPI):
             return Response(p.read_bytes(), media_type="image/x-icon")
         return Response(status_code=204)
 
-    _IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp"}
-
-    @app.get("/{filename}.{ext}", include_in_schema=False)
-    def static_asset(filename: str, ext: str):
-        """Serve static image assets (png, jpg, svg, webp) from the static directory."""
-        suffix = f".{ext}"
-        if suffix not in _IMAGE_TYPES:
-            return _serve_404()
-        # Prevent path traversal
-        if "/" in filename or "\\" in filename or ".." in filename:
-            return _serve_404()
-        p = _STATIC_DIR / f"{filename}{suffix}"
-        if p.exists():
-            return Response(p.read_bytes(), media_type=_IMAGE_TYPES[suffix])
-        return _serve_404()
-
     @app.get("/robots.txt", include_in_schema=False)
     def robots_txt():
         p = _STATIC_DIR / "robots.txt"
@@ -84,6 +68,22 @@ def register_static_routes(app: FastAPI):
         p = _STATIC_DIR / "sitemap.xml"
         if p.exists():
             return Response(p.read_text(encoding="utf-8"), media_type="application/xml")
+        return _serve_404()
+
+    _IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp"}
+
+    @app.get("/{filename}.{ext}", include_in_schema=False)
+    def static_asset(filename: str, ext: str):
+        """Serve static image assets (png, jpg, svg, webp) from the static directory."""
+        suffix = f".{ext}"
+        if suffix not in _IMAGE_TYPES:
+            return _serve_404()
+        # Prevent path traversal
+        if "/" in filename or "\\" in filename or ".." in filename:
+            return _serve_404()
+        p = _STATIC_DIR / f"{filename}{suffix}"
+        if p.exists():
+            return Response(p.read_bytes(), media_type=_IMAGE_TYPES[suffix])
         return _serve_404()
 
     @app.get("/admin/dashboard", include_in_schema=False)
