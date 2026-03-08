@@ -400,10 +400,11 @@ def plan_transaction(
             current_cost = round(next_block * vsize)
             pct_diff = round((1 - min_hist_fee / next_block) * 100, 1) if next_block > 0 else 0.0
             historical_comparison = {
+                "current_fee_rate": next_block,
                 "cheapest_fee_rate": min_hist_fee,
                 "cheapest_cost_sats": historical_cost,
                 "cheapest_time_utc": history_summary["cheapest_time_utc"],
-                "current_vs_cheapest_pct": pct_diff,
+                "current_premium_pct": pct_diff,
                 "period_hours": len(fee_history_rows),
                 "avg_fee_rate": history_summary["avg_next_block_fee"],
             }

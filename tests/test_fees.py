@@ -281,8 +281,8 @@ def test_fees_plan_with_history(client):
     data = resp.json()["data"]
     assert "historical_comparison" in data
     assert data["historical_comparison"]["cheapest_fee_rate"] > 0
-    # current_vs_cheapest_pct can be negative if current fees are already below historical cheapest
-    assert isinstance(data["historical_comparison"]["current_vs_cheapest_pct"], (int, float))
+    # current_premium_pct can be negative if current fees are already below historical cheapest
+    assert isinstance(data["historical_comparison"]["current_premium_pct"], (int, float))
 
 
 def test_fees_plan_taproot_lighter(client):
