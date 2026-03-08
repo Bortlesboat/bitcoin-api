@@ -2,7 +2,7 @@
 
 ## Overview
 
-Satoshi API v0.3.2 provides **73 endpoints across 20 routers**, installable via `pip install satoshi-api` (Apache-2.0). It is part of a three-layer product suite:
+Satoshi API v0.3.2 provides **74 endpoints across 20 routers**, installable via `pip install satoshi-api` (Apache-2.0). It is part of a three-layer product suite:
 
 **bitcoinlib-rpc** (Python RPC client) → **Satoshi API** (REST/WS/SSE) → **bitcoin-mcp** (MCP for AI agents)
 
@@ -67,7 +67,7 @@ BlockCypher is a hosted-only SaaS with ~40 endpoints focused on multi-chain supp
 |---|---|---|
 | Self-hosting | Yes (primary) | No |
 | Open source | Yes (Apache-2.0) | No |
-| Bitcoin depth | Deep (73 endpoints, mining, mempool, supply, analytics) | Moderate (~15 BTC-specific) |
+| Bitcoin depth | Deep (74 endpoints, mining, mempool, supply, analytics) | Moderate (~15 BTC-specific) |
 | Address lookups | Yes (optional indexer) | Yes (hosted) |
 | WebHooks/streaming | WebSocket + SSE | WebHooks (push to your URL) |
 | Pricing | Free self-hosted; hosted free tier | Free tier (3 req/sec), paid plans |
@@ -177,4 +177,4 @@ Near-term priorities for Satoshi API:
 
 ---
 
-*Last updated: 2026-03-07 — Satoshi API v0.3.2 (73 endpoints, 356 tests, 20 routers)*
+*Last updated: 2026-03-07 — Satoshi API v0.3.2 (74 endpoints, 356 tests, 20 routers)*

@@ -48,7 +48,7 @@
 - Unit tests: 231 → 335 (356 total with 21 e2e)
 - Published to PyPI as `satoshi-api` v0.3.2
 - Dockerfile now copies static/ directory
-- Landing page: structured data updated (73 endpoints), enterprise CTA added
+- Landing page: structured data updated (74 endpoints), enterprise CTA added
 - Comparison pages (vs-mempool, vs-blockcypher) updated with current feature set
 
 ## [0.3.1] - 2026-03-07

@@ -21,6 +21,6 @@ cd block-tracker && python block_tracker.py
 
 ## About
 
-All examples are powered by [bitcoinsapi.com](https://bitcoinsapi.com) — a free, open Bitcoin API with 73 endpoints covering blocks, transactions, fees, mempool, mining, network stats, and more.
+All examples are powered by [bitcoinsapi.com](https://bitcoinsapi.com) — a free, open Bitcoin API with 74 endpoints covering blocks, transactions, fees, mempool, mining, network stats, and more.
 
 No API key required for the free tier.

@@ -57,7 +57,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/middleware.py` | Security headers, CORS, auth + rate limiting, gzip compression |
 | `src/bitcoin_api/exceptions.py` | All exception handlers |
 | `src/bitcoin_api/jobs.py` | Background fee collector thread |
-| `src/bitcoin_api/static_routes.py` | Landing page, robots.txt, sitemap, decision pages, favicon |
+| `src/bitcoin_api/static_routes.py` | Landing page, robots.txt, sitemap, decision pages, favicon, `/{filename}.{ext}` image serving |
 | `src/bitcoin_api/config.py` | Settings from env vars + feature_flags property |
 | `src/bitcoin_api/auth.py` | API key auth |
 | `src/bitcoin_api/rate_limit.py` | Rate limiting (in-memory or Upstash Redis) |
@@ -79,7 +79,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
 | `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
 | `static/visualizer.html` | ECharts live visualization dashboard |
-| `tests/test_api.py` | Unit + integration tests (235). Total: 335 unit + 21 e2e = 356 tests |
+| `tests/test_api.py` | Unit + integration tests (235). Total: 235 + 9 notifications + 6 redis + 85 indexer = 335 unit + 21 e2e = 356 tests |
 | `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
