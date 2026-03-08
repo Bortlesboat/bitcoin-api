@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (76 total)
+### 3.1 Endpoints (78 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -419,21 +419,33 @@ Errors follow the same structure:
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, supply, stats, transactions, websocket
-- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql
+- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
 - `src/bitcoin_api/indexer/services/` -- address, transaction
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (9 files):**
-- `tests/test_api.py` -- 235 unit tests (incl. 4 integration tests for notifications)
-- `tests/test_notifications.py` -- 9 unit tests (Resend email + PostHog analytics)
-- `tests/test_rate_limit_redis.py` -- 6 unit tests (Redis rate limiting + fallback)
-- `tests/test_indexer_parser.py` -- 25 unit tests (block parser, satoshi conversion, hex helpers)
-- `tests/test_indexer_reorg.py` -- 15 unit tests (reorg detection, fork point with RPC, rollback logic, first_seen/last_seen recalc)
-- `tests/test_indexer_routers.py` -- 14 unit tests (indexed endpoints, auth, validation, ENABLE_INDEXER=false)
-- `tests/test_indexer_worker.py` -- 19 unit tests (RPC retry, sync_blocks, _index_block, version check, shutdown)
-- `tests/test_indexer_services.py` -- 12 unit tests (address balance/history, transaction detail)
+**Tests (21 test files + 2 support files):**
+- `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
+- `tests/test_blocks.py` -- 18 tests (block-related endpoints)
+- `tests/test_fees.py` -- 16 tests (fee endpoints)
+- `tests/test_transactions.py` -- 27 tests (transaction endpoints)
+- `tests/test_mempool.py` -- 7 tests (mempool endpoints)
+- `tests/test_mining.py` -- 21 tests (mining endpoint + service)
+- `tests/test_network.py` -- 26 tests (network, rate limit, error handling)
+- `tests/test_keys.py` -- 12 tests (API key registration & auth)
+- `tests/test_billing.py` -- 12 tests (Stripe billing)
+- `tests/test_guide.py` -- 8 tests (guide endpoints)
+- `tests/test_admin.py` -- 30 tests (admin dashboard, analytics, metrics)
+- `tests/test_misc.py` -- 51 tests (supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations)
+- `tests/test_stale_cache.py` -- 19 tests (stale store, _cached_rpc fallback, MAX_STALE_AGE, Prometheus counter)
+- `tests/test_notifications.py` -- 9 tests (Resend email + PostHog analytics)
+- `tests/test_rate_limit_redis.py` -- 6 tests (Redis rate limiting + fallback)
+- `tests/test_indexer_parser.py` -- 25 tests (block parser, satoshi conversion, hex helpers)
+- `tests/test_indexer_reorg.py` -- 15 tests (reorg detection, fork point with RPC, rollback logic)
+- `tests/test_indexer_routers.py` -- 14 tests (indexed endpoints, auth, validation)
+- `tests/test_indexer_worker.py` -- 19 tests (RPC retry, sync_blocks, _index_block, version check)
+- `tests/test_indexer_services.py` -- 12 tests (address balance/history, transaction detail)
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
@@ -456,14 +468,21 @@ Errors follow the same structure:
 **Project config (1 file):**
 - `CLAUDE.md` -- Project instructions for AI-assisted development
 
-**Scripts (8 files):**
+**Scripts (14 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
+- `scripts/security_audit.py` (10 automated security checks)
 - `scripts/staging-check.sh` (pre-deploy validation: starts staging server, checks CSP/headers/docs/endpoints)
 - `scripts/legal_audit.py` (10-area legal compliance checker: ToS, privacy, disclaimers, attribution, license)
 - `scripts/privacy_check.py` (pre-commit privacy enforcer — blocks commits with secrets/PII)
 - `scripts/trigger_check.py` (pre-commit advisory — reports which agents should review based on changed files)
 - `scripts/install-hooks.sh` (installs pre-commit hooks: privacy enforcer blocking + trigger advisory non-blocking)
+- `scripts/deploy-api.sh` (pull, test, kill, restart, health check, auto-tag on success)
+- `scripts/diagnose.sh` (silo-by-silo diagnostic: node, tunnel, API, cache, DB, version, tests; supports --json and --silo filters)
+- `scripts/release.sh` (version management: tag, list, diff, revert with backup branches)
+- `scripts/watchdog-api.sh` (auto-restart zombie API; runs every 5 min via Task Scheduler)
+- `scripts/smoke-test-api.sh` (5-point health check for cron monitoring; supports --quiet)
+- `scripts/doc_consistency.py` (CI-enforced doc consistency checks)
 
 **Legal (3 files):**
 - `static/terms.html` -- Terms of Service (FL governing law, liability limitation, acceptable use)

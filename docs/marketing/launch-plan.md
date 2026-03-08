@@ -14,8 +14,8 @@ If any product change happened since drafts were written (new endpoint, feature,
 
 | Fact | Value | Source of Truth |
 |------|-------|-----------------|
-| Version (live) | v0.3.2 | CHANGELOG.md |
-| Version (PyPI) | 0.3.2 | pypi.org/project/satoshi-api |
+| Version (live) | v0.3.3 | CHANGELOG.md |
+| Version (PyPI) | 0.3.3 | pypi.org/project/satoshi-api |
 | Endpoints | 74 | router files (marketing_sync.py) |
 | Tests | 359 unit + 21 e2e (380 total) | tests/ |
 | Install command | `pip install satoshi-api` | pypi |

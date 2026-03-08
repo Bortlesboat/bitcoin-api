@@ -15,7 +15,9 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **Database** | `data/bitcoin_api.db` (SQLite, auto-created) |
 | **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task "SatoshiAPI" |
 | **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
-| **Monitoring** | UptimeRobot checks `/api/v1/health` every 5 min |
+| **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min, auto-restart), smoke-test-api.sh (cron) |
+| **Diagnostics** | `bash scripts/diagnose.sh` (node, tunnel, API, cache, DB, version, tests) |
+| **Version mgmt** | `bash scripts/release.sh` (tag, list, diff, revert) |
 
 ---
 
@@ -410,6 +412,24 @@ bash scripts/release.sh diff v0.3.2
 
 # Safely revert to a tagged version (creates backup branch first)
 bash scripts/release.sh revert v0.3.2
+```
+
+### Automated Monitoring
+
+```bash
+# Watchdog — auto-restarts dead/zombie API (runs every 5 min via Task Scheduler)
+# Detects: port not listening, health check failure, zombie process
+# Logs to: logs/watchdog.log (auto-trims at 10K lines)
+bash scripts/watchdog-api.sh
+
+# Smoke test — 5-point external health check (cron-friendly)
+# Checks: /health, /fees/recommended, /docs, /openapi.json, /redoc
+bash scripts/smoke-test-api.sh          # verbose output
+bash scripts/smoke-test-api.sh --quiet  # only logs failures (for cron)
+
+# Pre-deploy staging — starts temp server on :9333, runs 8 validation checks
+# Checks: health, security headers, CSP, fees endpoint, docs (no CSP), redoc, openapi.json, landing page
+bash scripts/staging-check.sh
 ```
 
 ---

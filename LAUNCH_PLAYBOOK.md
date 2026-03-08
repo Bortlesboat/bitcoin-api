@@ -18,7 +18,7 @@
 curl -s https://bitcoinsapi.com/api/v1/health | python -m json.tool
 
 # 2. Verify PyPI is current
-pip index versions satoshi-api  # should show 0.3.2
+pip index versions satoshi-api  # should show 0.3.3
 
 # 3. Run tests
 cd ~/Bortlesboat/bitcoin-api && python -m pytest tests/test_api.py -q --tb=no
@@ -97,7 +97,7 @@ Apache-2.0. Solo project. Feedback welcome.
 
 1. "Show HN: I built a free Bitcoin API so developers don't have to run a node"
 2. "Show HN: Satoshi API -- Open-source REST API for Bitcoin Core (Python/FastAPI)"
-3. "Show HN: 76-endpoint REST API for your Bitcoin node (pip install, self-hosted)"
+3. "Show HN: 78-endpoint REST API for your Bitcoin node (pip install, self-hosted)"
 
 Option 1 tells a story (best for clicks).
 Option 2 is descriptive (best for credibility).

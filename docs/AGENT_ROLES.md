@@ -265,7 +265,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >76 endpoints | 76 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 78 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---

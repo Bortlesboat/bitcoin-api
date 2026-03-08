@@ -3,7 +3,7 @@
 **Version:** 2.0
 **Date:** March 2026
 **Status:** Live — https://bitcoinsapi.com
-**Release:** v0.3.2 on PyPI (`pip install satoshi-api`)
+**Release:** v0.3.3 on PyPI (`pip install satoshi-api`)
 **License:** Apache-2.0
 
 ---
@@ -109,7 +109,7 @@ Use in scripts          Use in web apps         Use in AI agents
 | Product | What It Does | Status |
 |---------|-------------|--------|
 | **bitcoinlib-rpc** | Typed Python wrapper for Bitcoin Core RPC + 6 analysis tools | v0.3.1, stable |
-| **Satoshi API** | REST API with auth, caching, rate limiting, 78 endpoints across 20 routers | v0.3.2, production, live at bitcoinsapi.com |
+| **Satoshi API** | REST API with auth, caching, rate limiting, 78 endpoints across 20 routers | v0.3.3, production, live at bitcoinsapi.com |
 | **bitcoin-mcp** | MCP server exposing 35 tools, 6 prompts, 7 resources for AI agents | v0.3.0, on Anthropic MCP Registry |
 
 ### 4.1 API Surface (78 endpoints across 20 routers)
@@ -246,9 +246,9 @@ Landing pages at bitcoinsapi.com include dedicated comparison pages (vs-mempool,
 
 ## 8. Product Roadmap
 
-### v0.3.2 — CURRENT RELEASE (COMPLETE)
+### v0.3.3 — CURRENT RELEASE (COMPLETE)
 
-- 76 REST endpoints across 20 routers
+- 78 REST endpoints across 20 routers
 - 4-tier API key auth (anonymous, free, pro, enterprise) with block caps (144/1008/2016)
 - Rate limiting (in-memory + Upstash Redis), TTL caching with reorg-safe depth awareness
 - Stripe billing integration (checkout, webhooks, status, cancel)
@@ -257,7 +257,7 @@ Landing pages at bitcoinsapi.com include dedicated comparison pages (vs-mempool,
 - Circuit breaker for RPC reliability
 - Database migrations (SQL-based runner with rollback and status)
 - Docker deployment, CI/CD, Cloudflare Tunnel
-- 335 unit tests + 21 e2e tests (356 total)
+- 359 unit tests + 21 e2e tests (380 total)
 - 10 automated security checks, penetration test completed
 - Landing page with competitor comparison pages (vs-mempool, vs-blockcypher)
 - CAN-SPAM compliant, GDPR privacy policy, Terms of Service
@@ -320,7 +320,7 @@ Highest-potential adjacencies if the core product gains traction:
 
 ### Already built and operational:
 - Domain: bitcoinsapi.com (~$10/yr on Cloudflare)
-- PyPI: `pip install satoshi-api` (v0.3.2)
+- PyPI: `pip install satoshi-api` (v0.3.3)
 - Stripe billing: fully integrated
 - Legal: Terms of Service, Privacy Policy, CAN-SPAM compliance
 - Security: 10 automated checks, pentest completed, all findings fixed
@@ -360,7 +360,7 @@ Highest-potential adjacencies if the core product gains traction:
 - FP&A Analyst with Python development skills
 - Bitcoin protocol knowledge (contributed to bitcoin/bitcoin, rust-bitcoin, bitcoinbook)
 - Production engineering experience (Docker, CI/CD, security hardening, Stripe integration)
-- Full product suite built, tested, and deployed (356 tests, 10 security checks, pentest)
+- Full product suite built, tested, and deployed (380 tests, 10 security checks, pentest)
 - 10 automated agent "employees" for code review, security, marketing, legal, QA, and ops
 
 **What a partner/associate could bring:**

@@ -54,7 +54,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 |------|---------|
 | `docs/SCOPE_OF_WORK.md` | Living project document (KEEP UPDATED) |
 | `docs/OPERATIONS.md` | How to run, restart, configure, use analytics, run agents |
-| `src/bitcoin_api/main.py` | App creation, lifespan, router registration (~89 lines) |
+| `src/bitcoin_api/main.py` | App creation, lifespan, router registration (~176 lines) |
 | `src/bitcoin_api/middleware.py` | Security headers, CORS, auth + rate limiting, gzip compression |
 | `src/bitcoin_api/exceptions.py` | All exception handlers |
 | `src/bitcoin_api/jobs.py` | Background fee collector thread |
@@ -63,6 +63,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/auth.py` | API key auth |
 | `src/bitcoin_api/rate_limit.py` | Rate limiting (in-memory or Upstash Redis) |
 | `src/bitcoin_api/notifications.py` | Transactional email (Resend) + analytics events (PostHog) |
+| `src/bitcoin_api/validators.py` | Input validation helpers |
 | `src/bitcoin_api/cache.py` | TTL + LRU caching with registry + factory |
 | `src/bitcoin_api/usage_buffer.py` | Batch usage logging (50 rows / 30s flush) |
 | `src/bitcoin_api/db.py` | SQLite (WAL), key storage, fee history |
@@ -74,6 +75,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `src/bitcoin_api/routers/billing.py` | Stripe billing: checkout, webhook, status, cancel |
 | `src/bitcoin_api/routers/supply.py` | Supply endpoint: circulating supply, halving, inflation |
 | `src/bitcoin_api/routers/stats.py` | Statistics: UTXO set, SegWit adoption, OP_RETURN stats |
+| `src/bitcoin_api/services/analytics.py` | Analytics business logic and query helpers |
 | `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, mining, stats, serializers) |
 | `src/bitcoin_api/services/mining.py` | Pool identification, hashrate calculation |
 | `src/bitcoin_api/services/stats.py` | Output type classification, OP_RETURN parsing |
@@ -87,23 +89,31 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `tests/test_mempool.py` | Mempool endpoint tests (7 tests) |
 | `tests/test_mining.py` | Mining endpoint + service tests (21 tests) |
 | `tests/test_network.py` | Network, rate limit, error handling tests (26 tests) |
-| `tests/test_keys.py` | API key registration & auth tests (12 tests) |
+| `tests/test_keys.py` | API key registration & auth tests (13 tests) |
 | `tests/test_billing.py` | Stripe billing tests (12 tests) |
 | `tests/test_guide.py` | Guide endpoint tests (8 tests) |
-| `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (26 tests) |
+| `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (30 tests) |
 | `tests/test_misc.py` | Supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations (51 tests) |
-| | Total: 259 unit/integration + 9 notifications + 6 redis + 85 indexer = 359 unit + 21 e2e = 380 tests |
+| `tests/test_stale_cache.py` | Stale cache fallback tests (19 tests) |
 | `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
+| | Total: 359 unit + 21 e2e = 380 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
-| `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version) |
-| `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback |
+| `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
+| `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |
+| `scripts/deploy-api.sh` | Pull, test, kill, restart, health check, auto-tag on success |
+| `scripts/watchdog-api.sh` | Auto-restart dead/zombie API (Task Scheduler, every 5 min) |
+| `scripts/smoke-test-api.sh` | 5-point cron health check (--quiet for cron) |
+| `scripts/staging-check.sh` | Pre-deploy validation (temp server on :9333, 8 checks) |
 | `scripts/security_audit.py` | Automated security audit (10 checks) |
+| `scripts/security_check.sh` | Live API security testing (15 checks, requires SATOSHI_API_KEY) |
 | `scripts/privacy_check.py` | Pre-commit privacy enforcer (blocks secrets/PII) |
 | `scripts/trigger_check.py` | Pre-commit advisory (reports which agents to run) |
 | `scripts/install-hooks.sh` | Installs pre-commit hooks (privacy blocking + trigger advisory) |
+| `scripts/marketing_sync.py` | Stamps endpoint/test counts across marketing files |
+| `scripts/doc_consistency.py` | CI-enforced doc consistency checks |
 
 ## Agent Employees
 

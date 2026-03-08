@@ -11,7 +11,7 @@
 
 Everything below is built, tested, deployed, and live at https://bitcoinsapi.com.
 
-### 1.1 Core API Endpoints (76 total across 20 routers)
+### 1.1 Core API Endpoints (78 total across 20 routers)
 
 | Category | Count | Key Endpoints | Auth Required |
 |----------|-------|---------------|---------------|
