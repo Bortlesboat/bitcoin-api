@@ -307,6 +307,11 @@ def _resolve_address_type(address_type: str) -> str:
     return ADDRESS_TYPE_MAP.get(address_type.lower(), "p2wpkh")
 
 
+def _sats_to_usd(sats: int | float, btc_price: float) -> float:
+    """Convert satoshis to USD, rounded to 4 decimal places."""
+    return round(sats / 1e8 * btc_price, 4)
+
+
 def plan_transaction(
     fee_dict: dict,
     snapshots: list,
@@ -316,6 +321,7 @@ def plan_transaction(
     inputs: int | None = None,
     outputs: int | None = None,
     address_type: str = "segwit",
+    btc_price: float | None = None,
 ) -> dict:
     """Enhanced transaction cost planner.
 
@@ -356,35 +362,24 @@ def plan_transaction(
     six_block = fee_dict.get(6, 0)
     day_fee = fee_dict.get(144, 0)
 
+    def _build_tier(fee_rate: float, time_label: str, target: int) -> dict:
+        total_sats = round(fee_rate * vsize)
+        tier = {
+            "fee_rate_sat_vb": fee_rate,
+            "total_fee_sats": total_sats,
+            "total_fee_btc": round(total_sats / 1e8, 8),
+            "estimated_time": time_label,
+            "conf_target": target,
+        }
+        if btc_price:
+            tier["total_fee_usd"] = _sats_to_usd(total_sats, btc_price)
+        return tier
+
     cost_tiers = {
-        "immediate": {
-            "fee_rate_sat_vb": next_block,
-            "total_fee_sats": round(next_block * vsize),
-            "total_fee_btc": round(next_block * vsize / 1e8, 8),
-            "estimated_time": "~10 minutes",
-            "conf_target": 1,
-        },
-        "standard": {
-            "fee_rate_sat_vb": three_block,
-            "total_fee_sats": round(three_block * vsize),
-            "total_fee_btc": round(three_block * vsize / 1e8, 8),
-            "estimated_time": "~30 minutes",
-            "conf_target": 3,
-        },
-        "patient": {
-            "fee_rate_sat_vb": six_block,
-            "total_fee_sats": round(six_block * vsize),
-            "total_fee_btc": round(six_block * vsize / 1e8, 8),
-            "estimated_time": "~1 hour",
-            "conf_target": 6,
-        },
-        "opportunistic": {
-            "fee_rate_sat_vb": day_fee,
-            "total_fee_sats": round(day_fee * vsize),
-            "total_fee_btc": round(day_fee * vsize / 1e8, 8),
-            "estimated_time": "~1 day",
-            "conf_target": 144,
-        },
+        "immediate": _build_tier(next_block, "~10 minutes", 1),
+        "standard": _build_tier(three_block, "~30 minutes", 3),
+        "patient": _build_tier(six_block, "~1 hour", 6),
+        "opportunistic": _build_tier(day_fee, "~1 day", 144),
     }
 
     # Delay savings percentage (how much you save by waiting for opportunistic vs immediate)
@@ -408,6 +403,9 @@ def plan_transaction(
                 "period_hours": len(fee_history_rows),
                 "avg_fee_rate": history_summary["avg_next_block_fee"],
             }
+            if btc_price:
+                historical_comparison["cheapest_cost_usd"] = _sats_to_usd(historical_cost, btc_price)
+                historical_comparison["current_cost_usd"] = _sats_to_usd(current_cost, btc_price)
 
     result = {
         "transaction": {
@@ -435,10 +433,13 @@ def plan_transaction(
 
     result["available_profiles"] = list(PROFILES.keys())
 
+    if btc_price:
+        result["btc_price_usd"] = btc_price
+
     return result
 
 
-def simulate_fee_savings(fee_history_rows: list, *, vsize: int = 141, days: int | None = None) -> dict:
+def simulate_fee_savings(fee_history_rows: list, *, vsize: int = 141, days: int | None = None, btc_price: float | None = None) -> dict:
     """Simulate how much a user would save by using optimal fee timing.
 
     Compares "always send at current next-block fee" vs "send at the cheapest
@@ -487,7 +488,7 @@ def simulate_fee_savings(fee_history_rows: list, *, vsize: int = 141, days: int 
     cheapest_row = min(fee_history_rows, key=lambda r: r.get("next_block_fee") or float("inf"))
     most_expensive_row = max(fee_history_rows, key=lambda r: r.get("next_block_fee") or 0)
 
-    return {
+    result = {
         "period_hours": hours_covered,
         "datapoints": len(fees),
         "reference_vsize": vsize,
@@ -520,3 +521,12 @@ def simulate_fee_savings(fee_history_rows: list, *, vsize: int = 141, days: int 
         },
         "worst_time_utc": most_expensive_row.get("ts"),
     }
+
+    if btc_price:
+        result["btc_price_usd"] = btc_price
+        result["always_send_now"]["avg_cost_usd"] = _sats_to_usd(avg_cost_sats, btc_price)
+        result["optimal_timing"]["best_cost_usd"] = _sats_to_usd(optimal_cost_sats, btc_price)
+        result["savings_per_tx"]["usd"] = _sats_to_usd(savings_sats, btc_price)
+        result["monthly_projection"]["total_savings_usd"] = _sats_to_usd(monthly_savings_sats, btc_price)
+
+    return result

@@ -9,6 +9,7 @@ from ..cache import cached_fee_estimates, cached_raw_mempool, get_mempool_snapsh
 from ..db import get_fee_history
 from ..dependencies import get_rpc
 from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope, rpc_envelope
+from ..services.exchanges import get_cached_price
 from ..services.fees import (
     PROFILES,
     analyze_mempool_blocks,
@@ -216,34 +217,49 @@ def fees_plan(
     inputs: int | None = Query(default=None, ge=1, le=100, description="Number of inputs (overrides profile)"),
     outputs: int | None = Query(default=None, ge=1, le=100, description="Number of outputs (overrides profile)"),
     address_type: str = Query(default="segwit", description="Address type: segwit, taproot, legacy"),
+    currency: str = Query(default="sats", description="Include USD values: sats (default), usd (adds USD fields)"),
 ):
     """Transaction cost planner — estimate costs across urgency tiers with wait recommendation.
 
     Call with no params for a standard SegWit transaction, or use a profile preset.
+    Add currency=usd to include USD equivalents (requires BTC price from CoinGecko).
     Returns cost at 4 urgency tiers, delay savings %, trend analysis, and historical comparison.
     """
     estimates = cached_fee_estimates(rpc)
     fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
     snapshots = get_mempool_snapshots()
     history_rows = get_fee_history(hours=24, interval_minutes=10)
+    btc_price = None
+    if currency.lower() == "usd":
+        btc_price = get_cached_price()
     data = plan_transaction(
         fee_dict, snapshots, history_rows,
         profile=profile, inputs=inputs, outputs=outputs, address_type=address_type,
+        btc_price=btc_price,
     )
+    if currency.lower() == "usd" and btc_price is None:
+        data["currency_note"] = "USD values unavailable — BTC price service temporarily unreachable. Sats and BTC values are still accurate."
     return rpc_envelope(data, rpc)
 
 
 @router.get("/savings", response_model=ApiResponse[dict])
 def fees_savings(
     hours: int = Query(default=168, ge=1, le=720, description="Hours of history to analyze (default: 168 = 7 days)"),
+    currency: str = Query(default="sats", description="Include USD values: sats (default), usd (adds USD fields)"),
 ):
     """Fee savings simulation — how much you'd save with optimal timing.
 
     Compares average fee cost vs. optimal timing over the requested period.
-    Returns savings per transaction, monthly projection, and fee range stats.
+    Add currency=usd to include USD equivalents. Returns savings per transaction,
+    monthly projection, and fee range stats.
     """
     rows = get_fee_history(hours=hours, interval_minutes=5)
-    data = simulate_fee_savings(rows, days=hours // 24 if hours >= 24 else None)
+    btc_price = None
+    if currency.lower() == "usd":
+        btc_price = get_cached_price()
+    data = simulate_fee_savings(rows, days=hours // 24 if hours >= 24 else None, btc_price=btc_price)
+    if currency.lower() == "usd" and btc_price is None:
+        data["currency_note"] = "USD values unavailable — BTC price service temporarily unreachable. Sats and BTC values are still accurate."
     return envelope(data)
 
 

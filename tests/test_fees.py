@@ -356,6 +356,66 @@ def test_fees_savings_independent_of_plan(client):
     assert "data" in resp.json()
 
 
+def test_fees_plan_currency_usd(client):
+    """Plan with currency=usd should include USD fields when price available."""
+    from unittest.mock import patch
+    with patch("bitcoin_api.routers.fees.get_cached_price", return_value=95000.0):
+        resp = client.get("/api/v1/fees/plan?currency=usd")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["btc_price_usd"] == 95000.0
+    assert "total_fee_usd" in data["cost_tiers"]["immediate"]
+    assert isinstance(data["cost_tiers"]["immediate"]["total_fee_usd"], float)
+
+
+def test_fees_plan_currency_usd_price_unavailable(client):
+    """Plan with currency=usd should degrade gracefully when price unavailable."""
+    from unittest.mock import patch
+    with patch("bitcoin_api.routers.fees.get_cached_price", return_value=None):
+        resp = client.get("/api/v1/fees/plan?currency=usd")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "btc_price_usd" not in data
+    assert "total_fee_usd" not in data["cost_tiers"]["immediate"]
+    assert "currency_note" in data
+    # Sats and BTC values should still be present
+    assert data["cost_tiers"]["immediate"]["total_fee_sats"] > 0
+    assert data["cost_tiers"]["immediate"]["total_fee_btc"] > 0
+
+
+def test_fees_plan_default_no_usd(client):
+    """Plan without currency param should not include USD fields."""
+    resp = client.get("/api/v1/fees/plan")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "btc_price_usd" not in data
+    assert "total_fee_usd" not in data["cost_tiers"]["immediate"]
+
+
+def test_fees_savings_currency_usd(client):
+    """Savings with currency=usd should include USD fields."""
+    from unittest.mock import patch
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    for i, fee in enumerate([5.0, 15.0, 25.0, 10.0, 20.0]):
+        conn.execute(
+            "INSERT INTO fee_history (ts, next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion) "
+            "VALUES (datetime('now', ?), ?, ?, ?, ?, ?, ?)",
+            (f"-{(5-i)*5} minutes", fee, fee * 0.7, fee * 0.3, 15000, 8500000, "normal"),
+        )
+    conn.commit()
+
+    with patch("bitcoin_api.routers.fees.get_cached_price", return_value=95000.0):
+        resp = client.get("/api/v1/fees/savings?hours=1&currency=usd")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["btc_price_usd"] == 95000.0
+    assert "avg_cost_usd" in data["always_send_now"]
+    assert "best_cost_usd" in data["optimal_timing"]
+    assert "usd" in data["savings_per_tx"]
+    assert "total_savings_usd" in data["monthly_projection"]
+
+
 def test_429_has_request_id(client):
     """Rate limit 429 responses should include request_id in error body."""
     for _ in range(30):
