@@ -1,7 +1,7 @@
 ---
 title: "I Built a REST API for Bitcoin Core — Here's What I Learned"
 published: false
-description: "Lessons from wrapping Bitcoin Core's JSON-RPC in a developer-friendly REST API with analyzed data, smart caching, and AI agent support."
+description: "Lessons from wrapping Bitcoin Core's JSON-RPC in a developer-friendly REST API with fee intelligence, smart caching, and AI agent support."
 tags: bitcoin, api, python, opensource
 cover_image: https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg
 canonical_url: https://bitcoinsapi.com/best-bitcoin-api-for-developers
@@ -23,7 +23,7 @@ Raw RPC is a power tool. Most apps need a product.
 
 ## What I Built
 
-[Satoshi API](https://bitcoinsapi.com) is a thin REST layer over Bitcoin Core. `pip install`, point at your node, get 40 clean endpoints with analyzed data.
+[Satoshi API](https://bitcoinsapi.com) is a thin REST layer over Bitcoin Core. `pip install`, point at your node, get fee intelligence and clean Bitcoin data from your own node.
 
 ```bash
 pip install satoshi-api

@@ -343,27 +343,8 @@ bash scripts/submit_indexnow.sh
 ```
 Auto-runs after every successful deploy via `deploy-api.sh`. Submits all 10 SEO pages to Bing/Yandex.
 
-### Marketing drafts location
-All ready-to-post drafts are in `docs/marketing/drafts/`:
-- `reddit-bitcoindev.md` -- r/BitcoinDev (question format, post first)
-- `reddit-selfhosted.md` -- r/selfhosted
-- `reddit-bitcoin.md` -- r/Bitcoin
-- `reddit-python.md` -- r/Python
-- `hackernews-show-hn.md` -- Hacker News Show HN
-- `stacker-news.md` -- Stacker News
-
-### Keeping marketing materials accurate
-When endpoints, tests, or features change, run:
-```
-/marketing-sync
-```
-This Claude Code skill audits all marketing files against the actual codebase and fixes stale facts.
-
-### Other marketing files
-- `docs/marketing/launch-plan.md` -- Master tracker (what's posted, what's pending)
-- `docs/marketing/distribution-channels.md` -- Full channel strategy
-- `docs/marketing/brand-strategy.md` -- Voice, positioning, visual identity
-- `docs/marketing/umbrel-submission-guide.md` -- App store submission guide
+### Marketing materials
+Marketing drafts, strategy docs, and launch plans are maintained in the private `bitcoin-api-internal` repo.
 
 ---
 
