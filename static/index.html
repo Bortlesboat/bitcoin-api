@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Satoshi API — Your Node. Your API. Your Rules.</title>
-<meta name="description" content="Satoshi API turns your Bitcoin Core node into a production-ready REST API. One pip install, 73 endpoints, zero third-party dependencies. Self-hosted, open source, Apache-2.0 licensed.">
+<meta name="description" content="Satoshi API turns your Bitcoin Core node into a production-ready REST API. One pip install, 73 endpoints, zero required third-party services. Self-hosted, open source, Apache-2.0 licensed.">
 <meta name="google-site-verification" content="AD9lQsKgOGRhHn2Lb6LvPs2caMbkUE9igca5A3A726U" />
 <meta name="keywords" content="bitcoin api, bitcoin rest api, self-hosted bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
 <link rel="canonical" href="https://bitcoinsapi.com">
@@ -12,14 +12,14 @@
 <meta property="og:description" content="Production-ready REST API for Bitcoin Core. Self-hosted. 73 endpoints. pip install satoshi-api.">
 <meta property="og:url" content="https://bitcoinsapi.com">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
+<meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/static/og-image.svg">
+<meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
 <meta name="twitter:title" content="Satoshi API — Your Node. Your API. Your Rules.">
 <meta name="twitter:description" content="Production-ready REST API for Bitcoin Core. Self-hosted. 73 endpoints. pip install satoshi-api.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8383;</text></svg>">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -256,7 +256,7 @@
         }
       ],
       "featureList": [
-        "75+ REST endpoints for Bitcoin Core",
+        "73 REST endpoints for Bitcoin Core",
         "Fee recommendations in sat/vB",
         "Mempool congestion analysis",
         "Reorg-aware smart caching",
@@ -286,7 +286,9 @@
       },
       "sameAs": [
         "https://github.com/Bortlesboat/bitcoin-api",
-        "https://pypi.org/project/satoshi-api/"
+        "https://pypi.org/project/satoshi-api/",
+        "https://github.com/Bortlesboat/satoshi-discord-bot",
+        "https://discord.gg/EB6Jd66EsF"
       ]
     },
     {
@@ -344,7 +346,7 @@
     "@type": "Organization",
     "name": "Satoshi API",
     "url": "https://bitcoinsapi.com",
-    "logo": "https://bitcoinsapi.com/og-image.svg",
+    "logo": "https://bitcoinsapi.com/og-image.png",
     "description": "Open-source Bitcoin REST API. Self-hosted, privacy-first, developer-friendly.",
     "email": "api@bitcoinsapi.com",
     "sameAs": [
@@ -365,11 +367,26 @@
   }
 ]
 </script>
+<!-- PostHog Analytics (privacy-first: no autocapture, no session recording, IP anonymized) -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+    posthog.init('phc_G0KrOSwtDJ0sKTs6v30ryCObqyHDPvESx7mpfouulRi', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
 </head>
 <body>
 
 <nav>
-  <div class="logo">SATOSHI API</div>
+  <div class="logo"><img src="/logo-128.png" alt="Satoshi API" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</div>
   <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="links">
     <a href="#why-self-hosted">Why Self-Hosted</a>
@@ -378,6 +395,7 @@
     <a href="#pricing">Pricing</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="/docs">API Docs</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1479972638918049895&permissions=2048&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener noreferrer">Discord Bot</a>
     <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="uptime-badge" style="text-decoration:none;"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>Live</a>
   </div>
 </nav>
@@ -385,13 +403,14 @@
 <!-- Hero -->
 <section class="hero">
   <div class="container">
-    <p class="label">Open source. Self-hosted. Apache-2.0 licensed.</p>
+    <p class="label" style="font-size: 1.1em; color: var(--accent); font-weight: 600; margin-bottom: 8px;">Free Bitcoin API for Developers</p>
+    <p class="label">Open source. Self-hosted. Apache-2.0 licensed. No node required.</p>
     <h1>Your node. Your API.<br><span>Your rules.</span></h1>
-    <p class="subtitle">Turn your Bitcoin Core node into a production-ready REST API. One pip install. 73 endpoints. Zero third-party dependencies.</p>
+    <p class="subtitle">Turn your Bitcoin Core node into a production-ready REST API. One pip install. 73 endpoints. Zero required third-party services.</p>
     <div class="cta">
-      <a href="/docs" class="btn-primary">Explore the API</a>
-      <a href="#quickstart" class="btn-secondary">Get Started</a>
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      <a href="/docs" class="btn-primary" onclick="posthog.capture('cta_click', {location:'hero',target:'docs'})">Explore the API</a>
+      <a href="#quickstart" class="btn-secondary" onclick="posthog.capture('cta_click', {location:'hero',target:'quickstart'})">Get Started</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'hero',target:'github'})">View on GitHub</a>
     </div>
     <div class="hero-code">
 <pre><code><span style="color: var(--muted)">$ </span>pip install satoshi-api
@@ -470,7 +489,7 @@
       </div>
       <div class="feature">
         <h3>Smart Caching</h3>
-        <p>Reorg-aware TTL caching. Deep blocks cached 1 hour, tip blocks 30 seconds, fees every 10 seconds. Zero stale data risk.</p>
+        <p>Reorg-aware TTL caching. Deep blocks cached 1 hour, tip blocks 30 seconds, fees every 10 seconds. Near-zero stale data risk.</p>
       </div>
       <div class="feature">
         <h3>Rate Limiting</h3>
@@ -502,7 +521,7 @@
       </div>
       <div class="feature">
         <h3>Production Ready</h3>
-        <p>228 tests (207 unit + 21 e2e). Docker support. Cloudflare Tunnel deployment. Structured access logging. Graceful shutdown.</p>
+        <p>356 tests (335 unit + 21 e2e). Docker support. Cloudflare Tunnel deployment. Structured access logging. Graceful shutdown.</p>
       </div>
     </div>
   </div>
@@ -535,7 +554,7 @@
 }</code></pre>
       </div>
     </div>
-    <p style="text-align: center; margin-top: 32px;"><a href="/docs" style="font-weight: 600;">Explore all endpoints &rarr;</a></p>
+    <p style="text-align: center; margin-top: 32px;"><a href="/docs" style="font-weight: 600;" onclick="posthog.capture('docs_click', {location:'see_it_work'})">Explore all endpoints &rarr;</a></p>
   </div>
 </section>
 
@@ -705,6 +724,11 @@ satoshi-api
 <span style="color: var(--green)"># Docs at http://localhost:9332/docs</span></code></pre>
 
     <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Also available via Docker: <code>docker compose up -d</code>. Requires Bitcoin Core with <code>server=1</code> and Python 3.10+. <code>txindex=1</code> recommended.</p>
+
+    <h3 style="margin-top: 48px; margin-bottom: 12px;">Python SDK</h3>
+    <p style="color: var(--muted); margin-bottom: 12px;">Use the Python SDK for typed access to all endpoints:</p>
+<pre><code>pip install satoshi-api-sdk</code></pre>
+    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Source: <a href="https://github.com/Bortlesboat/bitcoin-api/tree/main/sdk" target="_blank" rel="noopener noreferrer">github.com/Bortlesboat/bitcoin-api/tree/main/sdk</a></p>
   </div>
 </section>
 
@@ -725,7 +749,7 @@ satoshi-api
           <li>Full source code (Apache-2.0)</li>
           <li>Docker + pip install</li>
         </ul>
-        <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('pricing_viewed', {tier:'self_hosted'})">View on GitHub</a>
       </div>
       <div class="price-card">
         <h3>Hosted API</h3>
@@ -736,7 +760,7 @@ satoshi-api
           <li>Get a free API key for 10,000/day</li>
           <li>All GET endpoints + POST with key</li>
         </ul>
-        <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Try it Now</a>
+        <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" onclick="posthog.capture('pricing_viewed', {tier:'hosted_free'})">Try it Now</a>
       </div>
       <!-- Pro tier preserved but hidden until demand materializes -->
       <div class="price-card" style="display:none">
@@ -752,7 +776,7 @@ satoshi-api
       </div>
     </div>
     <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">
-      Need higher limits or a dedicated instance? <a href="mailto:api@bitcoinsapi.com">Get in touch</a>.
+      <strong>Enterprise</strong> — Need higher limits? Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> for enterprise pricing.
     </p>
   </div>
 </section>
@@ -796,16 +820,16 @@ satoshi-api
         </div>
       </div>
       <div class="roadmap-item">
-        <div class="roadmap-dot future"></div>
+        <div class="roadmap-dot now"></div>
         <div class="roadmap-content">
-          <h4 class="dim">Next &mdash; WebSocket Streaming</h4>
-          <p class="dim">Real-time block and mempool event feeds.</p>
+          <h4>Done &mdash; WebSocket Streaming</h4>
+          <p>Real-time block and mempool event feeds via /ws.</p>
         </div>
       </div>
       <div class="roadmap-item">
         <div class="roadmap-dot future"></div>
         <div class="roadmap-content">
-          <h4 class="dim">Later &mdash; Historical Analytics</h4>
+          <h4 class="dim">Next &mdash; Historical Analytics</h4>
           <p class="dim">Time-series queries across Bitcoin's full history.</p>
         </div>
       </div>
@@ -827,9 +851,10 @@ satoshi-api
     <h2>From zero to Bitcoin data in 60 seconds.</h2>
     <p>No signup, no install. Just curl and go.</p>
     <div class="cta" style="display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-      <a href="#quickstart" class="btn-primary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;">Get Started</a>
-      <a href="/docs" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;">Interactive Docs</a>
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" target="_blank" rel="noopener noreferrer">Self-Host (GitHub)</a>
+      <a href="#quickstart" class="btn-primary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('cta_click', {location:'bottom',target:'quickstart'})">Get Started</a>
+      <a href="/docs" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('docs_click', {location:'bottom'})">Interactive Docs</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'bottom',target:'github'})">Self-Host (GitHub)</a>
+      <a href="https://discord.com/oauth2/authorize?client_id=1479972638918049895&permissions=2048&scope=bot+applications.commands" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'bottom',target:'discord-bot'})">Add to Discord</a>
     </div>
   </div>
 </section>
@@ -845,6 +870,8 @@ satoshi-api
       <a href="/docs">API Docs</a> &middot;
       <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer">Status</a> &middot;
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a> &middot;
+      <a href="https://github.com/Bortlesboat/satoshi-discord-bot" target="_blank" rel="noopener noreferrer">Discord Bot</a> &middot;
+      <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a> &middot;
       <a href="/terms">Terms of Service</a> &middot;
       <a href="/privacy">Privacy Policy</a>
     </p>
@@ -906,6 +933,8 @@ function handleRegister(e) {
   var body = { email: email, agreed_to_terms: true };
   if (label) body.label = label;
 
+  posthog.capture('registration_submitted', { location: 'register_form' });
+
   fetch('/api/v1/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -918,25 +947,63 @@ function handleRegister(e) {
     result.style.display = 'block';
     if (res.ok) {
       var key = (res.data.data && res.data.data.api_key) || res.data.api_key || JSON.stringify(res.data);
-      result.innerHTML =
-        '<div style="background: #3fb95018; border: 1px solid #3fb95040; border-radius: 6px; padding: 16px;">' +
-          '<div style="color: var(--green); font-weight: 600; margin-bottom: 8px;">Your API key is ready:</div>' +
-          '<div style="display: flex; align-items: center; gap: 8px;">' +
-            '<code id="api-key-value" style="flex: 1; word-break: break-all; font-size: 0.9em; background: var(--bg); padding: 8px 12px; border-radius: 4px;">' + key + '</code>' +
-            '<button onclick="copyKey()" style="padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; font-size: 0.85em;" id="copy-key-btn">Copy</button>' +
-          '</div>' +
-          '<div style="color: var(--muted); font-size: 0.85em; margin-top: 10px;">Save this key. Use it with: <code>curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/mempool</code></div>' +
-        '</div>';
+      // Link anonymous PostHog session to hashed email for funnel continuity
+      var hashedEmail = email.toLowerCase().trim();
+      if (window.crypto && window.crypto.subtle) {
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashedEmail)).then(function(buf) {
+          var hash = Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+          posthog.identify(hash);
+          posthog.capture('registration_success', { tier: 'free' });
+        });
+      } else {
+        posthog.capture('registration_success', { tier: 'free' });
+      }
+      result.textContent = '';
+      var wrapper = document.createElement('div');
+      wrapper.style.cssText = 'background: #3fb95018; border: 1px solid #3fb95040; border-radius: 6px; padding: 16px;';
+      var heading = document.createElement('div');
+      heading.style.cssText = 'color: var(--green); font-weight: 600; margin-bottom: 8px;';
+      heading.textContent = 'Your API key is ready (a copy was sent to your email):';
+      wrapper.appendChild(heading);
+      var row = document.createElement('div');
+      row.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+      var code = document.createElement('code');
+      code.id = 'api-key-value';
+      code.style.cssText = 'flex: 1; word-break: break-all; font-size: 0.9em; background: var(--bg); padding: 8px 12px; border-radius: 4px;';
+      code.textContent = key;
+      row.appendChild(code);
+      var copyBtn = document.createElement('button');
+      copyBtn.id = 'copy-key-btn';
+      copyBtn.style.cssText = 'padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; font-size: 0.85em;';
+      copyBtn.textContent = 'Copy';
+      copyBtn.onclick = copyKey;
+      row.appendChild(copyBtn);
+      wrapper.appendChild(row);
+      var hint = document.createElement('div');
+      hint.style.cssText = 'color: var(--muted); font-size: 0.85em; margin-top: 10px;';
+      hint.textContent = 'Save this key. Use it with: curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/mempool';
+      wrapper.appendChild(hint);
+      result.appendChild(wrapper);
     } else {
       var msg = (res.data.error && res.data.error.detail) || res.data.detail || 'Registration failed. Try again.';
-      result.innerHTML = '<div style="color: #f85149; font-size: 0.9em;">' + msg + '</div>';
+      posthog.capture('registration_failed', { reason: msg });
+      result.textContent = '';
+      var errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color: #f85149; font-size: 0.9em;';
+      errDiv.textContent = msg;
+      result.appendChild(errDiv);
     }
   })
   .catch(function() {
     btn.disabled = false;
     btn.textContent = 'Get Key';
     result.style.display = 'block';
-    result.innerHTML = '<div style="color: #f85149; font-size: 0.9em;">Network error. Please try again.</div>';
+    posthog.capture('registration_failed', { reason: 'network_error' });
+    result.textContent = '';
+    var netErr = document.createElement('div');
+    netErr.style.cssText = 'color: #f85149; font-size: 0.9em;';
+    netErr.textContent = 'Network error. Please try again.';
+    result.appendChild(netErr);
   });
   return false;
 }

@@ -1,5 +1,7 @@
 <div align="center">
 
+![Satoshi API](static/satoshi-api-logo.png)
+
 # Satoshi API
 
 **REST API for your Bitcoin node. One `pip install`, 73 endpoints.**
@@ -11,13 +13,13 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Live API](https://img.shields.io/badge/live-bitcoinsapi.com-f7931a)](https://bitcoinsapi.com)
 
-[Live Playground](https://bitcoinsapi.com/docs) &middot; [Landing Page](https://bitcoinsapi.com) &middot; [PyPI](https://pypi.org/project/satoshi-api/) &middot; [MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)
+[Live Playground](https://bitcoinsapi.com/docs) &middot; [Landing Page](https://bitcoinsapi.com) &middot; [PyPI](https://pypi.org/project/satoshi-api/) &middot; [MCP Server](https://github.com/Bortlesboat/bitcoin-mcp) &middot; [Discord Bot](https://github.com/Bortlesboat/satoshi-discord-bot)
 
 </div>
 
 ---
 
-Wraps Bitcoin Core's JSON-RPC in a clean REST interface with analyzed data, smart caching, and tiered rate limiting.
+Wraps Bitcoin Core's JSON-RPC in a clean REST interface with analyzed data, smart caching, and tiered rate limiting. Optional integrations: email notifications (Resend), persistent rate limiting (Upstash Redis), and privacy-first analytics (PostHog) -- all disabled by default.
 
 ## Install & Run
 
