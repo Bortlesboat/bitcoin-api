@@ -18,7 +18,11 @@ def register_static_routes(app: FastAPI):
     @app.get("/", include_in_schema=False)
     def root():
         if _LANDING_PAGE.exists():
-            return HTMLResponse(_LANDING_PAGE.read_text(encoding="utf-8"))
+            from .config import settings
+            html = _LANDING_PAGE.read_text(encoding="utf-8")
+            ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
+            html = html.replace("__POSTHOG_API_KEY__", ph_key)
+            return HTMLResponse(html)
         return {
             "name": "Satoshi API",
             "version": __version__,
@@ -93,7 +97,11 @@ def register_static_routes(app: FastAPI):
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"
             if p.exists():
-                return HTMLResponse(p.read_text(encoding="utf-8"))
+                from .config import settings
+                html = p.read_text(encoding="utf-8")
+                ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
+                html = html.replace("__POSTHOG_API_KEY__", ph_key)
+                return HTMLResponse(html)
         if page.endswith(".txt") and len(page) == 36:
             p = _STATIC_DIR / page
             if p.exists():
