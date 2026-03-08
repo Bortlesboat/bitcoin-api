@@ -218,6 +218,7 @@ def send_email(html_body: str, to: str) -> bool:
         headers={
             "Authorization": f"Bearer {resend_key}",
             "Content-Type": "application/json",
+            "User-Agent": "SatoshiDigest/1.0",
         },
     )
     try:
