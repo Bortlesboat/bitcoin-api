@@ -40,7 +40,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 - [x] PyPI: publish v0.3.2 — **DONE** (published Mar 8)
 - [ ] GitHub social preview image uploaded (og-image.svg ready in static/)
 - [ ] Bing Webmaster Tools setup
-- [x] All marketing drafts synced to 78 endpoints + Apache-2.0 license
+- [x] All marketing drafts synced to benefit language + Apache-2.0 license
 - [x] SEO metrics baseline captured (2026-03-07): 10/10 pages live, 6287 req/24h, 74 PyPI downloads
 - [x] CHANGELOG updated with Sprint 15+16 entries
 - [x] ADMIN_API_KEY added to .env templates
@@ -163,10 +163,10 @@ When the product changes, these materials MUST be updated:
 
 ## Key Messages (use consistently across all channels)
 
-1. **Primary:** Self-hosted REST API for Bitcoin Core. 78 endpoints. `pip install satoshi-api`.
+1. **Primary:** Self-hosted Bitcoin fee intelligence. Know when to send, save money on every transaction. `pip install satoshi-api`.
 2. **Differentiator:** Only Bitcoin API with native AI agent support (MCP).
 3. **Privacy angle:** Your node, your data. Queries never leave your network.
-4. **Developer angle:** Analyzed data, not raw RPC. Fees in sat/vB, congestion levels, human-readable recommendations.
+4. **Developer angle:** Actionable insights, not raw RPC. Fee intelligence, congestion levels, human-readable recommendations.
 5. **Simplicity:** Three lines to start. pip install, set env vars, run.
 
 ## Post Timing Strategy

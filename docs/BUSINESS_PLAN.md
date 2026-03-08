@@ -109,10 +109,10 @@ Use in scripts          Use in web apps         Use in AI agents
 | Product | What It Does | Status |
 |---------|-------------|--------|
 | **bitcoinlib-rpc** | Typed Python wrapper for Bitcoin Core RPC + 6 analysis tools | v0.3.1, stable |
-| **Satoshi API** | REST API with auth, caching, rate limiting, 78 endpoints across 20 routers | v0.3.3, production, live at bitcoinsapi.com |
+| **Satoshi API** | REST API with auth, caching, rate limiting, fee intelligence across 20 routers | v0.3.3, production, live at bitcoinsapi.com |
 | **bitcoin-mcp** | MCP server exposing 35 tools, 6 prompts, 7 resources for AI agents | v0.3.0, on Anthropic MCP Registry |
 
-### 4.1 API Surface (78 endpoints across 20 routers)
+### 4.1 API Surface (20 routers)
 
 | Category | Endpoints | What Developers Get |
 |----------|-----------|-------------------|
@@ -187,7 +187,7 @@ Break-even at scale: 3-4 Pro customers.
 
 | Competitor | Free Tier | Paid Entry | Self-Hostable | Our Advantage |
 |-----------|-----------|------------|---------------|---------------|
-| **mempool.space** | Yes (undocumented) | Enterprise (call sales) | Yes | We have analyzed data + AI integration + Stripe billing |
+| **mempool.space** | Yes (undocumented) | Enterprise (call sales) | Yes | We have fee intelligence + AI integration + Stripe billing |
 | **Blockstream Esplora** | Yes (~50 rps) | N/A | Yes | We have auth, rate limiting, caching, Prometheus metrics built in |
 | **BlockCypher** | 1K req/day | $100/mo | No | We're self-hostable and 10x cheaper |
 | **GetBlock** | 50K CU/day | $49/mo | No | We're Bitcoin-focused with better DX |
