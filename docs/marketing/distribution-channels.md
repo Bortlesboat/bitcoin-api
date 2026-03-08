@@ -68,13 +68,13 @@
 #### e) r/Python (1.3M members)
 **URL:** https://reddit.com/r/Python
 **What to write:** Focus on the Python/FastAPI implementation. Code quality, typing, testing.
-**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 74 endpoints, 356 tests, pip installable"
+**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 76 endpoints, 356 tests, pip installable"
 **Rules:** Must be about the Python aspects, not Bitcoin evangelism.
 
 #### f) r/FastAPI (~30K members)
 **URL:** https://reddit.com/r/FastAPI
 **What to write:** Architecture showcase. How you structured routers, middleware, auth, caching.
-**Draft title:** "FastAPI in production: Bitcoin REST API with tiered auth, rate limiting, caching, and 74 endpoints"
+**Draft title:** "FastAPI in production: Bitcoin REST API with tiered auth, rate limiting, caching, and 76 endpoints"
 
 #### g) r/node (~30K members)
 **URL:** https://reddit.com/r/node
@@ -294,7 +294,7 @@ Alternatives aren't great:
 
 So I built Satoshi API. One command: pip install satoshi-api
 
-74 endpoints. Analyzed data (fee recommendations, mempool scoring).
+76 endpoints. Analyzed data (fee recommendations, mempool scoring).
 AI agent integration via MCP. Self-hosted on your own node.
 
 Open source, Apache-2.0 licensed, free forever for self-hosting.
@@ -571,7 +571,7 @@ What's the most painful API integration you've dealt with?
 "Self-hosted REST API for Bitcoin Core with analyzed data, MCP integration, and pip install."
 
 ### Two-liner (for awesome-lists):
-"Turn your Bitcoin node into a developer-friendly REST API. One command install, 74 endpoints with analyzed data (fee recommendations, mempool scoring), AI agent integration via MCP."
+"Turn your Bitcoin node into a developer-friendly REST API. One command install, 76 endpoints with analyzed data (fee recommendations, mempool scoring), AI agent integration via MCP."
 
 ### Elevator pitch (for forums/posts):
 "Satoshi API is the SQLite of Bitcoin APIs. One `pip install` gives you a REST API wrapping your Bitcoin Core node with analyzed data -- fee recommendations, mempool congestion scores, decoded transactions -- not raw RPC output. It's the only Bitcoin API with MCP integration for AI agents. Self-hosted, open-source, Apache-2.0 licensed."

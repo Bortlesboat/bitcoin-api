@@ -51,11 +51,14 @@ def get_product_state() -> dict:
         router_files = [f for f in router_dir.glob("*.py") if f.name != "__init__.py"]
         state["router_count"] = len(router_files)
 
-    # Test count from test files
-    test_file = ROOT / "tests" / "test_api.py"
-    if test_file.exists():
-        content = test_file.read_text()
-        unit_tests = len(re.findall(r'\ndef test_', content))
+    # Test count from test files (scan all test_*.py except e2e/locust)
+    tests_dir = ROOT / "tests"
+    if tests_dir.exists():
+        unit_tests = 0
+        for tf in sorted(tests_dir.glob("test_*.py")):
+            if tf.name in ("test_e2e.py", "locustfile.py"):
+                continue
+            unit_tests += len(re.findall(r'def test_', tf.read_text()))
         state["unit_tests"] = unit_tests
 
     e2e_file = ROOT / "tests" / "test_e2e.py"

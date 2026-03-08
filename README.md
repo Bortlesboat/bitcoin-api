@@ -4,7 +4,7 @@
 
 # Satoshi API
 
-**REST API for your Bitcoin node. One `pip install`, 74 endpoints.**
+**Should you send Bitcoin now or wait? An API that tells you.**
 
 [![CI](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/satoshi-api?color=orange)](https://pypi.org/project/satoshi-api/)
@@ -19,7 +19,7 @@
 
 ---
 
-Wraps Bitcoin Core's JSON-RPC in a clean REST interface with analyzed data, smart caching, and tiered rate limiting. Optional integrations: email notifications (Resend), persistent rate limiting (Upstash Redis), and privacy-first analytics (PostHog) -- all disabled by default.
+Smart fee recommendations that combine multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." Plus 74 REST endpoints for blocks, transactions, mempool, mining, and more. One `pip install`, self-hostable, open source.
 
 ## Install & Run
 
