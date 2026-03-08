@@ -19,7 +19,7 @@
 
 ---
 
-Smart fee recommendations that combine multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." Plus 74 REST endpoints for blocks, transactions, mempool, mining, and more. One `pip install`, self-hostable, open source.
+Smart fee recommendations that combine multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." Plus 76 REST endpoints for blocks, transactions, mempool, mining, and more. One `pip install`, self-hostable, open source.
 
 ## Install & Run
 

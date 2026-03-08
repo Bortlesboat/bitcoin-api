@@ -15,7 +15,7 @@ Satoshi API is an open-source REST API that turns any Bitcoin Core node into a d
 The product is built and production-hardened: 356 tests (335 unit + 21 e2e), 10 automated security checks with a completed penetration test, and a green CI pipeline. It runs on commodity hardware with ~$3/month operating cost. The business model is open-core: free self-hosted product drives adoption and credibility, optional hosted tiers generate recurring revenue, and the project serves as a consulting funnel for custom Bitcoin infrastructure work.
 
 **What exists today:**
-- 73 REST endpoints across 20 routers (blocks, transactions, fees, mempool, mining, network, prices, supply, stats, billing, metrics, WebSocket, and more)
+- 76 REST endpoints across 20 routers (blocks, transactions, fees, mempool, mining, network, prices, supply, stats, billing, metrics, WebSocket, and more)
 - 4-tier API key auth (anonymous, free, pro, enterprise), rate limiting, caching, security hardening
 - Stripe billing integration (checkout, webhooks, status, cancel)
 - WebSocket + SSE real-time streaming, Prometheus metrics, circuit breaker for RPC reliability
@@ -239,7 +239,7 @@ Landing pages at bitcoinsapi.com include dedicated comparison pages (vs-mempool,
 
 ### v0.3.2 — CURRENT RELEASE (COMPLETE)
 
-- 73 REST endpoints across 20 routers
+- 76 REST endpoints across 20 routers
 - 4-tier API key auth (anonymous, free, pro, enterprise) with block caps (144/1008/2016)
 - Rate limiting (in-memory + Upstash Redis), TTL caching with reorg-safe depth awareness
 - Stripe billing integration (checkout, webhooks, status, cancel)

@@ -39,7 +39,7 @@ bitcoin-api
 # -> http://localhost:9332/docs
 ```
 
-Three lines from node to API. Here's what changes.
+Three lines to smart Bitcoin fee intelligence. Here's what changes.
 
 ### Before: raw RPC fee estimation
 

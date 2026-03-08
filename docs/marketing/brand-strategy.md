@@ -266,7 +266,7 @@ Options ranked by strength:
 
 #### Level 2: Elevator Pitch (30 seconds / 2 sentences)
 
-> "Satoshi API turns your Bitcoin Core node into a production-ready REST API. One pip install, 76 endpoints, zero third-party dependencies — your data never leaves your machine."
+> "Should you send Bitcoin now or wait? Satoshi API gives you fee intelligence from your own node. One pip install, 76 endpoints, zero third-party dependencies — your data never leaves your machine."
 
 #### Level 3: Full Description (website "About" section)
 
@@ -280,7 +280,7 @@ Options ranked by strength:
 
 #### Level 4: Technical One-Liner (for READMEs, package descriptions)
 
-> "Production-ready REST API for Bitcoin Core. Self-hosted. 76 endpoints. pip install satoshi-api."
+> "Smart Bitcoin fee intelligence. Self-hosted. 76 endpoints. pip install satoshi-api."
 
 ### 3.4 Logo Concepts
 

@@ -6,7 +6,7 @@
   <!-- Title -->
   <text x="600" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="800" fill="#e6edf3" text-anchor="middle">Satoshi API</text>
   <!-- Subtitle -->
-  <text x="600" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#8b949e" text-anchor="middle">REST API for your Bitcoin node</text>
+  <text x="600" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#8b949e" text-anchor="middle">Should you send Bitcoin now or wait?</text>
   <!-- Stats bar -->
   <rect x="200" y="420" width="800" height="1" fill="#30363d"/>
   <text x="320" y="480" font-family="monospace" font-size="22" fill="#3fb950" text-anchor="middle">76 endpoints</text>

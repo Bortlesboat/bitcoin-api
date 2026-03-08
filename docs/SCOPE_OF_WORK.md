@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (74 total)
+### 3.1 Endpoints (76 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|

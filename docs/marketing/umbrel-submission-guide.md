@@ -60,7 +60,7 @@ id: satoshi-api
 category: bitcoin
 name: Satoshi API
 version: "1.0.0"
-tagline: Professional REST API for your Bitcoin node
+tagline: Smart Bitcoin fee intelligence API
 description: >-
   Satoshi API gives you a clean, well-documented REST API on top of your
   Bitcoin Core node. Query blocks, transactions, addresses, mempool stats,

@@ -1,6 +1,6 @@
 # Platform: r/selfhosted
 
-**Suggested Title:** Self-hosted Bitcoin REST API -- query your own node with 76 endpoints, zero third-party dependencies
+**Suggested Title:** Should you send Bitcoin now or wait? Self-hosted fee intelligence API -- 76 endpoints, zero third-party dependencies
 
 ---
 
@@ -20,7 +20,7 @@ That is it. API runs on port 9332, interactive docs at `/docs`.
 
 **What it gives you:**
 
-- 74 REST endpoints: blocks, transactions, fees, mempool, mining, network, address lookups, real-time SSE streams
+- 76 REST endpoints: blocks, transactions, fees, mempool, mining, network, address lookups, real-time SSE streams
 - Fee recommendations with context ("Fees are low. Good time to send.")
 - Mempool congestion scoring
 - Smart caching so you do not hammer your node (depth-aware TTLs, reorg-safe)

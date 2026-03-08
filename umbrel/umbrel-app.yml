@@ -1,13 +1,13 @@
 manifestVersion: 1
 id: satoshi-api
 name: Satoshi API
-tagline: REST API for your Bitcoin node
+tagline: Should you send Bitcoin now or wait? An API that tells you.
 icon: https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/umbrel/icon.svg
 category: bitcoin
 version: "0.3.2"
 port: 9332
 description: >-
-  Turn your Bitcoin Core node into a production-ready REST API.
+  Smart fee recommendations that tell you whether to send Bitcoin now or wait.
   76 endpoints for blocks, transactions, fees, mempool, mining,
   network stats, and address lookups. Smart caching, rate limiting,
   and AI agent support via MCP. Your node, your API, your rules.

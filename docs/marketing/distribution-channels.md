@@ -44,7 +44,7 @@
 #### a) r/Bitcoin (6.5M members)
 **URL:** https://reddit.com/r/Bitcoin
 **What to write:** Brief, non-technical announcement. Lead with the self-sovereignty angle.
-**Draft title:** "I built an open-source REST API for your Bitcoin node -- one pip install, your data stays local"
+**Draft title:** "I built a Bitcoin API that tells you when to send -- one pip install, your data stays local"
 **Rules:** No direct self-promotion links in post body. Use text post, put links in comments. Emphasize privacy/self-hosted angle.
 
 #### b) r/BitcoinDev (~15K members)
@@ -94,7 +94,7 @@
 **URL:** https://stacker.news/
 **Impact:** HIGH (for Bitcoin-specific audience)
 **What to post:** Link post or text post in the Bitcoin territory.
-**Draft title:** "Show SN: Open-source REST API for your Bitcoin node -- pip install, self-hosted, MCP for AI agents"
+**Draft title:** "Should you send Bitcoin now or wait? Open-source fee intelligence API -- pip install, self-hosted, MCP for AI agents"
 **How it works:** Post earns sats via upvotes (zaps). Bitcoin-native audience that values self-sovereignty. Very aligned with Satoshi API's positioning.
 **Category:** Post to `~bitcoin` territory
 **Tips:** Stacker News rewards original content. Include a personal story about why you built it.
