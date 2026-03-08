@@ -615,7 +615,7 @@ One-time: 2TB SSD ~$150-200 (already have).
 | GetBlock | 50K CU/day | $49/mo | No | 50+ chains |
 | QuickNode | 10M credits | $49/mo | No | Best DX, 25+ chains |
 | Alchemy | 30M CU | $5/mo PAYG | No | Dominant in EVM |
-| **Satoshi API** | **Unlimited (self-host)** | **$0 (free hosted)** | **Yes** | **Analyzed data, MCP/AI-ready, pip install** |
+| **Satoshi API** | **Unlimited (self-host)** | **$0 (free hosted)** | **Yes** | **Fee intelligence, MCP/AI-ready, pip install** |
 
 **Our edge:** Nobody else offers analyzed Bitcoin data (fee recommendations, congestion scores, block analysis) + AI agent integration (MCP) + one-line install. We're not competing on hosted infrastructure -- we're competing on developer experience for the self-hosted niche.
 
