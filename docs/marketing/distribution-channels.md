@@ -50,7 +50,7 @@
 #### b) r/BitcoinDev (~15K members)
 **URL:** https://reddit.com/r/BitcoinDev
 **What to write:** Technical deep dive. Code examples, architecture decisions, what RPC calls it wraps.
-**Draft title:** "Satoshi API: FastAPI wrapper for Bitcoin Core RPC with analyzed data, MCP integration, and pip install"
+**Draft title:** "Satoshi API: FastAPI wrapper for Bitcoin Core RPC with fee intelligence, MCP integration, and pip install"
 **This is the most targeted subreddit.** Small but highly relevant audience.
 
 #### c) r/selfhosted (550K+ members)
@@ -68,13 +68,13 @@
 #### e) r/Python (1.3M members)
 **URL:** https://reddit.com/r/Python
 **What to write:** Focus on the Python/FastAPI implementation. Code quality, typing, testing.
-**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 78 endpoints, 380 tests, pip installable"
+**Draft title:** "I built a production Bitcoin REST API with FastAPI -- fee intelligence, 380 tests, pip installable"
 **Rules:** Must be about the Python aspects, not Bitcoin evangelism.
 
 #### f) r/FastAPI (~30K members)
 **URL:** https://reddit.com/r/FastAPI
 **What to write:** Architecture showcase. How you structured routers, middleware, auth, caching.
-**Draft title:** "FastAPI in production: Bitcoin REST API with tiered auth, rate limiting, caching, and 78 endpoints"
+**Draft title:** "FastAPI in production: Bitcoin REST API with tiered auth, rate limiting, caching, and fee intelligence"
 
 #### g) r/node (~30K members)
 **URL:** https://reddit.com/r/node
