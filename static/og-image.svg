@@ -6,11 +6,11 @@
   <!-- Title -->
   <text x="600" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="800" fill="#e6edf3" text-anchor="middle">Satoshi API</text>
   <!-- Subtitle -->
-  <text x="600" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#8b949e" text-anchor="middle">Should you send Bitcoin now or wait?</text>
+  <text x="600" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#8b949e" text-anchor="middle">Stop overpaying Bitcoin fees.</text>
   <!-- Stats bar -->
   <rect x="200" y="420" width="800" height="1" fill="#30363d"/>
-  <text x="320" y="480" font-family="monospace" font-size="22" fill="#3fb950" text-anchor="middle">78 endpoints</text>
-  <text x="600" y="480" font-family="monospace" font-size="22" fill="#3fb950" text-anchor="middle">pip install satoshi-api</text>
+  <text x="320" y="480" font-family="monospace" font-size="22" fill="#3fb950" text-anchor="middle">fee intelligence</text>
+  <text x="600" y="480" font-family="monospace" font-size="22" fill="#3fb950" text-anchor="middle">save money every tx</text>
   <text x="880" y="480" font-family="monospace" font-size="22" fill="#3fb950" text-anchor="middle">open source</text>
   <!-- URL -->
   <text x="600" y="560" font-family="monospace" font-size="20" fill="#58a6ff" text-anchor="middle">bitcoinsapi.com</text>

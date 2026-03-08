@@ -177,6 +177,42 @@ def check_file(filepath: Path, description: str, state: dict) -> list[dict]:
                 "fixable": True,
             })
 
+    # Check for endpoint counts used as selling points (Any-Limit filter, Mar 8 2026)
+    # Endpoint counts in technical reference sections are fine; in headlines/selling points they're not.
+    # Pattern: "N endpoints" in a selling context (hero text, taglines, elevator pitches)
+    selling_patterns = [
+        (r'\b\d+\s+endpoints\b', "headline/selling"),  # "78 endpoints" as a feature
+        (r'\b\d+\s+Endpoints\b', "headline/selling"),
+    ]
+    for pattern, ctx in selling_patterns:
+        for m in re.finditer(pattern, content, re.IGNORECASE):
+            line_num = content[:m.start()].count('\n') + 1
+            # Exclude technical contexts (sprint tables, changelogs, code comments, comparison rows)
+            surrounding = content[max(0, m.start()-100):m.end()+100]
+            tech_contexts = ['sprint', 'total:', 'changelog', 'scope_of_work', '| **total', 'test_', 'when enabled']
+            if any(tc in surrounding.lower() for tc in tech_contexts):
+                continue
+            issues.append({
+                "file": rel, "desc": description, "severity": "warning",
+                "issue": f"Endpoint count as selling point: '{m.group(0)}' (line ~{line_num}). "
+                         f"Per Any-Limit filter: lead with outcomes (saves money/time), not counts.",
+                "line_approx": line_num,
+            })
+
+    # Check for "analyzed data" used as primary value prop
+    for m in re.finditer(r'analyzed data', content, re.IGNORECASE):
+        line_num = content[:m.start()].count('\n') + 1
+        # Skip technical/descriptive contexts
+        surrounding = content[max(0, m.start()-80):m.end()+80].lower()
+        if any(tc in surrounding for tc in ['vs raw', 'rather than raw', 'compared to', 'data quality', 'no analyzed', 'raw node data vs']):
+            continue
+        issues.append({
+            "file": rel, "desc": description, "severity": "warning",
+            "issue": f"'Analyzed data' as value prop (line ~{line_num}). "
+                     f"Per Any-Limit filter: use 'fee intelligence' instead.",
+            "line_approx": line_num,
+        })
+
     # Check version mentions (look for x.y.z patterns near "version" or "v")
     version = state.get("version", "")
     if version and filepath.suffix in (".md", ".html", ".txt"):

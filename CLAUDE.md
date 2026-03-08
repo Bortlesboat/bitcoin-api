@@ -1,5 +1,18 @@
 # Satoshi API -- Project Instructions
 
+## Messaging (MANDATORY — Any-Limit Filter)
+
+**Every customer-facing claim must answer: "Does it make money, save money, or save time?"**
+
+- **NEVER** lead with endpoint counts ("78 endpoints") in headlines, taglines, or selling points
+- **NEVER** use "analyzed data" or "production-grade" as a primary value proposition
+- **ALWAYS** lead with outcomes: "save money on fees", "know when to send", "stop watching block explorers"
+- **Product positioning:** "Bitcoin fee intelligence that saves you money on every transaction"
+- Endpoint counts are fine in technical reference sections (sprint tables, API surface docs)
+- `scripts/marketing_sync.py` enforces this — it flags endpoint-count selling points and "analyzed data" usage
+
+Source: Reddit u/Any-Limit-7282 feedback, adopted as company strategy Mar 8, 2026.
+
 ## Scope of Work (MANDATORY)
 
 **`docs/SCOPE_OF_WORK.md` is the canonical project document. It MUST be updated with every change.**
