@@ -10,17 +10,23 @@
 
 ## Executive Summary
 
-Satoshi API is an open-source REST API that turns any Bitcoin Core node into a developer-friendly data service. Where existing tools give developers raw RPC dumps, Satoshi API provides analyzed, structured data — fee recommendations, mempool congestion scores, block analysis — in a standard REST format with OpenAPI docs.
+Satoshi API is a Bitcoin fee intelligence service. It tells you when to send, what to pay, and whether to wait — saving money on every Bitcoin transaction. It also monitors payments, streams real-time fee updates, and provides the only AI-agent-ready Bitcoin data layer (MCP integration on the Anthropic Registry).
 
-The product is built and production-hardened: 356 tests (335 unit + 21 e2e), 10 automated security checks with a completed penetration test, and a green CI pipeline. It runs on commodity hardware with ~$3/month operating cost. The business model is open-core: free self-hosted product drives adoption and credibility, optional hosted tiers generate recurring revenue, and the project serves as a consulting funnel for custom Bitcoin infrastructure work.
+The core question every feature must answer: **Does it make money, save money, or save time in a substantial way?**
+
+- **Fee intelligence** saves money — bad fee timing burns sats on every transaction
+- **Payment monitoring** saves time — stop staring at block explorers
+- **AI/MCP integration** saves developer time — agents query Bitcoin data without custom plumbing
+- **Exchange comparison** saves money — find the cheapest on-ramp
+
+The product is production-hardened: 380 tests, 10 automated security checks, completed penetration test, green CI. Runs on commodity hardware at ~$3/month. Open-core model: free self-hosted product drives adoption, hosted tiers generate recurring revenue, consulting funnel for custom Bitcoin infrastructure.
 
 **What exists today:**
-- 76 REST endpoints across 20 routers (blocks, transactions, fees, mempool, mining, network, prices, supply, stats, billing, metrics, WebSocket, and more)
-- 4-tier API key auth (anonymous, free, pro, enterprise), rate limiting, caching, security hardening
+- Fee recommendation engine with "send now or wait" intelligence
+- Real-time fee streaming (SSE + WebSocket) and mempool congestion scoring
+- 78 REST endpoints across 20 routers (fee intelligence core + supporting data)
+- 4-tier API key auth, rate limiting, caching, security hardening
 - Stripe billing integration (checkout, webhooks, status, cancel)
-- WebSocket + SSE real-time streaming, Prometheus metrics, circuit breaker for RPC reliability
-- Docker deployment, Cloudflare Tunnel for HTTPS, SQLite (WAL mode)
-- Landing page with competitor comparison pages (vs-mempool, vs-blockcypher), blog post, self-hosting guide
 - Three-layer product suite: bitcoinlib-rpc (library) -> Satoshi API (REST) -> bitcoin-mcp (AI agents)
 - bitcoin-mcp listed on the Anthropic MCP Registry (35 tools, 6 prompts, 7 resources)
 
@@ -28,36 +34,39 @@ The product is built and production-hardened: 356 tests (335 unit + 21 e2e), 10 
 
 ## 1. Problem
 
-Developers building Bitcoin applications face a tooling gap:
+**People overpay Bitcoin transaction fees every day because existing tools give them raw numbers without context.**
 
-| Approach | Problem |
+Bitcoin Core's `estimatesmartfee` returns a number like "4.12 sat/vB." That means nothing to most users and developers. Should they send now? Wait an hour? Is the mempool clearing or filling? Nobody tells them.
+
+| Who loses money/time | How |
 |----------|---------|
-| **Raw RPC** | Clunky auth, inconsistent responses, no validation, no caching. Fine for scripts, painful for apps. |
-| **Third-party APIs** (BlockCypher, GetBlock, QuickNode) | Rate limits, monthly fees ($49-100+), privacy concerns (they see your queries), vendor lock-in |
-| **Block explorers** (mempool.space, Esplora) | Built for browsing, not building. Undocumented limits, no SLA, not designed as dev infrastructure |
-| **Run your own explorer** | Overkill. Electrs/Fulcrum adds complexity, disk, and maintenance for features most apps don't need |
+| **Businesses batching payouts** | Overpay fees on consolidation txs when mempool is about to clear |
+| **Wallets and apps** | Ship raw fee numbers to users who can't interpret them — users overpay or underpay and get stuck |
+| **Developers** | Spend days building fee logic that already exists, or pay $49-100/mo for APIs that still don't analyze fees |
+| **AI agents** | Can't access Bitcoin data at all — no MCP-compatible Bitcoin API exists (except ours) |
 
-The gap: there's no **simple, self-hosted REST API** that gives developers analyzed Bitcoin data from their own node with zero vendor dependency.
+The gap: nobody combines **fee intelligence** (should I send now?), **real-time monitoring** (what's happening in the mempool?), and **AI-ready data** (let agents handle it) in one service.
 
 ---
 
 ## 2. Solution
 
-**One command to go from a Bitcoin node to a production API:**
+**Satoshi API answers one question: "Should I send this Bitcoin transaction now, or wait?"**
 
 ```bash
-pip install satoshi-api && bitcoin-api
+curl https://bitcoinsapi.com/api/v1/fees/recommended
+# → "Fees are low. Good time to send. 4 sat/vB for next-block confirmation."
 ```
 
-What makes Satoshi API different:
+What makes it different (through the "make money / save money / save time" lens):
 
-1. **Analyzed data, not raw dumps.** Fee recommendations with human-readable text, mempool congestion scoring, block analysis with median fee rates — not raw RPC output that developers have to parse themselves.
+1. **Fee intelligence that saves money.** Not just "4 sat/vB" — it tells you whether to send now or wait, scores mempool congestion, and combines multiple confirmation targets with mempool state. Every transaction where you wait for lower fees instead of overpaying = money saved.
 
-2. **AI-agent ready.** The bitcoin-mcp layer (35 tools, 6 prompts, 7 resources) lets Claude, GPT, and other AI agents query Bitcoin data via MCP tool calls. Listed on the Anthropic MCP Registry. No other Bitcoin API has this.
+2. **AI agents that save time.** The only Bitcoin API with MCP support (Anthropic MCP Registry). AI assistants query fees, verify payments, monitor addresses without human babysitting. Developer time saved: days of custom Bitcoin plumbing.
 
-3. **Self-hosted by default.** Your node, your data. No third-party sees your queries. No rate limit anxiety. No monthly bill.
+3. **Real-time streaming that saves effort.** SSE + WebSocket fee updates every 30s. Build alerts ("notify me when fees drop below 5 sat/vB") without polling. Stop staring at mempool.space.
 
-4. **Production-grade out of the box.** 4-tier API key auth, rate limiting with block caps, caching, input validation, structured errors with request IDs, Prometheus metrics, WebSocket streaming, Stripe billing, OpenAPI docs — all included, not bolted on.
+4. **Self-hostable for cost savings.** `pip install satoshi-api` on your own node. No $49-100/mo API bills. Your data stays private.
 
 ---
 
