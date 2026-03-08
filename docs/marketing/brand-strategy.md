@@ -471,7 +471,7 @@ Starting with an API. Building a data suite.
 [Timeline/roadmap, vertical, left-aligned]
 
   [Bitcoin orange dot, bright]  NOW — REST API
-  78 endpoints. Production-ready. pip installable.
+  Fee intelligence. Production-ready. pip installable.
 
   [Dimmed dot]  NEXT — WebSocket Streaming
   Real-time block and mempool event feeds.
