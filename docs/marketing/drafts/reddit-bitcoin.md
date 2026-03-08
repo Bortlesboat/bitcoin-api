@@ -6,7 +6,7 @@
 
 I built a free, open-source REST API that turns your Bitcoin Core node into something any app can talk to. It is called Satoshi API.
 
-**The idea:** Bitcoin Core has a powerful RPC interface, but it is designed for developers who already know the protocol inside out. I wanted something that returns useful, analyzed data -- not just raw numbers.
+**The idea:** Bitcoin Core has a powerful RPC interface, but it is designed for developers who already know the protocol inside out. I wanted something that gives you actionable fee intelligence -- not just raw numbers.
 
 For example, instead of just telling you the fee rate is 4 sat/vB, it tells you "Fees are low. Good time to send." It scores mempool congestion, analyzes blocks, and streams fee updates in real time.
 
@@ -14,7 +14,7 @@ For example, instead of just telling you the fee rate is 4 sat/vB, it tells you 
 
 - **Self-hosted.** Runs on your machine next to your node. Your queries never leave your network.
 - **One install.** `pip install satoshi-api` and you are running. Docker also supported.
-- **78 endpoints.** Blocks, transactions, fees, mempool, mining stats, address lookups, and more.
+- **Fee intelligence.** Know when to send, what to pay, and whether to wait -- saving money on every transaction.
 - **AI-ready.** It is the only Bitcoin API with MCP support (listed on the official Anthropic MCP Registry), meaning AI assistants like Claude can query your node directly.
 - **Free and open source.** Apache-2.0 license. No subscriptions required for self-hosting.
 

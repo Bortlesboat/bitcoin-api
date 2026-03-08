@@ -294,7 +294,7 @@ satoshi-api
       <tbody>
         <tr><td>Interface</td><td style="color: var(--green);">REST API</td><td>REST API</td><td>JSON-RPC only</td></tr>
         <tr><td>Primary focus</td><td>Developer API</td><td>Block explorer</td><td>Node control</td></tr>
-        <tr><td>Analyzed data</td><td style="color: var(--green);">Fee recs, congestion scores</td><td>Raw data</td><td>Raw data</td></tr>
+        <tr><td>Fee intelligence</td><td style="color: var(--green);">Fee recs, congestion scores</td><td>Raw data</td><td>Raw data</td></tr>
         <tr><td>Smart caching</td><td style="color: var(--green);">Reorg-aware TTL</td><td>Electrs index</td><td>None</td></tr>
         <tr><td>Rate limiting</td><td style="color: var(--green);">Built-in, tiered</td><td>None</td><td>None</td></tr>
         <tr><td>Address lookups</td><td>Roadmap</td><td style="color: var(--green);">Yes</td><td>Wallet only</td></tr>
@@ -304,7 +304,7 @@ satoshi-api
         <tr><td>Language</td><td>Python (FastAPI)</td><td>Rust</td><td>C++</td></tr>
       </tbody>
     </table>
-    <p style="color: var(--muted); margin-top: 16px; font-size: 0.9em;">Esplora is the stronger choice if you need address-based lookups and are willing to run Electrs for indexing. Bitcoin Core RPC is always there but provides no REST layer, no caching, and no input validation. Satoshi API fills the gap for developers who want a clean REST interface with analyzed data and minimal setup.</p>
+    <p style="color: var(--muted); margin-top: 16px; font-size: 0.9em;">Esplora is the stronger choice if you need address-based lookups and are willing to run Electrs for indexing. Bitcoin Core RPC is always there but provides no REST layer, no caching, and no input validation. Satoshi API fills the gap for developers who want a clean REST interface with fee intelligence and minimal setup.</p>
   </div>
 </section>
 

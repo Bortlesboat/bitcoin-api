@@ -12,7 +12,7 @@ Satoshi API combines `estimatesmartfee` at multiple confirmation targets with re
 
     curl https://bitcoinsapi.com/api/v1/fees/recommended
 
-That is the core use case. There are 78 endpoints total (blocks, transactions, mempool, mining stats, address lookups, real-time SSE streams), but the fee intelligence is what is actually differentiated.
+That is the core use case. It covers blocks, transactions, mempool, mining stats, address lookups, and real-time SSE streams, but the fee intelligence is what is actually differentiated.
 
 A few technical decisions that might be interesting to HN:
 

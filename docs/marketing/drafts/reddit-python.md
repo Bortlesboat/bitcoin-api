@@ -4,7 +4,7 @@
 
 ---
 
-I built [Satoshi API](https://github.com/Bortlesboat/bitcoin-api), a REST API that wraps Bitcoin Core's JSON-RPC in 78 endpoints. Wanted to share some of the Python/FastAPI patterns I landed on, since a few of them took real iteration to get right.
+I built [Satoshi API](https://github.com/Bortlesboat/bitcoin-api), a REST API that wraps Bitcoin Core's JSON-RPC with fee intelligence and actionable insights. Wanted to share some of the Python/FastAPI patterns I landed on, since a few of them took real iteration to get right.
 
 **Depth-aware TTL caching.** The naive approach -- cache everything for N seconds -- does not work when your data source is a blockchain. A block with 100 confirmations will never change, but a block with 1 confirmation might disappear in a reorg. I built a cache layer where TTL scales with confirmation depth: recent blocks get 30s, deep blocks get 1 hour, fee estimates get 10s. Each cache key gets its own asyncio lock to prevent thundering herd on cold starts. Implemented as a simple dict with expiry timestamps -- no Redis needed for a single-instance API.
 
