@@ -13,8 +13,22 @@ tasks/
 start-api.bat
 
 logs/
+# Internal docs — exist locally for scripts, never committed
+# Source of truth: github.com/Bortlesboat/bitcoin-api-internal (private)
 docs/LLC_PREP.md
 docs/BUSINESS_PLAN.md
+docs/COMPETITIVE_ANALYSIS.md
+docs/PRODUCT_STATE.md
+docs/LEGAL_TRACKER.md
+docs/seo-checklist.md
+docs/marketing/brand-strategy.md
+docs/marketing/distribution-channels.md
+docs/marketing/launch-plan.md
+docs/marketing/show-hn.md
+docs/marketing/umbrel-submission-guide.md
+docs/marketing/drafts/
+LAUNCH_PLAYBOOK.md
+blog-post.md
 .coverage
 requirements.lock
 scripts/run-*.bat

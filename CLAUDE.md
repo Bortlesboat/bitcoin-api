@@ -61,6 +61,10 @@ The SOW is the single source of truth for what this project is, what it does, an
 
 **`docs/OPERATIONS.md` is the human-facing operations guide.** It covers how to start/stop/restart the API, configure `.env`, use analytics, run agents, publish to PyPI, and complete pending setup (Cloudflare, Bing, social preview). **Any agent making deployment, config, or operational changes MUST update OPERATIONS.md to match.**
 
+## Internal Docs (gitignored, local-only)
+
+Business plans, competitive analysis, marketing drafts, launch playbooks, pricing strategy, legal tracker, and SEO docs are **gitignored**. They exist on disk so scripts like `marketing_sync.py` can scan them, but they are never committed to this public repo. Source of truth for these files: private repo `bitcoin-api-internal`. If a file is missing locally, `marketing_sync.py` reports a non-fatal warning — this is expected for contributors without access to the internal repo.
+
 ## Key Files
 
 | File | Purpose |
