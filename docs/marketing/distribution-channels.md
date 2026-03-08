@@ -574,7 +574,7 @@ What's the most painful API integration you've dealt with?
 "Turn your Bitcoin node into a developer-friendly REST API. One command install, fee intelligence that saves money on every transaction, AI agent integration via MCP."
 
 ### Elevator pitch (for forums/posts):
-"Satoshi API is the SQLite of Bitcoin APIs. One `pip install` gives you a REST API wrapping your Bitcoin Core node with analyzed data -- fee recommendations, mempool congestion scores, decoded transactions -- not raw RPC output. It's the only Bitcoin API with MCP integration for AI agents. Self-hosted, open-source, Apache-2.0 licensed."
+"Satoshi API is the SQLite of Bitcoin APIs. One `pip install` gives you fee intelligence from your own Bitcoin Core node -- know when to send, what to pay, mempool congestion scores, decoded transactions -- not raw RPC output. It's the only Bitcoin API with MCP integration for AI agents. Self-hosted, open-source, Apache-2.0 licensed."
 
 ### Comparison hook (for Reddit/HN):
 "Esplora needs 16 CPU cores and 64GB RAM. BlockCypher charges $119/mo. Satoshi API: `pip install satoshi-api`. Done."
