@@ -1,6 +1,6 @@
 # Satoshi API Python SDK
 
-Typed Python client for the [Satoshi API](https://bitcoinsapi.com) — Bitcoin node data for developers.
+Typed Python client for the [Satoshi API](https://bitcoinsapi.com) — Bitcoin fee intelligence that saves money on every transaction.
 
 **Zero dependencies.** Uses only Python stdlib. Works with Python 3.10+.
 

@@ -195,7 +195,7 @@ Break-even at scale: 3-4 Pro customers.
 | **Alchemy** | 30M CU | $5/mo PAYG | No | We're Bitcoin-native (they're EVM-focused) |
 
 **Our edge:** No one else combines all four:
-1. Analyzed Bitcoin data (not raw RPC)
+1. Fee intelligence that saves money on every transaction
 2. AI agent integration (MCP, on Anthropic Registry)
 3. Self-hosted with one command (`pip install satoshi-api`)
 4. Real-time streaming (WebSocket + SSE) with Prometheus observability
