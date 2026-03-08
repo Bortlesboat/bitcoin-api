@@ -9,7 +9,7 @@ from ..cache import cached_fee_estimates, cached_raw_mempool, get_mempool_snapsh
 from ..db import get_fee_history
 from ..dependencies import get_rpc
 from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope, rpc_envelope
-from ..services.exchanges import get_cached_price
+from ..services.price import get_cached_price
 from ..services.fees import (
     PROFILES,
     analyze_mempool_blocks,

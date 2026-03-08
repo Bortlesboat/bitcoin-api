@@ -1,53 +1,14 @@
-"""Exchange comparison business logic — extracted from routers/exchanges.py."""
+"""Exchange comparison business logic — extracted from routers/exchanges.py.
 
-import json
+BTC/USD price fetching is delegated to services.price (multi-provider fallback).
+This module re-exports get_cached_price for backwards compatibility.
+"""
+
 import logging
-import threading
-import time
-import urllib.request
+
+from .price import get_cached_price  # noqa: F401 — re-exported for consumers
 
 log = logging.getLogger("bitcoin_api.exchanges")
-
-# ---------------------------------------------------------------------------
-# BTC price cache (thread-safe)
-# ---------------------------------------------------------------------------
-
-_btc_price_usd: float | None = None
-_btc_price_time: float = 0
-_btc_price_lock = threading.Lock()
-_PRICE_TTL = 60  # seconds
-
-
-def fetch_btc_price() -> float | None:
-    """Fetch current BTC/USD price from CoinGecko."""
-    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-    req = urllib.request.Request(
-        url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"}
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode())
-        return data["bitcoin"]["usd"]
-    except Exception as e:
-        log.warning("Failed to fetch BTC price for exchange comparison: %s", e)
-        return None
-
-
-def get_cached_price() -> float | None:
-    """Return cached BTC/USD price or fetch fresh."""
-    global _btc_price_usd, _btc_price_time
-    with _btc_price_lock:
-        if _btc_price_usd is not None and (time.time() - _btc_price_time) < _PRICE_TTL:
-            return _btc_price_usd
-    price = fetch_btc_price()
-    if price is not None:
-        with _btc_price_lock:
-            _btc_price_usd = price
-            _btc_price_time = time.time()
-    else:
-        with _btc_price_lock:
-            return _btc_price_usd  # stale is better than None
-    return price
 
 
 def calculate_net_btc(amount_usd: float, exchange: dict, btc_price: float) -> dict:
