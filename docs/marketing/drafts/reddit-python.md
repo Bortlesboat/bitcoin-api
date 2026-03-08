@@ -16,7 +16,7 @@ I built [Satoshi API](https://github.com/Bortlesboat/bitcoin-api), a REST API th
 
 **FastAPI middleware ordering matters.** My middleware stack is: security headers, CORS, auth, rate limiting, access logging. Getting auth before rate limiting was important -- you want to know the user's tier before deciding their rate limit. Logging comes last so it can read `request.state.tier` set by auth.
 
-The whole thing is ~28 source files, 335 unit tests, 21 e2e tests. FastAPI + httpx + SQLite, no heavy dependencies. I also built an MCP server (bitcoin-mcp, on the official Anthropic MCP Registry) so AI agents can query the node -- interesting FastMCP patterns if anyone is exploring that space.
+The whole thing is 335 unit tests + 21 e2e tests. FastAPI + httpx + SQLite, no heavy dependencies. I also built an MCP server (bitcoin-mcp, on the official Anthropic MCP Registry) so AI agents can query the node -- interesting FastMCP patterns if anyone is exploring that space.
 
 - **GitHub:** https://github.com/Bortlesboat/bitcoin-api
 - **PyPI:** `pip install satoshi-api`

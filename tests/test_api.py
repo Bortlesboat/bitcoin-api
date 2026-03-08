@@ -2,6 +2,7 @@
 
 from unittest.mock import patch, MagicMock
 from pydantic import SecretStr
+import pytest
 
 
 
@@ -1226,10 +1227,7 @@ def test_broadcast_decode_failure(authed_client):
     with patch(
         "bitcoin_api.routers.transactions.BitcoinRPC",
     ):
-        original_mock = authed_client.app.dependency_overrides
         mock_rpc = MagicMock()
-
-        call_count = {"decode": 0}
 
         def side_effect(method, *args):
             if method == "decoderawtransaction":
@@ -1408,9 +1406,6 @@ def test_analytics_overview_rejects_wrong_key(client):
     assert resp.status_code == 403
 
 
-
-import pytest
-
 @pytest.fixture
 def admin_client(mock_rpc):
     from pydantic import SecretStr
@@ -1455,10 +1450,13 @@ def test_analytics_endpoints_with_admin_key(admin_client):
 
 
 def test_analytics_errors_with_admin_key(admin_client):
-    """Analytics errors should return error breakdown."""
+    """Analytics errors should return error breakdown by status and type."""
     resp = admin_client.get("/api/v1/analytics/errors?period=24h")
     assert resp.status_code == 200
-    assert isinstance(resp.json()["data"], list)
+    data = resp.json()["data"]
+    assert isinstance(data, dict)
+    assert isinstance(data["by_status"], list)
+    assert isinstance(data["by_type"], list)
 
 
 def test_analytics_user_agents_with_admin_key(admin_client):

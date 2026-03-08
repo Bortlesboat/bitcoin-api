@@ -448,7 +448,6 @@ def main():
         for line in errors:
             print(f"  {line}")
 
-    total = len(errors) + len(warnings)
     if errors:
         print(f"\n  RESULT: FAIL — {len(errors)} error(s), {len(warnings)} warning(s)")
         sys.exit(1)

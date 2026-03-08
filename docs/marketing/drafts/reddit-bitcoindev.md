@@ -12,7 +12,7 @@ A few design questions I'd genuinely like input on:
 
 1. **Fee analysis** — right now I combine estimatesmartfee at multiple targets with mempool size to generate a "send now or wait" recommendation. Is that useful, or do wallet devs prefer raw numbers and doing their own analysis?
 
-2. **RPC surface** — I whitelist 17 read-only commands (getblock, getblockchaininfo, getblockcount, getblockhash, getblockheader, getblockstats, getdifficulty, estimatesmartfee, getmempoolinfo, getrawmempool, getmempoolentry, getrawtransaction, decoderawtransaction, gettxout, getnetworkinfo, getchaintips, getmininginfo). Is there demand for more? I deliberately left out wallet and debug RPCs but maybe that's too conservative.
+2. **RPC surface** — I use 21 RPC commands (getblock, getblockchaininfo, getblockcount, getblockhash, getblockheader, getblockstats, estimatesmartfee, getmempoolinfo, getrawmempool, getmempoolentry, getrawtransaction, decoderawtransaction, gettxout, gettxoutproof, gettxoutsetinfo, getnetworkinfo, getchaintips, getmininginfo, scantxoutset, sendrawtransaction, validateaddress). No wallet or debug RPCs. Is there demand for more, or is that coverage about right?
 
 3. **What's missing?** If you had a clean REST interface to your node, what endpoints would you reach for first?
 

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Satoshi API — Your Node. Your API. Your Rules.</title>
-<meta name="description" content="Satoshi API turns your Bitcoin Core node into a production-ready REST API. One pip install, 74 endpoints, zero required third-party services. Self-hosted, open source, Apache-2.0 licensed.">
+<title>Satoshi API — Bitcoin Data for Builders. Free. Fast. Open.</title>
+<meta name="description" content="Free Bitcoin REST API with 74 endpoints. No signup required. Fee estimates, mempool intelligence, block data, and MCP integration for AI agents. Open source, Apache-2.0.">
 <meta name="google-site-verification" content="AD9lQsKgOGRhHn2Lb6LvPs2caMbkUE9igca5A3A726U" />
-<meta name="keywords" content="bitcoin api, bitcoin rest api, self-hosted bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
+<meta name="keywords" content="bitcoin api, bitcoin rest api, free bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
 <link rel="canonical" href="https://bitcoinsapi.com">
-<meta property="og:title" content="Satoshi API — Your Node. Your API. Your Rules.">
-<meta property="og:description" content="Production-ready REST API for Bitcoin Core. Self-hosted. 74 endpoints. pip install satoshi-api.">
+<meta property="og:title" content="Satoshi API — Free Bitcoin REST API for Developers">
+<meta property="og:description" content="74 endpoints. No signup. Fee estimates, mempool data, block explorer, MCP for AI agents. Open source.">
 <meta property="og:url" content="https://bitcoinsapi.com">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
@@ -17,8 +17,8 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
-<meta name="twitter:title" content="Satoshi API — Your Node. Your API. Your Rules.">
-<meta name="twitter:description" content="Production-ready REST API for Bitcoin Core. Self-hosted. 74 endpoints. pip install satoshi-api.">
+<meta name="twitter:title" content="Satoshi API — Free Bitcoin REST API for Developers">
+<meta name="twitter:description" content="74 endpoints. No signup. Fee estimates, mempool data, block explorer, MCP for AI agents. Open source.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -230,7 +230,7 @@
     {
       "@type": "SoftwareApplication",
       "name": "Satoshi API",
-      "description": "Open-source REST API for Bitcoin Core nodes. Provides 74 endpoints including fee recommendations, mempool analysis, mining statistics, and real-time SSE streams. Self-hosted with zero vendor lock-in.",
+      "description": "Free Bitcoin REST API with 74 endpoints. Fee recommendations, mempool analysis, mining statistics, real-time SSE streams, and MCP integration for AI agents. Open source, self-hostable.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Linux, macOS, Windows, Docker",
       "url": "https://bitcoinsapi.com",
@@ -354,7 +354,7 @@
     "name": "Satoshi API",
     "url": "https://bitcoinsapi.com",
     "logo": "https://bitcoinsapi.com/og-image.png",
-    "description": "Open-source Bitcoin REST API. Self-hosted, privacy-first, developer-friendly.",
+    "description": "Free Bitcoin REST API for developers. 74 endpoints, no signup required, open source.",
     "email": "api@bitcoinsapi.com",
     "sameAs": [
       "https://github.com/Bortlesboat/bitcoin-api",
@@ -396,7 +396,7 @@
   <div class="logo"><img src="/logo-128.png" alt="Satoshi API" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</div>
   <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="links">
-    <a href="#why-self-hosted">Why Self-Hosted</a>
+    <a href="#why-satoshi">Why Satoshi API</a>
     <a href="#features">Features</a>
     <a href="#endpoints">Endpoints</a>
     <a href="#pricing">Pricing</a>
@@ -411,19 +411,19 @@
 <section class="hero">
   <div class="container">
     <p class="label" style="font-size: 1.1em; color: var(--accent); font-weight: 600; margin-bottom: 8px;">Free Bitcoin API for Developers</p>
-    <p class="label">Open source. Self-hosted. Apache-2.0 licensed. No node required.</p>
-    <h1>Your node. Your API.<br><span>Your rules.</span></h1>
-    <p class="subtitle">Turn your Bitcoin Core node into a production-ready REST API. One pip install. 74 endpoints. Zero required third-party services.</p>
+    <p class="label">No node required. No signup needed. Open source. Apache-2.0 licensed.</p>
+    <h1>Bitcoin data for builders.<br><span>Free. Fast. Open.</span></h1>
+    <p class="subtitle">A production-ready REST API for Bitcoin. 74 endpoints. Fee estimates, mempool analysis, mining stats, real-time streams. Start with one curl command.</p>
     <div class="cta">
       <a href="/docs" class="btn-primary" onclick="posthog.capture('cta_click', {location:'hero',target:'docs'})">Explore the API</a>
       <a href="#quickstart" class="btn-secondary" onclick="posthog.capture('cta_click', {location:'hero',target:'quickstart'})">Get Started</a>
       <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'hero',target:'github'})">View on GitHub</a>
     </div>
     <div class="hero-code">
-<pre><code><span style="color: var(--muted)">$ </span>pip install satoshi-api
-<span style="color: var(--muted)">$ </span>satoshi-api
-<span style="color: var(--green)">INFO</span>  Satoshi API running at http://localhost:9332
-<span style="color: var(--green)">INFO</span>  74 endpoints ready. Your data stays here.</code></pre>
+<pre><code><span style="color: var(--muted)">$ </span>curl https://bitcoinsapi.com/api/v1/fees/recommended
+<span style="color: var(--green)">{</span>
+  <span style="color: var(--accent)">"fastest"</span>: 12, <span style="color: var(--accent)">"half_hour"</span>: 8, <span style="color: var(--accent)">"hour"</span>: 4
+<span style="color: var(--green)">}</span></code></pre>
       <div class="live-badge"><span class="pulse"></span> Live from bitcoinsapi.com</div>
 <pre id="live-response"><code id="live-json" style="color: var(--muted);">Loading live fee data...</code></pre>
     </div>
@@ -445,24 +445,24 @@
   <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="trust-badge" style="text-decoration:none;color:inherit;"><span class="dot"></span> Monitored by UptimeRobot</a>
 </div>
 
-<!-- Why Self-Hosted -->
-<section id="why-self-hosted" class="bg-surface">
+<!-- Why Satoshi API -->
+<section id="why-satoshi" class="bg-surface">
   <div class="container">
-    <p class="section-label">Why Self-Hosted</p>
-    <h2 class="section-title">Not your node, not your data.</h2>
-    <p class="section-subtitle">Bitcoin was built to remove middlemen. Your API should be too.</p>
+    <p class="section-label">Why Satoshi API</p>
+    <h2 class="section-title">Bitcoin Core's RPC, but actually usable.</h2>
+    <p class="section-subtitle">Analyzed data, smart caching, and developer-friendly responses. Not raw hex dumps.</p>
     <div class="features" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
       <div class="feature">
-        <h3>Sovereign</h3>
-        <p>Third-party APIs can change terms, raise prices, or shut down. Satoshi API runs on your machine. You set the rules.</p>
+        <h3>Analyzed Data</h3>
+        <p>Fee recommendations in sat/vB. Mempool congestion scores. Mining pool identification. One endpoint, one answer.</p>
       </div>
       <div class="feature">
-        <h3>Private</h3>
-        <p>Your queries never leave your infrastructure. No analytics. No tracking. No data harvesting. Just you and your node.</p>
+        <h3>AI-Ready</h3>
+        <p>First Bitcoin API on the Anthropic MCP Registry. Your AI agents can query the blockchain natively. Claude, GPT, and any MCP client.</p>
       </div>
       <div class="feature">
-        <h3>Fast</h3>
-        <p>No network hop to a remote server. Your API talks directly to your local Bitcoin Core. Latency measured in milliseconds, not continents.</p>
+        <h3>Open Source</h3>
+        <p>Apache-2.0 licensed. Full source code on GitHub. Audit it, fork it, self-host it. No vendor lock-in, ever.</p>
       </div>
     </div>
   </div>
@@ -576,7 +576,7 @@
 <section id="use-cases" class="bg-surface">
   <div class="container">
     <p class="section-label">Built For</p>
-    <h2 class="section-title">Developers who run their own nodes.</h2>
+    <h2 class="section-title">Bitcoin developers and AI agents.</h2>
     <p class="section-subtitle">And those curious enough to start.</p>
     <div class="use-cases">
       <div class="use-case">
@@ -723,21 +723,8 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
       <div id="reg-result" style="display: none; margin-top: 12px;"></div>
     </div>
 
-    <h3 style="margin-top: 48px; margin-bottom: 12px;">Option 3: Self-host on your own node</h3>
-    <p style="color: var(--muted); margin-bottom: 12px;">Run the full API on your own Bitcoin Core node. Unlimited requests, full privacy.</p>
-<pre><code><span style="color: var(--muted)"># Install</span>
-pip install satoshi-api
-
-<span style="color: var(--muted)"># Configure (point at your node)</span>
-export BITCOIN_RPC_USER=your_user
-export BITCOIN_RPC_PASSWORD=your_password
-
-<span style="color: var(--muted)"># Run</span>
-satoshi-api
-<span style="color: var(--green)"># API at http://localhost:9332</span>
-<span style="color: var(--green)"># Docs at http://localhost:9332/docs</span></code></pre>
-
-    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">Also available via Docker: <code>docker compose up -d</code>. Requires Bitcoin Core with <code>server=1</code> and Python 3.10+. <code>txindex=1</code> recommended.</p>
+    <h3 style="margin-top: 48px; margin-bottom: 12px; color: var(--muted);">Advanced: Self-host on your own node</h3>
+    <p style="color: var(--muted); margin-bottom: 12px; font-size: 0.9em;">Already running Bitcoin Core? Run the full API locally: <code>pip install satoshi-api && satoshi-api</code>. Unlimited requests, full privacy. <a href="/self-hosted-bitcoin-api">Self-hosting guide &rarr;</a></p>
 
     <h3 style="margin-top: 48px; margin-bottom: 12px;">Python SDK</h3>
     <p style="color: var(--muted); margin-bottom: 12px;">Use the Python SDK for typed access to all endpoints:</p>
@@ -751,9 +738,21 @@ satoshi-api
   <div class="container">
     <p class="section-label">Pricing</p>
     <h2 class="section-title">Free to explore. Upgrade when you are ready.</h2>
-    <p class="section-subtitle">Self-host for free forever, or use the hosted API at bitcoinsapi.com.</p>
+    <p class="section-subtitle">Start free. No node required. Upgrade when you need more.</p>
     <div class="pricing-grid">
       <div class="price-card featured">
+        <h3>Hosted API</h3>
+        <div class="price">Free</div>
+        <ul>
+          <li>No node needed, no setup</li>
+          <li>1,000 requests/day (no signup)</li>
+          <li>Get a free API key for 10,000/day</li>
+          <li>All GET endpoints + POST with key</li>
+          <li>Always up-to-date</li>
+        </ul>
+        <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" onclick="posthog.capture('pricing_viewed', {tier:'hosted_free'})">Get Started</a>
+      </div>
+      <div class="price-card">
         <h3>Self-Hosted</h3>
         <div class="price">Free<span> forever</span></div>
         <ul>
@@ -764,17 +763,6 @@ satoshi-api
           <li>Docker + pip install</li>
         </ul>
         <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('pricing_viewed', {tier:'self_hosted'})">View on GitHub</a>
-      </div>
-      <div class="price-card">
-        <h3>Hosted API</h3>
-        <div class="price">Free</div>
-        <ul>
-          <li>No node needed</li>
-          <li>1,000 requests/day (no signup)</li>
-          <li>Get a free API key for 10,000/day</li>
-          <li>All GET endpoints + POST with key</li>
-        </ul>
-        <a href="#quickstart" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" onclick="posthog.capture('pricing_viewed', {tier:'hosted_free'})">Try it Now</a>
       </div>
       <!-- Pro tier preserved but hidden until demand materializes -->
       <div class="price-card" style="display:none">
@@ -812,7 +800,7 @@ satoshi-api
         <tr><td>Caching</td><td style="color: var(--green);">Reorg-aware TTL</td><td>None</td><td>Varies</td></tr>
         <tr><td>Rate limiting</td><td style="color: var(--green);">Built-in, tiered</td><td>None</td><td>Yes (their limits)</td></tr>
         <tr><td>Input validation</td><td style="color: var(--green);">Before RPC call</td><td>None</td><td>Yes</td></tr>
-        <tr><td>Cost at scale</td><td style="color: var(--green);">$0 (self-host)</td><td>$0</td><td>$50-500+/mo</td></tr>
+        <tr><td>Cost to start</td><td style="color: var(--green);">$0 (hosted or self-host)</td><td>$0</td><td>$50-500+/mo</td></tr>
         <tr><td>AI agent support</td><td style="color: var(--green);">MCP ready</td><td>No</td><td>No</td></tr>
         <tr><td>Vendor lock-in</td><td style="color: var(--green);">None (Apache-2.0)</td><td>None</td><td>Yes</td></tr>
       </tbody>
@@ -863,11 +851,10 @@ satoshi-api
 <section class="bottom-cta bg-surface">
   <div class="container">
     <h2>From zero to Bitcoin data in 60 seconds.</h2>
-    <p>No signup, no install. Just curl and go.</p>
+    <p>No signup, no install, no node. Just curl and go.</p>
     <div class="cta" style="display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-      <a href="#quickstart" class="btn-primary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('cta_click', {location:'bottom',target:'quickstart'})">Get Started</a>
+      <a href="#quickstart" class="btn-primary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('cta_click', {location:'bottom',target:'quickstart'})">Get Started Free</a>
       <a href="/docs" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('docs_click', {location:'bottom'})">Interactive Docs</a>
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'bottom',target:'github'})">Self-Host (GitHub)</a>
       <a href="https://discord.com/oauth2/authorize?client_id=1479972638918049895&permissions=2048&scope=bot+applications.commands" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'bottom',target:'discord-bot'})">Add to Discord</a>
     </div>
   </div>

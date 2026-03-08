@@ -6,9 +6,9 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 
-log = logging.getLogger("bitcoin_api.cache")
-
 from cachetools import LRUCache, TTLCache
+
+log = logging.getLogger("bitcoin_api.cache")
 
 
 # --- Cache registry ---
@@ -118,17 +118,20 @@ def get_mempool_snapshots() -> list[dict]:
 
 
 def _cached_rpc(entry: CacheEntry, rpc, fetcher, cache_key: str = "_"):
-    """Generic cache-through: check cache → miss → fetch → store → return."""
+    """Generic cache-through with single-flight: only one thread fetches on miss.
+
+    Holds the lock during fetch to prevent cache stampede — concurrent threads
+    wait for the first fetcher instead of all hitting RPC simultaneously.
+    """
     from .metrics import CACHE_HITS, CACHE_MISSES
     with entry.lock:
         if cache_key in entry.cache:
             CACHE_HITS.labels(cache_name=entry.name).inc()
             return entry.cache[cache_key]
-    CACHE_MISSES.labels(cache_name=entry.name).inc()
-    result = fetcher(rpc)
-    with entry.lock:
+        CACHE_MISSES.labels(cache_name=entry.name).inc()
+        result = fetcher(rpc)
         entry.cache[cache_key] = result
-    return result
+        return result
 
 
 _info_fetched_at: float | None = None
@@ -142,12 +145,11 @@ def cached_blockchain_info(rpc):
         if key in _blockchain_info.cache:
             CACHE_HITS.labels(cache_name="blockchain_info").inc()
             return _blockchain_info.cache[key]
-    CACHE_MISSES.labels(cache_name="blockchain_info").inc()
-    result = rpc.call("getblockchaininfo")
-    with _blockchain_info.lock:
+        CACHE_MISSES.labels(cache_name="blockchain_info").inc()
+        result = rpc.call("getblockchaininfo")
         _blockchain_info.cache[key] = result
         _info_fetched_at = time.time()
-    return result
+        return result
 
 
 def get_cached_node_info() -> tuple[int | None, str | None]:
@@ -217,21 +219,19 @@ def cached_block_analysis(rpc, height: int):
             if height in _recent_block.cache:
                 CACHE_HITS.labels(cache_name="recent_block").inc()
                 return _recent_block.cache[height]
-        CACHE_MISSES.labels(cache_name="recent_block").inc()
-        result = analyze_block(rpc, height)
-        with _recent_block.lock:
+            CACHE_MISSES.labels(cache_name="recent_block").inc()
+            result = analyze_block(rpc, height)
             _recent_block.cache[height] = result
-        return result
+            return result
 
     with _block.lock:
         if height in _block.cache:
             CACHE_HITS.labels(cache_name="block").inc()
             return _block.cache[height]
-    CACHE_MISSES.labels(cache_name="block").inc()
-    result = analyze_block(rpc, height)
-    with _block.lock:
+        CACHE_MISSES.labels(cache_name="block").inc()
+        result = analyze_block(rpc, height)
         _block.cache[height] = result
-    return result
+        return result
 
 
 def cached_block_by_hash(rpc, block_hash: str):
@@ -249,13 +249,12 @@ def cached_block_by_hash(rpc, block_hash: str):
                 CACHE_HITS.labels(cache_name="recent_block").inc()
                 return _recent_block.cache[height]
 
-    CACHE_MISSES.labels(cache_name="block").inc()
-    result = analyze_block(rpc, block_hash)
-    data = result.model_dump() if hasattr(result, "model_dump") else result
-    resolved_height = data.get("height")
+        CACHE_MISSES.labels(cache_name="block").inc()
+        result = analyze_block(rpc, block_hash)
+        data = result.model_dump() if hasattr(result, "model_dump") else result
+        resolved_height = data.get("height")
 
-    if resolved_height is not None:
-        with _block.lock:
+        if resolved_height is not None:
             _hash_to_height.cache[block_hash] = resolved_height
             _block.cache[resolved_height] = result
 
