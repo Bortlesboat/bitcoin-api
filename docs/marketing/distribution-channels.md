@@ -144,7 +144,7 @@
 #### a) awesome-bitcoin (1.3K stars)
 **URL:** https://github.com/igorbarinov/awesome-bitcoin
 **Action:** Submit PR to add Satoshi API under "Blockchain API and Web services" section (where mempool.space is listed).
-**Line to add:** `* [Satoshi API](https://github.com/Bortlesboat/bitcoin-api) - Self-hosted REST API for Bitcoin Core with analyzed data, MCP integration, and pip install.`
+**Line to add:** `* [Satoshi API](https://github.com/Bortlesboat/bitcoin-api) - Self-hosted REST API for Bitcoin Core with fee intelligence, MCP integration, and pip install.`
 
 #### b) Other awesome-bitcoin forks (submit to all):
 - https://github.com/sr-gi/awesome-bitcoin
@@ -294,7 +294,7 @@ Alternatives aren't great:
 
 So I built Satoshi API. One command: pip install satoshi-api
 
-78 endpoints. Analyzed data (fee recommendations, mempool scoring).
+Fee intelligence that saves money on every transaction.
 AI agent integration via MCP. Self-hosted on your own node.
 
 Open source, Apache-2.0 licensed, free forever for self-hosting.
@@ -329,7 +329,7 @@ What's the most painful API integration you've dealt with?
 **URL:** https://github.com/public-apis/public-apis
 **Impact:** MEDIUM (293K stars, massive discovery)
 **Action:** Submit PR to add under "Cryptocurrency" category.
-**Format:** `| Satoshi API | Bitcoin Core REST API with analyzed data | `apiKey` | Yes | Yes | [Link](https://bitcoinsapi.com/docs) |`
+**Format:** `| Satoshi API | Bitcoin Core REST API with fee intelligence | `apiKey` | Yes | Yes | [Link](https://bitcoinsapi.com/docs) |`
 
 #### d) AlternativeTo
 **URL:** https://alternativeto.net/ (click user icon > "Suggest new application")
@@ -568,10 +568,10 @@ What's the most painful API integration you've dealt with?
 ## DRAFT COPY BANK
 
 ### One-liner (for directories/listings):
-"Self-hosted REST API for Bitcoin Core with analyzed data, MCP integration, and pip install."
+"Self-hosted REST API for Bitcoin Core with fee intelligence, MCP integration, and pip install."
 
 ### Two-liner (for awesome-lists):
-"Turn your Bitcoin node into a developer-friendly REST API. One command install, 78 endpoints with analyzed data (fee recommendations, mempool scoring), AI agent integration via MCP."
+"Turn your Bitcoin node into a developer-friendly REST API. One command install, fee intelligence that saves money on every transaction, AI agent integration via MCP."
 
 ### Elevator pitch (for forums/posts):
 "Satoshi API is the SQLite of Bitcoin APIs. One `pip install` gives you a REST API wrapping your Bitcoin Core node with analyzed data -- fee recommendations, mempool congestion scores, decoded transactions -- not raw RPC output. It's the only Bitcoin API with MCP integration for AI agents. Self-hosted, open-source, Apache-2.0 licensed."
