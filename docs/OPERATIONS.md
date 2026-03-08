@@ -230,7 +230,7 @@ POSTHOG_ENABLED=true             # Set to false to disable (default)
 
 ## 7. Analytics Dashboard (Admin Only)
 
-Ten endpoints + a visual dashboard that show how people use your API. All require the admin key.
+15 endpoints + a visual dashboard that show how people use your API. All require the admin key (except `/analytics/public`).
 
 ### Visual Dashboard
 
@@ -269,6 +269,21 @@ curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/slow-endp
 
 # Key retention (active keys in 24h/7d/30d vs total)
 curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/retention
+
+# Client type breakdown (ai-agent, sdk, browser, bitcoin-mcp)
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/client-types
+
+# MCP-specific funnel
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/mcp-funnel
+
+# Top traffic referrers (where visitors come from)
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/referrers
+
+# Conversion funnel (registered -> activated -> engaged, with UTM source attribution)
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/funnel
+
+# List all registered API key users
+curl -H "X-Admin-Key: YOUR_KEY" http://localhost:9332/api/v1/analytics/users
 ```
 
 Replace `YOUR_KEY` with the value from your `.env` `ADMIN_API_KEY`.

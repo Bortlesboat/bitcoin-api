@@ -177,4 +177,4 @@ Near-term priorities for Satoshi API:
 
 ---
 
-*Last updated: 2026-03-07 — Satoshi API v0.3.3 (78 endpoints, 380 tests, 20 routers)*
+*Last updated: 2026-03-08 — Satoshi API v0.3.3. Bitcoin fee intelligence that saves money on every transaction.*

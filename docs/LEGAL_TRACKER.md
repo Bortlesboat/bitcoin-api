@@ -1,6 +1,6 @@
 # Satoshi API — Legal Obligations Tracker
 
-**Last audited:** 2026-03-07
+**Last audited:** 2026-03-08
 **Audit tool:** `python scripts/legal_audit.py`
 **Skill command:** `/legal-review`
 
@@ -25,6 +25,9 @@
 | CoinGecko | BTC price data | Yes (their ToS) | `/prices` response, landing page footer, ToS Section 7 | Compliant |
 | Cloudflare | DDoS/CDN (processes IPs) | Privacy policy mention | Privacy Policy Section 3 | Compliant |
 | Bitcoin Core | Blockchain data | No (open protocol) | N/A | N/A |
+| Resend | Email addresses (transactional email delivery) | Privacy policy mention | Privacy Policy Section 3 | Compliant |
+| Upstash | IP addresses (ephemeral rate limit keys, 60s TTL) | Privacy policy mention | Privacy Policy Section 3 | Compliant |
+| PostHog | Anonymous page view events, CTA clicks, hashed email | Privacy policy mention | Privacy Policy Section 3 | Compliant |
 
 ### 2.2 Data Collection
 
@@ -51,9 +54,9 @@
 | Disclaimer | Location | Status |
 |------------|----------|--------|
 | "Not financial advice" | `X-Data-Disclaimer` header (all API responses) | Active |
-| Fee estimate disclaimer | ToS Section 6 | Active |
-| Price data disclaimer | ToS Section 6 | Active |
-| Broadcast disclaimer | ToS Section 6 | Active |
+| Fee estimate disclaimer | ToS Section 7 | Active |
+| Price data disclaimer | ToS Section 7 | Active |
+| Broadcast disclaimer | ToS Section 7 | Active |
 | Landing page disclaimer | Footer text | Active |
 
 ### 2.5 License Compliance
@@ -100,6 +103,7 @@ These events MUST trigger a `/legal-review`:
 | Date | Tool | Result | Issues Found | Issues Fixed |
 |------|------|--------|-------------|--------------|
 | 2026-03-07 | Initial setup | N/A | All documents created from scratch | N/A |
+| 2026-03-08 | Manual audit | Pass | Privacy policy missing 5 data fields (referrer URL, client type, registration IP, Stripe customer ID, subscription status); ToS section references wrong (6→7); third-party table missing Resend/Upstash/PostHog | All fixed |
 
 ---
 

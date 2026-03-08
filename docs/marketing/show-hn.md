@@ -2,36 +2,37 @@
 
 ## Title
 
-Show HN: Satoshi API -- Self-hosted REST API for Bitcoin Core nodes
+Show HN: I built a Bitcoin fee API that tells you when to send (not just the fee rate)
 
 ## Body
 
-I run a Bitcoin full node. I wanted to build apps on top of it, but Bitcoin Core's JSON-RPC is painful: raw hex blobs, no caching, no REST conventions. The alternatives require 64GB RAM to self-host (Esplora) or cost $100+/mo (BlockCypher, GetBlock).
+Every Bitcoin API gives you a fee rate — "4.12 sat/vB." That number alone doesn't tell you what to do. Is the mempool clearing? Should you wait an hour and save 60%? Is now actually a good time?
 
-So I built Satoshi API:
+I built Satoshi API to answer the actual question: **should I send now, or wait?**
 
-    pip install satoshi-api && satoshi-api
+    curl https://bitcoinsapi.com/api/v1/fees/landscape
 
-That gives you 76 REST endpoints wrapping your node with analyzed, structured JSON. Fee estimates come with "send now or wait?" recommendations. Transactions come decoded with input/output analysis. The mempool gets a congestion score and fee buckets.
+That returns a fee recommendation with mempool context — congestion level, trend direction, and a plain-English verdict like "Fees are low. Good time to send."
 
-Stack: FastAPI + SQLite (WAL mode), runs on the same box as your node.
+**Why this exists:**
 
-What makes it different:
+I was building a wallet side project and realized I was writing the same fee analysis logic for the third time — fetching multiple fee targets, checking mempool depth, deciding whether to recommend waiting. That code should be an API.
 
-- **Self-hosted by default.** Python package, runs wherever your node runs. The SQLite of Bitcoin APIs.
-- **Analyzed data.** Fee landscape with trend analysis, mempool congestion scores, block weight utilization -- stuff you'd otherwise compute yourself from 5 RPC calls.
-- **MCP integration.** Ships with bitcoin-mcp so AI agents (Claude, GPT) can query your node directly via tool calls. I haven't seen another Bitcoin API with this, but I'd love to be wrong.
-- **Real-time streams.** SSE endpoints for new blocks and fee updates. No polling.
+**What it actually saves you:**
 
-What it's NOT: not an address indexer (that's Electrum/Esplora), not multi-chain, not trying to replace block explorers. It's a clean interface to YOUR node's data.
+- **Money.** If you're batching payouts or consolidating UTXOs, sending during a high-fee spike vs waiting 2 hours can be a 10x difference. The `/fees/landscape` endpoint tells you which situation you're in.
+- **Time.** Real-time SSE streams push fee updates every 30s. Build alerts ("notify me when fees drop below 5 sat/vB") without polling. Stop watching mempool.space.
+- **Developer time.** It's also the only Bitcoin API with MCP support (on the Anthropic MCP Registry), so AI agents can check fees and verify payments without custom code.
 
-Honest limitation: address balance lookups use `scantxoutset` which can be slow (~30s on first call for busy addresses). Results are cached, but if you need instant address lookups at scale, you still want a dedicated indexer.
+**What it's NOT:** Not an address indexer (that's Electrum/Esplora), not multi-chain, not trying to be mempool.space. It's fee intelligence + a clean REST interface to your node's data.
 
-Also available hosted free at bitcoinsapi.com if you want to try without a node.
+**Honest limitations:** Address lookups use `scantxoutset` (~30s on first call). SQLite backend won't scale past moderate traffic. The fee analysis is only as good as what Bitcoin Core's `estimatesmartfee` provides — I'm combining and contextualizing it, not reinventing it.
+
+Free hosted at bitcoinsapi.com (no signup for GET endpoints). Self-hostable: `pip install satoshi-api`.
 
 - GitHub: https://github.com/Bortlesboat/bitcoin-api
 - PyPI: https://pypi.org/project/satoshi-api/
 - Live API: https://bitcoinsapi.com
 - Docs: https://bitcoinsapi.com/docs
 
-Happy to answer questions about the architecture, Bitcoin Core RPC quirks, or the MCP integration.
+Happy to answer questions about the fee analysis approach, Bitcoin Core RPC quirks, or the MCP integration.

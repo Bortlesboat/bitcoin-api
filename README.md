@@ -4,7 +4,7 @@
 
 # Satoshi API
 
-**Should you send Bitcoin now or wait? An API that tells you.**
+**Stop overpaying Bitcoin fees. Know when to send.**
 
 [![CI](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Bortlesboat/bitcoin-api/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/satoshi-api?color=orange)](https://pypi.org/project/satoshi-api/)
@@ -19,7 +19,7 @@
 
 ---
 
-Smart fee recommendations that combine multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." Plus 76 REST endpoints for blocks, transactions, mempool, mining, and more. One `pip install`, self-hostable, open source.
+Bad fee timing burns sats on every Bitcoin transaction. Satoshi API tells you when to send, what to pay, and whether to wait — combining multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." One `pip install`, self-hostable, open source.
 
 ## Install & Run
 
@@ -63,7 +63,7 @@ curl http://localhost:9332/api/v1/fees/recommended | jq
 
 ## For AI Agents
 
-**[bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)** — the first Bitcoin MCP server on the official Anthropic MCP Registry — gives AI assistants direct access to your Bitcoin node via [Model Context Protocol](https://modelcontextprotocol.io/). 35 tools, 6 prompts, 7 resources.
+**[bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp)** — the first Bitcoin MCP server on the official Anthropic MCP Registry — lets AI agents check fees, verify payments, and monitor addresses without human babysitting. Saves developer time: no custom Bitcoin plumbing needed.
 
 ```bash
 # Install and point at your Satoshi API instance

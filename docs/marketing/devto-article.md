@@ -1,7 +1,7 @@
 ---
 title: "Why I built a REST API for Bitcoin Core (and why raw RPC sucks)"
 published: false
-description: "Bitcoin Core's JSON-RPC is powerful but hostile to developers. Satoshi API wraps it in a clean REST layer with analyzed data, smart caching, and rate limiting. pip install, 3 lines, done."
+description: "Bitcoin Core tells you the fee rate. Satoshi API tells you whether to send now or wait — and saves you money on every transaction. pip install, 3 lines, done."
 tags: bitcoin, python, api, opensource
 cover_image:
 canonical_url: https://bitcoinsapi.com
@@ -235,7 +235,7 @@ curl https://bitcoinsapi.com/api/v1/fees/recommended
 **PyPI:**
 [pypi.org/project/satoshi-api/](https://pypi.org/project/satoshi-api/)
 
-78 endpoints. 380 tests. Zero vendor lock-in. If you're building on Bitcoin and tired of parsing raw hex, give it a look.
+Save money on every Bitcoin transaction. Know when to send. Zero vendor lock-in. If you're tired of overpaying fees or parsing raw hex, give it a look.
 
 ---
 

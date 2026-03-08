@@ -63,12 +63,15 @@ def _log_and_respond(bucket, path: str, status: int, *, request_id: str,
                      client_type: str, referrer: str,
                      response: JSONResponse,
                      record_metrics: bool = True,
-                     tier: str = "unknown") -> JSONResponse:
+                     tier: str = "unknown",
+                     client_ip: str = "",
+                     error_type: str = "") -> JSONResponse:
     """Calculate elapsed time, log usage, optionally record Prometheus metrics, return response."""
     elapsed_ms = (time.monotonic() - start_time) * 1000
     log_usage(bucket, path, status,
               method=method, response_time_ms=elapsed_ms, user_agent=user_agent,
-              client_type=client_type, referrer=referrer)
+              client_type=client_type, referrer=referrer,
+              client_ip=client_ip, error_type=error_type)
     if record_metrics:
         _norm = normalize_endpoint(path)
         REQUEST_COUNT.labels(
@@ -202,7 +205,9 @@ def register_middleware(app: FastAPI):
                                        "Retry-After": str(retry_after),
                                    })
             return _log_and_respond(bucket, request.url.path, 429,
-                                    response=resp, record_metrics=False, **_common)
+                                    response=resp, record_metrics=False,
+                                    client_ip=client_ip, error_type="rate_limited",
+                                    **_common)
 
         # --- Daily rate limit ---
         daily_result = check_daily_limit(bucket, key_info.tier)
@@ -217,7 +222,9 @@ def register_middleware(app: FastAPI):
                                        "Retry-After": "3600",
                                    })
             return _log_and_respond(bucket, request.url.path, 429,
-                                    response=resp, record_metrics=False, **_common)
+                                    response=resp, record_metrics=False,
+                                    client_ip=client_ip, error_type="rate_limited",
+                                    **_common)
 
         # --- Circuit breaker: fast-fail for RPC-dependent endpoints ---
         path = request.url.path
@@ -241,7 +248,9 @@ def register_middleware(app: FastAPI):
                                        request_id, error_type_key="circuit_open",
                                        extra_headers={"Retry-After": str(max(1, int(remaining)))})
                 return _log_and_respond(bucket, path, 503,
-                                        response=resp, record_metrics=False, **_common)
+                                        response=resp, record_metrics=False,
+                                        client_ip=client_ip, error_type="circuit_open",
+                                        **_common)
 
         # --- Call downstream ---
         try:
@@ -251,7 +260,9 @@ def register_middleware(app: FastAPI):
             resp = _error_response(500, "Internal Server Error", "An unexpected error occurred",
                                    request_id, error_type_key="internal")
             return _log_and_respond(bucket, path, 500,
-                                    response=resp, record_metrics=False, **_common)
+                                    response=resp, record_metrics=False,
+                                    client_ip=client_ip, error_type="server_error",
+                                    **_common)
 
         # Circuit breaker: record success for RPC paths with 2xx responses
         if _is_rpc_path and 200 <= response.status_code < 300:
@@ -281,9 +292,21 @@ def register_middleware(app: FastAPI):
 
         # --- Log usage + access log ---
         elapsed_ms = (time.monotonic() - start_time) * 1000
+        _error_type = ""
+        if response.status_code >= 500:
+            _error_type = "server_error"
+        elif response.status_code == 404:
+            _error_type = "not_found"
+        elif response.status_code == 403:
+            _error_type = "forbidden"
+        elif response.status_code == 422:
+            _error_type = "validation_error"
+        elif response.status_code >= 400:
+            _error_type = "client_error"
         log_usage(bucket, path, response.status_code,
                   method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
-                  client_type=req_client_type, referrer=req_referrer)
+                  client_type=req_client_type, referrer=req_referrer,
+                  client_ip=client_ip, error_type=_error_type)
         _emit_access_log(client_ip, request.method, path, response.status_code,
                          key_info.tier, request_id, elapsed_ms)
         return response

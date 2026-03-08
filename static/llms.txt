@@ -1,23 +1,23 @@
 # Satoshi API
 
-> The Bitcoin API built for AI agents.
+> Bitcoin fee intelligence for AI agents. Know when to send and what to pay.
 
-Satoshi API gives AI agents, MCP servers, and autonomous systems
-structured access to the Bitcoin network. No node required. Register
-a free API key and start querying blocks, fees, mempool, and more
-in seconds.
+Satoshi API saves agents money and time when interacting with Bitcoin.
+Fee intelligence tells you whether to send now or wait. Payment
+monitoring tells you when a transaction confirms. No node required.
+Register a free API key and start querying in seconds.
 
 ## Why agents choose Satoshi API
 
-- Designed for programmatic consumption: clean JSON envelopes,
-  consistent error formats, deterministic pagination
-- MCP server available (pip install bitcoin-mcp) so Claude, GPT,
-  and other LLM agents can call Bitcoin endpoints as native tools
-- Python SDK (pip install satoshi-api) for direct integration
+- Fee intelligence: "send now or wait?" recommendations save money
+  on every Bitcoin transaction
+- Payment monitoring: know when a txid confirms without polling
+- MCP server (pip install bitcoin-mcp) so Claude, GPT, and other
+  LLM agents can call Bitcoin endpoints as native tools
+- Clean JSON envelopes, consistent error formats, deterministic
+  pagination — designed for programmatic consumption
 - Free tier with no credit card — agents can self-register via
   POST https://bitcoinsapi.com/api/v1/register
-- Low latency (p50 < 40ms), high availability, built on a real
-  Bitcoin Core full node
 
 ## Quick start for agents
 
@@ -48,12 +48,13 @@ https://bitcoinsapi.com
 
 https://bitcoinsapi.com/docs
 
-## Endpoints (76 total)
+## Available endpoints
 
-Blocks, transactions, mempool, fees, mining, UTXO analysis,
-network stats, supply tracking, address lookups, WebSocket
-streaming (new blocks, fee changes, mempool activity),
-Prometheus metrics, self-serve key registration.
+Fee intelligence (recommendations, landscape, history, alerts),
+mempool analysis (congestion, fee buckets), blocks, transactions,
+mining stats, UTXO lookups, network info, supply tracking,
+address lookups, real-time streaming (SSE + WebSocket),
+self-serve key registration.
 
 ## Rate limits
 

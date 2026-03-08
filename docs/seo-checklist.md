@@ -19,47 +19,39 @@
 - [x] Email: b10c fee API list (blog@b10c.me)
 - [x] SEO metrics tracker script (scripts/seo_metrics.py)
 - [x] IndexNow submission script (scripts/submit_indexnow.sh)
+- [x] **Deploy** updated code to production (Mar 8, 2026)
+- [x] **IndexNow** auto-runs on every deploy via deploy-api.sh (Mar 8)
+- [x] **Google Search Console** verified (meta tag, Mar 7)
+- [x] **Bing Webmaster Tools** verified + sitemap submitted (Mar 8)
+- [x] Weekly SEO metrics cron (Windows Scheduled Task `SatoshiSEO`, Sundays 9:07am)
+- [x] Daily analytics digest email (Windows Scheduled Task `SatoshiDigest`, 8:07am daily)
+- [x] UTM tracking on registration (utm_source/medium/campaign captured in api_keys)
+- [x] Referrer tracking endpoint (`/analytics/referrers`)
+- [x] Conversion funnel endpoint (`/analytics/funnel`)
 
 ## Manual Actions Still Required
 
-### Priority 1: Deploy New Code
-- [ ] **Deploy** updated code to production (new pages, routes, robots.txt, sitemap)
-- [ ] **Run IndexNow:** `bash scripts/submit_indexnow.sh` (after deploy)
-
-### Priority 2: Search Engine Consoles
-- [ ] **Bing Webmaster Tools** (ChatGPT uses Bing's index)
-  1. Go to https://www.bing.com/webmasters
-  2. Sign in with Microsoft account
-  3. Add site: bitcoinsapi.com
-  4. Verify via DNS TXT record or CNAME in Cloudflare
-  5. Submit sitemap: https://bitcoinsapi.com/sitemap.xml
-  6. Request indexing for all 9 URLs
-
-- [ ] **Google Search Console**
-  1. Go to https://search.google.com/search-console
-  2. Add property: bitcoinsapi.com
-  3. Verify via DNS TXT in Cloudflare
-  4. Submit sitemap
-  5. Request indexing
-
-### Priority 3: MCP Web Directories
+### Priority 1: MCP Web Directories
 - [ ] mcpmarket.com — web form (GitHub login)
 - [ ] mcpservers.org — web form (free tier)
 - [ ] mcpserverslist.com — web form
 - [ ] GitHub MCP Registry — add server.json to bitcoin-mcp repo
 
-### Priority 4: Content & Backlinks
+### Priority 2: Content & Backlinks
 - [ ] Publish dev.to article (paste docs/dev-to-article.md into dev.to/new)
 - [ ] Cross-post to Medium (Bitcoin tag)
-- [ ] Post on r/Bitcoin, r/bitcoindev (when appropriate)
+- [ ] Post on r/bitcoindev (pending mod approval)
 - [ ] Bitcoin Talk forum announcement
 - [ ] Hacker News "Show HN" post (targeting Mon/Tue for visibility)
 
-### Priority 5: Additional List Submissions
+### Priority 3: Additional List Submissions
 - [ ] Submit to awesome-python lists (API/web section)
 - [ ] Submit to awesome-self-hosted lists
 - [ ] RapidAPI — list the hosted API (free tier)
 - [ ] ProgrammableWeb — submit API listing
+
+### Optional
+- [ ] Cloudflare Web Analytics token (beacon already deployed, needs CF dashboard token in .env)
 
 ## Metrics & Monitoring
 
@@ -68,26 +60,30 @@
 python scripts/seo_metrics.py              # Full check, saves to DB
 python scripts/seo_metrics.py --report     # Latest snapshot
 python scripts/seo_metrics.py --history    # Trend over time
+python scripts/analytics_digest.py         # Full analytics digest (stdout)
+python scripts/analytics_digest.py --email # Send digest via email
 ```
 
 ### Baseline (Mar 7, 2026 — Day 0)
 | Metric | Value | Target (30 days) |
 |--------|-------|-----------------|
-| Pages live | 0/10 (not deployed) | 10/10 |
+| Pages live | 10/10 | 10/10 |
 | GitHub stars | 0 | 10+ |
 | PyPI downloads | 74 total | 500+ |
 | PRs merged | 0/5 | 3/5 |
 | Bing indexed pages | 1 | 9+ |
 | Search query mentions | 1/6 | 3/6 |
 | AI recommendation | Not mentioned | Mentioned by 1+ AI |
+| API key registrations | 10 | 50+ |
 
 ### When to Expect Results
-- **Week 1:** Pages indexed by Bing/Google after deployment + IndexNow
+- **Week 1:** Pages indexed by Bing/Google (IndexNow submitted, sitemaps submitted)
 - **Week 2-3:** Awesome-list PRs start getting reviewed/merged
 - **Week 3-4:** Search mentions should start appearing for direct queries
 - **Month 2-3:** AI models update their indexes; may start recommending
 - **Ongoing:** Each merged awesome-list PR increases AI recommendation probability
 
 ### Schedule
-Run `python scripts/seo_metrics.py` weekly (Sundays). Compare against baseline.
-Candidate for GMKtec cron: `7 9 * * 0` (Sundays 9:07am)
+- **Daily 8:07am:** Analytics digest email (traffic, funnel, errors, referrers)
+- **Weekly Sunday 9:07am:** SEO metrics snapshot to `data/seo_metrics.db`
+- **On every deploy:** IndexNow auto-submits all pages to Bing/Yandex

@@ -31,7 +31,7 @@ Everything below is built, tested, deployed, and live at https://bitcoinsapi.com
 | **WebSocket** | 1 | `/ws` (pub/sub, public + premium channels) | free+ |
 | **Registration** | 1 | `/register` (self-serve API key with ToS acceptance) | No |
 | **Billing** | 4 | `/billing/checkout`, `/billing/webhook`, `/billing/status`, `/billing/cancel` (Stripe) | free+ / Stripe sig |
-| **Analytics** | 12 | overview, requests, endpoints, errors, user-agents, latency, keys, growth, slow-endpoints, retention, client-types, mcp-funnel | Admin only |
+| **Analytics** | 15 | overview, requests, endpoints, errors, user-agents, latency, keys, growth, slow-endpoints, retention, client-types, mcp-funnel, referrers, funnel, public | Admin only (public = no auth) |
 | **Guide** | 1 | `/guide` (interactive, multi-language, use-case filtered) | No |
 | **Metrics** | 1 | `/metrics` (Prometheus text format) | Admin only |
 | **Admin UI** | 1 | `/admin/dashboard` (Chart.js visual dashboard) | Admin only |

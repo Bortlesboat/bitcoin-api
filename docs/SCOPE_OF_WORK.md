@@ -9,11 +9,11 @@
 
 ## 1. Project Overview
 
-**Satoshi API** is a developer-friendly REST API that wraps a Bitcoin Core node with analyzed, structured data. It sits in a three-layer stack: **bitcoinlib-rpc** (Python RPC client) -> **Satoshi API** (REST layer) -> **bitcoin-mcp** (AI agent interface).
+**Satoshi API** is a Bitcoin fee intelligence service that tells you when to send, what to pay, and whether to wait — saving money on every transaction. It sits in a three-layer stack: **bitcoinlib-rpc** (Python RPC client) -> **Satoshi API** (REST layer) -> **bitcoin-mcp** (AI agent interface).
 
-**Target users:** Developers building Bitcoin applications, AI agents querying blockchain data, hobbyist node operators wanting a clean API.
+**Target users:** Anyone sending Bitcoin who wants to stop overpaying fees. Developers building wallets/payment apps. AI agents that need to check fees and verify payments autonomously.
 
-**Value proposition:** One `pip install`, instant REST API over your Bitcoin node. Analyzed data (fee recommendations, mempool congestion scores, block analysis) rather than raw RPC dumps.
+**Value proposition:** Fee intelligence that saves money (send now vs wait), payment monitoring that saves time (stop watching block explorers), and AI agent integration that saves developer effort (MCP support on Anthropic Registry). One `pip install`, self-hostable, open source.
 
 ---
 

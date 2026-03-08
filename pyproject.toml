@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "satoshi-api"
 version = "0.3.3"
-description = "Smart Bitcoin fee intelligence — should you send now or wait? 76 endpoints, self-hostable."
+description = "Bitcoin fee intelligence API — know when to send and save money on every transaction. Open source, self-hostable."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"

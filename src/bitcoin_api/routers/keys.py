@@ -6,13 +6,15 @@ import time
 import threading
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from ..auth import hash_key, clear_auth_cache
 from ..cache import get_cached_node_info
 from ..db import get_db
+from ..exceptions import ERROR_TYPES, _GUIDE_URL
 from ..metrics import API_KEYS_REGISTERED
-from ..models import envelope
+from ..models import ErrorResponse, ErrorDetail, envelope
 from ..notifications import send_welcome_email, track_registration
 
 router = APIRouter(tags=["Keys"])
@@ -60,7 +62,24 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
     # Per-IP rate limit on registration
     client_ip = request.client.host if request.client else "unknown"
     if not _check_reg_rate_limit(client_ip):
-        raise HTTPException(status_code=429, detail="Too many registration attempts. Try again later.")
+        request_id = getattr(request.state, "request_id", None)
+        resp = JSONResponse(
+            status_code=429,
+            content=ErrorResponse(
+                error=ErrorDetail(
+                    type=ERROR_TYPES["rate_limit"],
+                    status=429,
+                    title="Too Many Requests",
+                    detail="Too many registration attempts. Try again later.",
+                    request_id=request_id,
+                    help_url=_GUIDE_URL,
+                )
+            ).model_dump(),
+        )
+        resp.headers["Retry-After"] = "3600"
+        if request_id:
+            resp.headers["X-Request-ID"] = request_id
+        return resp
 
     email = body.email.strip().lower()
     if not _EMAIL_RE.match(email) or len(email) > 254:

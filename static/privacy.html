@@ -53,6 +53,11 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <tr><td>HTTP status code</td><td>Every request</td><td>Error monitoring</td><td>90 days</td></tr>
 <tr><td>User-Agent string</td><td>Every request</td><td>Usage analytics, abuse prevention</td><td>90 days</td></tr>
 <tr><td>Response time (milliseconds)</td><td>Every request</td><td>Performance monitoring</td><td>90 days</td></tr>
+<tr><td>Referrer URL</td><td>Every request</td><td>HTTP Referer header, stored per-request for analytics</td><td>90 days</td></tr>
+<tr><td>Client type</td><td>Every request</td><td>Classification derived from User-Agent (e.g., browser, AI agent, SDK), stored per-request</td><td>90 days</td></tr>
+<tr><td>Registration IP</td><td>API key registration</td><td>IP address at time of API key registration, stored with key record</td><td>Until account deletion</td></tr>
+<tr><td>Stripe customer ID</td><td>Paid plan subscription</td><td>Payment processor identifier, stored locally when you subscribe to a paid plan</td><td>Until account deletion</td></tr>
+<tr><td>Subscription status</td><td>Paid plan subscription</td><td>Active/cancelled/past_due, stored locally for billing</td><td>Until account deletion</td></tr>
 </tbody>
 </table>
 

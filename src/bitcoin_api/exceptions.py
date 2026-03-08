@@ -69,9 +69,25 @@ ERROR_TYPES = {
     "node_error": f"{_ERROR_BASE}/node-error",
     "node_unreachable": f"{_ERROR_BASE}/node-unreachable",
     "unauthorized": f"{_ERROR_BASE}/unauthorized",
+    "forbidden": f"{_ERROR_BASE}/forbidden",
     "rate_limit": f"{_ERROR_BASE}/rate-limit-exceeded",
     "internal": f"{_ERROR_BASE}/internal-error",
     "circuit_open": f"{_ERROR_BASE}/circuit-open",
+}
+
+# Map HTTP status codes to (error_type_key, title) for the generic handler
+_STATUS_MAP: dict[int, tuple[str, str]] = {
+    400: ("bad_request", "Bad Request"),
+    401: ("unauthorized", "Unauthorized"),
+    403: ("forbidden", "Forbidden"),
+    404: ("not_found", "Not Found"),
+    405: ("bad_request", "Method Not Allowed"),
+    409: ("conflict", "Conflict"),
+    422: ("validation", "Unprocessable Entity"),
+    429: ("rate_limit", "Too Many Requests"),
+    500: ("internal", "Internal Server Error"),
+    502: ("node_error", "Bad Gateway"),
+    503: ("circuit_open", "Service Unavailable"),
 }
 
 
@@ -185,12 +201,17 @@ def register_exception_handlers(app: FastAPI):
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         request_id = getattr(request.state, "request_id", None)
+        type_key, title = _STATUS_MAP.get(exc.status_code, (None, None))
+        error_type = ERROR_TYPES.get(type_key) if type_key else None
+        if title is None:
+            title = f"HTTP {exc.status_code}"
         resp = JSONResponse(
             status_code=exc.status_code,
             content=ErrorResponse(
                 error=ErrorDetail(
+                    type=error_type,
                     status=exc.status_code,
-                    title="Error",
+                    title=title,
                     detail=str(exc.detail),
                     request_id=request_id,
                     help_url=_guide_help_url(request.url.path) if exc.status_code < 500 else _GUIDE_URL,
