@@ -211,7 +211,7 @@ Track the last run of each agent for staleness detection.
 | Analytics | 2026-03-08 | WARN (no stale Prometheus metric) | All-Hands | QA, Architect, Security, Admin |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |
 | Agent Advocate | 2026-03-08 | — (created) | — | — |
-| Admin Assistant | 2026-03-07 | PASS (76 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
+| Admin Assistant | 2026-03-07 | PASS (78 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
 
 ## Performance Tracking
 
