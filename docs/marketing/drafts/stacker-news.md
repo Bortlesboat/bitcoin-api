@@ -8,7 +8,7 @@ Running a full node is sovereign. Querying someone else's API to read your own b
 
 I kept building small tools on top of Bitcoin Core and hitting the same friction: fee estimates with no context, mempool data scattered across multiple RPC calls, caching that breaks near the tip because of reorgs. So I built Satoshi API -- an open-source REST layer that sits on top of your node and handles the annoying parts.
 
-`pip install satoshi-api` and you have 76 endpoints wrapping your node in structured JSON. Apache-2.0 licensed. Everything stays local.
+`pip install satoshi-api` and you have 78 endpoints wrapping your node in structured JSON. Apache-2.0 licensed. Everything stays local.
 
 **What's actually useful about it:**
 

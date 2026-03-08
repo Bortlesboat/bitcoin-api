@@ -1,6 +1,6 @@
 # Platform: r/selfhosted
 
-**Suggested Title:** Should you send Bitcoin now or wait? Self-hosted fee intelligence API -- 76 endpoints, zero third-party dependencies
+**Suggested Title:** Should you send Bitcoin now or wait? Self-hosted fee intelligence API -- 78 endpoints, zero third-party dependencies
 
 ---
 
