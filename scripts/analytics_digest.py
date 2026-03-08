@@ -20,7 +20,7 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError
 
 API_BASE = os.getenv("SATOSHI_API_URL", "https://bitcoinsapi.com")
-ADMIN_KEY = os.getenv("SATOSHI_ADMIN_KEY", "")
+ADMIN_KEY = os.getenv("SATOSHI_ADMIN_KEY", "") or os.getenv("ADMIN_API_KEY", "")
 DEFAULT_TO = "andrew.jaguars@gmail.com"
 
 
@@ -41,7 +41,7 @@ def _load_env():
 def _api(path: str, timeout: int = 15) -> dict | None:
     """GET an admin analytics endpoint. Returns parsed JSON or None on error."""
     url = f"{API_BASE}/api/v1{path}"
-    headers = {"X-Admin-Key": ADMIN_KEY}
+    headers = {"X-Admin-Key": ADMIN_KEY, "User-Agent": "SatoshiDigest/1.0"}
     try:
         req = Request(url, headers=headers)
         with urlopen(req, timeout=timeout) as resp:
@@ -152,7 +152,7 @@ def format_text(metrics: dict) -> str:
 
     funnel = metrics.get("funnel", {})
     if funnel:
-        lines.append(f"Funnel (7d): {funnel.get('registered', 0)} registered → {funnel.get('made_api_call', 0)} activated ({funnel.get('activation_rate_pct', 0)}%) → {funnel.get('engaged_10plus_calls', 0)} engaged ({funnel.get('engagement_rate_pct', 0)}%)")
+        lines.append(f"Funnel (7d): {funnel.get('registered', 0)} registered -> {funnel.get('made_api_call', 0)} activated ({funnel.get('activation_rate_pct', 0)}%) -> {funnel.get('engaged_10plus_calls', 0)} engaged ({funnel.get('engagement_rate_pct', 0)}%)")
         sources = funnel.get("top_sources", [])
         if sources:
             lines.append("  Sources: " + ", ".join(f"{s['source']}({s['count']})" for s in sources))
@@ -238,7 +238,7 @@ def main():
 
     _load_env()
     if not ADMIN_KEY:
-        print("ERROR: Set SATOSHI_ADMIN_KEY env var or add ADMIN_API_KEY to .env", file=sys.stderr)
+        print("ERROR: Set SATOSHI_ADMIN_KEY or ADMIN_API_KEY env var, or add ADMIN_API_KEY to .env", file=sys.stderr)
         sys.exit(1)
 
     print("Gathering metrics...", file=sys.stderr)
