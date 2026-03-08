@@ -1,4 +1,4 @@
-"""TTL caching for expensive RPC calls — with cache registry."""
+"""TTL caching for expensive RPC calls — with cache registry and stale fallback."""
 
 import logging
 import threading
@@ -9,6 +9,48 @@ from dataclasses import dataclass, field
 from cachetools import LRUCache, TTLCache
 
 log = logging.getLogger("bitcoin_api.cache")
+
+
+# --- Stale cache: last-known-good values that survive TTL expiry ---
+
+MAX_STALE_AGE = 3600  # seconds — refuse to serve data older than 1 hour
+_STALE_STORE_MAXSIZE = 256  # bound memory usage
+
+_stale_store: LRUCache = LRUCache(maxsize=_STALE_STORE_MAXSIZE)
+_stale_lock = threading.Lock()
+_stale_timestamps: dict[str, float] = {}  # track when each entry was stored
+
+
+def _save_stale(cache_name: str, key: str, value: object) -> None:
+    """Save a value to the stale store for fallback when node is down."""
+    compound_key = f"{cache_name}:{key}"
+    with _stale_lock:
+        _stale_store[compound_key] = value
+        _stale_timestamps[compound_key] = time.time()
+
+
+def get_stale(cache_name: str, key: str = "_") -> tuple[object, float] | None:
+    """Get a stale cached value and its age in seconds.
+
+    Returns None if no stale data or if data exceeds MAX_STALE_AGE.
+    """
+    compound_key = f"{cache_name}:{key}"
+    with _stale_lock:
+        value = _stale_store.get(compound_key)
+        timestamp = _stale_timestamps.get(compound_key)
+    if value is None or timestamp is None:
+        return None
+    age = time.time() - timestamp
+    if age > MAX_STALE_AGE:
+        return None  # too old — don't serve dangerously stale financial data
+    return value, age
+
+
+def clear_stale_store():
+    """Clear the stale store (used by tests)."""
+    with _stale_lock:
+        _stale_store.clear()
+        _stale_timestamps.clear()
 
 
 # --- Cache registry ---
@@ -36,6 +78,7 @@ def clear_all_caches():
             entry.cache.clear()
     with _snapshot_lock:
         _mempool_snapshots.clear()
+    clear_stale_store()
 
 
 def get_all_cache_stats() -> dict[str, dict]:
@@ -117,20 +160,43 @@ def get_mempool_snapshots() -> list[dict]:
         return list(_mempool_snapshots)
 
 
+# Errors that indicate node is unavailable (not application bugs).
+# RPCError included because node returns RPC errors during startup ("Loading block index").
+try:
+    from bitcoinlib_rpc.rpc import RPCError as _RPCError
+    _NODE_ERRORS = (ConnectionError, TimeoutError, OSError, _RPCError)
+except ImportError:
+    _NODE_ERRORS = (ConnectionError, TimeoutError, OSError)
+
 def _cached_rpc(entry: CacheEntry, rpc, fetcher, cache_key: str = "_"):
-    """Generic cache-through with single-flight: only one thread fetches on miss.
+    """Generic cache-through with single-flight and stale fallback.
 
     Holds the lock during fetch to prevent cache stampede — concurrent threads
     wait for the first fetcher instead of all hitting RPC simultaneously.
+
+    On RPC/connection failure, returns stale cached data (if available) instead
+    of raising, so the API degrades gracefully when the node is temporarily down.
+    Only catches connection-level errors — application bugs still propagate.
     """
-    from .metrics import CACHE_HITS, CACHE_MISSES
+    from .metrics import CACHE_HITS, CACHE_MISSES, STALE_CACHE_SERVED
     with entry.lock:
         if cache_key in entry.cache:
             CACHE_HITS.labels(cache_name=entry.name).inc()
             return entry.cache[cache_key]
         CACHE_MISSES.labels(cache_name=entry.name).inc()
-        result = fetcher(rpc)
+        try:
+            result = fetcher(rpc)
+        except _NODE_ERRORS:
+            # RPC/connection failed — try stale fallback
+            stale = get_stale(entry.name, cache_key)
+            if stale is not None:
+                value, age = stale
+                log.warning("Serving stale %s data (%.0fs old) — node unavailable", entry.name, age)
+                STALE_CACHE_SERVED.labels(cache_name=entry.name).inc()
+                return value
+            raise  # No stale data available, propagate the error
         entry.cache[cache_key] = result
+        _save_stale(entry.name, cache_key, result)
         return result
 
 
@@ -138,7 +204,7 @@ _info_fetched_at: float | None = None
 
 
 def cached_blockchain_info(rpc):
-    from .metrics import CACHE_HITS, CACHE_MISSES
+    from .metrics import CACHE_HITS, CACHE_MISSES, STALE_CACHE_SERVED
     global _info_fetched_at
     key = "info"
     with _blockchain_info.lock:
@@ -146,9 +212,19 @@ def cached_blockchain_info(rpc):
             CACHE_HITS.labels(cache_name="blockchain_info").inc()
             return _blockchain_info.cache[key]
         CACHE_MISSES.labels(cache_name="blockchain_info").inc()
-        result = rpc.call("getblockchaininfo")
+        try:
+            result = rpc.call("getblockchaininfo")
+        except _NODE_ERRORS:
+            stale = get_stale("blockchain_info", key)
+            if stale is not None:
+                value, age = stale
+                log.warning("Serving stale blockchain_info (%.0fs old) — node unavailable", age)
+                STALE_CACHE_SERVED.labels(cache_name="blockchain_info").inc()
+                return value
+            raise
         _blockchain_info.cache[key] = result
         _info_fetched_at = time.time()
+        _save_stale("blockchain_info", key, result)
         return result
 
 
@@ -212,7 +288,18 @@ def cached_block_analysis(rpc, height: int):
     from bitcoinlib_rpc.blocks import analyze_block
     from .metrics import CACHE_HITS, CACHE_MISSES
 
-    tip = cached_block_count(rpc)
+    from .metrics import STALE_CACHE_SERVED
+    try:
+        tip = cached_block_count(rpc)
+    except _NODE_ERRORS:
+        # Can't get tip — try stale block cache
+        stale = get_stale("block", str(height))
+        if stale is not None:
+            value, age = stale
+            log.warning("Serving stale block %d (%.0fs old) — node unavailable", height, age)
+            STALE_CACHE_SERVED.labels(cache_name="block").inc()
+            return value
+        raise
 
     if (tip - height) < REORG_SAFE_DEPTH:
         with _recent_block.lock:
@@ -222,6 +309,7 @@ def cached_block_analysis(rpc, height: int):
             CACHE_MISSES.labels(cache_name="recent_block").inc()
             result = analyze_block(rpc, height)
             _recent_block.cache[height] = result
+            _save_stale("block", str(height), result)
             return result
 
     with _block.lock:
@@ -231,13 +319,14 @@ def cached_block_analysis(rpc, height: int):
         CACHE_MISSES.labels(cache_name="block").inc()
         result = analyze_block(rpc, height)
         _block.cache[height] = result
+        _save_stale("block", str(height), result)
         return result
 
 
 def cached_block_by_hash(rpc, block_hash: str):
     """Analyze a block by hash, caching the result by resolved height."""
     from bitcoinlib_rpc.blocks import analyze_block
-    from .metrics import CACHE_HITS, CACHE_MISSES
+    from .metrics import CACHE_HITS, CACHE_MISSES, STALE_CACHE_SERVED
 
     with _block.lock:
         height = _hash_to_height.cache.get(block_hash)
@@ -250,13 +339,24 @@ def cached_block_by_hash(rpc, block_hash: str):
                 return _recent_block.cache[height]
 
         CACHE_MISSES.labels(cache_name="block").inc()
-        result = analyze_block(rpc, block_hash)
+        try:
+            result = analyze_block(rpc, block_hash)
+        except _NODE_ERRORS:
+            stale = get_stale("block_hash", block_hash)
+            if stale is not None:
+                value, age = stale
+                log.warning("Serving stale block %s (%.0fs old) — node unavailable", block_hash[:16], age)
+                STALE_CACHE_SERVED.labels(cache_name="block").inc()
+                return value
+            raise
         data = result.model_dump() if hasattr(result, "model_dump") else result
         resolved_height = data.get("height")
 
         if resolved_height is not None:
             _hash_to_height.cache[block_hash] = resolved_height
             _block.cache[resolved_height] = result
+            _save_stale("block", str(resolved_height), result)
+            _save_stale("block_hash", block_hash, result)
 
     return result
 

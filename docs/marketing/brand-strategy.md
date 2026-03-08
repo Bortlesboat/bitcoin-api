@@ -553,7 +553,7 @@ Turn the building process into the marketing funnel:
 
 - **"Building in Public" thread:** Monthly GitHub Discussion with decisions made, trade-offs considered, things that broke
 - **Architecture Decision Records (ADRs):** Published in the repo. Each one is content.
-- **Test coverage as a badge of honor:** "356 tests and counting" isn't just QA — it's brand.
+- **Test coverage as a badge of honor:** "380 tests and counting" isn't just QA — it's brand.
 - **Changelogs as storytelling:** Not "Fixed bug in endpoint X." Instead: "Block height queries now handle reorgs gracefully — here's why that matters and what we learned."
 
 #### Tactic 4: Experience Centers (Digital Version)

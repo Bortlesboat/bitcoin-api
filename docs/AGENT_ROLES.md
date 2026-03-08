@@ -1,10 +1,57 @@
 # Agent Employee Coordination — Satoshi API
 
-This document defines the 11 agent "employees" that maintain Satoshi API, their responsibilities, and the trigger matrix that coordinates their work.
+This document defines the 12 agent "employees" that maintain Satoshi API, their responsibilities, and the trigger matrix that coordinates their work.
 
-## The 11 Employees
+## Company Status (Quick Reference)
 
-All 11 agents report directly to the CEO (Andy). Fully flat org — no intermediate management layers.
+**All agents: read this block first. It has the volatile facts that change every release.**
+
+| Fact | Value | Updated |
+|------|-------|---------|
+| **Version** | 0.3.3 | 2026-03-08 |
+| **Endpoints** | 78 core (+ 4 indexer = 82 when enabled) | 2026-03-08 |
+| **Tests** | 359 unit + 21 e2e = 380 total | 2026-03-08 |
+| **Routers** | 20 core + 3 indexer = 23 | 2026-03-08 |
+| **Live URL** | https://bitcoinsapi.com | — |
+| **Infra cost** | ~$3/mo | 2026-03-08 |
+| **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
+| **Latest release** | v0.3.3 — Stale-while-error cache fallback, auto-start on reboot, sanitized error messages | 2026-03-08 |
+| **Launch status** | Feature-complete, awaiting distribution (Show HN, Reddit, PyPI) | 2026-03-08 |
+| **Open issues** | None critical — ToS §7 stale-data disclosure pending, /health/deep sanitized | 2026-03-08 |
+
+**When you find a fact here is wrong, update it immediately and note the date.**
+
+### The Any-Limit Filter (MANDATORY — applied to ALL decisions)
+
+Every feature, endpoint, marketing claim, and roadmap item must pass this test:
+
+> **Does it make money, save money, or save time/effort in a substantial way?**
+
+If the answer is "not really" — it's infrastructure, not product. Don't lead with it, don't prioritize it, don't brag about it.
+
+**What passes the filter:**
+- Fee intelligence ("send now or wait") — **saves money** on every Bitcoin transaction
+- Payment confirmation monitoring — **saves time** (stop watching block explorers)
+- MCP/AI agent layer — **saves time** (devs skip building Bitcoin plumbing)
+- Exchange fee comparison — **saves money** (find cheapest on-ramp)
+
+**What does NOT pass (still useful, but never lead with it):**
+- Endpoint count (nobody cares about 80 endpoints)
+- Thin RPC wrappers (raw block/tx data available everywhere)
+- Self-hosting pitch (secondary, not primary value prop)
+- Internal architecture sophistication (circuit breakers, caching — invisible to users)
+
+**Product positioning (Mar 8 pivot):**
+- FROM: "Bitcoin API with 80 endpoints"
+- TO: "Bitcoin fee intelligence that saves you money on every transaction"
+
+Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
+
+---
+
+## The 12 Employees
+
+All 12 agents report directly to the CEO (Andy). Fully flat org — no intermediate management layers.
 
 ### Strategic
 | Role | Skill | Responsibility |
@@ -12,6 +59,7 @@ All 11 agents report directly to the CEO (Andy). Fully flat org — no intermedi
 | **Product Manager** | `/pm-review` | Feature strategy, competitive gaps, prioritization, pricing, 90-day roadmap |
 | **UX/Design Lead** | `/ux-review` | Customer journey, landing page, registration flow, docs UX, error messages |
 | **CFO / Finance** | `/finance-review` | Cost analysis, unit economics, pricing validation, revenue projections, infra cost optimization |
+| **Agent/Token Advocate** | `/agent-advocate` | Ensure every decision accounts for agent consumers and token efficiency — voice of the machine at the table |
 
 ### Operations
 | Role | Skill | Script | Responsibility |
@@ -40,6 +88,10 @@ These are NOT reporting lines — they're documented so agents know who to consu
 - **Legal + Security** — compliance, data protection
 - **Analytics + PM** — usage data, feature decisions
 - **Analytics + CFO** — revenue metrics, cost tracking
+- **Agent Advocate + PM** — feature design from agent consumer perspective
+- **Agent Advocate + Architect** — response structure, token efficiency, API ergonomics
+- **Agent Advocate + UX** — agent onboarding, error self-correction, discoverability
+- **Agent Advocate + Marketing** — agent-first positioning, MCP/tool compatibility claims
 - **Chief of Staff + ALL** — org health, process gaps, standards enforcement, data lifecycle
 
 ## Design Rationale
@@ -52,7 +104,7 @@ Based on research into multi-agent patterns (Cursor's Planner/Worker/Judge hiera
 
 Key insight from Mike Mason's 2026 analysis: "Orchestrated agents on bounded tasks with human oversight produce value. Autonomous agents don't work reliably." Google's DORA Report confirms: 90% AI adoption increase → 9% bug rate climb when agents run unsupervised.
 
-**Why flat at 11:** At 11 agents with 1 human, hierarchy demotes key functions (Security under Product? Legal under Finance? No). The trigger matrix already coordinates cross-agent work. Real startups at this size are flat.
+**Why flat at 12:** At 12 agents with 1 human, hierarchy demotes key functions (Security under Product? Legal under Finance? No). The trigger matrix already coordinates cross-agent work. Real startups at this size are flat.
 
 ## Agent Run Protocol
 
@@ -87,26 +139,27 @@ When a change of the given type occurs, the listed agents should be triggered fo
 
 | Change Type | Triggers |
 |-------------|----------|
-| New endpoint added | Marketing, Security, QA Lead, Architect, PM, Ops, **Admin Assistant** |
+| New endpoint added | Marketing, Security, QA Lead, Architect, PM, Ops, **Admin Assistant**, **Agent Advocate** |
 | New data collection (PII) | Legal, Security |
 | New third-party integration | Legal, Security |
 | Pricing/tier change | Legal, Marketing, PM, Finance |
 | License change | Legal, Marketing, Architect |
 | New marketing claim | Legal |
-| Auth/rate-limit change | Security, Marketing |
+| Auth/rate-limit change | Security, Marketing, **Agent Advocate** |
 | Test count change | Marketing, QA Lead, Admin Assistant |
 | New static page | Marketing (sitemap), Architect (CSP whitelist), Admin Assistant (sitemap audit) |
 | DB schema change | Security, Architect |
 | Config/env var change | Architect, Security, Admin Assistant (env doc sync), **update OPERATIONS.md** |
 | Deployment/process change | Architect, **update OPERATIONS.md** |
-| Customer journey change | PM, UX, Marketing |
+| Customer journey change | PM, UX, Marketing, **Agent Advocate** |
 | Infrastructure cost change | Finance, Architect |
 | Competitive landscape shift | PM, Marketing |
 | Revenue/usage milestone | Finance, PM |
 | Service layer change | Security, Architect |
 | Logging/observability change | Analytics, Security, Architect |
 | Landing page / docs UX change | UX, Marketing |
-| Error message change | UX, QA Lead |
+| Response schema change | Agent Advocate, Architect, QA Lead |
+| Error message change | UX, QA Lead, **Agent Advocate** |
 | Agent added/removed/split | Ops (update AGENT_ROLES.md, all downstream docs), Admin Assistant (count sync) |
 | Data retention policy change | Ops, Legal, Analytics |
 | Process/automation change | Ops, Architect |
@@ -116,28 +169,30 @@ When a change of the given type occurs, the listed agents should be triggered fo
 
 ## Cross-Reference: Who Cares About What
 
-| File/Area | PM | UX | Finance | Legal | Marketing | Security | Architect | QA | Analytics | Ops | Admin |
-|-----------|----|----|---------|-------|-----------|----------|-----------|-----|-----------|-----|-------|
-| `static/terms.html` | - | - | - | Owner | - | - | - | - | - | - | - |
-| `static/privacy.html` | - | - | - | Owner | - | Reads | - | - | Reads | Reads | - |
-| `static/index.html` | Reads | Owner | - | Reads | Owner | Reads | - | - | - | - | Counts |
-| `middleware.py` | - | - | - | Reads | - | Owner | Reads | - | - | - | - |
-| `config.py` (pricing/tiers) | Reads | - | Reads | - | - | Reads | Owner | - | - | - | Flags |
-| `routers/*.py` | Reads | Reads | - | Reads | Reads | Reads | Owner | Reads | Reads | - | Catalog |
-| `services/*.py` | - | - | - | - | Reads | Reads | Owner | - | - | - | - |
-| `db.py` / migrations | - | - | - | - | - | Reads | Owner | - | Owner | Reads | - |
-| `docs/SCOPE_OF_WORK.md` | Reads | - | Reads | Reads | Reads | Reads | Owner | Reads | - | Reads | Counts |
-| `docs/AGENT_ROLES.md` | - | - | - | - | - | - | - | - | - | Owner | Counts |
-| `docs/OPERATIONS.md` | - | - | - | - | - | - | Reads | - | - | Owner | - |
-| `CLAUDE.md` | - | - | - | - | - | - | Owner | - | - | - | KeyFiles |
-| `tests/` | - | - | - | - | Reads | - | - | Owner | - | - | Count |
-| SEO pages (`static/*.html`) | Reads | Reads | - | - | Owner | Reads | - | - | - | - | Counts |
-| Competitor pages (`vs-*.html`) | Owner | - | Reads | - | Reads | - | - | - | - | - | - |
-| `scripts/security_check.sh` | - | - | - | - | - | Owner | - | - | - | - | - |
-| Error messages (HTTPException) | - | Owner | - | - | - | - | - | Reads | - | - | - |
-| `.env.example` | - | - | - | - | - | - | - | - | - | - | EnvSync |
-| `static/sitemap.xml` | - | - | - | - | Reads | - | - | - | - | - | URLs |
-| `pyproject.toml` (version) | - | - | - | - | - | - | - | - | - | - | Version |
+| File/Area | PM | UX | Finance | Legal | Marketing | Security | Architect | QA | Analytics | Ops | Admin | Agent |
+|-----------|----|----|---------|-------|-----------|----------|-----------|-----|-----------|-----|-------|-------|
+| `static/terms.html` | - | - | - | Owner | - | - | - | - | - | - | - | - |
+| `static/privacy.html` | - | - | - | Owner | - | Reads | - | - | Reads | Reads | - | - |
+| `static/index.html` | Reads | Owner | - | Reads | Owner | Reads | - | - | - | - | Counts | Reads |
+| `middleware.py` | - | - | - | Reads | - | Owner | Reads | - | - | - | - | Reads |
+| `config.py` (pricing/tiers) | Reads | - | Reads | - | - | Reads | Owner | - | - | - | Flags | Reads |
+| `routers/*.py` | Reads | Reads | - | Reads | Reads | Reads | Owner | Reads | Reads | - | Catalog | **Owner** |
+| `services/*.py` | - | - | - | - | Reads | Reads | Owner | - | - | - | - | Reads |
+| `db.py` / migrations | - | - | - | - | - | Reads | Owner | - | Owner | Reads | - | - |
+| `docs/SCOPE_OF_WORK.md` | Reads | - | Reads | Reads | Reads | Reads | Owner | Reads | - | Reads | Counts | Reads |
+| `docs/AGENT_ROLES.md` | - | - | - | - | - | - | - | - | - | Owner | Counts | - |
+| `docs/OPERATIONS.md` | - | - | - | - | - | - | Reads | - | - | Owner | - | - |
+| `CLAUDE.md` | - | - | - | - | - | - | Owner | - | - | - | KeyFiles | - |
+| `tests/` | - | - | - | - | Reads | - | - | Owner | - | - | Count | - |
+| SEO pages (`static/*.html`) | Reads | Reads | - | - | Owner | Reads | - | - | - | - | Counts | - |
+| Competitor pages (`vs-*.html`) | Owner | - | Reads | - | Reads | - | - | - | - | - | - | Reads |
+| `scripts/security_check.sh` | - | - | - | - | - | Owner | - | - | - | - | - | - |
+| Error messages (HTTPException) | - | Owner | - | - | - | - | - | Reads | - | - | - | **Owner** |
+| `.env.example` | - | - | - | - | - | - | - | - | - | - | EnvSync | - |
+| `static/sitemap.xml` | - | - | - | - | Reads | - | - | - | - | - | URLs | - |
+| `pyproject.toml` (version) | - | - | - | - | - | - | - | - | - | - | Version | - |
+| Guide endpoints (`/guide/*`) | - | - | - | - | - | - | - | - | - | - | - | **Owner** |
+| OpenAPI/schema | - | - | - | - | - | - | Reads | - | - | - | - | **Owner** |
 
 ## Audit Trail
 
@@ -145,32 +200,34 @@ Track the last run of each agent for staleness detection.
 
 | Agent | Last Run | Result | Triggered By | Downstream Triggers |
 |-------|----------|--------|-------------|-------------------|
-| PM | 2026-03-07 | PASS WITH WARNINGS | All-Hands | UX, Finance, Marketing |
-| UX | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Marketing |
-| Finance | 2026-03-07 | PASS | All-Hands | PM |
-| Legal | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Security, Marketing |
-| Marketing | 2026-03-07 | PASS WITH WARNINGS | All-Hands | — |
-| Security | 2026-03-07 | PASS (pentest: 3 fixed, 0 outstanding) | /security-review + pentest | — |
-| Architect | 2026-03-07 | PASS (250/250 tests) | All-Hands | QA, Marketing |
-| QA | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Architect |
-| Analytics | 2026-03-07 | PASS WITH WARNINGS | All-Hands | Legal, Security |
+| PM | 2026-03-08 | PASS WITH WARNINGS | All-Hands | Marketing, Finance, UX, Admin |
+| UX | 2026-03-08 | PASS WITH WARNINGS | All-Hands | Legal, Marketing, Admin, QA |
+| Finance | 2026-03-08 | PASS WITH ADVISORIES (3) | Manual | PM, Marketing |
+| Legal | 2026-03-08 | PASS WITH WARNINGS | All-Hands | UX, PM |
+| Marketing | 2026-03-08 | WARN (version stamps stale) | All-Hands | Admin, UX, Architect |
+| Security | 2026-03-08 | WARN (4 items) | All-Hands | QA, Architect, Admin |
+| Architect | 2026-03-08 | PASS WITH WARNINGS (4) | All-Hands | QA, Admin, Security |
+| QA | 2026-03-08 | WARN (0 stale cache tests) | All-Hands | Architect, Security, Admin |
+| Analytics | 2026-03-08 | WARN (no stale Prometheus metric) | All-Hands | QA, Architect, Security, Admin |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |
+| Agent Advocate | 2026-03-08 | — (created) | — | — |
 | Admin Assistant | 2026-03-07 | PASS (76 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
 
 ## Performance Tracking
 
 | Agent | Last 5 Runs | Issues Found | Fixed | Trigger Count |
 |-------|-------------|-------------|-------|---------------|
-| PM | 2026-03-07 | 4 | 0 | 3 |
-| UX | 2026-03-07 | 3 | 0 | 1 |
-| Finance | 2026-03-07 | 0 | 0 | 1 |
-| Legal | 2026-03-07 | 2 | 2 | 2 |
-| Marketing | 2026-03-07 | 7 | 7 | 0 |
-| Security | 2026-03-07, 2026-03-07, 2026-03-07 | 8 | 8 | 2 |
-| Architect | 2026-03-07 | 1 | 1 | 2 |
-| QA | 2026-03-07 | 2 | 2 | 1 |
-| Analytics | 2026-03-07 | 2 | 0 | 2 |
+| PM | 2026-03-07, 2026-03-08 | 5 | 0 | 4 |
+| UX | 2026-03-07, 2026-03-08 | 5 | 0 | 4 |
+| Finance | 2026-03-07, 2026-03-08, 2026-03-08 | 3 | 0 | 3 |
+| Legal | 2026-03-07, 2026-03-08 | 2 | 0 | 2 |
+| Marketing | 2026-03-07, 2026-03-08 | 4 | 0 | 4 |
+| Security | 2026-03-07, 2026-03-07, 2026-03-07, 2026-03-08 | 4 | 0 | 3 |
+| Architect | 2026-03-07, 2026-03-08 | 6 | 0 | 3 |
+| QA | 2026-03-07, 2026-03-08 | 5 | 0 | 3 |
+| Analytics | 2026-03-07, 2026-03-08 | 5 | 0 | 4 |
 | Ops | 2026-03-07 | — | — | — |
+| Agent Advocate | 2026-03-08 | — | — | — |
 | Admin Assistant | 2026-03-07 | 5 | 5 | 2 |
 
 ## Conflict Resolution Protocol
@@ -190,6 +247,7 @@ When two agents disagree, apply this priority order (highest wins):
 |----------|-----------|
 | Security wants restrictions that hurt UX | Security wins — find a UX workaround |
 | PM wants feature that Architect says is too complex | Architect proposes simpler alternative, PM decides |
+| Any agent proposes change that hurts agent experience | Agent Advocate flags it, proposing agent gets to counter, CEO decides |
 | Marketing claims something Legal hasn't approved | Legal wins — pull the claim until approved |
 | Finance says pricing is too low, PM disagrees | Model both scenarios, CEO decides |
 | QA finds bug in Architect-approved code | QA wins — fix before deploy |
@@ -215,12 +273,13 @@ When two agents disagree, apply this priority order (highest wins):
 ## Org Chart
 
 ```
-                                    CEO (Andy)
-       _____________________________________________________________
-      |     |      |      |     |      |      |     |     |         |
-     PM    UX    CFO   Legal  Mktg  Security Arch   QA  Analytics  Ops  Admin
+                                         CEO (Andy)
+       ________________________________________________________________________
+      |     |      |      |       |     |      |      |     |     |         |      |
+     PM    UX    CFO   Agent    Legal  Mktg  Security Arch   QA  Analytics  Ops  Admin
+                       Advocate
 ```
 
 All agents are peers. Collaboration pairs (documented above) handle cross-functional coordination. The trigger matrix handles change propagation. No intermediate management needed at this scale.
 
-*This file is read by all 11 agent skills at the start of every run. Update it when adding new change types, agents, or cross-references.*
+*This file is read by all 12 agent skills at the start of every run. Update it when adding new change types, agents, or cross-references.*

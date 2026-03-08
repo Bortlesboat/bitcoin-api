@@ -24,7 +24,7 @@ I also built an MCP server ([bitcoin-mcp](https://github.com/Bortlesboat/bitcoin
 
 The hosted version at bitcoinsapi.com works with no signup for GET endpoints. Self-hosting is `pip install satoshi-api` -- your node, your data, no third-party dependencies.
 
-Solo project. 335 unit tests, 21 e2e tests. Apache-2.0 license. Feedback welcome.
+Solo project. 359 unit tests, 21 e2e tests. Apache-2.0 license. Feedback welcome.
 
 - GitHub: https://github.com/Bortlesboat/bitcoin-api
 - Live docs: https://bitcoinsapi.com/docs

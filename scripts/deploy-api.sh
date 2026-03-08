@@ -74,6 +74,21 @@ if [ "$HTTP_CODE" = "200" ]; then
     echo "URL: https://bitcoinsapi.com"
     echo "$(date '+%Y-%m-%d %H:%M:%S') — Deploy complete"
 
+    # Auto-tag release if not already tagged
+    echo ""
+    echo "[Post-deploy] Checking release tag..."
+    VERSION=$(grep -m1 'version' pyproject.toml | sed 's/.*"\(.*\)".*/\1/')
+    if ! git rev-parse "v$VERSION" >/dev/null 2>&1; then
+        if [[ $(git status --porcelain | wc -l | tr -d ' ') -eq 0 ]]; then
+            git tag -a "v$VERSION" -m "Release v$VERSION — $(date '+%Y-%m-%d')"
+            echo "  Tagged v$VERSION"
+        else
+            echo "  Skipping tag (uncommitted changes)"
+        fi
+    else
+        echo "  Already tagged v$VERSION"
+    fi
+
     # Submit updated pages to search engines via IndexNow
     echo ""
     echo "[Post-deploy] Submitting pages to IndexNow..."

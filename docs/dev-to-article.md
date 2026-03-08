@@ -149,4 +149,4 @@ The API currently covers blocks, transactions, mempool, fees, mining, and networ
 - **PyPI**: [pypi.org/project/satoshi-api/](https://pypi.org/project/satoshi-api/)
 - **Comparison with other Bitcoin APIs**: [bitcoinsapi.com/best-bitcoin-api-for-developers](https://bitcoinsapi.com/best-bitcoin-api-for-developers)
 
-Apache-2.0 licensed, 335 unit tests + 21 e2e tests (356 total), CI pipeline. If you run a node and want a clean API on top of it, I'd love feedback — open an issue or drop a comment below.
+Apache-2.0 licensed, 359 unit tests + 21 e2e tests (380 total), CI pipeline. If you run a node and want a clean API on top of it, I'd love feedback — open an issue or drop a comment below.

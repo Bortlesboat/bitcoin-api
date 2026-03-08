@@ -65,7 +65,7 @@ def health_deep(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
         },
         "sync_progress": sync,
         "circuit_breaker": rpc_breaker.get_status(),
-        "background_jobs": get_job_health(),
+        "background_jobs": get_job_health(tier=tier),
         "usage_buffer_pending": usage_buffer.pending_count,
         "uptime_seconds": int(time.time() - _start_time),
     }

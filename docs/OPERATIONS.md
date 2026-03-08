@@ -378,6 +378,38 @@ python scripts/privacy_check.py --all
 
 # Trigger advisory (shows which agents to run for changed files)
 python scripts/trigger_check.py
+
+# Quick diagnostic (checks every silo: node, tunnel, API, cache, DB, git)
+bash scripts/diagnose.sh
+
+# Diagnose single silo
+bash scripts/diagnose.sh --silo node
+bash scripts/diagnose.sh --silo api,db
+
+# Machine-readable diagnostic (for scripts/monitoring)
+bash scripts/diagnose.sh --json
+
+# With deep health (circuit breaker, uptime, cache stats)
+ADMIN_API_KEY=<key> bash scripts/diagnose.sh
+```
+
+### Version Management
+
+```bash
+# Show current version state
+bash scripts/release.sh status
+
+# List all tagged releases
+bash scripts/release.sh list
+
+# Tag current HEAD as release (reads version from pyproject.toml)
+bash scripts/release.sh tag
+
+# Show what changed since a version
+bash scripts/release.sh diff v0.3.2
+
+# Safely revert to a tagged version (creates backup branch first)
+bash scripts/release.sh revert v0.3.2
 ```
 
 ---
@@ -397,9 +429,9 @@ curl "https://bitcoinsapi.com/api/v1/guide?use_case=transactions&lang=curl"
 
 ---
 
-## 12. Agent Employees (11 Agents — Claude Code Skills)
+## 12. Agent Employees (12 Agents — Claude Code Skills)
 
-The project has 11 specialized agents (flat org, all report to CEO) you can run as slash commands:
+The project has 12 specialized agents (flat org, all report to CEO) you can run as slash commands:
 
 | Command | Role | What it does |
 |---------|------|-------------|
@@ -412,9 +444,10 @@ The project has 11 specialized agents (flat org, all report to CEO) you can run 
 | `/architecture-review` | Architect | SCOPE_OF_WORK currency, CLAUDE.md, code quality, module coupling |
 | `/qa-review` | QA Lead | Test coverage, test-to-SOW sync, regression scanning |
 | `/analytics-review` | Analytics | Audits data collection, logging, analytics endpoints |
+| `/agent-advocate` | Agent/Token Advocate | Agent consumer experience, token efficiency, response design, MCP compatibility |
 | `/ops-review` | Chief of Staff | Data lifecycle, metrics, process automation, standards, org maintenance |
 | `/admin-assistant` | Admin Assistant | Endpoint count stamping, doc consistency, guide catalog sync, cross-file reference audits |
-| `/all-hands` | Orchestrator | Runs ALL 11 agents, consolidated dashboard, conflict detection, CEO action items |
+| `/all-hands` | Orchestrator | Runs ALL 12 agents, consolidated dashboard, conflict detection, CEO action items |
 
 **Deprecated wrappers** (backward compat — run successor agents):
 | `/code-review` | → `/qa-review` + `/architecture-review` |

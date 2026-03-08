@@ -15,3 +15,6 @@ start-api.bat
 logs/
 docs/LLC_PREP.md
 docs/BUSINESS_PLAN.md
+.coverage
+requirements.lock
+scripts/run-*.bat

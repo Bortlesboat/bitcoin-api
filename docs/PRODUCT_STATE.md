@@ -64,7 +64,7 @@ Everything below is built, tested, deployed, and live at https://bitcoinsapi.com
 |-------|--------|
 | **Python SDK** | `sdk/satoshi_api/` -- zero-dependency, typed, auto-retry on 429, supports self-hosted + hosted. `register()` bug fixed (was sending empty body). Link on landing page. |
 | **3 example projects** | `examples/block-tracker/`, `examples/fee-monitor/`, `examples/mempool-monitor/` -- each with README, requirements.txt, runnable script |
-| **Interactive guide** | `/api/v1/guide` -- use-case filtering, multi-language code examples (Python, curl, JS), covers all 76 endpoints |
+| **Interactive guide** | `/api/v1/guide` -- use-case filtering, multi-language code examples (Python, curl, JS), covers all 78 endpoints |
 | **OpenAPI / Swagger** | `/docs` (Swagger UI) + `/redoc` (ReDoc) -- auto-generated, metadata includes contact, license, terms, servers |
 | **Self-hosting guide** | `docs/self-hosting.md` + `docs/bitcoin-conf-example.conf` -- complete setup from zero |
 | **Blog post** | `blog-post.md` -- architecture deep-dive, ready for dev.to |
@@ -133,13 +133,13 @@ Everything below is built, tested, deployed, and live at https://bitcoinsapi.com
 
 | Type | Count | Detail |
 |------|-------|--------|
-| **Unit tests** | 335 | `tests/test_api.py` (235) + `test_notifications.py` (9) + `test_rate_limit_redis.py` (6) + indexer tests (85) -- all passing |
+| **Unit tests** | 359 | `tests/test_api.py` (235) + `test_notifications.py` (9) + `test_rate_limit_redis.py` (6) + indexer tests (85) -- all passing |
 | **E2E tests** | 21 | `tests/test_e2e.py` -- against live node |
 | **Load test** | 1 | `tests/locustfile.py` -- 8 weighted endpoints, 50 users, 0 errors, p95 < 500ms (4ms median) |
 | **Security script** | 1 | `scripts/security_check.sh` -- 9 checks, all passing |
 | **Legal audit** | 1 | `scripts/legal_audit.py` -- 10 areas |
 | **Staging check** | 1 | `scripts/staging-check.sh` -- pre-deploy validation (CSP, headers, docs, endpoints) |
-| **Total** | **356 tests + 3 audit scripts** | |
+| **Total** | **380 tests + 3 audit scripts** | |
 
 ---
 
@@ -252,7 +252,7 @@ The three-layer stack (bitcoinlib-rpc -> Satoshi API -> bitcoin-mcp) positions u
 
 ### What Are We Strongest At?
 
-**Developer experience and product completeness.** 76 endpoints, 356 tests, Python SDK, interactive guide, 3 example projects, OpenAPI docs, self-hosting guide, SEO pages, legal compliance -- this is an absurdly well-built v0.3 product. The ratio of "things built" to "users acquired" is extremely high, which is both a strength (launch confidence) and a warning (see risks below).
+**Developer experience and product completeness.** 78 endpoints, 380 tests, Python SDK, interactive guide, 3 example projects, OpenAPI docs, self-hosting guide, SEO pages, legal compliance -- this is an absurdly well-built v0.3 product. The ratio of "things built" to "users acquired" is extremely high, which is both a strength (launch confidence) and a warning (see risks below).
 
 The security posture is genuinely impressive for a solo project. Penetration test completed and all findings resolved. Pre-commit privacy hooks. RFC 7807 errors. Constant-time auth comparison. Circuit breaker. This is production-grade infrastructure.
 
@@ -288,7 +288,7 @@ Specific risks in priority order:
 
 **Yes. Unequivocally.** The product has been ready to launch since sprint 13 (simplify for launch). Everything since then has been polish. We are past the point of diminishing returns on pre-launch work.
 
-The go-live checklist is 100% complete. All 335 unit tests pass. Security audit clean. Legal docs in place. Landing page live. Domain configured. HTTPS working. Auto-start configured. Monitoring active.
+The go-live checklist is 100% complete. All 359 unit tests pass. Security audit clean. Legal docs in place. Landing page live. Domain configured. HTTPS working. Auto-start configured. Monitoring active.
 
 There is no technical, legal, or product reason to delay. The only blocker is pressing "submit" on Hacker News and clicking "publish" on dev.to.
 

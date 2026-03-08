@@ -92,12 +92,14 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `tests/test_guide.py` | Guide endpoint tests (8 tests) |
 | `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (26 tests) |
 | `tests/test_misc.py` | Supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations (51 tests) |
-| | Total: 240 unit/integration + 9 notifications + 6 redis + 85 indexer = 340 unit + 21 e2e = 361 tests |
+| | Total: 259 unit/integration + 9 notifications + 6 redis + 85 indexer = 359 unit + 21 e2e = 380 tests |
 | `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
+| `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version) |
+| `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback |
 | `scripts/security_audit.py` | Automated security audit (10 checks) |
 | `scripts/privacy_check.py` | Pre-commit privacy enforcer (blocks secrets/PII) |
 | `scripts/trigger_check.py` | Pre-commit advisory (reports which agents to run) |
@@ -105,9 +107,9 @@ The SOW is the single source of truth for what this project is, what it does, an
 
 ## Agent Employees
 
-Satoshi API has 11 agent "employees" in a flat org. After any change, check the trigger matrix in `docs/AGENT_ROLES.md` to see if other agents should run.
+Satoshi API has 12 agent "employees" in a flat org. After any change, check the trigger matrix in `docs/AGENT_ROLES.md` to see if other agents should run.
 
-### All 11 Agents (report directly to CEO)
+### All 12 Agents (report directly to CEO)
 | Role | Skill | Responsibility |
 |------|-------|---------------|
 | **Product Manager** | `/pm-review` | Feature strategy, competitive gaps, pricing, 90-day roadmap |
@@ -119,10 +121,11 @@ Satoshi API has 11 agent "employees" in a flat org. After any change, check the 
 | **Architect** | `/architecture-review` | SCOPE_OF_WORK, CLAUDE.md, code quality, module coupling, architecture |
 | **QA Lead** | `/qa-review` | Tests, coverage gaps, regressions, test-to-docs sync |
 | **Analytics** | `/analytics-review` | Data collection changes, logging, metrics |
+| **Agent/Token Advocate** | `/agent-advocate` | Agent consumer experience, token efficiency, response design, discoverability, MCP compatibility |
 | **Chief of Staff** | `/ops-review` | Data lifecycle, metrics, process automation, standards, org maintenance, headcount |
 | **Admin Assistant** | `/admin-assistant` | Endpoint count stamping, doc consistency, guide catalog sync, cross-file reference audits |
 
-**Orchestration:** `/all-hands` runs all 11 agents with consolidated dashboard.
+**Orchestration:** `/all-hands` runs all 12 agents with consolidated dashboard.
 **Deprecated wrappers:** `/code-review` (→ qa + architecture), `/product-review` (→ pm + ux).
 
 Each agent reads the trigger matrix, does its work, then reports which other agents should run next. No auto-execution — user stays in control.

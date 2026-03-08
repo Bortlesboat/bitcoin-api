@@ -1,0 +1,17 @@
+Satoshi API
+Copyright 2026 Andy Barnes
+
+This product includes software developed by third parties.
+See LICENSE for the full Apache License 2.0 text.
+
+Third-party dependencies and their licenses:
+- FastAPI (MIT) - https://github.com/tiangolo/fastapi
+- uvicorn (BSD) - https://github.com/encode/uvicorn
+- Pydantic (MIT) - https://github.com/pydantic/pydantic
+- bitcoinlib-rpc (Apache 2.0) - https://github.com/petertodd/python-bitcoinlib
+- cachetools (MIT) - https://github.com/tkem/cachetools
+- requests (Apache 2.0) - https://github.com/psf/requests
+- prometheus-client (Apache 2.0) - https://github.com/prometheus/client_python
+- stripe (MIT) - https://github.com/stripe/stripe-python
+- resend (MIT) - https://github.com/resend/resend-python
+- posthog (MIT) - https://github.com/PostHog/posthog-python

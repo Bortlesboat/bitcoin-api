@@ -74,6 +74,13 @@ CACHE_MISSES = Counter(
     registry=REGISTRY,
 )
 
+STALE_CACHE_SERVED = Counter(
+    "stale_cache_served_total",
+    "Stale cache fallbacks served when node is unavailable",
+    ["cache_name"],
+    registry=REGISTRY,
+)
+
 CIRCUIT_BREAKER_STATE = Gauge(
     "circuit_breaker_state",
     "Circuit breaker state (0=closed, 1=half_open, 2=open)",

@@ -1,14 +1,14 @@
-# Competitive Analysis: Satoshi API v0.3.2
+# Competitive Analysis: Satoshi API v0.3.3
 
 ## Overview
 
-Satoshi API v0.3.2 provides **76 endpoints across 20 routers**, installable via `pip install satoshi-api` (Apache-2.0). It is part of a three-layer product suite:
+Satoshi API is a **Bitcoin fee intelligence service** that saves money on every transaction. It tells you when to send, what to pay, and whether to wait — then lets AI agents act on that data autonomously.
 
 **bitcoinlib-rpc** (Python RPC client) → **Satoshi API** (REST/WS/SSE) → **bitcoin-mcp** (MCP for AI agents)
 
-Live at [bitcoinsapi.com](https://bitcoinsapi.com) with Swagger docs at `/docs`. Self-hosted by default against your own Bitcoin Core node; a hosted free tier is also available.
+Live at [bitcoinsapi.com](https://bitcoinsapi.com). Free, no signup needed. Self-hostable via `pip install satoshi-api`.
 
-This document compares Satoshi API against the major Bitcoin data API providers.
+**Competitive framing:** We don't compete on endpoint count. We compete on: **Does using this save you money or time?**
 
 ---
 
@@ -67,7 +67,7 @@ BlockCypher is a hosted-only SaaS with ~40 endpoints focused on multi-chain supp
 |---|---|---|
 | Self-hosting | Yes (primary) | No |
 | Open source | Yes (Apache-2.0) | No |
-| Bitcoin depth | Deep (76 endpoints, mining, mempool, supply, analytics) | Moderate (~15 BTC-specific) |
+| Bitcoin depth | Deep (78 endpoints, mining, mempool, supply, analytics) | Moderate (~15 BTC-specific) |
 | Address lookups | Yes (optional indexer) | Yes (hosted) |
 | WebHooks/streaming | WebSocket + SSE | WebHooks (push to your URL) |
 | Pricing | Free self-hosted; hosted free tier | Free tier (3 req/sec), paid plans |
@@ -148,7 +148,7 @@ These services solve a different problem (managed node access). Satoshi API adds
 27. **Structured responses** — Consistent `{ data, meta }` envelope with `request_id` tracing on all responses.
 
 ### Testing & Quality
-28. **356 tests** — 335 unit + 21 end-to-end. Comprehensive coverage across all routers and edge cases.
+28. **380 tests** — 359 unit + 21 end-to-end. Comprehensive coverage across all routers and edge cases.
 
 ---
 
@@ -177,4 +177,4 @@ Near-term priorities for Satoshi API:
 
 ---
 
-*Last updated: 2026-03-07 — Satoshi API v0.3.2 (76 endpoints, 356 tests, 20 routers)*
+*Last updated: 2026-03-07 — Satoshi API v0.3.3 (78 endpoints, 380 tests, 20 routers)*

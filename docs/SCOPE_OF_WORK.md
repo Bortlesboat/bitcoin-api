@@ -312,9 +312,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (76 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (78 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 340 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 359 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -405,13 +405,13 @@ Errors follow the same structure:
 | 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
 | 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
-| 23 | Consistency pass: complete guide catalog (all 76 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
+| 23 | Consistency pass: complete guide catalog (all 78 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
 | 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 12 |
 | 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
-| **Total** | **78 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **340 unit + 21 e2e** |
+| **Total** | **78 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **359 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -523,7 +523,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 340 unit tests pass
+- [x] All 359 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -672,7 +672,13 @@ twine upload dist/*
 - PostHog analytics on landing page + server-side registration tracking
 - Privacy-first PostHog config: no autocapture, no session recording, IP anonymized
 
-### v0.3.3 (Security Hardening — Next)
+### v0.3.3 (Resilience & Error Handling — COMPLETE)
+- Stale-while-error cache fallback — when node is down, API serves last-known-good cached data instead of 502 errors
+- Auto-start for Bitcoin Knots and cloudflared tunnel via Registry Run keys (API already had auto-start)
+- Sanitized error messages — external-facing errors now say "Temporarily Unavailable" instead of exposing internal details
+- Unit tests expanded (340 → 359)
+
+### v0.3.4 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)
 - Subresource Integrity (SRI) for any external scripts
 - API key rotation endpoint (issue new key, deprecate old)

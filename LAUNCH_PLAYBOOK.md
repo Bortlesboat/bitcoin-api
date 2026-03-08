@@ -45,7 +45,7 @@ curl -s -H "X-API-Key: YOUR_ADMIN_KEY" https://bitcoinsapi.com/api/v1/analytics/
 |-------|---------|-------|------------|
 | 1 | **r/BitcoinDev** (Sat 10am ET) | "What would you want from a REST wrapper around Bitcoin Core RPC?" | `docs/marketing/drafts/reddit-bitcoindev.md` |
 | 2 | **r/Bitcoin** (Sat 4pm ET) | "I built an open-source REST API for Bitcoin Core -- here's what it does" | `docs/marketing/drafts/reddit-bitcoin.md` |
-| 3 | **r/selfhosted** (Sun 10am ET) | "Self-hosted Bitcoin REST API -- query your own node with 76 endpoints" | `docs/marketing/drafts/reddit-selfhosted.md` |
+| 3 | **r/selfhosted** (Sun 10am ET) | "Self-hosted Bitcoin REST API -- query your own node with 78 endpoints" | `docs/marketing/drafts/reddit-selfhosted.md` |
 
 ### Tue Mar 10: Hacker News + Stacker News
 
@@ -78,7 +78,7 @@ curl -s -H "X-API-Key: YOUR_ADMIN_KEY" https://bitcoinsapi.com/api/v1/analytics/
 ```
 I built a free Bitcoin API so developers don't have to run a node.
 
-76 endpoints. pip install. Self-hosted or hosted free tier.
+78 endpoints. pip install. Self-hosted or hosted free tier.
 
 Try it now:
 curl https://bitcoinsapi.com/api/v1/fees/recommended

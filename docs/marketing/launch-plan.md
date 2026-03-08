@@ -17,7 +17,7 @@ If any product change happened since drafts were written (new endpoint, feature,
 | Version (live) | v0.3.2 | CHANGELOG.md |
 | Version (PyPI) | 0.3.2 | pypi.org/project/satoshi-api |
 | Endpoints | 74 | router files (marketing_sync.py) |
-| Tests | 335 unit + 21 e2e (356 total) | tests/ |
+| Tests | 359 unit + 21 e2e (380 total) | tests/ |
 | Install command | `pip install satoshi-api` | pypi |
 | Live URL | https://bitcoinsapi.com | Cloudflare Tunnel |
 | GitHub stars | 0 | github.com/Bortlesboat/bitcoin-api |

@@ -89,8 +89,8 @@ def register_exception_handlers(app: FastAPI):
                 error=ErrorDetail(
                     type=ERROR_TYPES["circuit_open"],
                     status=503,
-                    title="Service Unavailable",
-                    detail=str(exc),
+                    title="Temporarily Unavailable",
+                    detail="Bitcoin node data is temporarily unavailable. Please retry shortly.",
                     request_id=request_id,
                     help_url=_GUIDE_URL,
                 )
@@ -115,7 +115,7 @@ def register_exception_handlers(app: FastAPI):
         elif exc.code == -27:
             http_status, title, err_type = 409, "Transaction Already Confirmed", ERROR_TYPES["conflict"]
         else:
-            http_status, title, err_type = 502, "Node Error", ERROR_TYPES["node_error"]
+            http_status, title, err_type = 502, "Temporarily Unavailable", ERROR_TYPES["node_error"]
 
         # Circuit breaker: 502 = node-level failure, others = node responded fine
         if http_status == 502:
@@ -148,8 +148,8 @@ def register_exception_handlers(app: FastAPI):
                 error=ErrorDetail(
                     type=ERROR_TYPES["node_unreachable"],
                     status=502,
-                    title="Node Unreachable",
-                    detail="Cannot connect to Bitcoin Core. Is the node running?",
+                    title="Temporarily Unavailable",
+                    detail="Bitcoin node data is temporarily unavailable. Please retry shortly.",
                     request_id=request_id,
                     help_url=_GUIDE_URL,
                 )

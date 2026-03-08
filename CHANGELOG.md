@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.3] - 2026-03-08
+
+### Added
+- **Stale cache fallback** — when Bitcoin node is down, API serves last-known-good cached data instead of 502 errors. Applies to fees, mempool, blocks, status, network, and all `_cached_rpc` endpoints.
+- Auto-start for Bitcoin Knots and cloudflared tunnel via Registry Run keys (previously only the API had auto-start)
+
+### Changed
+- Error messages sanitized — external-facing errors now say "Temporarily Unavailable" instead of exposing internal details like "Is the node running?" or "Circuit breaker OPEN"
+- Cache module uses stale-while-error pattern: fresh data is saved to a secondary store that survives TTL expiry
+
+### Fixed
+- **Site down after PC reboot** — Bitcoin Knots and cloudflared tunnel now auto-start on logon. Previously only the API process had auto-start, so reboots left the site returning 530/502.
+- **cloudflared Windows service broken** — service ran as SYSTEM but config was in user profile. Replaced with user-level Registry Run key that finds config correctly.
+
 ## [0.3.2] - 2026-03-07
 
 ### Added

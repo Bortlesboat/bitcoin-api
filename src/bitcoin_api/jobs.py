@@ -23,14 +23,25 @@ _last_error: str | None = None
 _restart_count: int = 0
 
 
-def get_job_health() -> dict:
-    """Return background job health metrics."""
+def get_job_health(tier: str = "free") -> dict:
+    """Return background job health metrics.
+
+    Raw error details are only exposed to admin/pro tiers.
+    Free-tier users see a generic message to avoid leaking internals.
+    """
+    if _last_error is not None and tier in ("admin", "pro", "enterprise"):
+        error_detail = _last_error
+    elif _last_error is not None:
+        error_detail = "Node communication error"
+    else:
+        error_detail = None
+
     return {
         "last_run": _last_run_time,
         "last_success": _last_success_time,
         "run_count": _run_count,
         "error_count": _error_count,
-        "last_error": _last_error,
+        "last_error": error_detail,
         "restart_count": _restart_count,
         "thread_alive": _bg_thread.is_alive() if _bg_thread else False,
     }

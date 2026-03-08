@@ -68,7 +68,7 @@
 #### e) r/Python (1.3M members)
 **URL:** https://reddit.com/r/Python
 **What to write:** Focus on the Python/FastAPI implementation. Code quality, typing, testing.
-**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 78 endpoints, 356 tests, pip installable"
+**Draft title:** "I built a production Bitcoin REST API with FastAPI -- 78 endpoints, 380 tests, pip installable"
 **Rules:** Must be about the Python aspects, not Bitcoin evangelism.
 
 #### f) r/FastAPI (~30K members)

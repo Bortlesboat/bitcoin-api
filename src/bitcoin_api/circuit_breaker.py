@@ -56,7 +56,7 @@ class CircuitBreaker:
         if state == CircuitState.OPEN:
             remaining = self._recovery_timeout - (time.time() - self._last_failure_time)
             raise CircuitOpenError(
-                f"Circuit breaker OPEN -- Bitcoin node unavailable. "
+                f"Bitcoin node data is temporarily unavailable. "
                 f"Retry in {max(1, int(remaining))}s"
             )
 

@@ -64,11 +64,11 @@ def test_rpc_error_generic(client, mock_rpc):
 
 
 def test_connection_error(client, mock_rpc):
-    """ConnectionError should return 502 Node Unreachable."""
+    """ConnectionError should return 502 Temporarily Unavailable."""
     mock_rpc.call.side_effect = ConnectionError("refused")
     resp = client.get("/api/v1/network")
     assert resp.status_code == 502
-    assert "Node Unreachable" in resp.json()["error"]["title"]
+    assert "Temporarily Unavailable" in resp.json()["error"]["title"]
 
 
 def test_catch_all_500(client, mock_rpc):

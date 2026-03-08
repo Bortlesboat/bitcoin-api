@@ -236,8 +236,8 @@ def register_middleware(app: FastAPI):
                 rpc_breaker.before_call()
             except CircuitOpenError:
                 remaining = rpc_breaker._recovery_timeout - (time.time() - rpc_breaker._last_failure_time)
-                resp = _error_response(503, "Service Unavailable",
-                                       "Circuit breaker OPEN -- Bitcoin node unavailable. Fast-failing to avoid delays.",
+                resp = _error_response(503, "Temporarily Unavailable",
+                                       "Bitcoin node data is temporarily unavailable. Please retry shortly.",
                                        request_id, error_type_key="circuit_open",
                                        extra_headers={"Retry-After": str(max(1, int(remaining)))})
                 return _log_and_respond(bucket, path, 503,
