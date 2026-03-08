@@ -92,7 +92,7 @@ The SOW is the single source of truth for what this project is, what it does, an
 | `tests/test_guide.py` | Guide endpoint tests (8 tests) |
 | `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (26 tests) |
 | `tests/test_misc.py` | Supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations (51 tests) |
-| | Total: 235 unit/integration + 9 notifications + 6 redis + 85 indexer = 335 unit + 21 e2e = 356 tests |
+| | Total: 240 unit/integration + 9 notifications + 6 redis + 85 indexer = 340 unit + 21 e2e = 361 tests |
 | `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |

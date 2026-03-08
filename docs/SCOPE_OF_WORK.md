@@ -1,7 +1,7 @@
 # Satoshi API -- Scope of Work
 
-**Version:** 0.3.2
-**Date:** 2026-03-07
+**Version:** 0.3.3
+**Date:** 2026-03-08
 **Author:** Bortlesboat
 **Status:** Live -- https://bitcoinsapi.com
 
@@ -56,7 +56,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `auth.py` | API key validation, tier resolution | Strategy (tier-based) |
 | `rate_limit.py` | Per-minute sliding window (in-memory or Upstash Redis) + daily limits | Token bucket / sliding window |
 | `notifications.py` | Transactional email (Resend) + analytics events (PostHog) | Fire-and-forget side effects |
-| `cache.py` | TTL caching with reorg-safe depth awareness, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache |
+| `cache.py` | TTL caching with reorg-safe depth awareness, stale fallback for graceful degradation, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache + stale-while-error |
 | `db.py` | SQLite (WAL mode), usage logging, key storage | Repository pattern |
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
@@ -150,6 +150,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/analytics/retention` | GET | Admin key |
 | | `/api/v1/analytics/client-types` | GET | Admin key |
 | | `/api/v1/analytics/mcp-funnel` | GET | Admin key |
+| | `/api/v1/analytics/referrers` | GET | Admin key |
+| | `/api/v1/analytics/funnel` | GET | Admin key |
 | **Guide** | `/api/v1/guide` | GET | No |
 | **Metrics** | `/metrics` | GET | No |
 | **WebSocket** | `/api/v1/ws` | WS | Yes (free+) |
@@ -312,11 +314,11 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (76 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 335 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 340 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
-| Deployment | B+ | Non-root Docker, health checks. Fixed: graceful shutdown. |
+| Deployment | A- | Non-root Docker, health checks, graceful shutdown, stale-while-error fallback, auto-start on reboot. |
 
 ### 5.2 Critical Issues Fixed
 
@@ -408,7 +410,8 @@ Errors follow the same structure:
 | 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
-| **Total** | **76 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **335 unit + 21 e2e** |
+| 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
+| **Total** | **78 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **340 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -520,7 +523,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 335 unit tests pass
+- [x] All 340 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)

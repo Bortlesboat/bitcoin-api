@@ -934,7 +934,18 @@ function handleRegister(e) {
   var body = { email: email, agreed_to_terms: true };
   if (label) body.label = label;
 
-  posthog.capture('registration_submitted', { location: 'register_form' });
+  /* Capture UTM params from URL for conversion tracking */
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('utm_source')) body.utm_source = params.get('utm_source');
+  if (params.get('utm_medium')) body.utm_medium = params.get('utm_medium');
+  if (params.get('utm_campaign')) body.utm_campaign = params.get('utm_campaign');
+
+  posthog.capture('registration_submitted', {
+    location: 'register_form',
+    utm_source: body.utm_source || '',
+    utm_medium: body.utm_medium || '',
+    utm_campaign: body.utm_campaign || ''
+  });
 
   fetch('/api/v1/register', {
     method: 'POST',

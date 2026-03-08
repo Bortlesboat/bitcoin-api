@@ -123,6 +123,31 @@ def test_register_succeeds_when_posthog_fails(client):
     assert "api_key" in resp.json()["data"]
 
 
+def test_register_captures_utm_params(client):
+    """Registration should store UTM params in api_keys table."""
+    with patch("bitcoin_api.routers.keys.send_welcome_email"), \
+         patch("bitcoin_api.routers.keys.track_registration"):
+        resp = client.post("/api/v1/register", json={
+            "email": "utm-test@example.com",
+            "agreed_to_terms": True,
+            "utm_source": "reddit",
+            "utm_medium": "social",
+            "utm_campaign": "launch-2026",
+        })
+    assert resp.status_code == 200
+
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    row = conn.execute(
+        "SELECT utm_source, utm_medium, utm_campaign FROM api_keys WHERE email = ?",
+        ("utm-test@example.com",),
+    ).fetchone()
+    assert row is not None
+    assert row["utm_source"] == "reddit"
+    assert row["utm_medium"] == "social"
+    assert row["utm_campaign"] == "launch-2026"
+
+
 def test_require_api_key_anonymous_rejected():
     """require_api_key raises 403 for anonymous tier."""
     from unittest.mock import MagicMock

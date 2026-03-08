@@ -422,6 +422,93 @@ def analytics_retention():
     }
 
 
+@router.get("/referrers", dependencies=[Depends(_require_admin)])
+def analytics_referrers(
+    period: str = Query("7d", pattern="^(1h|6h|24h|7d|30d)$"),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """Top traffic referrers by request count."""
+    offset = period_sql(period)
+
+    rows = query_rows(
+        "SELECT referrer, COUNT(*) as cnt, COUNT(DISTINCT key_hash) as unique_keys "
+        "FROM usage_log WHERE ts >= datetime('now', ?) "
+        "AND referrer IS NOT NULL AND referrer != '' "
+        "GROUP BY referrer ORDER BY cnt DESC LIMIT ?",
+        (offset, limit),
+    )
+
+    return {
+        "data": [
+            {
+                "referrer": r["referrer"],
+                "hits": r["cnt"],
+                "unique_keys": r["unique_keys"],
+            }
+            for r in rows
+        ]
+    }
+
+
+@router.get("/funnel", dependencies=[Depends(_require_admin)])
+def analytics_funnel(
+    period: str = Query("7d", pattern="^(1h|6h|24h|7d|30d)$"),
+):
+    """Registration-to-usage conversion funnel."""
+    offset = period_sql(period)
+
+    # Total registrations in period
+    total_registered = query_scalar(
+        "SELECT COUNT(*) FROM api_keys WHERE created_at >= datetime('now', ?)",
+        (offset,),
+    )
+
+    # Of those, how many made at least one API call?
+    active_new_keys = query_scalar(
+        "SELECT COUNT(DISTINCT k.key_hash) FROM api_keys k "
+        "INNER JOIN usage_log u ON k.key_hash = u.key_hash "
+        "WHERE k.created_at >= datetime('now', ?)",
+        (offset,),
+    )
+
+    # Of those, how many made 10+ calls (engaged)?
+    engaged_keys = query_scalar(
+        "SELECT COUNT(*) FROM ("
+        "  SELECT u.key_hash, COUNT(*) as calls FROM api_keys k "
+        "  INNER JOIN usage_log u ON k.key_hash = u.key_hash "
+        "  WHERE k.created_at >= datetime('now', ?) "
+        "  GROUP BY u.key_hash HAVING calls >= 10"
+        ")",
+        (offset,),
+    )
+
+    # Registration sources (utm_source breakdown)
+    sources = query_rows(
+        "SELECT utm_source, COUNT(*) as cnt FROM api_keys "
+        "WHERE created_at >= datetime('now', ?) AND utm_source != '' "
+        "GROUP BY utm_source ORDER BY cnt DESC LIMIT 10",
+        (offset,),
+    )
+
+    def rate(part, whole):
+        return round(part / whole * 100, 2) if whole > 0 else 0.0
+
+    return {
+        "data": {
+            "period": period,
+            "registered": total_registered,
+            "made_api_call": active_new_keys,
+            "activation_rate_pct": rate(active_new_keys, total_registered),
+            "engaged_10plus_calls": engaged_keys,
+            "engagement_rate_pct": rate(engaged_keys, total_registered),
+            "top_sources": [
+                {"source": r["utm_source"], "count": r["cnt"]}
+                for r in sources
+            ],
+        }
+    }
+
+
 @router.get("/users", dependencies=[Depends(_require_admin)])
 def analytics_users(
     active_only: bool = Query(False),

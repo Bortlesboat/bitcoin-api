@@ -74,12 +74,18 @@ def register_static_routes(app: FastAPI):
 
     @app.get("/{filename}.{ext}", include_in_schema=False)
     def static_asset(filename: str, ext: str):
-        """Serve static image assets (png, jpg, svg, webp) from the static directory."""
-        suffix = f".{ext}"
-        if suffix not in _IMAGE_TYPES:
-            return _serve_404()
+        """Serve static assets (images + IndexNow verification key) from the static directory."""
         # Prevent path traversal
         if "/" in filename or "\\" in filename or ".." in filename:
+            return _serve_404()
+        suffix = f".{ext}"
+        # IndexNow verification key (32-char hex + .txt)
+        if suffix == ".txt" and len(filename) == 32:
+            p = _STATIC_DIR / f"{filename}{suffix}"
+            if p.exists():
+                return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
+            return _serve_404()
+        if suffix not in _IMAGE_TYPES:
             return _serve_404()
         p = _STATIC_DIR / f"{filename}{suffix}"
         if p.exists():

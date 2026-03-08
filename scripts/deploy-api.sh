@@ -73,6 +73,11 @@ if [ "$HTTP_CODE" = "200" ]; then
     echo "PID: $NEW_PID"
     echo "URL: https://bitcoinsapi.com"
     echo "$(date '+%Y-%m-%d %H:%M:%S') — Deploy complete"
+
+    # Submit updated pages to search engines via IndexNow
+    echo ""
+    echo "[Post-deploy] Submitting pages to IndexNow..."
+    bash "$API_DIR/scripts/submit_indexnow.sh" 2>/dev/null && echo "  IndexNow submitted." || echo "  IndexNow submission failed (non-blocking)."
 else
     echo ""
     echo "=== DEPLOY FAILED ==="

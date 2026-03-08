@@ -13,8 +13,8 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **Process** | `python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332` |
 | **Config** | `.env` in repo root (loaded automatically by Pydantic Settings) |
 | **Database** | `data/bitcoin_api.db` (SQLite, auto-created) |
-| **Auto-start** | Windows Scheduled Task "SatoshiAPI" runs on logon |
-| **HTTPS** | Cloudflare Tunnel (`cloudflared` Windows service) routes bitcoinsapi.com -> localhost:9332 |
+| **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task "SatoshiAPI" |
+| **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
 | **Monitoring** | UptimeRobot checks `/api/v1/health` every 5 min |
 
 ---
@@ -307,6 +307,25 @@ python scripts/seo_metrics.py
 ```
 Shows: page accessibility (all 10 pages), GitHub stars, PyPI downloads, PR merge status, Bing indexing, search mentions, API usage stats. Saves data to `data/seo_metrics.db`.
 
+### Daily analytics digest
+```bash
+# Print to stdout (test mode)
+SATOSHI_ADMIN_KEY=<key> python scripts/analytics_digest.py
+
+# Send via email
+SATOSHI_ADMIN_KEY=<key> python scripts/analytics_digest.py --email
+
+# Override recipient
+SATOSHI_ADMIN_KEY=<key> python scripts/analytics_digest.py --email --to you@example.com
+```
+Reports: requests/growth/latency/errors/client types/retention/referrers/conversion funnel. Reads admin key from env or `.env`. Designed for daily cron on GMKtec.
+
+### Submit pages to search engines (IndexNow)
+```bash
+bash scripts/submit_indexnow.sh
+```
+Auto-runs after every successful deploy via `deploy-api.sh`. Submits all 10 SEO pages to Bing/Yandex.
+
 ### Marketing drafts location
 All ready-to-post drafts are in `docs/marketing/drafts/`:
 - `reddit-bitcoindev.md` -- r/BitcoinDev (question format, post first)
@@ -429,9 +448,10 @@ python -m twine upload dist/satoshi_api-*.whl dist/satoshi_api-*.tar.gz
 ## 14. Domain & HTTPS (Cloudflare)
 
 - **Domain:** bitcoinsapi.com (Cloudflare Registrar)
-- **Tunnel:** `cloudflared` Windows service routes `bitcoinsapi.com` -> `localhost:9332`
-- **The tunnel auto-starts** with Windows (runs as a service)
-- **If the site goes down but API is running locally**, check: `sc query cloudflared` in PowerShell
+- **Tunnel:** `cloudflared` runs via Registry Run key (`HKCU\...\Run\CloudflaredTunnel`) as user, routes `bitcoinsapi.com` -> `localhost:9332`
+- **All three services auto-start on logon:** Bitcoin Knots (Registry Run), cloudflared tunnel (Registry Run), API (Scheduled Task)
+- **If the site goes down but API is running locally:** check `cloudflared tunnel info satoshi-api` for active connections. The old Windows service (`sc query cloudflared`) is broken — ignore it.
+- **If API returns 502:** Bitcoin Knots is not running. Check `netstat -ano | grep 8332`. The API will serve stale cached data for most endpoints until the node comes back.
 
 ### Cloudflare Dashboard locations
 - **DNS:** dash.cloudflare.com -> bitcoinsapi.com -> DNS

@@ -165,6 +165,39 @@ def test_analytics_mcp_funnel_requires_admin(client):
     assert resp.status_code == 403
 
 
+def test_analytics_referrers_with_admin_key(admin_client):
+    """Analytics referrers should return 200 with list of referrers."""
+    resp = admin_client.get("/api/v1/analytics/referrers?period=7d")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert isinstance(data, list)
+
+
+def test_analytics_referrers_requires_admin(client):
+    """Analytics referrers should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/referrers")
+    assert resp.status_code == 403
+
+
+def test_analytics_funnel_with_admin_key(admin_client):
+    """Analytics funnel should return 200 with funnel data."""
+    resp = admin_client.get("/api/v1/analytics/funnel?period=7d")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "registered" in data
+    assert "made_api_call" in data
+    assert "activation_rate_pct" in data
+    assert "engaged_10plus_calls" in data
+    assert "top_sources" in data
+    assert isinstance(data["top_sources"], list)
+
+
+def test_analytics_funnel_requires_admin(client):
+    """Analytics funnel should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/funnel")
+    assert resp.status_code == 403
+
+
 # --- Admin Dashboard ---
 
 

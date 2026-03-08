@@ -44,6 +44,9 @@ class RegisterRequest(BaseModel):
     email: str = Field(..., max_length=254)
     label: str | None = Field(None, max_length=100)
     agreed_to_terms: bool = False
+    utm_source: str | None = Field(None, max_length=100)
+    utm_medium: str | None = Field(None, max_length=100)
+    utm_campaign: str | None = Field(None, max_length=100)
 
 
 @router.post("/register")
@@ -74,9 +77,14 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
     key_hash = hash_key(raw_key)
     prefix = raw_key[:8]
 
+    # Capture registration source for funnel tracking
+    reg_referrer = request.headers.get("referer", "")
     conn.execute(
-        "INSERT INTO api_keys (key_hash, prefix, tier, label, email) VALUES (?, ?, 'free', ?, ?)",
-        (key_hash, prefix, body.label, email),
+        "INSERT INTO api_keys (key_hash, prefix, tier, label, email, "
+        "registration_referrer, utm_source, utm_medium, utm_campaign) "
+        "VALUES (?, ?, 'free', ?, ?, ?, ?, ?, ?)",
+        (key_hash, prefix, body.label, email,
+         reg_referrer, body.utm_source or "", body.utm_medium or "", body.utm_campaign or ""),
     )
     conn.commit()
     clear_auth_cache()
