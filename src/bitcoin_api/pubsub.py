@@ -6,6 +6,8 @@ import queue
 import threading
 from typing import Any
 
+from .metrics import WS_MESSAGES_DROPPED
+
 log = logging.getLogger("bitcoin_api.pubsub")
 
 CHANNELS = {"new_block", "new_fees", "mempool_update"}
@@ -62,6 +64,7 @@ class PubSubHub:
                 try:
                     q.put_nowait(data)
                 except asyncio.QueueFull:
+                    WS_MESSAGES_DROPPED.labels(channel=channel).inc()
                     log.debug("Dropped message on full queue for channel %s", channel)
 
     @property

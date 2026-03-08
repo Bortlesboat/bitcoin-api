@@ -6,13 +6,19 @@ from .config import settings
 
 log = logging.getLogger("bitcoin_api.stripe")
 
+_client = None
+
 
 def get_stripe_client():
+    global _client
+    if _client is not None:
+        return _client
     import stripe
     key = settings.stripe_secret_key
     if key is None:
         raise RuntimeError("Stripe not configured")
-    return stripe.StripeClient(key.get_secret_value())
+    _client = stripe.StripeClient(key.get_secret_value())
+    return _client
 
 
 def create_checkout_session(api_key_hash: str) -> str:

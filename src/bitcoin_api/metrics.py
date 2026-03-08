@@ -73,3 +73,28 @@ CACHE_MISSES = Counter(
     ["cache_name"],
     registry=REGISTRY,
 )
+
+CIRCUIT_BREAKER_STATE = Gauge(
+    "circuit_breaker_state",
+    "Circuit breaker state (0=closed, 1=half_open, 2=open)",
+    registry=REGISTRY,
+)
+
+CIRCUIT_BREAKER_TRIPS = Counter(
+    "circuit_breaker_trips_total",
+    "Number of times circuit breaker opened",
+    registry=REGISTRY,
+)
+
+WS_MESSAGES_DROPPED = Counter(
+    "websocket_messages_dropped_total",
+    "Messages dropped due to slow consumers",
+    ["channel"],
+    registry=REGISTRY,
+)
+
+RATE_LIMIT_BACKEND = Gauge(
+    "rate_limit_backend_active",
+    "Active rate limit backend (0=memory, 1=redis)",
+    registry=REGISTRY,
+)

@@ -5,7 +5,11 @@ import threading
 import time
 from enum import Enum
 
+from .metrics import CIRCUIT_BREAKER_STATE, CIRCUIT_BREAKER_TRIPS
+
 log = logging.getLogger("bitcoin_api.circuit_breaker")
+
+_STATE_VALUES = {"closed": 0, "half_open": 1, "open": 2}
 
 
 class CircuitState(Enum):
@@ -42,6 +46,7 @@ class CircuitBreaker:
             if self._state == CircuitState.OPEN:
                 if time.time() - self._last_failure_time >= self._recovery_timeout:
                     self._state = CircuitState.HALF_OPEN
+                    CIRCUIT_BREAKER_STATE.set(_STATE_VALUES["half_open"])
                     log.info("Circuit breaker -> HALF_OPEN (probing node)")
             return self._state
 
@@ -61,6 +66,7 @@ class CircuitBreaker:
                 log.info("Circuit breaker -> CLOSED (node recovered)")
             self._failure_count = 0
             self._state = CircuitState.CLOSED
+            CIRCUIT_BREAKER_STATE.set(_STATE_VALUES["closed"])
 
     def record_failure(self):
         with self._lock:
@@ -72,7 +78,9 @@ class CircuitBreaker:
                         "Circuit breaker -> OPEN after %d failures",
                         self._failure_count,
                     )
+                    CIRCUIT_BREAKER_TRIPS.inc()
                 self._state = CircuitState.OPEN
+                CIRCUIT_BREAKER_STATE.set(_STATE_VALUES["open"])
 
     def get_status(self) -> dict:
         """Return circuit breaker status for health/diagnostics."""

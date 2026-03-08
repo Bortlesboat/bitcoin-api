@@ -4,11 +4,31 @@ import hashlib
 import logging
 from dataclasses import dataclass
 
+from cachetools import TTLCache
 from fastapi import HTTPException, Request
 
 from .db import lookup_key
 
 log = logging.getLogger(__name__)
+
+# Cache DB lookups for 60s to avoid per-request queries
+_auth_cache: TTLCache = TTLCache(maxsize=256, ttl=60)
+
+
+def _cached_lookup(key_hash: str) -> dict | None:
+    """Lookup key with TTL cache layer."""
+    cached = _auth_cache.get(key_hash)
+    if cached is not None:
+        return cached
+    result = lookup_key(key_hash)
+    if result is not None:
+        _auth_cache[key_hash] = result
+    return result
+
+
+def clear_auth_cache() -> None:
+    """Clear the auth lookup cache (call after key mutations)."""
+    _auth_cache.clear()
 
 # Block-walking parameter caps per tier
 BLOCKS_CAP = {"anonymous": 144, "free": 144, "pro": 1008, "enterprise": 2016}
@@ -62,7 +82,7 @@ def authenticate(request: Request) -> ApiKeyInfo:
         log.warning("API key passed via query param (deprecated) from %s", request.client.host if request.client else "unknown")
 
     key_hash = hash_key(raw_key)
-    record = lookup_key(key_hash)
+    record = _cached_lookup(key_hash)
 
     if record is None or not record["active"]:
         return ApiKeyInfo(tier="invalid", query_param_used=via_query)

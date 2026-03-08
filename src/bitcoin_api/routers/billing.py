@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from ..auth import authenticate
+from ..auth import authenticate, clear_auth_cache
 from ..config import settings
 from ..db import get_db
 from ..models import ApiResponse, envelope
@@ -84,6 +84,7 @@ async def stripe_webhook(request: Request):
                 (api_key_hash, customer_id, subscription_id),
             )
             db.commit()
+            clear_auth_cache()
             log.info("Pro tier activated for key_hash=%s...", api_key_hash[:8])
 
     elif event_type in ("customer.subscription.updated", "customer.subscription.deleted"):
@@ -103,6 +104,7 @@ async def stripe_webhook(request: Request):
             if row:
                 db.execute("UPDATE api_keys SET tier = 'free' WHERE key_hash = ?", (row[0],))
             db.commit()
+            clear_auth_cache()
             log.info("Subscription %s canceled/deleted", sub_id)
 
     elif event_type == "invoice.payment_failed":

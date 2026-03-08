@@ -8,6 +8,37 @@ from bitcoin_api.config import settings
 
 logger = logging.getLogger(__name__)
 
+_notifications_initialized = False
+
+
+def init_notifications() -> None:
+    """One-time initialization of PostHog and Resend clients.
+
+    Call from app lifespan after settings are available.
+    """
+    global _notifications_initialized
+    if _notifications_initialized:
+        return
+
+    if settings.posthog_enabled and settings.posthog_api_key:
+        try:
+            import posthog
+            posthog.project_api_key = settings.posthog_api_key.get_secret_value()
+            posthog.host = settings.posthog_host
+            logger.info("PostHog initialized")
+        except Exception as e:
+            logger.warning("Failed to initialize PostHog: %s", e)
+
+    if settings.resend_enabled and settings.resend_api_key:
+        try:
+            import resend
+            resend.api_key = settings.resend_api_key.get_secret_value()
+            logger.info("Resend initialized")
+        except Exception as e:
+            logger.warning("Failed to initialize Resend: %s", e)
+
+    _notifications_initialized = True
+
 
 def send_welcome_email(to_email: str, api_key: str, label: str) -> bool:
     """Send welcome email with API key after registration."""
@@ -17,8 +48,6 @@ def send_welcome_email(to_email: str, api_key: str, label: str) -> bool:
 
     try:
         import resend
-
-        resend.api_key = settings.resend_api_key.get_secret_value()
 
         resend.Emails.send({
             "from": settings.resend_from_email,
@@ -52,8 +81,6 @@ def send_usage_alert(to_email: str, usage_pct: int, tier: str, key_hash: str | N
     try:
         import resend
 
-        resend.api_key = settings.resend_api_key.get_secret_value()
-
         resend.Emails.send({
             "from": settings.resend_from_email,
             "to": [to_email],
@@ -74,8 +101,6 @@ def track_registration(email: str, tier: str, label: str) -> None:
     try:
         import posthog
 
-        posthog.project_api_key = settings.posthog_api_key.get_secret_value()
-        posthog.host = settings.posthog_host
         # Hash email to avoid sending PII to PostHog
         hashed_id = hashlib.sha256(email.encode()).hexdigest()
         posthog.capture(hashed_id, "api_key_registered", {

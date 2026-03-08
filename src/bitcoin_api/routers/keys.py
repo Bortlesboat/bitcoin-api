@@ -5,10 +5,10 @@ import secrets
 import time
 import threading
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from ..auth import hash_key
+from ..auth import hash_key, clear_auth_cache
 from ..cache import get_cached_node_info
 from ..db import get_db
 from ..metrics import API_KEYS_REGISTERED
@@ -47,7 +47,7 @@ class RegisterRequest(BaseModel):
 
 
 @router.post("/register")
-def register(body: RegisterRequest, request: Request):
+def register(body: RegisterRequest, request: Request, background_tasks: BackgroundTasks):
     if not body.agreed_to_terms:
         raise HTTPException(
             status_code=422,
@@ -79,13 +79,14 @@ def register(body: RegisterRequest, request: Request):
         (key_hash, prefix, body.label, email),
     )
     conn.commit()
+    clear_auth_cache()
     API_KEYS_REGISTERED.inc()
 
-    # Send welcome email (fire-and-forget, never blocks registration)
-    send_welcome_email(email, raw_key, body.label or "default")
+    # Send welcome email as background task (non-blocking)
+    background_tasks.add_task(send_welcome_email, email, raw_key, body.label or "default")
 
-    # PostHog server-side registration event (fire-and-forget)
-    track_registration(email, "free", body.label or "default")
+    # PostHog server-side registration event as background task
+    background_tasks.add_task(track_registration, email, "free", body.label or "default")
 
     height, chain = get_cached_node_info()
     return envelope({"api_key": raw_key, "tier": "free", "label": body.label}, height=height, chain=chain)

@@ -7,10 +7,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .config import settings
-from .db import get_db, prune_old_logs, prune_fee_history
+from .db import get_db, close_db, prune_old_logs, prune_fee_history
 from .exceptions import register_exception_handlers
 from .jobs import start_background_jobs, stop_background_jobs
 from .middleware import register_middleware
+from .notifications import init_notifications
 from .rate_limit import init_redis
 from .static_routes import register_static_routes
 from . import __version__
@@ -34,6 +35,7 @@ async def lifespan(app: FastAPI):
     prune_fee_history()
     _init_api_key_gauge()
     init_redis()
+    init_notifications()
     log.info("Satoshi API starting on %s:%s", settings.api_host, settings.api_port)
     start_background_jobs()
 
@@ -76,6 +78,17 @@ async def lifespan(app: FastAPI):
     stop_background_jobs()
     from .usage_buffer import usage_buffer
     usage_buffer.flush()
+
+    # Flush PostHog analytics before shutdown
+    if settings.posthog_enabled and settings.posthog_api_key:
+        try:
+            import posthog
+            posthog.flush()
+            posthog.shutdown()
+        except Exception:
+            pass
+
+    close_db()
     log.info("Satoshi API shutting down")
 
 

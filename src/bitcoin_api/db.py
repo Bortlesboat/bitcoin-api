@@ -44,6 +44,17 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+def close_db() -> None:
+    """Close the thread-local DB connection if open."""
+    conn = getattr(_local, "conn", None)
+    if conn is not None:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        _local.conn = None
+
+
 def log_usage(
     key_hash: str | None,
     endpoint: str,
