@@ -220,6 +220,142 @@ def test_method_not_allowed(client):
     assert client.patch("/api/v1/fees").status_code == 405
 
 
+def test_fees_plan_defaults(client):
+    """Plan endpoint with no params should return valid structure (defaults to simple_send)."""
+    resp = client.get("/api/v1/fees/plan")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["transaction"]["inputs"] == 1
+    assert data["transaction"]["outputs"] == 2
+    assert data["transaction"]["address_type"] == "segwit"
+    assert data["transaction"]["estimated_vsize"] > 0
+    assert "cost_tiers" in data
+    assert "immediate" in data["cost_tiers"]
+    assert "standard" in data["cost_tiers"]
+    assert "patient" in data["cost_tiers"]
+    assert "opportunistic" in data["cost_tiers"]
+    assert data["cost_tiers"]["immediate"]["total_fee_sats"] > 0
+    assert data["recommendation"] in ("send", "wait", "urgent_only")
+    assert 0 <= data["recommendation_confidence"] <= 1.0
+    assert "delay_savings_pct" in data
+    assert "trend" in data
+    assert "available_profiles" in data
+
+
+def test_fees_plan_with_profile(client):
+    """Plan endpoint with profile preset."""
+    resp = client.get("/api/v1/fees/plan?profile=batch_payout")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["transaction"]["inputs"] == 1
+    assert data["transaction"]["outputs"] == 10
+    assert data["profile"] == "batch_payout"
+    assert "profile_description" in data
+
+
+def test_fees_plan_with_custom_params(client):
+    """Plan endpoint with explicit inputs/outputs/address_type."""
+    resp = client.get("/api/v1/fees/plan?inputs=3&outputs=2&address_type=taproot")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["transaction"]["inputs"] == 3
+    assert data["transaction"]["outputs"] == 2
+    assert data["transaction"]["address_type"] == "taproot"
+    assert data["transaction"]["script_type"] == "p2tr"
+
+
+def test_fees_plan_with_history(client):
+    """Plan endpoint should include historical comparison when fee history exists."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    for i in range(5):
+        conn.execute(
+            "INSERT INTO fee_history (ts, next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion) "
+            "VALUES (datetime('now', ?), ?, ?, ?, ?, ?, ?)",
+            (f"-{(4-i)*30} minutes", 10.0 + i * 5, 8.0 + i, 3.0 + i, 15000, 8500000, "normal"),
+        )
+    conn.commit()
+
+    resp = client.get("/api/v1/fees/plan")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "historical_comparison" in data
+    assert data["historical_comparison"]["cheapest_fee_rate"] > 0
+    # current_vs_cheapest_pct can be negative if current fees are already below historical cheapest
+    assert isinstance(data["historical_comparison"]["current_vs_cheapest_pct"], (int, float))
+
+
+def test_fees_plan_taproot_lighter(client):
+    """Taproot transactions should have lower vsize than legacy."""
+    resp_tr = client.get("/api/v1/fees/plan?inputs=1&outputs=2&address_type=taproot")
+    resp_legacy = client.get("/api/v1/fees/plan?inputs=1&outputs=2&address_type=legacy")
+    assert resp_tr.status_code == 200
+    assert resp_legacy.status_code == 200
+    assert resp_tr.json()["data"]["transaction"]["estimated_vsize"] < resp_legacy.json()["data"]["transaction"]["estimated_vsize"]
+
+
+def test_fees_plan_invalid_inputs(client):
+    """Plan endpoint with invalid inputs should return 422."""
+    resp = client.get("/api/v1/fees/plan?inputs=0")
+    assert resp.status_code == 422
+
+
+def test_fees_plan_unknown_profile(client):
+    """Unknown profile should fall back to defaults."""
+    resp = client.get("/api/v1/fees/plan?profile=nonexistent")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["transaction"]["inputs"] == 1
+    assert data["transaction"]["outputs"] == 2
+
+
+def test_fees_savings_empty(client):
+    """Savings endpoint with no fee history should return info message."""
+    resp = client.get("/api/v1/fees/savings?hours=1")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["datapoints"] == 0
+    assert "message" in data
+
+
+def test_fees_savings_with_data(client):
+    """Savings endpoint with seeded fee history should return savings analysis."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    # Seed varying fee data to create meaningful savings
+    fees = [5.0, 10.0, 20.0, 15.0, 8.0, 25.0, 12.0, 6.0, 18.0, 30.0]
+    for i, fee in enumerate(fees):
+        conn.execute(
+            "INSERT INTO fee_history (ts, next_block_fee, median_fee, low_fee, mempool_size, mempool_vsize, congestion) "
+            "VALUES (datetime('now', ?), ?, ?, ?, ?, ?, ?)",
+            (f"-{(len(fees)-i)*5} minutes", fee, fee * 0.7, fee * 0.3, 15000, 8500000, "normal"),
+        )
+    conn.commit()
+
+    resp = client.get("/api/v1/fees/savings?hours=1")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["datapoints"] == 10
+    assert data["reference_vsize"] == 141
+    assert data["always_send_now"]["avg_fee_rate"] > 0
+    assert data["optimal_timing"]["best_fee_rate"] == 5.0
+    assert data["savings_per_tx"]["sats"] > 0
+    assert data["savings_per_tx"]["percent"] > 0
+    assert "monthly_projection" in data
+    assert data["monthly_projection"]["total_savings_sats"] > 0
+    assert "fee_range" in data
+    assert data["fee_range"]["min"] == 5.0
+    assert data["fee_range"]["max"] == 30.0
+
+
+def test_fees_savings_independent_of_plan(client):
+    """Savings endpoint should work independently (no RPC dependency)."""
+    # Savings only needs DB data, not a live node — verify it works without mock_rpc issues
+    resp = client.get("/api/v1/fees/savings")
+    assert resp.status_code == 200
+    assert "data" in resp.json()
+
+
 def test_429_has_request_id(client):
     """Rate limit 429 responses should include request_id in error body."""
     for _ in range(30):

@@ -9,7 +9,15 @@ from ..cache import cached_fee_estimates, cached_raw_mempool, get_mempool_snapsh
 from ..db import get_fee_history
 from ..dependencies import get_rpc
 from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope, rpc_envelope
-from ..services.fees import analyze_mempool_blocks, calculate_fee_landscape, estimate_tx_fees, summarize_fee_history
+from ..services.fees import (
+    PROFILES,
+    analyze_mempool_blocks,
+    calculate_fee_landscape,
+    estimate_tx_fees,
+    plan_transaction,
+    simulate_fee_savings,
+    summarize_fee_history,
+)
 
 router = APIRouter(prefix="/fees", tags=["Fees"])
 
@@ -199,6 +207,44 @@ def fees_history(
     return envelope(
         {"datapoints": rows, "summary": summary, "interval": interval, "hours": hours},
     )
+
+
+@router.get("/plan", response_model=ApiResponse[dict])
+def fees_plan(
+    rpc: BitcoinRPC = Depends(get_rpc),
+    profile: str | None = Query(default=None, description="Preset profile: simple_send, exchange_withdrawal, batch_payout, consolidation"),
+    inputs: int | None = Query(default=None, ge=1, le=100, description="Number of inputs (overrides profile)"),
+    outputs: int | None = Query(default=None, ge=1, le=100, description="Number of outputs (overrides profile)"),
+    address_type: str = Query(default="segwit", description="Address type: segwit, taproot, legacy"),
+):
+    """Transaction cost planner — estimate costs across urgency tiers with wait recommendation.
+
+    Call with no params for a standard SegWit transaction, or use a profile preset.
+    Returns cost at 4 urgency tiers, delay savings %, trend analysis, and historical comparison.
+    """
+    estimates = cached_fee_estimates(rpc)
+    fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
+    snapshots = get_mempool_snapshots()
+    history_rows = get_fee_history(hours=24, interval_minutes=10)
+    data = plan_transaction(
+        fee_dict, snapshots, history_rows,
+        profile=profile, inputs=inputs, outputs=outputs, address_type=address_type,
+    )
+    return rpc_envelope(data, rpc)
+
+
+@router.get("/savings", response_model=ApiResponse[dict])
+def fees_savings(
+    hours: int = Query(default=168, ge=1, le=720, description="Hours of history to analyze (default: 168 = 7 days)"),
+):
+    """Fee savings simulation — how much you'd save with optimal timing.
+
+    Compares average fee cost vs. optimal timing over the requested period.
+    Returns savings per transaction, monthly projection, and fee range stats.
+    """
+    rows = get_fee_history(hours=hours, interval_minutes=5)
+    data = simulate_fee_savings(rows, days=hours // 24 if hours >= 24 else None)
+    return envelope(data)
 
 
 @router.get("/{target}", response_model=ApiResponse[FeeEstimateData], responses=_FEE_TARGET_EXAMPLE)
