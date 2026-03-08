@@ -18,3 +18,7 @@ User-agent: Google-Extended
 Allow: /
 
 Sitemap: https://bitcoinsapi.com/sitemap.xml
+
+# LLM-optimized documentation
+# See https://llmstxt.org for the specification
+Llms-txt: https://bitcoinsapi.com/llms.txt

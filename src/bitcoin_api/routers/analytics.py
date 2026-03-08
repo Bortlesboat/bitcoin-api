@@ -38,6 +38,35 @@ def _period_sql(period: str) -> str:
     return _PERIOD_MAP.get(period, "-24 hours")
 
 
+@router.get("/public")
+def analytics_public():
+    """Public stats for social proof on the landing page. No auth required."""
+    conn = get_db()
+
+    total_keys = conn.execute("SELECT COUNT(*) FROM api_keys WHERE active = 1").fetchone()[0]
+    total_requests = conn.execute("SELECT COUNT(*) FROM usage_log").fetchone()[0]
+
+    row = conn.execute("SELECT MIN(ts) FROM usage_log").fetchone()
+    if row[0]:
+        import datetime
+        first_ts = datetime.datetime.fromisoformat(row[0])
+        now = datetime.datetime.now(datetime.timezone.utc)
+        # Handle naive timestamps from SQLite
+        if first_ts.tzinfo is None:
+            first_ts = first_ts.replace(tzinfo=datetime.timezone.utc)
+        uptime_days = max(1, (now - first_ts).days)
+    else:
+        uptime_days = 0
+
+    return {
+        "data": {
+            "total_keys": total_keys,
+            "total_requests": total_requests,
+            "uptime_days": uptime_days,
+        }
+    }
+
+
 @router.get("/overview", dependencies=[Depends(_require_admin)])
 def analytics_overview():
     conn = get_db()
@@ -404,4 +433,40 @@ def analytics_retention():
             "retention_7d_pct": rate(active_7d, total_keys),
             "retention_30d_pct": rate(active_30d, total_keys),
         }
+    }
+
+
+@router.get("/users", dependencies=[Depends(_require_admin)])
+def analytics_users(
+    active_only: bool = Query(False),
+):
+    """List all registered API key users."""
+    conn = get_db()
+
+    query = (
+        "SELECT prefix, tier, label, email, created_at, active, email_opt_out "
+        "FROM api_keys"
+    )
+    params: tuple = ()
+
+    if active_only:
+        query += " WHERE active = 1"
+
+    query += " ORDER BY created_at DESC"
+
+    rows = conn.execute(query, params).fetchall()
+
+    return {
+        "data": [
+            {
+                "prefix": r["prefix"],
+                "tier": r["tier"],
+                "label": r["label"],
+                "email": r["email"],
+                "created_at": r["created_at"],
+                "active": bool(r["active"]),
+                "email_opt_out": bool(r["email_opt_out"]),
+            }
+            for r in rows
+        ]
     }

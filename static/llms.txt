@@ -1,0 +1,51 @@
+# Satoshi API
+
+Satoshi API turns a Bitcoin Core full node into a production-ready REST API.
+It handles caching, rate limiting, authentication, and WebSocket streaming
+so developers and AI agents can query the Bitcoin network without running
+their own node.
+
+## Base URL
+
+https://bitcoinsapi.com
+
+## Features
+
+- 74 REST endpoints covering blocks, transactions, mempool, fees, mining,
+  UTXO analysis, network stats, supply tracking, and address lookups
+- Real-time WebSocket streaming (new blocks, fee changes, mempool activity)
+- Fee estimation with historical percentile data
+- Mempool monitoring (size, fee distribution, pending transactions)
+- Block exploration (by height or hash, with transaction details)
+- Transaction lookup and raw broadcast
+- Mining stats (difficulty, hashrate, pool identification)
+- UTXO set analysis and SegWit adoption metrics
+- Prometheus metrics endpoint
+
+## Getting Started
+
+1. Register for a free API key (no credit card required):
+   POST https://bitcoinsapi.com/api/v1/register
+
+2. Include your key in requests:
+   X-API-Key: your_key_here
+
+3. Interactive API docs:
+   https://bitcoinsapi.com/docs
+
+## SDKs and Tools
+
+- Python SDK: pip install satoshi-api
+- MCP server for AI agents: pip install bitcoin-mcp
+- Self-hosted option: clone the repo and point at your own Bitcoin Core node
+
+## Rate Limits
+
+- Anonymous: lightweight GET endpoints only, 144-block cap
+- Free tier: all endpoints, 144-block cap per request
+- Pro tier: higher limits, 1008-block cap
+- Enterprise: custom limits, 2016-block cap
+
+## Contact
+
+api@bitcoinsapi.com

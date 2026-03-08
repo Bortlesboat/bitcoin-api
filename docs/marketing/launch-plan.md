@@ -10,13 +10,13 @@
 If any product change happened since drafts were written (new endpoint, feature, pricing change),
 `/marketing-sync` will catch it and update all materials automatically.
 
-## Product State (as of 2026-03-07)
+## Product State (as of 2026-03-08)
 
 | Fact | Value | Source of Truth |
 |------|-------|-----------------|
 | Version (live) | v0.3.2 | CHANGELOG.md |
-| Version (PyPI) | 0.3.2 — NEEDS UPDATE | pypi.org/project/satoshi-api |
-| Endpoints | 73 | router files (marketing_sync.py) |
+| Version (PyPI) | 0.3.2 | pypi.org/project/satoshi-api |
+| Endpoints | 74 | router files (marketing_sync.py) |
 | Tests | 335 unit + 21 e2e (356 total) | tests/ |
 | Install command | `pip install satoshi-api` | pypi |
 | Live URL | https://bitcoinsapi.com | Cloudflare Tunnel |
@@ -37,17 +37,17 @@ If any product change happened since drafts were written (new endpoint, feature,
 - [x] GitHub: issue templates, PR template, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT
 - [x] GitHub: v0.3.2 release created
 - [x] Dev.to article published
-- [ ] PyPI: publish v0.3.2 (BLOCKER — marketing says "pip install" but PyPI is stale). Build verified locally.
+- [x] PyPI: publish v0.3.2 — **DONE** (published Mar 8)
 - [ ] GitHub social preview image uploaded (og-image.svg ready in static/)
 - [ ] Bing Webmaster Tools setup
-- [x] All marketing drafts synced to 73 endpoints + Apache-2.0 license
+- [x] All marketing drafts synced to 74 endpoints + Apache-2.0 license
 - [x] SEO metrics baseline captured (2026-03-07): 10/10 pages live, 6287 req/24h, 74 PyPI downloads
 - [x] CHANGELOG updated with Sprint 15+16 entries
 - [x] ADMIN_API_KEY added to .env templates
 
 ## Marketing Channels — Execution Tracker
 
-### TIER 1: Do Now (Mar 7-8)
+### TIER 1: Reddit Weekend (Sat-Sun Mar 8-9)
 
 | Channel | Status | Draft Ready | Posted | Link |
 |---------|--------|-------------|--------|------|
@@ -55,21 +55,22 @@ If any product change happened since drafts were written (new endpoint, feature,
 | Reddit r/selfhosted | TODO | See drafts below | | |
 | Reddit r/Bitcoin | TODO | See drafts below | | |
 | Stacker News | TODO | See drafts below | | |
-| PyPI v0.3.2 publish | TODO | N/A | | |
+| PyPI v0.3.2 publish | **DONE** | N/A | Mar 8 | |
 | awesome-selfhosted PR | TODO | N/A | | |
 | awesome-fastapi PR | TODO | N/A | | |
 
-### TIER 1.5: This Weekend (Mar 8-9)
+### TIER 1.5: Hacker News (Tue Mar 10)
 
 | Channel | Status | Draft Ready | Posted | Link |
 |---------|--------|-------------|--------|------|
 | Hacker News Show HN | TODO | See drafts below | | |
 | Nostr long-form | TODO | | | |
 
-### TIER 2: Next Week (Mar 10-14)
+### TIER 2: r/Python + Next Week (Wed Mar 11+)
 
 | Channel | Status | Draft Ready | Posted | Link |
 |---------|--------|-------------|--------|------|
+| Reddit r/Python | TODO | | | |
 | Product Hunt | TODO | | | |
 | Bitcointalk | TODO | | | |
 | Delving Bitcoin | TODO | | | |
@@ -162,7 +163,7 @@ When the product changes, these materials MUST be updated:
 
 ## Key Messages (use consistently across all channels)
 
-1. **Primary:** Self-hosted REST API for Bitcoin Core. 73 endpoints. `pip install satoshi-api`.
+1. **Primary:** Self-hosted REST API for Bitcoin Core. 74 endpoints. `pip install satoshi-api`.
 2. **Differentiator:** Only Bitcoin API with native AI agent support (MCP).
 3. **Privacy angle:** Your node, your data. Queries never leave your network.
 4. **Developer angle:** Analyzed data, not raw RPC. Fees in sat/vB, congestion levels, human-readable recommendations.
@@ -170,8 +171,9 @@ When the product changes, these materials MUST be updated:
 
 ## Post Timing Strategy
 
-- Reddit: Stagger posts 4-6 hours apart to avoid looking spammy
+- Reddit (Sat-Sun Mar 8-9): Stagger posts 4-6 hours apart to avoid looking spammy
 - r/BitcoinDev first (most targeted), then r/selfhosted, then r/Bitcoin
-- HN Show HN: Sunday 11AM ET or Monday 6-8AM ET
-- Product Hunt: Tuesday 12:01AM PT
+- HN Show HN: Tuesday Mar 10, 6-8AM ET (best engagement window)
+- r/Python: Wednesday Mar 11
+- Product Hunt: Thursday Mar 13 (12:01AM PT)
 - Never post all channels same day — spread over 3-5 days

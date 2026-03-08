@@ -11,7 +11,7 @@
 
 Everything below is built, tested, deployed, and live at https://bitcoinsapi.com.
 
-### 1.1 Core API Endpoints (73 total across 20 routers)
+### 1.1 Core API Endpoints (74 total across 20 routers)
 
 | Category | Count | Key Endpoints | Auth Required |
 |----------|-------|---------------|---------------|
@@ -64,7 +64,7 @@ Everything below is built, tested, deployed, and live at https://bitcoinsapi.com
 |-------|--------|
 | **Python SDK** | `sdk/satoshi_api/` -- zero-dependency, typed, auto-retry on 429, supports self-hosted + hosted. `register()` bug fixed (was sending empty body). Link on landing page. |
 | **3 example projects** | `examples/block-tracker/`, `examples/fee-monitor/`, `examples/mempool-monitor/` -- each with README, requirements.txt, runnable script |
-| **Interactive guide** | `/api/v1/guide` -- use-case filtering, multi-language code examples (Python, curl, JS), covers all 73 endpoints |
+| **Interactive guide** | `/api/v1/guide` -- use-case filtering, multi-language code examples (Python, curl, JS), covers all 74 endpoints |
 | **OpenAPI / Swagger** | `/docs` (Swagger UI) + `/redoc` (ReDoc) -- auto-generated, metadata includes contact, license, terms, servers |
 | **Self-hosting guide** | `docs/self-hosting.md` + `docs/bitcoin-conf-example.conf` -- complete setup from zero |
 | **Blog post** | `blog-post.md` -- architecture deep-dive, ready for dev.to |
@@ -252,7 +252,7 @@ The three-layer stack (bitcoinlib-rpc -> Satoshi API -> bitcoin-mcp) positions u
 
 ### What Are We Strongest At?
 
-**Developer experience and product completeness.** 73 endpoints, 356 tests, Python SDK, interactive guide, 3 example projects, OpenAPI docs, self-hosting guide, SEO pages, legal compliance -- this is an absurdly well-built v0.3 product. The ratio of "things built" to "users acquired" is extremely high, which is both a strength (launch confidence) and a warning (see risks below).
+**Developer experience and product completeness.** 74 endpoints, 356 tests, Python SDK, interactive guide, 3 example projects, OpenAPI docs, self-hosting guide, SEO pages, legal compliance -- this is an absurdly well-built v0.3 product. The ratio of "things built" to "users acquired" is extremely high, which is both a strength (launch confidence) and a warning (see risks below).
 
 The security posture is genuinely impressive for a solo project. Penetration test completed and all findings resolved. Pre-commit privacy hooks. RFC 7807 errors. Constant-time auth comparison. Circuit breaker. This is production-grade infrastructure.
 
@@ -268,7 +268,7 @@ Specific risks in priority order:
 
 2. **Single-machine infrastructure.** The entire API runs on one PC behind a residential internet connection. Power outage = total downtime. This is fine for launch but becomes a credibility problem if paying customers appear.
 
-3. **BUSINESS_PLAN.md is stale.** It still says "77 endpoints" in the product suite table (should be 73), lists an outdated roadmap (v0.2 items already completed), and the launch channels section references actions not yet taken. The document should either be updated or retired in favor of this Product State document.
+3. **BUSINESS_PLAN.md is stale.** It still says "77 endpoints" in the product suite table (should be 74), lists an outdated roadmap (v0.2 items already completed), and the launch channels section references actions not yet taken. The document should either be updated or retired in favor of this Product State document.
 
 4. **Pricing uncertainty.** $19/mo Pro tier is set but unvalidated. We do not know if developers will pay for a Bitcoin API when mempool.space is free. The self-hosted angle sidesteps this, but hosted revenue is the stated business model.
 

@@ -77,6 +77,13 @@
   .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
   .hero-code { margin-top: 56px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
 
+  /* Live Stats Bar */
+  .stats-bar { display: flex; justify-content: center; gap: 48px; padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .stats-bar .stat { text-align: center; }
+  .stats-bar .stat-value { font-size: 1.4em; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stats-bar .stat-label { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  @media (max-width: 600px) { .stats-bar { gap: 24px; } .stats-bar .stat-value { font-size: 1.1em; } }
+
   /* Section labels */
   .section-label { font-size: 0.75em; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
   .section-title { font-size: 2em; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.02em; }
@@ -228,7 +235,7 @@
       "operatingSystem": "Linux, macOS, Windows, Docker",
       "url": "https://bitcoinsapi.com",
       "downloadUrl": "https://pypi.org/project/satoshi-api/",
-      "softwareVersion": "0.3.1",
+      "softwareVersion": "0.3.2",
       "license": "https://opensource.org/licenses/Apache-2.0",
       "programmingLanguage": "Python",
       "offers": [
@@ -256,7 +263,7 @@
         }
       ],
       "featureList": [
-        "73 REST endpoints for Bitcoin Core",
+        "74 REST endpoints for Bitcoin Core",
         "Fee recommendations in sat/vB",
         "Mempool congestion analysis",
         "Reorg-aware smart caching",
@@ -264,7 +271,7 @@
         "API key authentication",
         "MCP integration for AI agents",
         "Real-time SSE streams",
-        "L402 Lightning payment support",
+        "L402 Lightning payments (optional extension)",
         "Docker and pip install deployment"
       ]
     },
@@ -423,6 +430,13 @@
   </div>
 </section>
 
+<!-- Live Stats -->
+<div class="stats-bar" id="stats-bar" style="display:none;">
+  <div class="stat"><div class="stat-value" id="stat-keys">--</div><div class="stat-label">API Keys Registered</div></div>
+  <div class="stat"><div class="stat-value" id="stat-requests">--</div><div class="stat-label">Requests Served</div></div>
+  <div class="stat"><div class="stat-value" id="stat-uptime">--</div><div class="stat-label">Days Running</div></div>
+</div>
+
 <!-- Trust Badges -->
 <div class="trust-badges container">
   <span class="trust-badge">74 endpoints</span>
@@ -513,7 +527,7 @@
       </div>
       <div class="feature">
         <h3>L402 Lightning Payments</h3>
-        <p>Optional <a href="https://docs.lightning.engineering/the-lightning-network/l402" target="_blank" rel="noopener noreferrer">L402</a> support for Bitcoin-native API access. Clients pay per-request via Lightning. Available as an extension.</p>
+        <p>Optional <a href="https://docs.lightning.engineering/the-lightning-network/l402" target="_blank" rel="noopener noreferrer">L402</a> support via the <code>bitcoin-api-l402</code> extension package. Pay-per-request via Lightning for Bitcoin-native API access.</p>
       </div>
       <div class="feature">
         <h3>Self-Hosted</h3>
@@ -612,7 +626,7 @@
 <section id="endpoints">
   <div class="container">
     <p class="section-label">API Surface</p>
-    <h2 class="section-title">73 Endpoints</h2>
+    <h2 class="section-title">74 Endpoints</h2>
     <p class="section-subtitle">Blocks, transactions, fees, mempool, mining, network, prices, streams.</p>
     <table class="endpoint-table">
       <thead>
@@ -1007,6 +1021,26 @@ function handleRegister(e) {
   });
   return false;
 }
+
+/* Live Stats */
+(function() {
+  function fmt(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
+  fetch('/api/v1/analytics/public')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data;
+      if (!d) return;
+      document.getElementById('stat-keys').textContent = fmt(d.total_keys);
+      document.getElementById('stat-requests').textContent = fmt(d.total_requests);
+      document.getElementById('stat-uptime').textContent = String(d.uptime_days);
+      document.getElementById('stats-bar').style.display = 'flex';
+    })
+    .catch(function() { /* silently hide stats bar on error */ });
+})();
 
 function copyKey() {
   var val = document.getElementById('api-key-value');

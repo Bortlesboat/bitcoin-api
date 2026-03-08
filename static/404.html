@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Page Not Found — Satoshi API</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --border: #21262D;
+  --border-visible: #30363d;
+  --text: #E6EDF3;
+  --muted: #8B949E;
+  --accent: #F7931A;
+  --accent-hover: #FFB347;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; min-height: 100vh; display: flex; flex-direction: column; }
+a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+a:hover { color: var(--accent-hover); }
+
+/* Nav */
+nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--bg); }
+nav .logo { font-weight: 800; font-size: 0.85em; color: var(--text); letter-spacing: 0.1em; text-transform: uppercase; }
+nav .links { display: flex; gap: 24px; font-size: 0.9em; align-items: center; }
+nav .links a { color: var(--muted); transition: color 0.15s; }
+nav .links a:hover { color: var(--text); }
+
+/* Content */
+.content { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 24px; }
+.error-code { font-size: 8em; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 16px; letter-spacing: -0.04em; }
+.error-message { font-size: 1.4em; color: var(--muted); margin-bottom: 32px; }
+.helpful-links { margin-bottom: 8px; color: var(--muted); font-size: 0.95em; }
+.link-list { list-style: none; display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.link-list a { display: inline-block; padding: 10px 20px; border: 1px solid var(--border-visible); border-radius: 8px; color: var(--text); font-weight: 600; font-size: 0.9em; transition: all 0.15s; }
+.link-list a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--text); }
+</style>
+<!-- PostHog -->
+<script>!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('__POSTHOG_API_KEY__',{api_host:'https://us.i.posthog.com'})</script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Satoshi API</a>
+  <div class="links">
+    <a href="/docs">API Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</nav>
+
+<div class="content">
+  <div>
+    <div class="error-code">404</div>
+    <p class="error-message">Page not found</p>
+    <p class="helpful-links">Here are some helpful links:</p>
+    <div class="link-list">
+      <a href="/">Home</a>
+      <a href="/docs">API Docs</a>
+      <a href="/api/v1/guide">Interactive Guide</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="/">Home</a> &middot; <a href="/terms">Terms</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/docs">API Docs</a>
+</footer>
+
+</body>
+</html>

@@ -1,7 +1,13 @@
 # Launch Day Playbook
 
-**Date:** Monday, March 10, 2026
-**Goal:** Get Satoshi API in front of developers across 8+ channels in 48 hours.
+**Window:** March 8-12, 2026
+**Goal:** Get Satoshi API in front of developers across 8+ channels in 5 days.
+
+**Schedule:**
+- **Sat-Sun Mar 8-9:** Reddit (r/BitcoinDev, r/Bitcoin, r/selfhosted) — stagger 4-6 hours apart
+- **Tue Mar 10:** Hacker News (Show HN) + Stacker News — morning 6-8am ET
+- **Wed Mar 11:** r/Python + dev.to
+- **Thu-Fri:** Directory submissions, Nostr, follow-up engagement
 
 ---
 
@@ -12,7 +18,7 @@
 curl -s https://bitcoinsapi.com/api/v1/health | python -m json.tool
 
 # 2. Verify PyPI is current
-pip index versions satoshi-api  # should show 0.3.1
+pip index versions satoshi-api  # should show 0.3.2
 
 # 3. Run tests
 cd ~/Bortlesboat/bitcoin-api && python -m pytest tests/test_api.py -q --tb=no
@@ -33,22 +39,22 @@ curl -s -H "X-API-Key: YOUR_ADMIN_KEY" https://bitcoinsapi.com/api/v1/analytics/
 
 ## Posting Schedule
 
-### Monday Morning: Primary Channels
+### Sat-Sun Mar 8-9: Reddit
 
 | Order | Channel | Title | Draft File |
 |-------|---------|-------|------------|
-| 1 | **Hacker News** | "Show HN: I built a free Bitcoin API so devs don't have to run a node" | `docs/marketing/drafts/hackernews-show-hn.md` |
-| 2 | **r/BitcoinDev** | "What would you want from a REST wrapper around Bitcoin Core RPC?" | `docs/marketing/drafts/reddit-bitcoindev.md` |
-| 3 | **Stacker News** | "Your full node already has the data -- you just need a better interface" | `docs/marketing/drafts/stacker-news.md` |
+| 1 | **r/BitcoinDev** (Sat 10am ET) | "What would you want from a REST wrapper around Bitcoin Core RPC?" | `docs/marketing/drafts/reddit-bitcoindev.md` |
+| 2 | **r/Bitcoin** (Sat 4pm ET) | "I built an open-source REST API for Bitcoin Core -- here's what it does" | `docs/marketing/drafts/reddit-bitcoin.md` |
+| 3 | **r/selfhosted** (Sun 10am ET) | "Self-hosted Bitcoin REST API -- query your own node with 74 endpoints" | `docs/marketing/drafts/reddit-selfhosted.md` |
 
-### Monday Afternoon: Secondary Channels
+### Tue Mar 10: Hacker News + Stacker News
 
 | Order | Channel | Title | Draft File |
 |-------|---------|-------|------------|
-| 4 | **r/Bitcoin** | "I built an open-source REST API for Bitcoin Core -- here's what it does" | `docs/marketing/drafts/reddit-bitcoin.md` |
-| 5 | **r/selfhosted** | "Self-hosted Bitcoin REST API -- query your own node with 73 endpoints" | `docs/marketing/drafts/reddit-selfhosted.md` |
+| 4 | **Hacker News** (6-8am ET) | "Show HN: I built a free Bitcoin API so devs don't have to run a node" | `docs/marketing/drafts/hackernews-show-hn.md` |
+| 5 | **Stacker News** (12pm ET) | "Your full node already has the data -- you just need a better interface" | `docs/marketing/drafts/stacker-news.md` |
 
-### Tuesday: Technical Channels
+### Wed Mar 11: Technical Channels
 
 | Order | Channel | Title | Draft File |
 |-------|---------|-------|------------|
@@ -56,7 +62,7 @@ curl -s -H "X-API-Key: YOUR_ADMIN_KEY" https://bitcoinsapi.com/api/v1/analytics/
 | 7 | **dev.to** | "Why I built a REST API for Bitcoin Core (and why raw RPC sucks)" | `docs/marketing/devto-article.md` |
 | 8 | **Nostr** | Short post with curl example + GitHub link | Write fresh (see template below) |
 
-### Wednesday: Directory Submissions
+### Thu-Fri: Directory Submissions
 
 | Order | Channel | Action |
 |-------|---------|--------|
@@ -72,7 +78,7 @@ curl -s -H "X-API-Key: YOUR_ADMIN_KEY" https://bitcoinsapi.com/api/v1/analytics/
 ```
 I built a free Bitcoin API so developers don't have to run a node.
 
-73 endpoints. pip install. Self-hosted or hosted free tier.
+74 endpoints. pip install. Self-hosted or hosted free tier.
 
 Try it now:
 curl https://bitcoinsapi.com/api/v1/fees/recommended
@@ -91,7 +97,7 @@ Apache-2.0. Solo project. Feedback welcome.
 
 1. "Show HN: I built a free Bitcoin API so developers don't have to run a node"
 2. "Show HN: Satoshi API -- Open-source REST API for Bitcoin Core (Python/FastAPI)"
-3. "Show HN: 73-endpoint REST API for your Bitcoin node (pip install, self-hosted)"
+3. "Show HN: 74-endpoint REST API for your Bitcoin node (pip install, self-hosted)"
 
 Option 1 tells a story (best for clicks).
 Option 2 is descriptive (best for credibility).

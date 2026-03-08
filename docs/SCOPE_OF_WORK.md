@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (73 total)
+### 3.1 Endpoints (74 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -137,7 +137,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/stream/whale-txs` | GET (SSE) | No |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
-| **Analytics** | `/api/v1/analytics/overview` | GET | Admin key |
+| **Analytics** | `/api/v1/analytics/public` | GET | No |
+| | `/api/v1/analytics/overview` | GET | Admin key |
 | | `/api/v1/analytics/requests` | GET | Admin key |
 | | `/api/v1/analytics/endpoints` | GET | Admin key |
 | | `/api/v1/analytics/errors` | GET | Admin key |
@@ -309,7 +310,7 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (73 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (74 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
 | Testing | A- | 335 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
@@ -402,12 +403,12 @@ Errors follow the same structure:
 | 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
 | 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
-| 23 | Consistency pass: complete guide catalog (all 73 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
+| 23 | Consistency pass: complete guide catalog (all 74 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
 | 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 12 |
 | 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
-| **Total** | **73 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **335 unit + 21 e2e** |
+| **Total** | **74 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **335 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 

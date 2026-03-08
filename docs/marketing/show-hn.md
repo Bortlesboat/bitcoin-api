@@ -12,7 +12,7 @@ So I built Satoshi API:
 
     pip install satoshi-api && satoshi-api
 
-That gives you 73 REST endpoints wrapping your node with analyzed, structured JSON. Fee estimates come with "send now or wait?" recommendations. Transactions come decoded with input/output analysis. The mempool gets a congestion score and fee buckets.
+That gives you 74 REST endpoints wrapping your node with analyzed, structured JSON. Fee estimates come with "send now or wait?" recommendations. Transactions come decoded with input/output analysis. The mempool gets a congestion score and fee buckets.
 
 Stack: FastAPI + SQLite (WAL mode), runs on the same box as your node.
 

@@ -120,7 +120,9 @@ def register_middleware(app: FastAPI):
             REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe((time.monotonic() - start_time))
             return resp
 
-        bucket = key_info.key_hash or request.client.host if request.client else "unknown"
+        client_ip = (request.headers.get("CF-Connecting-IP")
+                     or (request.client.host if request.client else "unknown"))
+        bucket = key_info.key_hash or client_ip
 
         result = check_rate_limit(bucket, key_info.tier)
         if not result.allowed:
@@ -277,7 +279,8 @@ def register_middleware(app: FastAPI):
                   method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
                           client_type=req_client_type, referrer=req_referrer)
 
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = (request.headers.get("CF-Connecting-IP")
+                     or (request.client.host if request.client else "unknown"))
         tier = key_info.tier
         log_level = logging.WARNING if response.status_code in (401, 429) else logging.INFO
         if settings.log_format == "json":
