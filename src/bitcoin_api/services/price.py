@@ -54,7 +54,7 @@ def _fetch_from_coingecko() -> float | None:
     try:
         req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode())
+            data = json.loads(resp.read(65536).decode())
         return data["bitcoin"]["usd"]
     except Exception:
         return None
@@ -65,7 +65,7 @@ def _fetch_from_coinbase() -> float | None:
     try:
         req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode())
+            data = json.loads(resp.read(65536).decode())
         return float(data["data"]["amount"])
     except Exception:
         return None
@@ -76,7 +76,7 @@ def _fetch_from_kraken() -> float | None:
     try:
         req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode())
+            data = json.loads(resp.read(65536).decode())
         # Kraken returns last trade price as first element of "c" array
         return float(data["result"]["XXBTZUSD"]["c"][0])
     except Exception:
@@ -102,7 +102,7 @@ def fetch_btc_price() -> tuple[float | None, str | None]:
     """
     for name, fetcher in _PROVIDERS:
         price = fetcher()
-        if price is not None and price > 0:
+        if price is not None and 0 < price < 10_000_000:
             return price, name
     return None, None
 

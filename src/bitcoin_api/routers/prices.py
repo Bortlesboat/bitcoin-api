@@ -27,7 +27,7 @@ def _fetch_price() -> dict:
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur,gbp,jpy,cad,aud&include_24hr_change=true"
     req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
     with urllib.request.urlopen(req, timeout=10) as resp:
-        data = json.loads(resp.read().decode())
+        data = json.loads(resp.read(65536).decode())
     btc = data.get("bitcoin", {})
     return {
         "USD": btc.get("usd"),

@@ -93,7 +93,8 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `src/bitcoin_api/routers/supply.py` | Supply endpoint: circulating supply, halving, inflation |
 | `src/bitcoin_api/routers/stats.py` | Statistics: UTXO set, SegWit adoption, OP_RETURN stats |
 | `src/bitcoin_api/services/analytics.py` | Analytics business logic and query helpers |
-| `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, mining, stats, serializers) |
+| `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, mining, stats, serializers, analytics, price) |
+| `src/bitcoin_api/services/price.py` | Multi-provider BTC/USD price service (CoinGecko/Coinbase/Kraken fallback) |
 | `src/bitcoin_api/services/mining.py` | Pool identification, hashrate calculation |
 | `src/bitcoin_api/services/stats.py` | Output type classification, OP_RETURN parsing |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
@@ -101,22 +102,23 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `static/visualizer.html` | ECharts live visualization dashboard |
 | `tests/test_health.py` | Health, root, status, healthz endpoints (11 tests) |
 | `tests/test_blocks.py` | Block-related endpoints (18 tests) |
-| `tests/test_fees.py` | Fee endpoint tests (16 tests) |
+| `tests/test_fees.py` | Fee endpoint tests (30 tests) |
 | `tests/test_transactions.py` | Transaction endpoint tests (27 tests) |
 | `tests/test_mempool.py` | Mempool endpoint tests (7 tests) |
 | `tests/test_mining.py` | Mining endpoint + service tests (21 tests) |
 | `tests/test_network.py` | Network, rate limit, error handling tests (26 tests) |
-| `tests/test_keys.py` | API key registration & auth tests (13 tests) |
+| `tests/test_keys.py` | API key registration & auth tests (16 tests) |
 | `tests/test_billing.py` | Stripe billing tests (12 tests) |
 | `tests/test_guide.py` | Guide endpoint tests (8 tests) |
 | `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (30 tests) |
 | `tests/test_misc.py` | Supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations (51 tests) |
 | `tests/test_stale_cache.py` | Stale cache fallback tests (19 tests) |
-| `tests/test_notifications.py` | Resend + PostHog notification tests (9) |
+| `tests/test_notifications.py` | Resend + PostHog notification tests (14) |
+| `tests/test_price_service.py` | Price service fallback chain tests (13 tests) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
-| | Total: 359 unit + 21 e2e = 380 tests |
+| | Total: 394 unit + 21 e2e = 415 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |

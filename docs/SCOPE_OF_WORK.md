@@ -46,7 +46,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 | Component | Responsibility | Design Pattern |
 |-----------|---------------|----------------|
-| `main.py` | App creation, lifespan, router registration (~89 lines) | Composition root |
+| `main.py` | App creation, lifespan, router registration (~177 lines) | Composition root |
 | `middleware.py` | Security headers, CORS, auth + rate limiting middleware, gzip compression | Middleware chain |
 | `exceptions.py` | RPC, validation, HTTP, and generic exception handlers; RFC 7807 `type` URIs | Exception handler registry |
 | `jobs.py` | Background fee collector thread lifecycle | Background worker |
@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (78 total)
+### 3.1 Endpoints (82 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -108,6 +108,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/fees/landscape` | GET | No |
 | | `/api/v1/fees/estimate-tx` | GET | No |
 | | `/api/v1/fees/history` | GET | No |
+| | `/api/v1/fees/plan` | GET | No |
+| | `/api/v1/fees/savings` | GET | No |
 | | `/api/v1/fees/{target}` | GET | No |
 | **Mempool** | `/api/v1/mempool` | GET | No |
 | | `/api/v1/mempool/info` | GET | No |
@@ -137,6 +139,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/stream/whale-txs` | GET (SSE) | No |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
+| | `/api/v1/unsubscribe` | POST | Yes (free+) |
 | **Analytics** | `/api/v1/analytics/public` | GET | No |
 | | `/api/v1/analytics/overview` | GET | Admin key |
 | | `/api/v1/analytics/requests` | GET | Admin key |
@@ -152,6 +155,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/analytics/mcp-funnel` | GET | Admin key |
 | | `/api/v1/analytics/referrers` | GET | Admin key |
 | | `/api/v1/analytics/funnel` | GET | Admin key |
+| | `/api/v1/analytics/users` | GET | Admin key |
 | **Guide** | `/api/v1/guide` | GET | No |
 | **Metrics** | `/metrics` | GET | No |
 | **WebSocket** | `/api/v1/ws` | WS | Yes (free+) |
@@ -312,9 +316,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (78 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (82 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 359 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 394 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -405,19 +409,20 @@ Errors follow the same structure:
 | 20 | Interactive API guide: `/api/v1/guide` endpoint with use-case filtering and multi-language code examples | 9 |
 | 21 | Prometheus `/metrics`, WebSocket `/api/v1/ws` pub/sub, Stripe billing (checkout/webhook/status/cancel), subscriptions migration | 27 |
 | 22 | Supply, stats, mining expansion, raw block, merkle proof, whale SSE, visualizer page | 32 |
-| 23 | Consistency pass: complete guide catalog (all 78 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
+| 23 | Consistency pass: complete guide catalog (all 82 endpoints), `help_url` on all error handlers, path prefix mapping for 8 new categories, docs sync | 0 |
 | 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 12 |
 | 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
-| **Total** | **78 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **359 unit + 21 e2e** |
+| **Total** | **82 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **394 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
 **Source (50 files):**
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
-- `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats
+- `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
+- `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (CoinGecko/Coinbase/Kraken fallback)
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
@@ -446,6 +451,7 @@ Errors follow the same structure:
 - `tests/test_indexer_routers.py` -- 14 tests (indexed endpoints, auth, validation)
 - `tests/test_indexer_worker.py` -- 19 tests (RPC retry, sync_blocks, _index_block, version check)
 - `tests/test_indexer_services.py` -- 12 tests (address balance/history, transaction detail)
+- `tests/test_price_service.py` -- 13 tests (price service provider fallback, caching, error handling)
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
@@ -542,7 +548,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 359 unit tests pass
+- [x] All 394 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -670,6 +676,8 @@ twine upload dist/*
 - `GET /fees/landscape` — "Should I send now?" decision engine with trend analysis
 - `GET /fees/estimate-tx` — transaction size/fee estimator (pure math, no RPC)
 - `GET /fees/history` — historical fee tracker (SQLite-backed, auto-pruning)
+- `GET /fees/plan` — Transaction cost planner with urgency tiers, profiles, and USD support
+- `GET /fees/savings` — Fee savings simulation with optimal timing analysis
 - `GET /stream/blocks` — SSE real-time block events
 - `GET /stream/fees` — SSE fee rate updates every 30s
 - Background fee collector (5-min snapshots for trend + history)
@@ -695,7 +703,7 @@ twine upload dist/*
 - Stale-while-error cache fallback — when node is down, API serves last-known-good cached data instead of 502 errors
 - Auto-start for Bitcoin Knots and cloudflared tunnel via Registry Run keys (API already had auto-start)
 - Sanitized error messages — external-facing errors now say "Temporarily Unavailable" instead of exposing internal details
-- Unit tests expanded (340 → 359)
+- Unit tests expanded (340 → 394)
 
 ### v0.3.4 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)
