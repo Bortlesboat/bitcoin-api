@@ -62,7 +62,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 20 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 21 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
