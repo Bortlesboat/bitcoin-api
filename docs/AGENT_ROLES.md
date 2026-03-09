@@ -9,8 +9,8 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | Fact | Value | Updated |
 |------|-------|---------|
 | **Version** | 0.3.3 | 2026-03-08 |
-| **Endpoints** | 78 core (+ 4 indexer = 82 when enabled) | 2026-03-08 |
-| **Tests** | 359 unit + 21 e2e = 380 total | 2026-03-08 |
+| **Endpoints** | 82 total (78 core + 4 indexer) | 2026-03-08 |
+| **Tests** | 394 unit + 21 e2e = 415 total | 2026-03-08 |
 | **Routers** | 20 core + 3 indexer = 23 | 2026-03-08 |
 | **Live URL** | https://bitcoinsapi.com | — |
 | **Infra cost** | ~$3/mo | 2026-03-08 |
@@ -211,7 +211,7 @@ Track the last run of each agent for staleness detection.
 | Analytics | 2026-03-08 | WARN (no stale Prometheus metric) | All-Hands | QA, Architect, Security, Admin |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |
 | Agent Advocate | 2026-03-08 | — (created) | — | — |
-| Admin Assistant | 2026-03-07 | PASS (78 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
+| Admin Assistant | 2026-03-07 | PASS (82 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
 
 ## Performance Tracking
 
@@ -265,7 +265,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 78 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 82 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---
