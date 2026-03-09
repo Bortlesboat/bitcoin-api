@@ -89,6 +89,7 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `src/bitcoin_api/stripe_client.py` | Stripe checkout session creation + webhook helpers |
 | `src/bitcoin_api/routers/metrics.py` | GET /metrics (Prometheus text format) |
 | `src/bitcoin_api/routers/websocket.py` | WS /api/v1/ws (real-time subscriptions) |
+| `src/bitcoin_api/routers/rpc_proxy.py` | JSON-RPC proxy for bitcoin-mcp zero-config fallback (30+ whitelisted read-only methods) |
 | `src/bitcoin_api/routers/billing.py` | Stripe billing: checkout, webhook, status, cancel |
 | `src/bitcoin_api/routers/supply.py` | Supply endpoint: circulating supply, halving, inflation |
 | `src/bitcoin_api/routers/stats.py` | Statistics: UTXO set, SegWit adoption, OP_RETURN stats |
@@ -119,7 +120,7 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_failover.py` | RPC failover/circuit breaker tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
-| | Total: 400 unit + 21 e2e = 421 tests |
+| | Total: 407 unit + 21 e2e = 428 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |

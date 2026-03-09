@@ -16,8 +16,10 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | **Infra cost** | ~$3/mo | 2026-03-08 |
 | **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
 | **Latest release** | v0.3.3 — Stale-while-error cache fallback, auto-start on reboot, sanitized error messages | 2026-03-08 |
-| **Launch status** | Feature-complete, awaiting distribution (Show HN, Reddit, PyPI) | 2026-03-08 |
+| **MCP tools** | 43 tools, 6 prompts, 7 resources (bitcoin-mcp) | 2026-03-09 |
+| **Launch status** | **LAUNCH SPRINT ACTIVE** — content pipeline loaded, T-0 = Show HN Tuesday | 2026-03-09 |
 | **Open issues** | None critical — ToS §7 stale-data addressed by /disclaimer page | 2026-03-09 |
+| **Awesome-list PRs** | 6 open (awesome-bitcoin, crypto-api, lopp.net, public-apis, awesome-mcp-servers, awesome-fastapi) | 2026-03-09 |
 
 **When you find a fact here is wrong, update it immediately and note the date.**
 
@@ -46,6 +48,50 @@ If the answer is "not really" — it's infrastructure, not product. Don't lead w
 - TO: "Bitcoin fee intelligence that saves you money on every transaction"
 
 Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
+
+### Current Sprint: Launch Campaign (Mar 9-22)
+
+**Context:** External agency-agents consult (61 specialized AI agents) reviewed Satoshi API on Mar 9. Unanimous finding: **distribution problem, not product problem.** Full report: `memory/satoshi-api/agency-consult.md`.
+
+**Key insight adopted:** Launch is a 30-day campaign, not a single event. "First Bitcoin MCP server" positioning window is 3-6 months before competitors ship MCP tooling.
+
+**Content pipeline (ALL READY — in `docs/marketing/`):**
+
+| Asset | File | Status | Owner |
+|-------|------|--------|-------|
+| Show HN post | `show-hn.md` | READY — post Tuesday morning | Marketing |
+| dev.to article | `devto-article.md` | READY — publish same day as HN | Marketing |
+| 5 X/Twitter threads | `twitter-threads.md` | READY — Thread 1 on launch day | Marketing |
+| Fee dashboard tutorial | `tutorial-fee-dashboard.md` + `examples/fee_dashboard.py` | READY + code verified | Agent Advocate |
+| Python SDK client | `examples/satoshi_client.py` (46 methods) | READY — single-file drop-in | Agent Advocate, Architect |
+| Directory submission guide | `directory-submissions.md` | READY — 6 directories, copy-paste | Marketing, Admin |
+| Submission kit | `LAUNCH_SUBMISSION_KIT.md` | READY — one-liners, descriptions, tags | Marketing |
+| Fee commentary playbook | `fee-commentary-playbook.md` | READY — recurring X content | Marketing |
+
+**Launch week actions (each agent's role):**
+
+| Agent | Action Required | When |
+|-------|----------------|------|
+| **Marketing** | Verify all content passes Any-Limit Filter before publish. Track HN/Reddit/directory performance. | T-0 through T+7 |
+| **PM** | Define activation metric (suggested: registered + 3 API calls in 24h). Run Mar 15 signal check. | Before T-0, T+5 |
+| **UX** | Monitor first-user experience. Flag any onboarding friction from HN/Reddit feedback. | T+1 through T+7 |
+| **Finance** | Baseline pre-launch metrics. Track CAC by channel after launch. | T-1, T+7 |
+| **Agent Advocate** | Verify SDK client works against live API. Monitor MCP directory acceptance. | Before T-0, ongoing |
+| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 86 endpoints, 421 tests). Verify cross-doc consistency. | Before T-0 |
+| **QA** | Run full test suite pre-launch. Verify examples/ code runs. | Before T-0 |
+| **Security** | Monitor for abuse after HN traffic spike. | T+0 through T+3 |
+| **Analytics** | Set up PostHog funnel: visit → register → first call → 3+ calls. | Before T-0 |
+| **Architect** | Review SDK client (`satoshi_client.py`) for API path accuracy. | Before T-0 |
+| **Ops** | Ensure api.log rotation is set up before traffic spike. DB backup before launch. | Before T-0 |
+| **Legal** | No action unless new claims are added to marketing materials. | On-call |
+
+**Awesome-list PRs to monitor (6 open):**
+1. `igorbarinov/awesome-bitcoin` #142 — waiting
+2. `CoinQuanta/awesome-crypto-api` #11 — waiting
+3. `jlopp/lopp.net` #1191 — waiting
+4. `public-apis/public-apis` #5403 — waiting
+5. `punkpeye/awesome-mcp-servers` #2980 — submitted Mar 9
+6. `mjhea0/awesome-fastapi` #236 — updated Mar 9
 
 ---
 
@@ -204,14 +250,14 @@ Track the last run of each agent for staleness detection.
 | UX | 2026-03-09 | WARN (6): mobile grid, ToS checkbox, dim contrast — ALL FIXED | All-Hands | Legal, Marketing, Admin, QA |
 | Finance | 2026-03-09 | PASS WITH ADVISORIES (3): capacity plan, revenue tracking | All-Hands | PM, Marketing |
 | Legal | 2026-03-09 | WARN (4): registration_ip removed from privacy, ToS checkbox FIXED | All-Hands | UX, Security, Admin |
-| Marketing | 2026-03-09 | WARN (8): stale launch-plan, endpoint count resolved (82 core) | All-Hands | Admin, UX, PM |
+| Marketing | 2026-03-09 | **UPDATED**: Content pipeline fully loaded (7 assets). MCP tool count fixed 40→43 across all drafts. 2 new awesome-list PRs submitted. Launch sprint briefing added. | Agency Consult + CEO | Admin, PM, Agent Advocate |
 | Security | 2026-03-09 | WARN (8): CSP unsafe-inline, no pip audit — no critical issues | All-Hands | Architect, QA |
 | Architect | 2026-03-09 | WARN (5): 8/10 quality, workers=2 rate limit bypass noted | All-Hands | QA, Ops, Admin |
 | QA | 2026-03-09 | PASS: 400/400 tests (2 failover env leak tests FIXED) | All-Hands | Architect, Admin |
-| Analytics | 2026-03-09 | WARN (5): WS_MESSAGES_DROPPED verified OK, registration gauge OK | All-Hands | QA, Architecture |
-| Ops | 2026-03-09 | WARN (7): no DB backup schedule, unbounded api.log | All-Hands | Admin, Architect |
-| Agent Advocate | 2026-03-09 | WARN (6): mempool/txids context bomb, no ?fields= | All-Hands | Architecture, PM |
-| Admin Assistant | 2026-03-09 | WARN: __init__.py version FIXED, guide +6 endpoints, nav added to legal pages | All-Hands | Architect, Marketing |
+| Analytics | 2026-03-09 | WARN (5): WS_MESSAGES_DROPPED verified OK, registration gauge OK. **ACTION: Define activation funnel in PostHog before T-0.** | All-Hands | QA, Architecture |
+| Ops | 2026-03-09 | WARN (7): no DB backup schedule, unbounded api.log. **ACTION: Fix log rotation + DB backup before launch traffic.** | All-Hands | Admin, Architect |
+| Agent Advocate | 2026-03-09 | **UPDATED**: Python SDK client created (`examples/satoshi_client.py`, 46 methods). Fee dashboard tutorial created + verified. DX audit framework adopted from agency-agents Developer Advocate consult. | Agency Consult + CEO | Architecture, PM, QA |
+| Admin Assistant | 2026-03-09 | **ACTION: Stamp 43 MCP tools across all docs.** Verify `LAUNCH_SUBMISSION_KIT.md` counts match live state. Pre-launch consistency sweep needed. | Agency Consult | Marketing, Architect |
 
 ## Performance Tracking
 

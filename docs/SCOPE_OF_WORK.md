@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (82 total)
+### 3.1 Endpoints (83 total)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -163,6 +163,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/billing/webhook` | POST | No (Stripe signature) |
 | | `/api/v1/billing/status` | GET | Yes (free+) |
 | | `/api/v1/billing/cancel` | POST | Yes (free+) |
+| **RPC Proxy** | `/api/v1/rpc` | POST | Yes (free+) |
 | **Admin UI** | `/admin/dashboard` | GET | Admin key (query param) |
 | **Indexed** | `/api/v1/indexed/address/{addr}/balance` | GET | Yes (free+) |
 | | `/api/v1/indexed/address/{addr}/txs` | GET | Yes (free+) |
@@ -316,9 +317,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (82 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (83 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 400 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 407 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -415,7 +416,8 @@ Errors follow the same structure:
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
-| **Total** | **82 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **400 unit + 21 e2e** |
+| 29 | RPC proxy endpoint: `/api/v1/rpc` JSON-RPC proxy for bitcoin-mcp zero-config fallback. 30+ whitelisted read-only methods, wallet/admin methods blocked. Enables bitcoin-mcp to work without a local node. | 7 |
+| **Total** | **83 endpoints, 21 core routers (+ 3 indexer = 24 when enabled)** | **407 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -549,7 +551,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 400 unit tests pass
+- [x] All 407 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
