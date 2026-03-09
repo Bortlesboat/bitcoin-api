@@ -67,6 +67,12 @@ All responses include X-RateLimit-Limit, X-RateLimit-Remaining,
 X-RateLimit-Reset, X-RateLimit-Daily-Limit, X-RateLimit-Daily-Remaining
 headers for self-throttling.
 
+## Full documentation
+
+For complete endpoint reference, example responses, error codes,
+and multi-step agent workflows, see:
+https://bitcoinsapi.com/llms-full.txt
+
 ## Contact
 
 api@bitcoinsapi.com

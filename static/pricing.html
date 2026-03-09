@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Satoshi API</title>
+<meta name="description" content="Satoshi API pricing: free hosted API with 10,000 requests/day, free self-hosted with unlimited requests, or Pro at $19/month for 100,000 requests/day.">
+<meta name="keywords" content="bitcoin api pricing, free bitcoin api, bitcoin api cost, satoshi api plans, bitcoin api rate limits">
+<link rel="canonical" href="https://bitcoinsapi.com/pricing">
+<meta property="og:title" content="Pricing — Satoshi API">
+<meta property="og:description" content="Free to explore. Upgrade when you need more. Hosted API, self-hosted, and Pro plans for every use case.">
+<meta property="og:url" content="https://bitcoinsapi.com/pricing">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
+<meta name="twitter:title" content="Pricing — Satoshi API">
+<meta name="twitter:description" content="Free to explore. Upgrade when you need more. Hosted API, self-hosted, and Pro plans.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://bitcoinsapi.com/"},
+    {"@type": "ListItem", "position": 2, "name": "Pricing", "item": "https://bitcoinsapi.com/pricing"}
+  ]
+}
+</script>
+
+<!-- Product/Offer schema for Pro tier -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Satoshi API Pro",
+  "description": "Pro plan for Satoshi API: 100,000 requests/day, 500 req/min, all endpoints including POST, priority support.",
+  "brand": {"@type": "Brand", "name": "Satoshi API"},
+  "url": "https://bitcoinsapi.com/pricing",
+  "offers": {
+    "@type": "Offer",
+    "price": "19.00",
+    "priceCurrency": "USD",
+    "priceValidUntil": "2027-12-31",
+    "availability": "https://schema.org/InStock",
+    "url": "https://bitcoinsapi.com/pricing"
+  }
+}
+</script>
+
+<!-- FAQPage JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Satoshi API really free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the hosted API and self-hosted versions are both free. The hosted API gives you 1,000 requests/day without any signup, or 10,000 requests/day with a free API key. The self-hosted version is Apache-2.0 licensed with unlimited requests."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if I exceed rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You'll receive HTTP 429 responses with a Retry-After header indicating how long to wait before making another request. Rate limits reset on a sliding window basis."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I switch between tiers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, upgrade or downgrade anytime. Your API key stays the same — only the rate limits and daily caps change."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you offer annual pricing?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not currently. Pro is billed monthly via Stripe. Cancel anytime with no long-term commitment."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --border: #21262D;
+  --border-visible: #30363d;
+  --text: #E6EDF3;
+  --muted: #8B949E;
+  --dim: #6E7681;
+  --accent: #F7931A;
+  --accent-hover: #FFB347;
+  --accent-muted: #F7931A33;
+  --green: #3FB950;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+a:hover { color: var(--accent-hover); }
+
+/* Nav */
+nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+nav .logo { font-weight: 800; font-size: 0.85em; color: var(--text); letter-spacing: 0.1em; text-transform: uppercase; }
+nav .links { display: flex; gap: 24px; font-size: 0.9em; align-items: center; }
+nav .links a { color: var(--muted); transition: color 0.15s; }
+nav .links a:hover { color: var(--text); }
+.nav-toggle { display: none; }
+
+/* Layout */
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* Hero */
+.pricing-hero { text-align: center; padding: 100px 0 60px; }
+.pricing-hero h1 { font-size: 3em; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; }
+.pricing-hero .subtitle { font-size: 1.2em; color: var(--muted); max-width: 480px; margin: 0 auto; }
+
+/* Tier cards */
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 0 0 80px; }
+.tier { background: var(--surface); border: 1px solid var(--border-visible); border-radius: 12px; padding: 32px 28px; display: flex; flex-direction: column; }
+.tier.featured { border-color: var(--accent); box-shadow: 0 0 24px var(--accent-muted); }
+.tier-name { font-size: 0.8em; font-weight: 700; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.tier-price { font-size: 2.4em; font-weight: 800; margin-bottom: 4px; }
+.tier-price .period { font-size: 0.35em; font-weight: 400; color: var(--muted); }
+.tier-desc { color: var(--muted); font-size: 0.9em; margin-bottom: 24px; }
+.tier ul { list-style: none; flex: 1; margin-bottom: 28px; }
+.tier ul li { padding: 8px 0; font-size: 0.92em; color: var(--text); border-bottom: 1px solid var(--border); }
+.tier ul li::before { content: "\2713"; color: var(--green); margin-right: 10px; font-weight: 700; }
+.tier .cta { display: block; text-align: center; padding: 14px 24px; border-radius: 8px; font-weight: 600; font-size: 1em; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: var(--accent-hover); color: #000; }
+.btn-secondary { background: transparent; border: 1px solid var(--border-visible); color: var(--text); }
+.btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+
+/* Enterprise callout */
+.enterprise { text-align: center; padding: 48px 24px; background: var(--surface); border-radius: 12px; margin-bottom: 80px; }
+.enterprise p { color: var(--muted); font-size: 1.05em; }
+.enterprise a { color: var(--accent); font-weight: 600; }
+
+/* FAQ */
+.faq { padding: 0 0 100px; }
+.faq h2 { font-size: 2em; font-weight: 700; margin-bottom: 32px; text-align: center; letter-spacing: -0.02em; }
+.faq-item { border-bottom: 1px solid var(--border-visible); padding: 20px 0; }
+.faq-item summary { cursor: pointer; font-weight: 600; font-size: 1.05em; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.faq-item summary::after { content: "+"; font-size: 1.3em; color: var(--muted); transition: transform 0.2s; }
+.faq-item[open] summary::after { content: "\2212"; }
+.faq-item p { color: var(--muted); margin-top: 12px; line-height: 1.7; }
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .tiers { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .pricing-hero h1 { font-size: 2.2em; }
+  nav { flex-wrap: wrap; padding: 12px 16px; }
+  nav .links { display: none; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
+  nav .links.open { display: flex; }
+  .nav-toggle { display: block; background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+}
+</style>
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo" style="text-decoration:none;"><img src="/logo-128.png" alt="Satoshi API" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/best-bitcoin-api-for-developers">About</a>
+    <a href="/terms">Terms</a>
+    <a href="/docs">API Docs</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<section class="pricing-hero">
+  <h1>Pricing</h1>
+  <p class="subtitle">Free to explore. Upgrade when you need more.</p>
+</section>
+
+<div class="tiers">
+
+  <!-- Hosted API — Free -->
+  <div class="tier">
+    <div class="tier-name">Hosted API</div>
+    <div class="tier-price">Free</div>
+    <p class="tier-desc">Start building immediately — no signup required for GET endpoints.</p>
+    <ul>
+      <li>No signup required for GET endpoints</li>
+      <li>1,000 requests/day (anonymous)</li>
+      <li>10,000 requests/day with free API key</li>
+      <li>30 req/min (anonymous), 100 req/min (free key)</li>
+      <li>All GET endpoints</li>
+      <li>POST with API key (register, decode, broadcast)</li>
+    </ul>
+    <a href="/" class="cta btn-primary">Get Started</a>
+  </div>
+
+  <!-- Self-Hosted — Free Forever -->
+  <div class="tier">
+    <div class="tier-name">Self-Hosted</div>
+    <div class="tier-price">Free Forever</div>
+    <p class="tier-desc">Run on your own Bitcoin Core node with zero limits.</p>
+    <ul>
+      <li>Run on your own Bitcoin Core node</li>
+      <li>Unlimited requests</li>
+      <li>Full API access</li>
+      <li>Full source code (Apache-2.0)</li>
+      <li>pip install or Docker</li>
+    </ul>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" class="cta btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+  </div>
+
+  <!-- Pro — $19/month -->
+  <div class="tier featured">
+    <div class="tier-name">Pro</div>
+    <div class="tier-price">$19<span class="period">/month</span></div>
+    <p class="tier-desc">For production workloads that need higher throughput.</p>
+    <ul>
+      <li>100,000 requests/day</li>
+      <li>500 requests/min</li>
+      <li>All endpoints including POST</li>
+      <li>Priority support</li>
+    </ul>
+    <a href="mailto:api@bitcoinsapi.com" class="cta btn-primary">Contact Us</a>
+  </div>
+
+</div>
+
+<!-- Enterprise callout -->
+<div class="enterprise">
+  <p>Need higher limits? <a href="mailto:api@bitcoinsapi.com">Contact api@bitcoinsapi.com</a></p>
+</div>
+
+<!-- FAQ -->
+<section class="faq">
+  <h2>Frequently Asked Questions</h2>
+
+  <details class="faq-item">
+    <summary>Is Satoshi API really free?</summary>
+    <p>Yes, the hosted API and self-hosted versions are both free. The hosted API gives you 1,000 requests/day without any signup, or 10,000 requests/day with a free API key. The self-hosted version is Apache-2.0 licensed with unlimited requests — run it on your own infrastructure with zero cost.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>What happens if I exceed rate limits?</summary>
+    <p>You'll receive HTTP 429 responses with a Retry-After header indicating how long to wait before making another request. Rate limits reset on a sliding window basis.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Can I switch between tiers?</summary>
+    <p>Yes, upgrade or downgrade anytime. Your API key stays the same — only the rate limits and daily caps change.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Do you offer annual pricing?</summary>
+    <p>Not currently. Pro is billed monthly via Stripe. Cancel anytime with no long-term commitment.</p>
+  </details>
+</section>
+
+</div>
+
+<footer>
+  <div class="container">
+    <p style="font-weight: 800; letter-spacing: 0.1em; font-size: 0.9em; color: var(--text); margin-bottom: 16px;">SATOSHI API</p>
+    <p style="color: var(--muted); font-size: 0.8em; margin-bottom: 12px;">Data provided by this API is for informational purposes only and does not constitute financial advice. Price data powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>.</p>
+    <p>Apache-2.0 licensed. Built by a solo developer who believes Bitcoin infrastructure should be as sovereign as Bitcoin itself.</p>
+    <p style="margin-top: 12px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer">Status</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a> &middot;
+      <a href="https://github.com/Bortlesboat/satoshi-discord-bot" target="_blank" rel="noopener noreferrer">Discord Bot</a> &middot;
+      <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a> &middot;
+      <a href="/terms">Terms of Service</a> &middot;
+      <a href="/privacy">Privacy Policy</a> &middot;
+      <a href="/disclaimer">Disclaimer</a>
+    </p>
+    <p style="margin-top: 12px;">
+      <a href="/vs-mempool">Satoshi API vs Mempool.space</a> &middot;
+      <a href="/vs-blockcypher">Satoshi API vs BlockCypher</a> &middot;
+      <a href="/best-bitcoin-api-for-developers">Best Bitcoin API for Developers</a> &middot;
+      <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+      <a href="/self-hosted-bitcoin-api">Self-Hosted Bitcoin API</a> &middot;
+      <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+      <a href="/bitcoin-mempool-api">Bitcoin Mempool API</a>
+    </p>
+    <p style="margin-top: 12px; color: var(--dim);">api@bitcoinsapi.com</p>
+  </div>
+</footer>
+
+</body>
+</html>

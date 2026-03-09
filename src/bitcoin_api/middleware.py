@@ -129,7 +129,7 @@ _RATE_LIMIT_SKIP = {
     "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
     "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
-    "/terms", "/privacy",
+    "/terms", "/privacy", "/disclaimer", "/about", "/pricing",
     "/admin/dashboard",
     "/metrics",
     "/api/v1/ws",
@@ -155,6 +155,11 @@ def register_middleware(app: FastAPI):
                        user_agent=req_user_agent, client_type=req_client_type, referrer=req_referrer)
 
         # --- Skip-path fast path ---
+        # MCP endpoints are mounted as a sub-app so they bypass middleware,
+        # but catch any stray /mcp paths that leak through
+        if request.url.path.startswith("/mcp"):
+            response = await call_next(request)
+            return response
         if request.url.path in _RATE_LIMIT_SKIP:
             response = await call_next(request)
             response.headers["X-Request-ID"] = request_id
@@ -372,7 +377,7 @@ def register_middleware(app: FastAPI):
                 "form-action 'self'"
             )
         if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         progress = get_sync_progress()
         if progress is not None and progress < 0.9999:
             response.headers["X-Node-Syncing"] = "true"

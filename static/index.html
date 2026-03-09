@@ -228,6 +228,33 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "Organization",
+      "@id": "https://bitcoinsapi.com/#organization",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com",
+      "logo": "https://bitcoinsapi.com/og-image.png",
+      "description": "AI-native Bitcoin API. MCP integration on the Anthropic Registry, fee intelligence that saves money on every transaction. Free, open source.",
+      "email": "api@bitcoinsapi.com",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "api@bitcoinsapi.com",
+        "contactType": "technical support"
+      },
+      "sameAs": [
+        "https://github.com/Bortlesboat/bitcoin-api",
+        "https://pypi.org/project/satoshi-api/",
+        "https://github.com/Bortlesboat/satoshi-discord-bot",
+        "https://discord.gg/EB6Jd66EsF"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://bitcoinsapi.com/#website",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com",
+      "publisher": {"@id": "https://bitcoinsapi.com/#organization"}
+    },
+    {
       "@type": "SoftwareApplication",
       "name": "Satoshi API",
       "description": "AI-native Bitcoin API with MCP integration on the Anthropic Registry. Fee intelligence that saves money on every transaction, real-time mempool data, and agent-ready tooling. Free, open source, self-hostable.",
@@ -238,6 +265,7 @@
       "softwareVersion": "0.3.3",
       "license": "https://opensource.org/licenses/Apache-2.0",
       "programmingLanguage": "Python",
+      "author": {"@id": "https://bitcoinsapi.com/#organization"},
       "offers": [
         {
           "@type": "Offer",
@@ -276,25 +304,48 @@
     },
     {
       "@type": "WebAPI",
+      "@id": "https://bitcoinsapi.com/#webapi",
       "name": "Satoshi API",
       "url": "https://bitcoinsapi.com",
       "documentation": "https://bitcoinsapi.com/docs",
-      "description": "AI-native Bitcoin REST API with MCP integration, fee intelligence, and real-time mempool data from a Bitcoin Core node."
+      "termsOfService": "https://bitcoinsapi.com/terms",
+      "description": "AI-native Bitcoin REST API with MCP integration, fee intelligence, and real-time mempool data from a Bitcoin Core node.",
+      "provider": {"@id": "https://bitcoinsapi.com/#organization"}
     },
     {
-      "@type": "Organization",
-      "name": "Satoshi API",
-      "url": "https://bitcoinsapi.com",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "email": "api@bitcoinsapi.com",
-        "contactType": "technical support"
-      },
-      "sameAs": [
-        "https://github.com/Bortlesboat/bitcoin-api",
-        "https://pypi.org/project/satoshi-api/",
-        "https://github.com/Bortlesboat/satoshi-discord-bot",
-        "https://discord.gg/EB6Jd66EsF"
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://bitcoinsapi.com/"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "How to Install Satoshi API",
+      "description": "Install the Bitcoin fee intelligence API in 60 seconds",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Install via pip",
+          "text": "Run: pip install satoshi-api"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Start the API",
+          "text": "Run: satoshi-api"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Make your first request",
+          "text": "curl http://localhost:9332/api/v1/fees/recommended"
+        }
       ]
     },
     {
@@ -344,34 +395,6 @@
     }
   ]
 }
-</script>
-<script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Satoshi API",
-    "url": "https://bitcoinsapi.com",
-    "logo": "https://bitcoinsapi.com/og-image.png",
-    "description": "AI-native Bitcoin API. MCP integration on the Anthropic Registry, fee intelligence that saves money on every transaction. Free, open source.",
-    "email": "api@bitcoinsapi.com",
-    "sameAs": [
-      "https://github.com/Bortlesboat/bitcoin-api",
-      "https://pypi.org/project/satoshi-api/"
-    ]
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Satoshi API",
-    "url": "https://bitcoinsapi.com",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://bitcoinsapi.com/docs#/default/{search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
-  }
-]
 </script>
 <!-- PostHog Analytics (privacy-first: no autocapture, no session recording, IP anonymized) -->
 <script>

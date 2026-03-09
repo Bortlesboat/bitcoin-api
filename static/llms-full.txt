@@ -1,0 +1,281 @@
+# Satoshi API — Full Reference
+
+> Bitcoin fee intelligence that saves money on every transaction.
+
+## Overview
+
+Satoshi API is a REST API for Bitcoin blockchain data, built for AI agents and developers. It wraps a Bitcoin Core full node with analyzed, structured data — fee recommendations, mempool analysis, block statistics, mining data, and real-time streams. Native MCP integration lets Claude, GPT, and other LLM agents call Bitcoin endpoints as tools.
+
+**Who it's for:** AI agents that need Bitcoin data, developers building Bitcoin apps, wallets optimizing fee spend, bots monitoring the mempool.
+
+## Authentication
+
+1. Register: POST https://bitcoinsapi.com/api/v1/register with `{"email": "you@example.com", "agreed_to_terms": true}`
+2. Include your key in every request: `X-API-Key: <your_key>`
+3. Anonymous access (no key) works for lightweight GET endpoints with reduced limits.
+
+Tiers: anonymous (no key), free (registered), pro ($19/mo), enterprise (custom).
+
+## Rate Limits
+
+| Tier       | Req/min | Daily    | Block cap | Notes              |
+|------------|---------|----------|-----------|--------------------|
+| Anonymous  | 30      | 1,000   | 144       | GET only           |
+| Free       | 100     | 10,000  | 144       | All endpoints      |
+| Pro        | 500     | 100,000 | 1,008     | $19/mo via Stripe  |
+| Enterprise | 2,000   | Custom  | 2,016     | Contact us         |
+
+Response headers for self-throttling:
+- `X-RateLimit-Limit` — max requests per window
+- `X-RateLimit-Remaining` — requests left in window
+- `X-RateLimit-Reset` — seconds until window resets
+- `X-RateLimit-Daily-Limit` / `X-RateLimit-Daily-Remaining`
+- `Retry-After` — seconds to wait (on 429 responses)
+
+## Endpoints
+
+All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
+
+### Fees (save money on every transaction)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /fees | All fee estimates (multiple confirmation targets) |
+| GET | /fees/recommended | Smart recommendation: send now or wait? |
+| GET | /fees/landscape | Full fee landscape with percentiles |
+| GET | /fees/mempool-blocks | Projected mempool blocks with fee ranges |
+| GET | /fees/estimate-tx | Estimate fee for a specific transaction size |
+| GET | /fees/history | Historical fee data |
+| GET | /fees/plan | Fee planning: optimal send timing |
+| GET | /fees/savings | How much you save by waiting |
+| GET | /fees/{target} | Fee estimate for specific confirmation target |
+
+### Mempool
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /mempool | Full mempool analysis: fee buckets, congestion |
+| GET | /mempool/info | Raw mempool info from Bitcoin Core |
+| GET | /mempool/tx/{txid} | Specific unconfirmed transaction details |
+| GET | /mempool/txids | List of all mempool transaction IDs |
+| GET | /mempool/recent | Recently added mempool transactions |
+
+### Blocks
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /blocks/latest | Latest block with full analysis |
+| GET | /blocks/tip/height | Current chain tip height |
+| GET | /blocks/tip/hash | Current chain tip hash |
+| GET | /blocks/{height_or_hash} | Block by height or hash |
+| GET | /blocks/{height}/stats | Block statistics |
+| GET | /blocks/{hash}/header | Raw block header |
+| GET | /blocks/{hash}/txids | Transaction IDs in a block |
+| GET | /blocks/{hash}/txs | Transactions in a block (paginated) |
+| GET | /blocks/{hash}/raw | Raw block hex |
+
+### Transactions
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /tx/{txid} | Full transaction analysis |
+| GET | /tx/{txid}/raw | Raw transaction data |
+| GET | /tx/{txid}/status | Confirmation status |
+| GET | /tx/{txid}/hex | Transaction hex |
+| GET | /tx/{txid}/outspends | Which outputs are spent |
+| GET | /tx/{txid}/merkle-proof | Merkle proof for a transaction |
+| GET | /utxo/{txid}/{vout} | UTXO lookup |
+| POST | /transactions/decode | Decode a raw transaction hex |
+| POST | /transactions/broadcast | Broadcast a signed transaction |
+
+### Mining
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /mining | Mining summary: hashrate, difficulty, pools |
+| GET | /mining/nextblock | Next block prediction |
+| GET | /mining/hashrate/history | Historical hashrate data |
+| GET | /mining/revenue | Current mining revenue |
+| GET | /mining/pools | Mining pool distribution |
+| GET | /mining/difficulty/history | Historical difficulty adjustments |
+| GET | /mining/revenue/history | Historical mining revenue |
+
+### Network
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /network | Network info: version, connections, relay fee |
+| GET | /network/forks | Chain tips and forks |
+| GET | /network/difficulty | Difficulty adjustment progress and estimate |
+| GET | /network/validate-address/{address} | Validate a Bitcoin address |
+
+### Supply & Statistics
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /supply | Circulating supply, halving info, inflation rate |
+| GET | /stats/utxo-set | UTXO set statistics |
+| GET | /stats/segwit-adoption | SegWit adoption metrics |
+| GET | /stats/op-returns | OP_RETURN usage statistics |
+
+### Prices & Tools
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /prices | BTC/USD price (multi-provider fallback) |
+| GET | /tools/exchange-compare | Compare exchange prices and fees |
+
+### Address (requires indexer)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /address/{address} | Address balance and transaction history |
+| GET | /address/{address}/utxos | UTXOs for an address |
+
+### Real-Time Streams (SSE)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /stream/blocks | New block notifications |
+| GET | /stream/fees | Fee rate changes |
+| GET | /stream/whale-txs | Large transaction alerts |
+
+### WebSocket
+| WS | /ws | Real-time subscriptions (blocks, fees, mempool) |
+
+### Registration & Billing
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /register | Self-serve API key registration |
+| POST | /unsubscribe | Unsubscribe from emails |
+| POST | /billing/checkout | Create Stripe checkout session |
+| GET | /billing/status | Subscription status |
+
+### Status
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /health | API health check |
+| GET | /health/deep | Deep health check (node + DB) |
+| GET | /status | Service status and version |
+| GET | /guide | Interactive API guide |
+
+## Response Format
+
+**Success:**
+```json
+{
+  "data": { ... },
+  "meta": { "block_height": 900000, "timestamp": "2026-03-09T..." }
+}
+```
+
+**Error:**
+```json
+{
+  "error": "Description of what went wrong",
+  "request_id": "uuid-for-tracing"
+}
+```
+
+## Example Requests & Responses
+
+### GET /api/v1/fees/recommended
+```json
+{
+  "data": {
+    "fast": { "sat_per_vbyte": 25, "target_blocks": 1 },
+    "medium": { "sat_per_vbyte": 12, "target_blocks": 3 },
+    "slow": { "sat_per_vbyte": 5, "target_blocks": 6 },
+    "recommendation": "medium",
+    "congestion": "moderate",
+    "timestamp": "2026-03-09T12:00:00Z"
+  },
+  "meta": { "block_height": 900000 }
+}
+```
+
+### GET /api/v1/blocks/latest
+```json
+{
+  "data": {
+    "height": 900000,
+    "hash": "00000000000000000002a7c...",
+    "tx_count": 3421,
+    "size": 1678234,
+    "weight": 3992816,
+    "timestamp": 1741500000,
+    "fee_stats": { "min": 1.0, "max": 450.0, "median": 12.5, "mean": 18.3 }
+  },
+  "meta": { "block_height": 900000 }
+}
+```
+
+### GET /api/v1/mempool
+```json
+{
+  "data": {
+    "tx_count": 45230,
+    "vsize_mb": 32.5,
+    "congestion": "moderate",
+    "next_block_min_fee": 8.5,
+    "fee_buckets": [
+      { "range": "1-5", "count": 12000, "vsize_mb": 8.2 },
+      { "range": "5-10", "count": 8500, "vsize_mb": 6.1 }
+    ]
+  },
+  "meta": { "block_height": 900000 }
+}
+```
+
+### POST /api/v1/register
+Request:
+```json
+{ "email": "agent@example.com", "agreed_to_terms": true }
+```
+Response:
+```json
+{
+  "data": {
+    "api_key": "sat_...",
+    "tier": "free",
+    "rate_limit": { "per_minute": 100, "daily": 10000 }
+  }
+}
+```
+
+## Error Codes
+
+| Code | Meaning |
+|------|---------|
+| 400 | Bad request — invalid parameters or malformed body |
+| 401 | Unauthorized — missing or invalid API key |
+| 403 | Forbidden — endpoint requires higher tier or POST requires auth |
+| 404 | Not found — resource doesn't exist (block, tx, address) |
+| 429 | Rate limited — check Retry-After header |
+| 500 | Server error — check request_id for support |
+
+## Common Agent Workflows
+
+### 1. Fee optimization: Should I send now or wait?
+1. `GET /fees/recommended` — get current fee tiers and congestion level
+2. `GET /fees/savings` — see how much waiting would save
+3. `GET /fees/plan` — get optimal timing recommendation
+4. Decision: if congestion is "low", send now at the slow rate. If "high", wait.
+
+### 2. Transaction monitoring
+1. `POST /transactions/broadcast` — broadcast a signed transaction
+2. `GET /tx/{txid}/status` — poll for confirmation status
+3. `GET /blocks/latest` — check if tx is in the latest block
+4. Report: confirmed in block X after Y minutes.
+
+### 3. Mempool congestion alerting
+1. `GET /mempool` — baseline congestion level
+2. `GET /stream/fees` (SSE) — subscribe to fee rate changes
+3. When congestion drops from "high" to "moderate", alert the user
+4. `GET /fees/recommended` — provide updated fee recommendation
+
+## Pricing
+
+- **Free:** 0/mo — 100 req/min, 10K/day, all endpoints
+- **Pro:** $19/mo — 500 req/min, 100K/day, extended block history
+- **Enterprise:** Custom — 2K req/min, dedicated support
+
+## Links
+
+- OpenAPI docs: https://bitcoinsapi.com/docs
+- GitHub: https://github.com/Bortlesboat/bitcoin-api
+- PyPI: https://pypi.org/project/satoshi-api/
+- MCP server: https://github.com/Bortlesboat/bitcoin-mcp
+- Discord: https://discord.gg/EB6Jd66EsF
+- Status: https://stats.uptimerobot.com/satoshi-api
+- Contact: api@bitcoinsapi.com

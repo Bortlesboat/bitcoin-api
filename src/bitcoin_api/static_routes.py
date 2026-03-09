@@ -63,6 +63,13 @@ def register_static_routes(app: FastAPI):
             return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
         return _serve_404()
 
+    @app.get("/llms-full.txt", include_in_schema=False)
+    def llms_full_txt():
+        p = _STATIC_DIR / "llms-full.txt"
+        if p.exists():
+            return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
+        return _serve_404()
+
     @app.get("/sitemap.xml", include_in_schema=False)
     def sitemap_xml():
         p = _STATIC_DIR / "sitemap.xml"
@@ -117,7 +124,7 @@ def register_static_routes(app: FastAPI):
             "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
             "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
             "bitcoin-fee-api", "bitcoin-mempool-api", "bitcoin-mcp-setup-guide",
-            "terms", "privacy", "disclaimer", "visualizer",
+            "terms", "privacy", "disclaimer", "visualizer", "pricing", "about",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"

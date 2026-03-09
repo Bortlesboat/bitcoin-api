@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Satoshi API</title>
+<meta name="description" content="Satoshi API is Bitcoin fee intelligence for AI agents. Built because Bitcoin Core's JSON-RPC wasn't designed for the AI agent era. Open source, self-hostable, Apache-2.0.">
+<link rel="canonical" href="https://bitcoinsapi.com/about">
+<meta property="og:title" content="About Satoshi API">
+<meta property="og:description" content="Bitcoin fee intelligence for AI agents. Open source, self-hostable, Apache-2.0 licensed.">
+<meta property="og:url" content="https://bitcoinsapi.com/about">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
+<meta name="twitter:title" content="About Satoshi API">
+<meta name="twitter:description" content="Bitcoin fee intelligence for AI agents. Open source, self-hostable, Apache-2.0 licensed.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --accent: #f7931a;
+  --green: #3fb950;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+a:hover { color: #FFB347; text-decoration: underline; }
+code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.875em; }
+.container { max-width: 800px; margin: 0 auto; padding: 48px 24px; }
+h1 { color: var(--accent); margin-bottom: 8px; font-size: 2em; }
+h2 { color: var(--text); margin-top: 36px; margin-bottom: 12px; font-size: 1.3em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+p, li { color: var(--text); margin-bottom: 12px; }
+ul { margin-left: 24px; margin-bottom: 16px; }
+.meta { color: var(--muted); font-size: 0.9em; margin-bottom: 32px; }
+.tech-stack { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.tech-tag { background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 6px; font-size: 0.85em; color: var(--muted); }
+footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bitcoinsapi.com/" },
+    { "@type": "ListItem", "position": 2, "name": "About", "item": "https://bitcoinsapi.com/about" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Satoshi API",
+  "url": "https://bitcoinsapi.com",
+  "logo": "https://bitcoinsapi.com/logo-128.png",
+  "description": "Bitcoin fee intelligence for AI agents. REST API and MCP server wrapping a Bitcoin Core full node.",
+  "email": "api@bitcoinsapi.com",
+  "sameAs": [
+    "https://github.com/Bortlesboat/bitcoin-api",
+    "https://pypi.org/project/satoshi-api/",
+    "https://discord.gg/EB6Jd66EsF"
+  ]
+}
+</script>
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+<nav style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
+  <a href="/" style="font-weight:800;font-size:0.85em;color:var(--text);letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;">SATOSHI API</a>
+  <div style="display:flex;gap:24px;font-size:0.9em;">
+    <a href="/" style="color:var(--muted);">Home</a>
+    <a href="/terms" style="color:var(--muted);">Terms</a>
+    <a href="/privacy" style="color:var(--muted);">Privacy</a>
+    <a href="/docs" style="color:var(--muted);">API Docs</a>
+  </div>
+</nav>
+<div class="container">
+<h1>About Satoshi API</h1>
+<p class="meta">Bitcoin fee intelligence for AI agents.</p>
+
+<h2>Why We Built This</h2>
+<p>Satoshi API was built because Bitcoin Core's JSON-RPC wasn't designed for the AI agent era. As AI agents increasingly need real-time financial data, there was no Bitcoin API with native MCP integration, fee intelligence, or agent-friendly response formats. Satoshi API fills that gap.</p>
+
+<h2>What We Do</h2>
+<p>Bitcoin fee intelligence that saves money on every transaction. We wrap a Bitcoin Core full node with analyzed, structured data — fee recommendations, mempool analysis, block statistics, and real-time streams — all accessible via REST API or MCP tool calls.</p>
+<ul>
+  <li><strong>Fee intelligence:</strong> "Send now or wait?" recommendations that save real money</li>
+  <li><strong>Mempool analysis:</strong> Congestion levels, fee buckets, next-block predictions</li>
+  <li><strong>Real-time streams:</strong> SSE and WebSocket feeds for blocks, fees, and whale transactions</li>
+  <li><strong>MCP integration:</strong> 40 tools, 6 prompts, and 7 resources for any MCP-compatible agent</li>
+  <li><strong>Agent-first design:</strong> Consistent JSON envelopes, deterministic pagination, self-serve registration</li>
+</ul>
+
+<h2>Open Source</h2>
+<p>Apache-2.0 licensed. Full source code on GitHub. Self-hostable on your own node with zero vendor lock-in. Run <code>pip install satoshi-api</code> and point it at your Bitcoin Core instance.</p>
+
+<h2>Tech Stack</h2>
+<div class="tech-stack">
+  <span class="tech-tag">FastAPI</span>
+  <span class="tech-tag">Python</span>
+  <span class="tech-tag">SQLite (WAL)</span>
+  <span class="tech-tag">Bitcoin Core</span>
+  <span class="tech-tag">bitcoinlib-rpc</span>
+  <span class="tech-tag">MCP Protocol</span>
+</div>
+
+<h2>Contact</h2>
+<p>Email: <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a></p>
+
+<h2>Links</h2>
+<ul>
+  <li><a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub — Source Code</a></li>
+  <li><a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI — Python Package</a></li>
+  <li><a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a></li>
+  <li><a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a></li>
+  <li><a href="/docs">API Docs (Swagger UI)</a></li>
+</ul>
+
+</div>
+
+<footer>
+<div class="container">
+<p style="font-weight:800;letter-spacing:0.1em;font-size:0.9em;color:var(--text);margin-bottom:16px;">SATOSHI API</p>
+<p style="color:var(--muted);font-size:0.8em;margin-bottom:12px;">Data provided by this API is for informational purposes only and does not constitute financial advice. Price data powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>.</p>
+<p>Apache-2.0 licensed. Built by a solo developer who believes Bitcoin infrastructure should be as sovereign as Bitcoin itself.</p>
+<p style="margin-top:12px;">
+  <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+  <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+  <a href="/docs">API Docs</a> &middot;
+  <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer">Status</a> &middot;
+  <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a> &middot;
+  <a href="https://github.com/Bortlesboat/satoshi-discord-bot" target="_blank" rel="noopener noreferrer">Discord Bot</a> &middot;
+  <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a> &middot;
+  <a href="/terms">Terms of Service</a> &middot;
+  <a href="/privacy">Privacy Policy</a> &middot;
+  <a href="/disclaimer">Disclaimer</a>
+</p>
+<p style="margin-top:12px;">
+  <a href="/vs-mempool">Satoshi API vs Mempool.space</a> &middot;
+  <a href="/vs-blockcypher">Satoshi API vs BlockCypher</a> &middot;
+  <a href="/best-bitcoin-api-for-developers">Best Bitcoin API for Developers</a> &middot;
+  <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+  <a href="/self-hosted-bitcoin-api">Self-Hosted Bitcoin API</a> &middot;
+  <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+  <a href="/bitcoin-mempool-api">Bitcoin Mempool API</a>
+</p>
+<p style="margin-top:12px;color:var(--muted);">api@bitcoinsapi.com</p>
+</div>
+</footer>
+</body>
+</html>

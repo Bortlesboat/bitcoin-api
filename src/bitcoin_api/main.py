@@ -158,6 +158,15 @@ if settings.enable_indexer:
     app.include_router(indexed_tx.router, prefix=PREFIX)
     app.include_router(indexer_status.router, prefix=PREFIX)
 
+# --- MCP server (SSE transport at /mcp) ---
+try:
+    from .routers.mcp_server import create_mcp_app
+    mcp_app = create_mcp_app()
+    app.mount("/mcp", mcp_app)
+    log.info("MCP server mounted at /mcp/sse")
+except Exception:
+    log.exception("Failed to mount MCP server — continuing without it")
+
 register_static_routes(app)
 
 
