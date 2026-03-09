@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     bitcoin_rpc_password: SecretStr | None = None
     bitcoin_datadir: str | None = None
 
+    # Fallback Bitcoin RPC (optional — used when primary node is down)
+    bitcoin_rpc_fallback_host: str | None = None
+    bitcoin_rpc_fallback_port: int = 8332
+    bitcoin_rpc_fallback_user: str | None = None
+    bitcoin_rpc_fallback_password: SecretStr | None = None
+
     # API server
     api_host: str = "0.0.0.0"
     api_port: int = 9332
@@ -72,6 +78,7 @@ class Settings(BaseSettings):
     resend_api_key: SecretStr | None = None
     resend_from_email: str = "Satoshi API <noreply@bitcoinsapi.com>"
     resend_enabled: bool = False
+    admin_notification_email: str = ""  # ADMIN_NOTIFICATION_EMAIL — new-registration alerts
 
     # Upstash Redis (rate limiting backend)
     upstash_redis_url: str = ""

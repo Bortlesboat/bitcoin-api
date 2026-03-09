@@ -5,7 +5,9 @@ from unittest.mock import patch, MagicMock
 
 
 from bitcoin_api.config import settings
-from bitcoin_api.notifications import send_welcome_email, send_usage_alert, track_registration
+from bitcoin_api.notifications import (
+    send_welcome_email, send_usage_alert, track_registration, notify_admin_new_registration,
+)
 
 
 def _mock_secret(value: str) -> MagicMock:
@@ -134,3 +136,66 @@ def test_track_registration_failure():
     with patch.dict("sys.modules", {"posthog": mock_posthog}):
         # Should not raise
         track_registration("user@example.com", "free", "my-key")
+
+
+# --- notify_admin_new_registration ---
+
+
+@patch.object(settings, "admin_notification_email", "")
+def test_notify_admin_skipped_no_email():
+    """When admin_notification_email is empty, returns False without sending."""
+    result = notify_admin_new_registration("user@example.com", "my-key", "free")
+    assert result is False
+
+
+@patch.object(settings, "resend_enabled", False)
+@patch.object(settings, "admin_notification_email", "admin@example.com")
+def test_notify_admin_skipped_resend_disabled():
+    """When resend is disabled, returns False even if admin email is set."""
+    result = notify_admin_new_registration("user@example.com", "my-key", "free")
+    assert result is False
+
+
+@patch.object(settings, "resend_enabled", True)
+@patch.object(settings, "resend_api_key", _mock_secret("re_test_key"))
+@patch.object(settings, "admin_notification_email", "admin@example.com")
+def test_notify_admin_success():
+    """Mock resend and verify admin alert sent with correct payload."""
+    mock_resend = MagicMock()
+    with patch.dict("sys.modules", {"resend": mock_resend}):
+        result = notify_admin_new_registration("user@example.com", "my-key", "free", "reddit")
+
+    assert result is True
+    mock_resend.Emails.send.assert_called_once()
+    payload = mock_resend.Emails.send.call_args[0][0]
+    assert payload["to"] == ["admin@example.com"]
+    assert "my-key" in payload["subject"]
+    assert "free" in payload["subject"]
+    assert "reddit" in payload["html"]
+
+
+@patch.object(settings, "resend_enabled", True)
+@patch.object(settings, "resend_api_key", _mock_secret("re_test_key"))
+@patch.object(settings, "admin_notification_email", "admin@example.com")
+def test_notify_admin_failure():
+    """When resend.Emails.send raises, returns False (no exception propagation)."""
+    mock_resend = MagicMock()
+    mock_resend.Emails.send.side_effect = RuntimeError("API down")
+    with patch.dict("sys.modules", {"resend": mock_resend}):
+        result = notify_admin_new_registration("user@example.com", "my-key", "free")
+
+    assert result is False
+
+
+@patch.object(settings, "resend_enabled", True)
+@patch.object(settings, "resend_api_key", _mock_secret("re_test_key"))
+@patch.object(settings, "admin_notification_email", "admin@example.com")
+def test_notify_admin_no_utm_source():
+    """When utm_source is None, HTML should contain 'none' (italic)."""
+    mock_resend = MagicMock()
+    with patch.dict("sys.modules", {"resend": mock_resend}):
+        result = notify_admin_new_registration("user@example.com", "my-key", "free", None)
+
+    assert result is True
+    payload = mock_resend.Emails.send.call_args[0][0]
+    assert "<em>none</em>" in payload["html"]

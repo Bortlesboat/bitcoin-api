@@ -174,6 +174,50 @@ def test_cap_blocks_param_unit():
     assert cap_blocks_param(100, "unknown_tier") == 100  # under default cap
 
 
+def test_register_calls_notify_admin(client):
+    """Registration endpoint calls notify_admin_new_registration as a background task."""
+    with patch("bitcoin_api.routers.keys._check_reg_rate_limit", return_value=True), \
+         patch("bitcoin_api.routers.keys.notify_admin_new_registration") as mock_notify:
+        resp = client.post("/api/v1/register", json={
+            "email": "admin-notify@example.com",
+            "agreed_to_terms": True,
+            "utm_source": "twitter",
+        })
+    assert resp.status_code == 200
+    mock_notify.assert_called_once()
+    args = mock_notify.call_args[0]
+    assert args[0] == "admin-notify@example.com"  # email
+    assert args[1] == "default"  # label
+    assert args[2] == "free"  # tier
+    assert args[3] == "twitter"  # utm_source
+
+
+def test_register_calls_notify_admin_no_utm(client):
+    """When utm_source is not provided, notify_admin_new_registration receives None."""
+    with patch("bitcoin_api.routers.keys._check_reg_rate_limit", return_value=True), \
+         patch("bitcoin_api.routers.keys.notify_admin_new_registration") as mock_notify:
+        resp = client.post("/api/v1/register", json={
+            "email": "no-utm@example.com",
+            "agreed_to_terms": True,
+        })
+    assert resp.status_code == 200
+    mock_notify.assert_called_once()
+    args = mock_notify.call_args[0]
+    assert args[3] is None  # utm_source
+
+
+def test_register_succeeds_when_admin_notify_fails(client):
+    """Registration returns 200 even when notify_admin_new_registration returns False (email failed internally)."""
+    with patch("bitcoin_api.routers.keys._check_reg_rate_limit", return_value=True), \
+         patch("bitcoin_api.routers.keys.notify_admin_new_registration", return_value=False):
+        resp = client.post("/api/v1/register", json={
+            "email": "admin-fail@example.com",
+            "agreed_to_terms": True,
+        })
+    assert resp.status_code == 200
+    assert "api_key" in resp.json()["data"]
+
+
 def test_authed_blocks_cap(authed_client):
     """Free tier with blocks=2016 gets capped to 144."""
     resp = authed_client.get("/api/v1/mining/revenue?blocks=2016")

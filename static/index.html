@@ -397,10 +397,12 @@
   <div class="links">
     <a href="#why-satoshi">Why Satoshi API</a>
     <a href="#features">Features</a>
+    <a href="#try-these">Try It</a>
     <a href="#endpoints">Endpoints</a>
     <a href="#pricing">Pricing</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="/docs">API Docs</a>
+    <a href="/bitcoin-mcp-setup-guide">MCP Setup</a>
     <a href="https://discord.com/oauth2/authorize?client_id=1479972638918049895&permissions=2048&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener noreferrer">Discord Bot</a>
     <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="uptime-badge" style="text-decoration:none;"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>Live</a>
   </div>
@@ -419,11 +421,16 @@
       <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'hero',target:'github'})">View on GitHub</a>
     </div>
     <div class="hero-code">
-<pre><code><span style="color: var(--muted)">$ </span>curl https://bitcoinsapi.com/api/v1/fees/recommended
-<span style="color: var(--green)">{</span>
-  <span style="color: var(--accent)">"fastest"</span>: 12, <span style="color: var(--accent)">"half_hour"</span>: 8, <span style="color: var(--accent)">"hour"</span>: 4
-<span style="color: var(--green)">}</span></code></pre>
-      <div class="live-badge"><span class="pulse"></span> Live from bitcoinsapi.com</div>
+<pre><code><span style="color: var(--muted)">$ </span>pip install bitcoin-mcp</code></pre>
+      <div style="margin-top: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; text-align: left;">
+        <div style="margin-bottom: 12px;">
+          <span style="color: var(--green); font-weight: 600;">You:</span> <span style="color: var(--text);">"Should I send Bitcoin right now?"</span>
+        </div>
+        <div>
+          <span style="color: var(--accent); font-weight: 600;">Claude:</span> <span style="color: var(--muted);">"Fees are currently low at 4 sat/vB — a standard transaction would cost ~$0.56. This is the cheapest window in the last 12 hours. Send now to save ~60% vs. peak fees."</span>
+        </div>
+      </div>
+      <div class="live-badge" style="margin-top: 12px;"><span class="pulse"></span> Live from bitcoinsapi.com</div>
 <pre id="live-response"><code id="live-json" style="color: var(--muted);">Loading live fee data...</code></pre>
     </div>
   </div>
@@ -443,6 +450,63 @@
   <span class="trust-badge">Free &amp; open source</span>
   <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="trust-badge" style="text-decoration:none;color:inherit;"><span class="dot"></span> Monitored by UptimeRobot</a>
 </div>
+
+<!-- Try These Prompts -->
+<section id="try-these" class="bg-surface">
+  <div class="container">
+    <p class="section-label">Try These Prompts</p>
+    <h2 class="section-title">Install the MCP. Ask Claude about Bitcoin. Get answers, not data.</h2>
+    <p class="section-subtitle">Copy any prompt below into Claude Desktop with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> installed. Each one works out of the box.</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px;">
+
+      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="What's the current fee environment? Should I send a transaction now or wait for lower fees? How much would I save by waiting?">
+        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
+        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Save Money</h3>
+        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"Should I send Bitcoin right now?"</p>
+        <p style="color: var(--muted); font-size: 0.85em;">Get a send/wait recommendation with specific sat/vB rates and estimated savings if you wait.</p>
+      </div>
+
+      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Track this transaction and tell me when it's safe to consider confirmed: [paste your txid here]">
+        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
+        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Save Time</h3>
+        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"Track this payment"</p>
+        <p style="color: var(--muted); font-size: 0.85em;">Paste a txid. Get confirmation count, fee rate, RBF status, and whether it'll make the next block.</p>
+      </div>
+
+      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Analyze the current mempool. How congested is it? What's the fee distribution? How many transactions are waiting?">
+        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
+        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Understand</h3>
+        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"What's happening in the mempool?"</p>
+        <p style="color: var(--muted); font-size: 0.85em;">Congestion level, fee buckets, next-block minimum fee, and total pending transactions.</p>
+      </div>
+
+      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Compare fee rates for different urgency levels. How much more does next-block confirmation cost vs. waiting an hour? Show me the exact cost in sats for a typical transaction.">
+        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
+        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Compare</h3>
+        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"Compare urgency levels"</p>
+        <p style="color: var(--muted); font-size: 0.85em;">Side-by-side: next block vs. 3 blocks vs. 6 blocks vs. 1 day. Exact sats at each level.</p>
+      </div>
+
+      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Decode and explain this transaction in plain English: [paste txid here]">
+        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
+        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Learn</h3>
+        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"Decode this transaction"</p>
+        <p style="color: var(--muted); font-size: 0.85em;">Full breakdown: inputs, outputs, fee rate, SegWit/Taproot flags, script types. Plain English.</p>
+      </div>
+
+      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Analyze the current block template. What transactions are likely in the next block? What's the minimum fee to get in?">
+        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
+        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Predict</h3>
+        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"What will the next block look like?"</p>
+        <p style="color: var(--muted); font-size: 0.85em;">Projected next block: tx count, total fees, fee percentiles, and top-paying transactions.</p>
+      </div>
+
+    </div>
+    <p style="text-align: center; margin-top: 32px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp#recipes" target="_blank" rel="noopener noreferrer" style="font-weight: 600;" onclick="posthog.capture('cta_click', {location:'try_these', target:'mcp_recipes'})">See all 16 recipes &rarr;</a>
+    </p>
+  </div>
+</section>
 
 <!-- Why Satoshi API -->
 <section id="why-satoshi" class="bg-surface">
@@ -504,36 +568,20 @@
         <p>"Send now or wait?" Not just a fee rate — actual recommendations with mempool context. Congestion scores. Block weight analysis. All in sat/vB.</p>
       </div>
       <div class="feature">
-        <h3>Smart Caching</h3>
-        <p>Reorg-aware TTL caching. Deep blocks cached 1 hour, tip blocks 30 seconds, fees every 10 seconds. Near-zero stale data risk.</p>
+        <h3>Self-Hosted</h3>
+        <p>Your node, your data, your API. No third party sees your queries. No vendor lock-in. No surprise pricing changes. Apache-2.0 licensed.</p>
       </div>
       <div class="feature">
-        <h3>Rate Limiting</h3>
-        <p>Four tiers with sliding-window per-minute and daily limits. Expose your API safely without worrying about abuse.</p>
-      </div>
-      <div class="feature">
-        <h3>Standard Envelope</h3>
+        <h3>Agent-Ready Responses</h3>
         <p>Every response: <code>{ data, meta }</code>. Every error: <code>{ error }</code>. Request IDs on everything. Consistent and predictable — ideal for agent parsing.</p>
-      </div>
-      <div class="feature">
-        <h3>Input Validation</h3>
-        <p>Txids validated as 64-hex before hitting RPC. Block heights checked for bounds. RPC errors mapped to proper HTTP status codes.</p>
       </div>
       <div class="feature">
         <h3>L402 Lightning Payments</h3>
         <p>Optional <a href="https://docs.lightning.engineering/the-lightning-network/l402" target="_blank" rel="noopener noreferrer">L402</a> support via the <code>bitcoin-api-l402</code> extension package. Pay-per-request via Lightning for Bitcoin-native API access.</p>
       </div>
       <div class="feature">
-        <h3>Self-Hosted</h3>
-        <p>Your node, your data, your API. No third party sees your queries. No vendor lock-in. No surprise pricing changes. Apache-2.0 licensed.</p>
-      </div>
-      <div class="feature">
-        <h3>API Key Auth</h3>
-        <p>Optional API keys via X-API-Key header. SHA256 hashed storage. Tiered access control. Anonymous read access for public use.</p>
-      </div>
-      <div class="feature">
-        <h3>Production Ready</h3>
-        <p>415 tests (394 unit + 21 e2e). Docker support. Cloudflare Tunnel deployment. Structured access logging. Graceful shutdown.</p>
+        <h3>Production Infrastructure</h3>
+        <p>Reorg-aware caching, tiered rate limiting, input validation, API key auth, 415+ tests, Docker support, and Cloudflare Tunnel deployment. Battle-tested so you don't have to be.</p>
       </div>
     </div>
   </div>
@@ -571,7 +619,7 @@
 </section>
 
 <!-- Use Cases -->
-<section id="use-cases" class="bg-surface">
+<section id="use-cases">
   <div class="container">
     <p class="section-label">Built For</p>
     <h2 class="section-title">AI agents, developers, and node operators.</h2>
@@ -621,7 +669,7 @@
 </section>
 
 <!-- Endpoints -->
-<section id="endpoints">
+<section id="endpoints" class="bg-surface">
   <div class="container">
     <p class="section-label">API Surface</p>
     <h2 class="section-title">Fee intelligence at the core. Everything else you need around it.</h2>
@@ -682,7 +730,7 @@
 </section>
 
 <!-- Quick Start -->
-<section id="quickstart" class="bg-surface">
+<section id="quickstart">
   <div class="container">
     <p class="section-label">Get Started</p>
     <h2 class="section-title">From zero to Bitcoin data in 60 seconds.</h2>
@@ -732,7 +780,7 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
 </section>
 
 <!-- Pricing -->
-<section id="pricing">
+<section id="pricing" class="bg-surface">
   <div class="container">
     <p class="section-label">Pricing</p>
     <h2 class="section-title">Free to explore. Upgrade when you are ready.</h2>
@@ -872,7 +920,8 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
       <a href="https://github.com/Bortlesboat/satoshi-discord-bot" target="_blank" rel="noopener noreferrer">Discord Bot</a> &middot;
       <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a> &middot;
       <a href="/terms">Terms of Service</a> &middot;
-      <a href="/privacy">Privacy Policy</a>
+      <a href="/privacy">Privacy Policy</a> &middot;
+      <a href="/disclaimer">Disclaimer</a>
     </p>
     <p style="margin-top: 12px;">
       <a href="/vs-mempool">Satoshi API vs Mempool.space</a> &middot;
@@ -1045,6 +1094,26 @@ function copyKey() {
     navigator.clipboard.writeText(val.textContent).then(function() {
       btn.textContent = 'Copied';
       setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+  }
+}
+
+function copyPrompt(el) {
+  var prompt = el.getAttribute('data-prompt');
+  if (prompt && navigator.clipboard) {
+    navigator.clipboard.writeText(prompt).then(function() {
+      var hint = el.querySelector('div');
+      if (hint) {
+        hint.textContent = 'Copied!';
+        hint.style.color = 'var(--green)';
+        hint.style.opacity = '1';
+        setTimeout(function() {
+          hint.textContent = 'click to copy';
+          hint.style.color = 'var(--muted)';
+          hint.style.opacity = '0.6';
+        }, 2000);
+      }
+      posthog.capture('prompt_copied', { prompt: prompt.substring(0, 50) });
     });
   }
 }

@@ -10,7 +10,7 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 |------|-------|---------|
 | **Version** | 0.3.3 | 2026-03-08 |
 | **Endpoints** | 82 total (78 core + 4 indexer) | 2026-03-08 |
-| **Tests** | 394 unit + 21 e2e = 415 total | 2026-03-08 |
+| **Tests** | 400 unit + 21 e2e = 421 total | 2026-03-08 |
 | **Routers** | 20 core + 3 indexer = 23 | 2026-03-08 |
 | **Live URL** | https://bitcoinsapi.com | — |
 | **Infra cost** | ~$3/mo | 2026-03-08 |
@@ -215,20 +215,20 @@ Track the last run of each agent for staleness detection.
 
 ## Performance Tracking
 
-| Agent | Last 5 Runs | Issues Found | Fixed | Trigger Count |
-|-------|-------------|-------------|-------|---------------|
-| PM | 2026-03-07, 2026-03-08 | 5 | 0 | 4 |
-| UX | 2026-03-07, 2026-03-08 | 5 | 0 | 4 |
-| Finance | 2026-03-07, 2026-03-08, 2026-03-08 | 3 | 0 | 3 |
-| Legal | 2026-03-07, 2026-03-08 | 2 | 0 | 2 |
-| Marketing | 2026-03-07, 2026-03-08 | 4 | 0 | 4 |
-| Security | 2026-03-07, 2026-03-07, 2026-03-07, 2026-03-08 | 4 | 0 | 3 |
-| Architect | 2026-03-07, 2026-03-08 | 6 | 0 | 3 |
-| QA | 2026-03-07, 2026-03-08 | 5 | 0 | 3 |
-| Analytics | 2026-03-07, 2026-03-08 | 5 | 0 | 4 |
-| Ops | 2026-03-07 | — | — | — |
-| Agent Advocate | 2026-03-08 | — | — | — |
-| Admin Assistant | 2026-03-07 | 5 | 5 | 2 |
+| Agent | Last 5 Runs | Issues Found | Fixed | Trigger Count | Latest Result |
+|-------|-------------|-------------|-------|---------------|---------------|
+| PM | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 4 | WARN (11/18 checks, triggers: Marketing, UX, Finance, Architect) |
+| UX | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 4 | WARN (2 P0 bugs found, triggers: Marketing, QA, Admin, Agent Advocate) |
+| Finance | 2026-03-07, 2026-03-08, 2026-03-08, 2026-03-08 | 3 | 0 | 3 | PASS (8/8 controls, triggers: PM, Marketing) |
+| Legal | 2026-03-07, 2026-03-08, 2026-03-08 | 2 | 0 | 2 | WARN (agent terms missing, triggers: Agent Advocate, UX, Security, Marketing, Admin, Architect) |
+| Marketing | 2026-03-07, 2026-03-08, 2026-03-08 | 4 | 0 | 4 | WARN (dirs not submitted, triggers: UX, Admin, Agent Advocate, PM) |
+| Security | 2026-03-07, 2026-03-07, 2026-03-07, 2026-03-08, 2026-03-08 | 4 | 0 | 3 | WARN (2 critical gaps, triggers: Architect, Agent Advocate, QA, Legal, PM) |
+| Architect | 2026-03-07, 2026-03-08, 2026-03-08 | 6 | 0 | 3 | WARN (3 scale concerns, triggers: QA, Agent Advocate, Security, PM) |
+| QA | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 3 | WARN (422 actual vs 415 documented, triggers: Agent Advocate, Architect, Admin, Security) |
+| Analytics | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 4 | WARN (can't slice by MCP, triggers: Architect, QA, PM, Agent Advocate) |
+| Ops | 2026-03-07, 2026-03-08 | — | — | — | WARN (single-worker, triggers: Security, PM, Architect, Finance) |
+| Agent Advocate | 2026-03-08, 2026-03-08 | — | — | — | WARN (token waste, triggers: Architect, QA, PM, Marketing, Admin) |
+| Admin Assistant | 2026-03-07, 2026-03-08 | 5 | 5 | 2 | PASS (6/9 clean, triggers: Marketing, Architect) |
 
 ## Conflict Resolution Protocol
 

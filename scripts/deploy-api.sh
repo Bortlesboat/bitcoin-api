@@ -55,7 +55,7 @@ echo ""
 echo "[5/6] Starting uvicorn..."
 mkdir -p "$LOG_DIR"
 cd "$API_DIR"
-PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$PORT" >> "$LOG_FILE" 2>&1 &
+PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$PORT" --workers 2 >> "$LOG_FILE" 2>&1 &
 NEW_PID=$!
 echo "  Started uvicorn (PID $NEW_PID), logging to $LOG_FILE"
 

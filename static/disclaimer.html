@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disclaimer — Satoshi API</title>
+<meta name="description" content="Disclaimers for the Satoshi API hosted service at bitcoinsapi.com.">
+<link rel="canonical" href="https://bitcoinsapi.com/disclaimer">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --accent: #f7931a;
+  --green: #3fb950;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.container { max-width: 800px; margin: 0 auto; padding: 48px 24px; }
+h1 { color: var(--accent); margin-bottom: 8px; font-size: 2em; }
+h2 { color: var(--text); margin-top: 32px; margin-bottom: 12px; font-size: 1.3em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+p, li { color: var(--text); margin-bottom: 12px; }
+ul { margin-left: 24px; margin-bottom: 16px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.meta { color: var(--muted); font-size: 0.9em; margin-bottom: 32px; }
+footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Disclaimer</h1>
+<p class="meta">Last updated: March 8, 2026</p>
+
+<p>This page consolidates key disclaimers for the Satoshi API hosted service at bitcoinsapi.com ("Service"), operated by Satoshi API ("Operator", "we", "us"). For full legal terms, see our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</p>
+
+<h2>1. Financial Data Disclaimer</h2>
+<p><strong>The Service provides informational data only. It is NOT financial advice.</strong></p>
+<ul>
+<li>Fee recommendations are estimates based on current mempool conditions and may not reflect actual confirmation times.</li>
+<li>Price data is sourced from third-party providers and cached. It may be delayed, incomplete, or inaccurate.</li>
+<li>You are solely responsible for any financial decisions made using data from this Service.</li>
+<li>Nothing provided by the Service constitutes a recommendation or solicitation to buy, sell, or hold any asset.</li>
+</ul>
+
+<h2>2. Money Transmitter Disclaimer</h2>
+<p>The broadcast endpoint (/api/v1/transactions/broadcast) relays pre-signed transactions to the Bitcoin peer-to-peer network. The Operator does not create, modify, sign, transmit, hold, or control any funds or private keys. The Operator is not a money services business or money transmitter. Broadcasting a pre-signed transaction is functionally equivalent to operating a Bitcoin network node.</p>
+
+<h2>3. Agent Usage Disclaimer</h2>
+<p>The Service permits access by Automated Consumers, defined as any software, bot, script, AI agent, MCP client, or automated system that accesses the Service without direct human interaction for each request.</p>
+<ul>
+<li>The human or entity deploying an Automated Consumer bears full responsibility and downstream liability for all actions taken by that consumer.</li>
+<li>Agent operators must not present API data as the agent's own analysis or advice to end users without passing through this financial data disclaimer.</li>
+<li>Agent operators are responsible for implementing appropriate human-in-the-loop confirmation before initiating irreversible actions (such as broadcasting transactions) based on API data.</li>
+<li>The Operator is not liable for any chain-of-liability claims from end users of Automated Consumers.</li>
+</ul>
+
+<h2>4. Data Staleness Notice</h2>
+<p>Fee estimates and mempool data are point-in-time snapshots. Mempool conditions change block-to-block, and a fee estimate that is accurate at the time of the API response may no longer be optimal by the time a transaction is broadcast. Specifically:</p>
+<ul>
+<li>Fee estimates reflect the state of the mempool at the moment they are calculated and are cached for short periods.</li>
+<li>A new block, a sudden influx of transactions, or mempool evictions can materially change the fee landscape within seconds.</li>
+<li>Price data may be cached for up to 60 seconds and may not reflect the most recent market price.</li>
+<li>Users and Automated Consumers should treat all data as advisory and implement their own staleness checks where precision is critical.</li>
+</ul>
+
+</div>
+
+<footer>
+<div class="container">
+<p><a href="/">Home</a> &middot; <a href="/terms">Terms of Service</a> &middot; <a href="/privacy">Privacy Policy</a> &middot; <a href="/docs">API Docs</a></p>
+</div>
+</footer>
+</body>
+</html>

@@ -3,6 +3,7 @@
 import hashlib
 import html
 import logging
+from datetime import datetime, timezone
 
 from bitcoin_api.config import settings
 
@@ -112,6 +113,37 @@ def track_registration(email: str, tier: str, label: str) -> None:
         pass  # Never fail registration for analytics
 
 
+def notify_admin_new_registration(
+    email: str, label: str, tier: str, utm_source: str | None = None
+) -> bool:
+    """Send admin alert when a new API key is registered."""
+    admin_email = settings.admin_notification_email
+    if not admin_email or not settings.resend_enabled or not settings.resend_api_key:
+        logger.debug("Admin notification skipped (not configured or Resend disabled)")
+        return False
+
+    try:
+        import resend
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        source_line = f"<strong>UTM Source:</strong> {html.escape(utm_source)}" if utm_source else "<strong>UTM Source:</strong> <em>none</em>"
+
+        resend.Emails.send({
+            "from": settings.resend_from_email,
+            "to": [admin_email],
+            "subject": f"New Registration: {html.escape(label)} ({html.escape(tier)})",
+            "html": _admin_registration_html(
+                html.escape(email), html.escape(label),
+                html.escape(tier), source_line, timestamp,
+            ),
+        })
+        logger.info(f"Admin registration alert sent for {email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send admin registration alert: {e}")
+        return False
+
+
 _EMAIL_FOOTER = """
     <hr style="border: 1px solid #30363d; margin: 24px 0;">
     <p style="font-size: 11px; color: #8b949e; line-height: 1.5;">
@@ -159,6 +191,27 @@ def _usage_alert_html(usage_pct: int, tier: str) -> str:
     <a href="https://bitcoinsapi.com/#pricing" style="display: inline-block; background: #f7931a; color: #0d1117; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 16px;">View Plans</a>
     <hr style="border: 1px solid #30363d; margin: 24px 0;">
     <p style="font-size: 12px; color: #8b949e;">To stop receiving these alerts: POST /api/v1/keys/unsubscribe with your API key.</p>
+    {_EMAIL_FOOTER}
+</div>
+"""
+
+
+def _admin_registration_html(
+    email: str, label: str, tier: str, source_line: str, timestamp: str,
+) -> str:
+    return f"""
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; max-width: 600px; margin: 0 auto; background: #0d1117; color: #c9d1d9; padding: 32px; border-radius: 8px;">
+    <h1 style="color: #f7931a; font-size: 24px;">New API Key Registration</h1>
+    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; margin: 16px 0; line-height: 1.8;">
+        <strong>Email:</strong> {email}<br>
+        <strong>Label:</strong> {label}<br>
+        <strong>Tier:</strong> {tier}<br>
+        {source_line}<br>
+        <strong>Registered:</strong> {timestamp}
+    </div>
+    <div style="background: #1c2128; border-left: 4px solid #f7931a; padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0;">
+        <strong style="color: #f7931a;">Action Required:</strong> Personally reach out to this user within 24 hours.
+    </div>
     {_EMAIL_FOOTER}
 </div>
 """

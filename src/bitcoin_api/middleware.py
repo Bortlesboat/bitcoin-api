@@ -18,7 +18,7 @@ from .db import log_usage
 from .exceptions import ERROR_TYPES, _GUIDE_URL
 from .models import ErrorResponse, ErrorDetail
 from .metrics import REQUEST_COUNT, REQUEST_LATENCY, normalize_endpoint
-from .rate_limit import check_rate_limit, check_daily_limit
+from .rate_limit import check_rate_limit, check_rate_limit_raw, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
 log = logging.getLogger("bitcoin_api")
@@ -36,7 +36,8 @@ def _get_client_ip(request: Request) -> str:
 
 def _error_response(status: int, title: str, detail: str, request_id: str,
                     *, error_type_key: str,
-                    extra_headers: dict | None = None) -> JSONResponse:
+                    extra_headers: dict | None = None,
+                    retry_after_seconds: int | None = None) -> JSONResponse:
     """Build a standardised JSON error response with X-Request-ID."""
     resp = JSONResponse(
         status_code=status,
@@ -48,6 +49,7 @@ def _error_response(status: int, title: str, detail: str, request_id: str,
                 detail=detail,
                 request_id=request_id,
                 help_url=_GUIDE_URL,
+                retry_after_seconds=retry_after_seconds,
             )
         ).model_dump(),
     )
@@ -128,12 +130,6 @@ _RATE_LIMIT_SKIP = {
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
     "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
     "/terms", "/privacy",
-    "/api/v1/analytics/overview", "/api/v1/analytics/requests",
-    "/api/v1/analytics/endpoints", "/api/v1/analytics/errors",
-    "/api/v1/analytics/user-agents", "/api/v1/analytics/latency",
-    "/api/v1/analytics/keys", "/api/v1/analytics/growth",
-    "/api/v1/analytics/slow-endpoints", "/api/v1/analytics/retention",
-    "/api/v1/analytics/client-types", "/api/v1/analytics/mcp-funnel",
     "/admin/dashboard",
     "/metrics",
     "/api/v1/ws",
@@ -198,7 +194,9 @@ def register_middleware(app: FastAPI):
             if key_info.tier == "anonymous":
                 detail_msg += ". Upgrade: POST /api/v1/register"
             resp = _error_response(429, "Rate Limit Exceeded", detail_msg, request_id,
-                                   error_type_key="rate_limit", extra_headers={
+                                   error_type_key="rate_limit",
+                                   retry_after_seconds=retry_after,
+                                   extra_headers={
                                        "X-RateLimit-Limit": str(result.limit),
                                        "X-RateLimit-Remaining": "0",
                                        "X-RateLimit-Reset": str(int(result.reset)),
@@ -209,6 +207,30 @@ def register_middleware(app: FastAPI):
                                     client_ip=client_ip, error_type="rate_limited",
                                     **_common)
 
+        # --- Broadcast-specific rate limit (tighter, applies to all tiers) ---
+        BROADCAST_PATH = "/api/v1/transactions/broadcast"
+        BROADCAST_LIMIT_PER_MIN = 5
+        if request.url.path == BROADCAST_PATH:
+            broadcast_bucket = f"broadcast:{bucket}"
+            broadcast_result = check_rate_limit_raw(broadcast_bucket, BROADCAST_LIMIT_PER_MIN)
+            if not broadcast_result.allowed:
+                broadcast_retry = max(1, int(broadcast_result.reset - time.time()))
+                resp = _error_response(
+                    429, "Rate Limit Exceeded",
+                    "Broadcast rate limit exceeded. Maximum 5 transactions per minute.",
+                    request_id, error_type_key="rate_limit",
+                    retry_after_seconds=broadcast_retry,
+                    extra_headers={
+                        "X-RateLimit-Limit": str(BROADCAST_LIMIT_PER_MIN),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset": str(int(broadcast_result.reset)),
+                        "Retry-After": str(broadcast_retry),
+                    })
+                return _log_and_respond(bucket, request.url.path, 429,
+                                        response=resp, record_metrics=False,
+                                        client_ip=client_ip, error_type="rate_limited",
+                                        **_common)
+
         # --- Daily rate limit ---
         daily_result = check_daily_limit(bucket, key_info.tier)
         if not daily_result.allowed:
@@ -216,7 +238,9 @@ def register_middleware(app: FastAPI):
             if key_info.tier == "anonymous":
                 daily_detail += ". Upgrade: POST /api/v1/register"
             resp = _error_response(429, "Daily Rate Limit Exceeded", daily_detail, request_id,
-                                   error_type_key="rate_limit", extra_headers={
+                                   error_type_key="rate_limit",
+                                   retry_after_seconds=3600,
+                                   extra_headers={
                                        "X-RateLimit-Daily-Limit": str(daily_result.limit),
                                        "X-RateLimit-Daily-Remaining": "0",
                                        "Retry-After": "3600",

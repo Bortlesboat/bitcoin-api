@@ -155,6 +155,19 @@ def _check_rate_limit_memory(bucket_key: str, limit: int) -> RateLimitResult:
     return RateLimitResult(allowed=True, limit=limit, remaining=remaining - 1, reset=reset)
 
 
+def check_rate_limit_raw(bucket_key: str, limit: int) -> RateLimitResult:
+    """Check rate limit with an explicit numeric limit (no tier lookup)."""
+    if _redis_client:
+        try:
+            return _check_rate_limit_redis(bucket_key, limit)
+        except Exception as e:
+            logger.warning("Redis rate limit failed, falling back to memory: %s", e)
+            RATE_LIMIT_BACKEND.set(0)
+
+    with _get_bucket_lock(bucket_key):
+        return _check_rate_limit_memory(bucket_key, limit)
+
+
 def check_rate_limit(bucket_key: str, tier: str) -> RateLimitResult:
     global TIER_LIMITS
     if not TIER_LIMITS:

@@ -169,6 +169,7 @@ def cli():
         port=settings.api_port,
         reload=False,
         timeout_graceful_shutdown=30,
+        workers=2,
     )
 
 

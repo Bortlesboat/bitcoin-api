@@ -15,7 +15,7 @@ from ..db import get_db
 from ..exceptions import ERROR_TYPES, _GUIDE_URL
 from ..metrics import API_KEYS_REGISTERED
 from ..models import ErrorResponse, ErrorDetail, envelope
-from ..notifications import send_welcome_email, track_registration
+from ..notifications import send_welcome_email, track_registration, notify_admin_new_registration
 
 router = APIRouter(tags=["Keys"])
 
@@ -114,6 +114,11 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
 
     # PostHog server-side registration event as background task
     background_tasks.add_task(track_registration, email, "free", body.label or "default")
+
+    # Admin alert for new registration (non-blocking)
+    background_tasks.add_task(
+        notify_admin_new_registration, email, body.label or "default", "free", body.utm_source,
+    )
 
     height, chain = get_cached_node_info()
     return envelope({"api_key": raw_key, "tier": "free", "label": body.label}, height=height, chain=chain)

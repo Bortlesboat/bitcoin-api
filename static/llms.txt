@@ -37,7 +37,7 @@ Register a free API key and start querying in seconds.
 
 Install: pip install bitcoin-mcp
 Config: point at https://bitcoinsapi.com with your API key
-Provides 35 tools, 6 prompts, and 7 resources that any
+Provides 40 tools, 6 prompts, and 7 resources that any
 MCP-compatible agent can discover and invoke.
 
 ## Base URL

@@ -31,6 +31,7 @@ class ErrorDetail(BaseModel):
     detail: str
     request_id: str | None = None
     help_url: str | None = None
+    retry_after_seconds: int | None = None
 
 
 class ErrorResponse(BaseModel):

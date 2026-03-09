@@ -68,12 +68,21 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <p>The Service may offer real-time data via WebSocket or Server-Sent Events (SSE) connections. The following terms apply to persistent connections:</p>
 <ul>
 <li>Connection limits apply per API key. Exceeding your tier's connection limit may result in disconnection or throttling.</li>
-<li>Real-time data delivered via persistent connections is informational only and subject to the same disclaimers as REST endpoints (see Section 7).</li>
+<li>Real-time data delivered via persistent connections is informational only and subject to the same disclaimers as REST endpoints (see Section 8).</li>
 <li>We may disconnect idle or excessive connections at any time without notice to maintain service quality.</li>
 <li>Data delivered via persistent connections may be delayed or incomplete during Bitcoin Core node syncing, restarts, or network disruptions. We do not guarantee delivery of every event.</li>
 </ul>
 
-<h2>7. Financial Data Disclaimer</h2>
+<h2>7. Automated and Agent Usage</h2>
+<p>For purposes of these Terms, an <strong>"Automated Consumer"</strong> means any software, bot, script, AI agent, MCP client, or automated system that accesses the Service without direct human interaction for each request.</p>
+<ul>
+<li>The human or entity deploying an Automated Consumer is the accountable party for all actions taken by that consumer.</li>
+<li>Automated Consumers are permitted and subject to the same rate limits, acceptable use policies, and liability terms as human users.</li>
+<li>Agent operators must not present API data as the agent's own analysis or advice to end users without passing through the financial data disclaimer (see Section 8).</li>
+<li>Agent operators are responsible for implementing appropriate human-in-the-loop confirmation before initiating irreversible actions (such as broadcasting transactions) based on API data.</li>
+</ul>
+
+<h2>8. Financial Data Disclaimer</h2>
 <p><strong>The Service provides informational data only. It is NOT financial advice.</strong></p>
 <ul>
 <li>Fee recommendations are estimates based on current mempool conditions and may not reflect actual confirmation times.</li>
@@ -81,31 +90,33 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <li>Transaction broadcast relays your signed transaction to the Bitcoin network. We do not guarantee confirmation, inclusion in a block, or any particular outcome.</li>
 <li>You are solely responsible for any financial decisions made using data from this Service.</li>
 </ul>
+<p>The broadcast endpoint (/api/v1/transactions/broadcast) relays pre-signed transactions to the Bitcoin peer-to-peer network. The Operator does not create, modify, sign, transmit, hold, or control any funds or private keys. The Operator is not a money services business or money transmitter. Broadcasting a pre-signed transaction is functionally equivalent to operating a Bitcoin network node.</p>
 
-<h2>8. Third-Party Data Attribution</h2>
+<h2>9. Third-Party Data Attribution</h2>
 <p>Price data is provided by <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer">CoinGecko</a>. CoinGecko owns all rights to the price data delivered through the Service. Use of price data is subject to CoinGecko's terms of service.</p>
 
-<h2>9. Availability and Uptime</h2>
+<h2>10. Availability and Uptime</h2>
 <p>The Service is provided on a best-effort basis. We do not guarantee any specific uptime, availability, or response time. The Service may be interrupted for maintenance, node restarts, or infrastructure issues without notice.</p>
 
-<h2>10. Limitation of Liability</h2>
+<h2>11. Limitation of Liability</h2>
 <p><strong>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.</strong> To the maximum extent permitted by law:</p>
 <ul>
 <li>We are not liable for any damages arising from your use of the Service, including but not limited to financial losses from reliance on fee estimates, price data, or transaction broadcasts.</li>
 <li>We are not liable for data inaccuracies, service interruptions, or API key compromise.</li>
 <li>Our total liability shall not exceed the amount you paid for the Service in the 12 months preceding the claim (which may be $0 for free-tier users).</li>
 </ul>
+<p><strong>IN NO EVENT SHALL THE OPERATOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO: LOSSES ARISING FROM DELAYED OR FAILED TRANSACTIONS, PRICE MOVEMENTS DURING TRANSACTION CONFIRMATION, AGENT-INITIATED ACTIONS BASED ON API DATA, OR ANY CHAIN-OF-LIABILITY CLAIMS FROM END USERS OF AUTOMATED CONSUMERS. THIS EXCLUSION APPLIES REGARDLESS OF THE THEORY OF LIABILITY.</strong></p>
 
-<h2>11. Indemnification</h2>
+<h2>12. Indemnification</h2>
 <p>You agree to indemnify and hold harmless the Operator from any claims, damages, or expenses arising from your use of the Service or violation of these Terms.</p>
 
-<h2>12. Open Source Software</h2>
+<h2>13. Open Source Software</h2>
 <p>The Satoshi API software is open source under the <a href="https://github.com/Bortlesboat/bitcoin-api/blob/master/LICENSE">Apache License 2.0</a>. These Terms govern the <em>hosted service</em> at bitcoinsapi.com, not the open-source software itself. Self-hosted instances are governed solely by the Apache 2.0 license.</p>
 
-<h2>13. Termination</h2>
+<h2>14. Termination</h2>
 <p>We may suspend or terminate your access at any time for violation of these Terms or for any reason at our sole discretion. You may stop using the Service at any time.</p>
 
-<h2>14. Subscription Billing and Cancellation</h2>
+<h2>15. Subscription Billing and Cancellation</h2>
 <ul>
 <li>Pro subscriptions are billed monthly via <a href="https://stripe.com" target="_blank" rel="noopener noreferrer">Stripe</a>. By subscribing, you authorize recurring monthly charges to your payment method.</li>
 <li>You may cancel your subscription at any time through the API billing endpoints or by contacting us. Cancellation takes effect at the end of your current billing period; you will retain Pro-tier access until then.</li>
@@ -115,17 +126,17 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <li>The Free tier has no billing obligations. You may use it indefinitely without providing payment information.</li>
 </ul>
 
-<h2>15. Governing Law</h2>
+<h2>16. Governing Law</h2>
 <p>These Terms are governed by the laws of the State of Florida, United States. Any disputes shall be resolved in the courts of St. Johns County, Florida.</p>
 
-<h2>16. Contact</h2>
+<h2>17. Contact</h2>
 <p>For questions about these Terms, contact us at <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
 
 </div>
 
 <footer>
 <div class="container">
-<p><a href="/">Home</a> &middot; <a href="/privacy">Privacy Policy</a> &middot; <a href="/docs">API Docs</a></p>
+<p><a href="/">Home</a> &middot; <a href="/privacy">Privacy Policy</a> &middot; <a href="/disclaimer">Disclaimer</a> &middot; <a href="/docs">API Docs</a></p>
 </div>
 </footer>
 </body>

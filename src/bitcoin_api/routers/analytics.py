@@ -237,31 +237,45 @@ def analytics_keys(
 
 
 @router.get("/growth", dependencies=[Depends(_require_admin)])
-def analytics_growth():
+def analytics_growth(
+    client_type: str | None = Query(None, description="Filter by client type (e.g. bitcoin-mcp, ai-agent, sdk, browser, unknown)"),
+):
     """Day-over-day and week-over-week request & key growth."""
+    client_filter = ""
+    client_params: tuple = ()
+    if client_type:
+        client_filter = " AND client_type = ?"
+        client_params = (client_type,)
+
     today = query_scalar(
-        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-24 hours')"
+        f"SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-24 hours'){client_filter}",
+        client_params,
     )
     yesterday = query_scalar(
         "SELECT COUNT(*) FROM usage_log "
-        "WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours')"
+        f"WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours'){client_filter}",
+        client_params,
     )
 
     this_week = query_scalar(
-        "SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-7 days')"
+        f"SELECT COUNT(*) FROM usage_log WHERE ts >= datetime('now', '-7 days'){client_filter}",
+        client_params,
     )
     last_week = query_scalar(
         "SELECT COUNT(*) FROM usage_log "
-        "WHERE ts >= datetime('now', '-14 days') AND ts < datetime('now', '-7 days')"
+        f"WHERE ts >= datetime('now', '-14 days') AND ts < datetime('now', '-7 days'){client_filter}",
+        client_params,
     )
 
     keys_today = query_scalar(
         "SELECT COUNT(DISTINCT key_hash) FROM usage_log "
-        "WHERE ts >= datetime('now', '-24 hours')"
+        f"WHERE ts >= datetime('now', '-24 hours'){client_filter}",
+        client_params,
     )
     keys_yesterday = query_scalar(
         "SELECT COUNT(DISTINCT key_hash) FROM usage_log "
-        "WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours')"
+        f"WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours'){client_filter}",
+        client_params,
     )
 
     def pct_change(current, previous):
@@ -271,6 +285,7 @@ def analytics_growth():
 
     return {
         "data": {
+            "client_type": client_type,
             "requests_today": today,
             "requests_yesterday": yesterday,
             "requests_dod_pct": pct_change(today, yesterday),
@@ -389,21 +404,32 @@ def analytics_mcp_funnel(
 
 
 @router.get("/retention", dependencies=[Depends(_require_admin)])
-def analytics_retention():
+def analytics_retention(
+    client_type: str | None = Query(None, description="Filter by client type (e.g. bitcoin-mcp, ai-agent, sdk, browser, unknown)"),
+):
     """Active keys in 24h/7d/30d vs total registered."""
     total_keys = query_scalar("SELECT COUNT(*) FROM api_keys WHERE active = 1")
 
+    client_filter = ""
+    client_params: tuple = ()
+    if client_type:
+        client_filter = " AND client_type = ?"
+        client_params = (client_type,)
+
     active_24h = query_scalar(
         "SELECT COUNT(DISTINCT key_hash) FROM usage_log "
-        "WHERE ts >= datetime('now', '-24 hours') AND key_hash IS NOT NULL"
+        f"WHERE ts >= datetime('now', '-24 hours') AND key_hash IS NOT NULL{client_filter}",
+        client_params,
     )
     active_7d = query_scalar(
         "SELECT COUNT(DISTINCT key_hash) FROM usage_log "
-        "WHERE ts >= datetime('now', '-7 days') AND key_hash IS NOT NULL"
+        f"WHERE ts >= datetime('now', '-7 days') AND key_hash IS NOT NULL{client_filter}",
+        client_params,
     )
     active_30d = query_scalar(
         "SELECT COUNT(DISTINCT key_hash) FROM usage_log "
-        "WHERE ts >= datetime('now', '-30 days') AND key_hash IS NOT NULL"
+        f"WHERE ts >= datetime('now', '-30 days') AND key_hash IS NOT NULL{client_filter}",
+        client_params,
     )
 
     def rate(active, total):
@@ -412,6 +438,7 @@ def analytics_retention():
     return {
         "data": {
             "total_registered_keys": total_keys,
+            "client_type": client_type,
             "active_24h": active_24h,
             "active_7d": active_7d,
             "active_30d": active_30d,
@@ -453,9 +480,16 @@ def analytics_referrers(
 @router.get("/funnel", dependencies=[Depends(_require_admin)])
 def analytics_funnel(
     period: str = Query("7d", pattern="^(1h|6h|24h|7d|30d)$"),
+    client_type: str | None = Query(None, description="Filter by client type (e.g. bitcoin-mcp, ai-agent, sdk, browser, unknown)"),
 ):
     """Registration-to-usage conversion funnel."""
     offset = period_sql(period)
+
+    client_filter = ""
+    client_params: tuple = ()
+    if client_type:
+        client_filter = " AND u.client_type = ?"
+        client_params = (client_type,)
 
     # Total registrations in period
     total_registered = query_scalar(
@@ -467,8 +501,8 @@ def analytics_funnel(
     active_new_keys = query_scalar(
         "SELECT COUNT(DISTINCT k.key_hash) FROM api_keys k "
         "INNER JOIN usage_log u ON k.key_hash = u.key_hash "
-        "WHERE k.created_at >= datetime('now', ?)",
-        (offset,),
+        f"WHERE k.created_at >= datetime('now', ?){client_filter}",
+        (offset,) + client_params,
     )
 
     # Of those, how many made 10+ calls (engaged)?
@@ -476,10 +510,10 @@ def analytics_funnel(
         "SELECT COUNT(*) FROM ("
         "  SELECT u.key_hash, COUNT(*) as calls FROM api_keys k "
         "  INNER JOIN usage_log u ON k.key_hash = u.key_hash "
-        "  WHERE k.created_at >= datetime('now', ?) "
+        f"  WHERE k.created_at >= datetime('now', ?){client_filter} "
         "  GROUP BY u.key_hash HAVING calls >= 10"
         ")",
-        (offset,),
+        (offset,) + client_params,
     )
 
     # Registration sources (utm_source breakdown)
@@ -496,6 +530,7 @@ def analytics_funnel(
     return {
         "data": {
             "period": period,
+            "client_type": client_type,
             "registered": total_registered,
             "made_api_call": active_new_keys,
             "activation_rate_pct": rate(active_new_keys, total_registered),

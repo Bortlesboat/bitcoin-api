@@ -9,6 +9,7 @@
 ### Changed
 - Error messages sanitized — external-facing errors now say "Temporarily Unavailable" instead of exposing internal details like "Is the node running?" or "Circuit breaker OPEN"
 - Cache module uses stale-while-error pattern: fresh data is saved to a secondary store that survives TTL expiry
+- Unit tests: 335 → 400 (421 total with 21 e2e)
 
 ### Fixed
 - **Site down after PC reboot** — Bitcoin Knots and cloudflared tunnel now auto-start on logon. Previously only the API process had auto-start, so reboots left the site returning 530/502.

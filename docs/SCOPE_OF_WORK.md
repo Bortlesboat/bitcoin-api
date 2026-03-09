@@ -318,7 +318,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (82 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 394 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 400 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -415,7 +415,7 @@ Errors follow the same structure:
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
-| **Total** | **82 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **394 unit + 21 e2e** |
+| **Total** | **82 endpoints, 20 core routers (+ 3 indexer = 23 when enabled)** | **400 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -430,7 +430,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (21 test files + 2 support files):**
+**Tests (22 test files + 2 support files):**
 - `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
 - `tests/test_fees.py` -- 30 tests (fee endpoints)
@@ -446,6 +446,7 @@ Errors follow the same structure:
 - `tests/test_stale_cache.py` -- 19 tests (stale store, _cached_rpc fallback, MAX_STALE_AGE, Prometheus counter)
 - `tests/test_notifications.py` -- 14 tests (Resend email + PostHog analytics)
 - `tests/test_rate_limit_redis.py` -- 6 tests (Redis rate limiting + fallback)
+- `tests/test_failover.py` -- 6 tests (RPC failover/circuit breaker)
 - `tests/test_indexer_parser.py` -- 25 tests (block parser, satoshi conversion, hex helpers)
 - `tests/test_indexer_reorg.py` -- 15 tests (reorg detection, fork point with RPC, rollback logic)
 - `tests/test_indexer_routers.py` -- 14 tests (indexed endpoints, auth, validation)
@@ -548,7 +549,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 394 unit tests pass
+- [x] All 400 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -703,7 +704,7 @@ twine upload dist/*
 - Stale-while-error cache fallback — when node is down, API serves last-known-good cached data instead of 502 errors
 - Auto-start for Bitcoin Knots and cloudflared tunnel via Registry Run keys (API already had auto-start)
 - Sanitized error messages — external-facing errors now say "Temporarily Unavailable" instead of exposing internal details
-- Unit tests expanded (340 → 394)
+- Unit tests expanded (340 → 400)
 
 ### v0.3.4 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)

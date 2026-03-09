@@ -52,7 +52,7 @@ get_pid_on_port() {
 start_api() {
     log "Starting Satoshi API..."
     cd "$API_DIR"
-    PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$API_PORT" >> "$API_LOG" 2>&1 &
+    PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$API_PORT" --workers 2 >> "$API_LOG" 2>&1 &
     local new_pid=$!
     log "Launched uvicorn with PID $new_pid, waiting ${STARTUP_WAIT}s..."
     sleep "$STARTUP_WAIT"

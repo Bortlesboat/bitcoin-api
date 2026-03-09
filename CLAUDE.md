@@ -116,9 +116,10 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_notifications.py` | Resend + PostHog notification tests (14) |
 | `tests/test_price_service.py` | Price service fallback chain tests (13 tests) |
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
+| `tests/test_failover.py` | RPC failover/circuit breaker tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/helpers.py` | Isolated router test client factory |
-| | Total: 394 unit + 21 e2e = 415 tests |
+| | Total: 400 unit + 21 e2e = 421 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |
