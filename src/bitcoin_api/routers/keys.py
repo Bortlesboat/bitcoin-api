@@ -70,7 +70,7 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
                     type=ERROR_TYPES["rate_limit"],
                     status=429,
                     title="Too Many Requests",
-                    detail="Too many registration attempts. Try again later.",
+                    detail="Too many registration attempts. Try again in about 1 hour.",
                     request_id=request_id,
                     help_url=_GUIDE_URL,
                 )

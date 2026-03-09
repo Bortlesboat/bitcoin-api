@@ -15,7 +15,9 @@ from bitcoin_api.dependencies import (
 class TestFallbackConfig:
     """Test fallback RPC configuration."""
 
-    def test_fallback_not_configured_by_default(self):
+    @patch("bitcoin_api.dependencies.settings")
+    def test_fallback_not_configured_by_default(self, mock_settings):
+        mock_settings.bitcoin_rpc_fallback_host = None
         status = get_fallback_status()
         assert status["configured"] is False
         assert status["active"] is False
@@ -62,8 +64,10 @@ class TestHealthDeepFallback:
 
     def test_health_deep_includes_fallback_node(self, authed_client):
         with patch("bitcoin_api.routers.health_deep.get_job_health", return_value={"fee_collector": "ok"}), \
-             patch("bitcoin_api.routers.health_deep.usage_buffer") as mock_buf:
+             patch("bitcoin_api.routers.health_deep.usage_buffer") as mock_buf, \
+             patch("bitcoin_api.dependencies.settings") as mock_settings:
             mock_buf.pending_count = 0
+            mock_settings.bitcoin_rpc_fallback_host = None
             resp = authed_client.get("/api/v1/health/deep")
         assert resp.status_code == 200
         data = resp.json()["data"]

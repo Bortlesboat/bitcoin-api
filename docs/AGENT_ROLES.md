@@ -9,7 +9,7 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | Fact | Value | Updated |
 |------|-------|---------|
 | **Version** | 0.3.3 | 2026-03-08 |
-| **Endpoints** | 82 total (78 core + 4 indexer) | 2026-03-08 |
+| **Endpoints** | 86 total (82 core + 4 indexer) | 2026-03-09 |
 | **Tests** | 400 unit + 21 e2e = 421 total | 2026-03-08 |
 | **Routers** | 20 core + 3 indexer = 23 | 2026-03-08 |
 | **Live URL** | https://bitcoinsapi.com | — |
@@ -17,7 +17,7 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
 | **Latest release** | v0.3.3 — Stale-while-error cache fallback, auto-start on reboot, sanitized error messages | 2026-03-08 |
 | **Launch status** | Feature-complete, awaiting distribution (Show HN, Reddit, PyPI) | 2026-03-08 |
-| **Open issues** | None critical — ToS §7 stale-data disclosure pending, /health/deep sanitized | 2026-03-08 |
+| **Open issues** | None critical — ToS §7 stale-data addressed by /disclaimer page | 2026-03-09 |
 
 **When you find a fact here is wrong, update it immediately and note the date.**
 
@@ -200,18 +200,18 @@ Track the last run of each agent for staleness detection.
 
 | Agent | Last Run | Result | Triggered By | Downstream Triggers |
 |-------|----------|--------|-------------|-------------------|
-| PM | 2026-03-08 | PASS WITH WARNINGS | All-Hands | Marketing, Finance, UX, Admin |
-| UX | 2026-03-08 | PASS WITH WARNINGS | All-Hands | Legal, Marketing, Admin, QA |
-| Finance | 2026-03-08 | PASS WITH ADVISORIES (3) | Manual | PM, Marketing |
-| Legal | 2026-03-08 | PASS WITH WARNINGS | All-Hands | UX, PM |
-| Marketing | 2026-03-08 | WARN (version stamps stale) | All-Hands | Admin, UX, Architect |
-| Security | 2026-03-08 | WARN (4 items) | All-Hands | QA, Architect, Admin |
-| Architect | 2026-03-08 | PASS WITH WARNINGS (4) | All-Hands | QA, Admin, Security |
-| QA | 2026-03-08 | WARN (0 stale cache tests) | All-Hands | Architect, Security, Admin |
-| Analytics | 2026-03-08 | WARN (no stale Prometheus metric) | All-Hands | QA, Architect, Security, Admin |
-| Ops | 2026-03-07 | — (created) | All-Hands | — |
-| Agent Advocate | 2026-03-08 | PASS (bitcoin-mcp v0.4.0 audit: 3 new tools, USD pricing, 16 recipes) | Manual | PM, Marketing |
-| Admin Assistant | 2026-03-07 | PASS (82 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
+| PM | 2026-03-09 | WARN (5): zero distribution, Pro hidden, FastAPI desc stale | All-Hands | Marketing, Finance, UX, Admin |
+| UX | 2026-03-09 | WARN (6): mobile grid, ToS checkbox, dim contrast — ALL FIXED | All-Hands | Legal, Marketing, Admin, QA |
+| Finance | 2026-03-09 | PASS WITH ADVISORIES (3): capacity plan, revenue tracking | All-Hands | PM, Marketing |
+| Legal | 2026-03-09 | WARN (4): registration_ip removed from privacy, ToS checkbox FIXED | All-Hands | UX, Security, Admin |
+| Marketing | 2026-03-09 | WARN (8): stale launch-plan, endpoint count resolved (82 core) | All-Hands | Admin, UX, PM |
+| Security | 2026-03-09 | WARN (8): CSP unsafe-inline, no pip audit — no critical issues | All-Hands | Architect, QA |
+| Architect | 2026-03-09 | WARN (5): 8/10 quality, workers=2 rate limit bypass noted | All-Hands | QA, Ops, Admin |
+| QA | 2026-03-09 | PASS: 400/400 tests (2 failover env leak tests FIXED) | All-Hands | Architect, Admin |
+| Analytics | 2026-03-09 | WARN (5): WS_MESSAGES_DROPPED verified OK, registration gauge OK | All-Hands | QA, Architecture |
+| Ops | 2026-03-09 | WARN (7): no DB backup schedule, unbounded api.log | All-Hands | Admin, Architect |
+| Agent Advocate | 2026-03-09 | WARN (6): mempool/txids context bomb, no ?fields= | All-Hands | Architecture, PM |
+| Admin Assistant | 2026-03-09 | WARN: __init__.py version FIXED, guide +6 endpoints, nav added to legal pages | All-Hands | Architect, Marketing |
 
 ## Performance Tracking
 

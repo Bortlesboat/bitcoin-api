@@ -218,6 +218,7 @@ def _build_categories() -> list[dict]:
             "description": "API key registration and management",
             "endpoints": [
                 _ep("POST", "/api/v1/register", "Register for a free API key"),
+                _ep("POST", "/api/v1/unsubscribe", "Opt out of usage alert emails", auth=True),
             ],
         },
         {
@@ -256,6 +257,10 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/analytics/retention", "User retention analytics", auth=True),
                 _ep("GET", "/api/v1/analytics/client-types", "Client type breakdown", auth=True),
                 _ep("GET", "/api/v1/analytics/mcp-funnel", "MCP adoption funnel", auth=True),
+                _ep("GET", "/api/v1/analytics/public", "Public social proof stats (no auth)"),
+                _ep("GET", "/api/v1/analytics/referrers", "Top traffic referrers", auth=True),
+                _ep("GET", "/api/v1/analytics/funnel", "Registration-to-usage conversion funnel", auth=True),
+                _ep("GET", "/api/v1/analytics/users", "Full user list and details", auth=True),
             ],
         },
     ]
@@ -365,7 +370,7 @@ def guide(
 
     total = sum(len(c["endpoints"]) for c in categories)
     data = {
-        "welcome": f"Satoshi API — Bitcoin data for developers. {total}+ endpoints, zero vendor lock-in.",
+        "welcome": "Satoshi API — Bitcoin fee intelligence for developers and AI agents. Zero vendor lock-in.",
         "quickstart": quickstart,
         "categories": categories,
         "auth": _build_auth_info(),

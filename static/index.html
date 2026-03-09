@@ -31,7 +31,7 @@
     --border-visible: #30363d;
     --text: #E6EDF3;
     --muted: #8B949E;
-    --dim: #484F58;
+    --dim: #6E7681;
     --accent: #F7931A;
     --accent-hover: #FFB347;
     --accent-muted: #F7931A33;
@@ -190,8 +190,8 @@
     .trust-badges { gap: 8px; padding: 16px 0; }
     .trust-badge { font-size: 0.8em; padding: 5px 12px; }
 
-    /* Grids: single column */
-    .features, .use-cases { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+    /* Grids: single column (including Try These Prompts inline grid) */
+    .features, .use-cases, #try-these [style*="grid-template-columns"] { grid-template-columns: 1fr !important; gap: 16px; margin-top: 32px; }
     .feature, .use-case { padding: 20px; }
     .pricing-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
     .price-card { padding: 24px; }
@@ -416,9 +416,8 @@
     <h1>Bitcoin data for <span>AI agents.</span></h1>
     <p class="subtitle">The Bitcoin API built for the agent era. MCP-native tooling, fee intelligence that saves money on every transaction, and real-time mempool data — so your agents make smart Bitcoin decisions without human babysitting.</p>
     <div class="cta">
-      <a href="/docs" class="btn-primary" onclick="posthog.capture('cta_click', {location:'hero',target:'docs'})">Explore the API</a>
-      <a href="#quickstart" class="btn-secondary" onclick="posthog.capture('cta_click', {location:'hero',target:'quickstart'})">Get Started</a>
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-secondary" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'hero',target:'github'})">View on GitHub</a>
+      <a href="#quickstart" class="btn-primary" onclick="posthog.capture('cta_click', {location:'hero',target:'quickstart'})">Get Started</a>
+      <a href="/docs" class="btn-secondary" onclick="posthog.capture('cta_click', {location:'hero',target:'docs'})">Explore the API</a>
     </div>
     <div class="hero-code">
 <pre><code><span style="color: var(--muted)">$ </span>pip install bitcoin-mcp</code></pre>
@@ -765,6 +764,10 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
         <input type="text" id="reg-label" placeholder="Label (optional, e.g. my-wallet-app)"
           style="width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.95em; outline: none; margin-bottom: 8px;"
         >
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85em; color: var(--muted); cursor: pointer;">
+          <input type="checkbox" id="reg-terms" required style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
+          I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+        </label>
       </form>
       <div id="reg-result" style="display: none; margin-top: 12px;"></div>
     </div>
@@ -978,7 +981,8 @@ function handleRegister(e) {
   btn.textContent = 'Creating...';
   result.style.display = 'none';
 
-  var body = { email: email, agreed_to_terms: true };
+  var termsChecked = document.getElementById('reg-terms').checked;
+  var body = { email: email, agreed_to_terms: termsChecked };
   if (label) body.label = label;
 
   /* Capture UTM params from URL for conversion tracking */

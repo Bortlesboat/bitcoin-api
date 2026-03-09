@@ -147,7 +147,7 @@ def mempool_entry(
     response_model=ApiResponse[list[str]],
     responses={
         200: {
-            "description": "All transaction IDs currently in the mempool",
+            "description": "Transaction IDs in the mempool (default limit=100, use limit=0 for all)",
             "content": {
                 "application/json": {
                     "example": {
@@ -162,9 +162,17 @@ def mempool_entry(
         }
     },
 )
-def mempool_txids(rpc: BitcoinRPC = Depends(get_rpc)):
-    """List all transaction IDs in the mempool."""
+def mempool_txids(
+    limit: int = Query(100, ge=1, le=5000, description="Max txids to return (default 100, max 5000). Use 0 for all."),
+    rpc: BitcoinRPC = Depends(get_rpc),
+):
+    """List transaction IDs in the mempool. Returns first `limit` txids (default 100).
+
+    Set `limit=0` to return all (warning: can be 10K-50K+ items).
+    """
     txids = rpc.call("getrawmempool", False)
+    if limit > 0:
+        txids = txids[:limit]
     return rpc_envelope(txids, rpc)
 
 

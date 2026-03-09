@@ -534,7 +534,46 @@ The manual JS beacon (`beacon.min.js`) was **removed** from all HTML pages (Spri
 
 ---
 
-## 15. Pending Setup (Manual Browser Actions)
+## 15. Backups & Log Rotation
+
+### Database Backups
+
+Run `scripts/backup-db.sh` to create a WAL-safe backup of `data/satoshi_api.db`:
+
+```bash
+bash scripts/backup-db.sh
+```
+
+- Uses `sqlite3 .backup` (WAL-safe), falls back to `cp`
+- Stores backups in `data/backups/`, retains last 7
+- **Schedule this daily** via Windows Task Scheduler:
+  ```
+  schtasks /create /tn "SatoshiAPIBackup" /tr "bash C:\Users\andre\Bortlesboat\bitcoin-api\scripts\backup-db.sh" /sc daily /st 03:00
+  ```
+
+### Disaster Recovery
+
+1. Stop the API: `taskkill /F /IM python.exe` (or let watchdog handle restart)
+2. Restore: `cp data/backups/satoshi_api_YYYYMMDD_HHMMSS.db data/satoshi_api.db`
+3. Restart: `bash scripts/deploy-api.sh` or wait for watchdog (5 min)
+
+### Log Rotation
+
+- **watchdog.log**: Auto-trimmed at 10,000 lines (down to 5,000) by watchdog script
+- **api.log**: Auto-trimmed at 50,000 lines (down to 25,000) by watchdog script
+- Both run every 5 minutes when the watchdog Task Scheduler entry is active
+
+### Data Retention
+
+| Data | Retention | Mechanism |
+|------|-----------|-----------|
+| Usage logs | 90 days | Auto-pruned by background job |
+| Fee history | 30 days | Auto-pruned by background job |
+| DB backups | Last 7 | Auto-pruned by backup script |
+| Watchdog log | ~5,000 lines | Auto-trimmed by watchdog |
+| API log | ~25,000 lines | Auto-trimmed by watchdog |
+
+## 16. Pending Setup (Manual Browser Actions)
 
 ### Bing Webmaster Tools — DONE (2026-03-07)
 Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitted: `https://bitcoinsapi.com/sitemap.xml`. Token is in `static/index.html`.
@@ -546,7 +585,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 ---
 
-## 16. File Map
+## 17. File Map
 
 | Location | What's there |
 |----------|-------------|

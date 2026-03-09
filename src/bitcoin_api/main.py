@@ -94,8 +94,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Satoshi API",
-    description="Developer-friendly REST API for Bitcoin node data. "
-    "Powered by bitcoinlib-rpc — analyzed data, not raw RPC.",
+    description="Bitcoin fee intelligence API. Know when to send and save money "
+    "on every transaction. MCP-native, self-hostable, open source.",
     version=__version__,
     lifespan=lifespan,
     docs_url="/docs",
@@ -169,7 +169,7 @@ def cli():
         port=settings.api_port,
         reload=False,
         timeout_graceful_shutdown=30,
-        workers=2,
+        workers=1,
     )
 
 

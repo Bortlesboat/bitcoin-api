@@ -41,9 +41,8 @@ def get_product_state() -> dict:
             if py_file.name == "__init__.py":
                 continue
             content = py_file.read_text()
-            routes = re.findall(r'@(?:app|router)\.(get|post|put|delete|patch)\(', content)
-            internal = len(re.findall(r'include_in_schema\s*=\s*False', content))
-            endpoint_count += len(routes) - internal
+            routes = re.findall(r'@(?:app|router)\.(get|post|put|delete|patch|websocket)\(', content)
+            endpoint_count += len(routes)
     state["endpoint_count"] = endpoint_count
 
     # Router count

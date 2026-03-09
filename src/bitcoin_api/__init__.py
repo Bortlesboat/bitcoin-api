@@ -8,7 +8,7 @@ from importlib.metadata import version, PackageNotFoundError
 try:
     __version__ = version("bitcoin-api")
 except PackageNotFoundError:
-    __version__ = "0.2.1"
+    __version__ = "0.3.3"
 
 
 class JsonFormatter(logging.Formatter):

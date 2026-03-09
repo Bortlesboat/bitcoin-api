@@ -31,6 +31,12 @@ if [[ -f "$WATCHDOG_LOG" ]] && (( $(wc -l < "$WATCHDOG_LOG") > 10000 )); then
     log "Trimmed watchdog log to last 5000 lines"
 fi
 
+# Trim api.log if it exceeds 50000 lines
+if [[ -f "$API_LOG" ]] && (( $(wc -l < "$API_LOG") > 50000 )); then
+    tail -25000 "$API_LOG" > "$API_LOG.tmp" && mv "$API_LOG.tmp" "$API_LOG"
+    log "Trimmed api.log to last 25000 lines"
+fi
+
 # Step 1: Check if anything is listening on the port
 port_listening() {
     netstat -ano 2>/dev/null | grep -qE ":${API_PORT}\s.*LISTEN"
@@ -52,7 +58,7 @@ get_pid_on_port() {
 start_api() {
     log "Starting Satoshi API..."
     cd "$API_DIR"
-    PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$API_PORT" --workers 2 >> "$API_LOG" 2>&1 &
+    PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$API_PORT" --workers 1 >> "$API_LOG" 2>&1 &
     local new_pid=$!
     log "Launched uvicorn with PID $new_pid, waiting ${STARTUP_WAIT}s..."
     sleep "$STARTUP_WAIT"
