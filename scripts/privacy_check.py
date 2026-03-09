@@ -43,6 +43,8 @@ APPROVED_EXTERNAL_DOMAINS = {
     "cdn.jsdelivr.net",
     "us.i.posthog.com",
     "us-assets.i.posthog.com",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
 }
 
 SECRET_PATTERNS = [

@@ -369,7 +369,8 @@ def register_middleware(app: FastAPI):
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com; "
-                "style-src 'self' 'unsafe-inline'; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "
                 "connect-src 'self' https://bitcoinsapi.com https://us.i.posthog.com; "
                 "frame-ancestors 'none'; "
