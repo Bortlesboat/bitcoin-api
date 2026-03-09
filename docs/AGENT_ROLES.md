@@ -15,7 +15,7 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | **Live URL** | https://bitcoinsapi.com | — |
 | **Infra cost** | ~$3/mo | 2026-03-08 |
 | **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
-| **Latest release** | v0.3.3 — Stale-while-error cache fallback, auto-start on reboot, sanitized error messages | 2026-03-08 |
+| **Latest release** | v0.3.4 — RPC proxy endpoint for bitcoin-mcp zero-config, 428 tests, 83 endpoints, 24 routers | 2026-03-09 |
 | **MCP tools** | 43 tools, 6 prompts, 7 resources (bitcoin-mcp) | 2026-03-09 |
 | **Launch status** | **LAUNCH SPRINT ACTIVE** — content pipeline loaded, T-0 = Show HN Tuesday | 2026-03-09 |
 | **Open issues** | None critical — ToS §7 stale-data addressed by /disclaimer page | 2026-03-09 |
@@ -77,7 +77,7 @@ Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
 | **UX** | Monitor first-user experience. Flag any onboarding friction from HN/Reddit feedback. | T+1 through T+7 |
 | **Finance** | Baseline pre-launch metrics. Track CAC by channel after launch. | T-1, T+7 |
 | **Agent Advocate** | Verify SDK client works against live API. Monitor MCP directory acceptance. | Before T-0, ongoing |
-| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 86 endpoints, 421 tests). Verify cross-doc consistency. | Before T-0 |
+| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 83 endpoints, 428 tests). Verify cross-doc consistency. | Before T-0 |
 | **QA** | Run full test suite pre-launch. Verify examples/ code runs. | Before T-0 |
 | **Security** | Monitor for abuse after HN traffic spike. | T+0 through T+3 |
 | **Analytics** | Set up PostHog funnel: visit → register → first call → 3+ calls. | Before T-0 |
@@ -311,7 +311,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 82 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 83 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---

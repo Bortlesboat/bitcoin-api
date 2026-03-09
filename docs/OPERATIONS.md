@@ -589,7 +589,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 | Location | What's there |
 |----------|-------------|
-| `src/bitcoin_api/` | All source code (17 modules + 21 routers + 6 services) |
+| `src/bitcoin_api/` | All source code (17 modules + 24 routers + 6 services) |
 | `tests/` | Unit tests, e2e tests, load test, helpers |
 | `static/` | Landing page, SEO pages, legal pages, robots/sitemap |
 | `docs/` | SOW, self-hosting guide, marketing, legal |

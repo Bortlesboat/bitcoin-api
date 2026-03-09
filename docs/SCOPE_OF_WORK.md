@@ -1,6 +1,6 @@
 # Satoshi API -- Scope of Work
 
-**Version:** 0.3.3
+**Version:** 0.3.4
 **Date:** 2026-03-08
 **Author:** Bortlesboat
 **Status:** Live -- https://bitcoinsapi.com
