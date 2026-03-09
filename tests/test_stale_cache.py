@@ -1,7 +1,7 @@
 """Tests for stale cache fallback — graceful degradation when node is down."""
 
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -12,7 +12,6 @@ from bitcoin_api.cache import (
     clear_stale_store,
     get_stale,
     _cached_rpc,
-    cached_blockchain_info,
     create_cache,
 )
 from cachetools import TTLCache
