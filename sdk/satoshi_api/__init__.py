@@ -206,6 +206,10 @@ class SatoshiAPI:
         """Get transactions in a block (paginated)."""
         return self._get(f"/blocks/{block_hash}/txs", start=start, limit=limit)
 
+    def block_raw(self, block_hash: str) -> Response:
+        """Get raw block hex by hash."""
+        return self._get(f"/blocks/{block_hash}/raw")
+
     def tip_height(self) -> Response:
         """Current chain tip height."""
         return self._get("/blocks/tip/height")
@@ -282,6 +286,29 @@ class SatoshiAPI:
         """Historical fee rates and mempool size."""
         return self._get("/fees/history", hours=hours, interval=interval)
 
+    def fee_plan(
+        self, profile: str | None = None, inputs: int | None = None,
+        outputs: int | None = None, address_type: str = "segwit",
+        currency: str = "sats",
+    ) -> Response:
+        """Transaction cost planner — estimate costs across urgency tiers.
+
+        Call with no params for a standard SegWit transaction, or use a profile
+        preset (simple_send, exchange_withdrawal, batch_payout, consolidation).
+        Set currency='usd' to include USD equivalents.
+        """
+        return self._get("/fees/plan", profile=profile, inputs=inputs,
+                         outputs=outputs, address_type=address_type,
+                         currency=currency)
+
+    def fee_savings(self, hours: int = 168, currency: str = "sats") -> Response:
+        """Fee savings simulation — how much you'd save with optimal timing.
+
+        Compares average fee cost vs. optimal timing over the requested period.
+        Set currency='usd' to include USD equivalents.
+        """
+        return self._get("/fees/savings", hours=hours, currency=currency)
+
     # --- Mempool ---
 
     def mempool(self) -> Response:
@@ -341,6 +368,12 @@ class SatoshiAPI:
     def address_utxos(self, address: str) -> Response:
         """UTXOs for an address."""
         return self._get(f"/address/{address}/utxos")
+
+    # --- Supply ---
+
+    def supply(self) -> Response:
+        """Bitcoin supply breakdown: circulating supply, inflation rate, halving countdown."""
+        return self._get("/supply")
 
     # --- Prices ---
 

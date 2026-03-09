@@ -102,4 +102,4 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 - Current version: v0.3.4
 - Python: 3.10+
 - License: Apache-2.0
-- Tests: 421 (400 unit + 21 e2e)
+- Tests: 428 (407 unit + 21 e2e)

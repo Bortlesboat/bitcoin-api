@@ -43,13 +43,7 @@
   section { padding: 80px 0; }
   section + section { border-top: 1px solid var(--border); }
 
-  /* Nav */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
-  nav .logo { font-weight: 700; font-size: 1.1em; color: var(--accent); }
-  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
-  nav .links a { color: var(--muted); }
-  nav .links a:hover { color: var(--text); text-decoration: none; }
-
+            
   /* Hero */
   .hero { text-align: center; padding: 100px 0 60px; }
   .hero h1 { font-size: 2.6em; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
@@ -115,6 +109,13 @@
     section { padding: 48px 0; }
     .stack-layer { padding: 12px 24px; }
   }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Self-Hosted Bitcoin API","item":"https://bitcoinsapi.com/self-hosted-bitcoin-api"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/self-hosted-bitcoin-api/#article","name":"Self-Hosted Bitcoin API — Run Your Own REST API on Your Node","description":"Should you send Bitcoin now or wait? Self-hosted Bitcoin fee intelligence API. Privacy-preserving, zero rate limits. One pip install turns your Bitcoin Core node into a full API server.","url":"https://bitcoinsapi.com/self-hosted-bitcoin-api","datePublished":"2026-03-08","dateModified":"2026-03-09","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
@@ -175,14 +176,15 @@
 </head>
 <body>
 
-<nav>
-  <a href="/" class="logo" style="text-decoration: none;">Satoshi API</a>
-  <div class="links">
-    <a href="/">Home</a>
-    <a href="/docs">Docs</a>
-    <a href="/bitcoin-mcp-setup-guide">MCP Setup</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
-    <a href="/best-bitcoin-api-for-developers">Compare</a>
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
+    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
 
@@ -272,7 +274,7 @@ satoshi-api
 <span style="color: var(--green)">INFO</span>  Interactive docs at http://localhost:9332/docs</code></pre>
       </div>
     </div>
-    <p style="color: var(--muted); margin-top: 16px;">That's it. 82 REST endpoints are now available on your machine. Open <code>http://localhost:9332/docs</code> for the interactive Swagger UI playground.</p>
+    <p style="color: var(--muted); margin-top: 16px;">That's it. 87 REST endpoints are now available on your machine. Open <code>http://localhost:9332/docs</code> for the interactive Swagger UI playground.</p>
   </div>
 </section>
 

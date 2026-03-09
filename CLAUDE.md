@@ -81,6 +81,9 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `src/bitcoin_api/rate_limit.py` | Rate limiting (in-memory or Upstash Redis) |
 | `src/bitcoin_api/notifications.py` | Transactional email (Resend) + analytics events (PostHog) |
 | `src/bitcoin_api/validators.py` | Input validation helpers |
+| `src/bitcoin_api/circuit_breaker.py` | RPC circuit breaker (fail-fast when node is down) |
+| `src/bitcoin_api/dependencies.py` | Lazy singleton RPC connection with failover |
+| `src/bitcoin_api/models.py` | Response envelope, typed data models (DTO/envelope) |
 | `src/bitcoin_api/cache.py` | TTL + LRU caching with registry + factory |
 | `src/bitcoin_api/usage_buffer.py` | Batch usage logging (50 rows / 30s flush) |
 | `src/bitcoin_api/db.py` | SQLite (WAL), key storage, fee history |

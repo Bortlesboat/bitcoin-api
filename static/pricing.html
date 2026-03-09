@@ -116,13 +116,6 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helv
 a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
 a:hover { color: var(--accent-hover); }
 
-/* Nav */
-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
-nav .logo { font-weight: 800; font-size: 0.85em; color: var(--text); letter-spacing: 0.1em; text-transform: uppercase; }
-nav .links { display: flex; gap: 24px; font-size: 0.9em; align-items: center; }
-nav .links a { color: var(--muted); transition: color 0.15s; }
-nav .links a:hover { color: var(--text); }
-.nav-toggle { display: none; }
 
 /* Layout */
 .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
@@ -172,10 +165,14 @@ footer a:hover { color: var(--accent); }
 @media (max-width: 768px) {
   .tiers { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
   .pricing-hero h1 { font-size: 2.2em; }
-  nav { flex-wrap: wrap; padding: 12px 16px; }
-  nav .links { display: none; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
-  nav .links.open { display: flex; }
-  .nav-toggle { display: block; background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+      nav .links.open { display: flex; }
+  }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
 }
 </style>
 
@@ -196,14 +193,15 @@ footer a:hover { color: var(--accent); }
 </head>
 <body>
 
-<nav>
-  <a href="/" class="logo" style="text-decoration:none;"><img src="/logo-128.png" alt="Satoshi API" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</a>
-  <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
-  <div class="links">
-    <a href="/">Home</a>
-    <a href="/best-bitcoin-api-for-developers">About</a>
-    <a href="/terms">Terms</a>
-    <a href="/docs">API Docs</a>
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
+    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
 

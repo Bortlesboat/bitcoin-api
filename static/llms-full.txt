@@ -149,6 +149,36 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | GET | /status | Service status and version |
 | GET | /guide | Interactive API guide |
 
+### JSON-RPC Proxy
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /rpc | Proxy JSON-RPC calls to the Bitcoin Core node |
+
+The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to the underlying Bitcoin Core node. This is used by [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) for zero-config mode — when no local node is available, bitcoin-mcp routes all tool calls through this endpoint automatically.
+
+**Request format:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "getblockchaininfo",
+  "params": []
+}
+```
+
+**Response format:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": { ... }
+}
+```
+
+Only read-only methods are whitelisted (plus `sendrawtransaction` for broadcasting). Wallet and admin methods are blocked. Allowed methods include: `getblockchaininfo`, `getblockcount`, `getbestblockhash`, `getblockhash`, `getblock`, `getblockheader`, `getblockstats`, `getchaintips`, `getchaintxstats`, `getdifficulty`, `getmempoolinfo`, `getrawmempool`, `getmempoolentry`, `getrawtransaction`, `decoderawtransaction`, `decodescript`, `gettxout`, `estimatesmartfee`, `getmininginfo`, `getnetworkhashps`, `getnetworkinfo`, `getpeerinfo`, `gettxoutsetinfo`, `validateaddress`, `sendrawtransaction`, and others.
+
+Standard rate limits apply per your API tier (anonymous: 30 req/min, free: 100 req/min, pro: 500 req/min, enterprise: 2,000 req/min). An API key is not required but recommended for higher limits.
+
 ## Response Format
 
 **Success:**

@@ -8,17 +8,17 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 
 | Fact | Value | Updated |
 |------|-------|---------|
-| **Version** | 0.3.3 | 2026-03-08 |
-| **Endpoints** | 86 total (82 core + 4 indexer) | 2026-03-09 |
-| **Tests** | 400 unit + 21 e2e = 421 total | 2026-03-08 |
-| **Routers** | 20 core + 3 indexer = 23 | 2026-03-08 |
+| **Version** | 0.3.4 | 2026-03-09 |
+| **Endpoints** | 87 total (83 core + 4 indexer) | 2026-03-09 |
+| **Tests** | 407 unit + 21 e2e = 428 total | 2026-03-09 |
+| **Routers** | 24 (21 core + 3 indexer) | 2026-03-09 |
 | **Live URL** | https://bitcoinsapi.com | — |
 | **Infra cost** | ~$3/mo | 2026-03-08 |
 | **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
-| **Latest release** | v0.3.4 — RPC proxy endpoint for bitcoin-mcp zero-config, 428 tests, 83 endpoints, 24 routers | 2026-03-09 |
+| **Latest release** | v0.3.4 — RPC proxy endpoint for bitcoin-mcp zero-config, 428 tests, 87 endpoints (83 core + 4 indexer), 24 routers (21 core + 3 indexer) | 2026-03-09 |
 | **MCP tools** | 43 tools, 6 prompts, 7 resources (bitcoin-mcp) | 2026-03-09 |
 | **Launch status** | **LAUNCH SPRINT ACTIVE** — content pipeline loaded, T-0 = Show HN Tuesday | 2026-03-09 |
-| **Open issues** | None critical — ToS §7 stale-data addressed by /disclaimer page | 2026-03-09 |
+| **Open issues** | None critical — legal audit PASS w/ 3 false-positive warnings (static links, not data processors) | 2026-03-09 |
 | **Awesome-list PRs** | 6 open (awesome-bitcoin, crypto-api, lopp.net, public-apis, awesome-mcp-servers, awesome-fastapi) | 2026-03-09 |
 
 **When you find a fact here is wrong, update it immediately and note the date.**
@@ -77,7 +77,7 @@ Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
 | **UX** | Monitor first-user experience. Flag any onboarding friction from HN/Reddit feedback. | T+1 through T+7 |
 | **Finance** | Baseline pre-launch metrics. Track CAC by channel after launch. | T-1, T+7 |
 | **Agent Advocate** | Verify SDK client works against live API. Monitor MCP directory acceptance. | Before T-0, ongoing |
-| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 83 endpoints, 428 tests). Verify cross-doc consistency. | Before T-0 |
+| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 87 endpoints, 428 tests). Verify cross-doc consistency. | Before T-0 |
 | **QA** | Run full test suite pre-launch. Verify examples/ code runs. | Before T-0 |
 | **Security** | Monitor for abuse after HN traffic spike. | T+0 through T+3 |
 | **Analytics** | Set up PostHog funnel: visit → register → first call → 3+ calls. | Before T-0 |
@@ -250,11 +250,11 @@ Track the last run of each agent for staleness detection.
 | UX | 2026-03-09 | WARN (6): mobile grid, ToS checkbox, dim contrast — ALL FIXED | All-Hands | Legal, Marketing, Admin, QA |
 | Finance | 2026-03-09 | PASS WITH ADVISORIES (3): capacity plan, revenue tracking | All-Hands | PM, Marketing |
 | Legal | 2026-03-09 | WARN (4): registration_ip removed from privacy, ToS checkbox FIXED | All-Hands | UX, Security, Admin |
-| Marketing | 2026-03-09 | **UPDATED**: Content pipeline fully loaded (7 assets). MCP tool count fixed 40→43 across all drafts. 2 new awesome-list PRs submitted. Launch sprint briefing added. | Agency Consult + CEO | Admin, PM, Agent Advocate |
+| Marketing | 2026-03-09 | **PASS WITH WARNINGS (7)**: 0 errors, 7 advisory warnings (all false positives: cross-product version refs + technical section endpoint counts). Fixed: 5 errors (82→83 endpoints in 2 drafts, 40→43 MCP tools in 2 files, stale versions in 5 files), plus 8 stale test counts, 4 stale version refs. All content pipeline assets verified accurate. | Marketing Sync | Admin, QA |
 | Security | 2026-03-09 | WARN (8): CSP unsafe-inline, no pip audit — no critical issues | All-Hands | Architect, QA |
-| Architect | 2026-03-09 | WARN (5): 8/10 quality, workers=2 rate limit bypass noted | All-Hands | QA, Ops, Admin |
-| QA | 2026-03-09 | PASS: 400/400 tests (2 failover env leak tests FIXED) | All-Hands | Architect, Admin |
-| Analytics | 2026-03-09 | WARN (5): WS_MESSAGES_DROPPED verified OK, registration gauge OK. **ACTION: Define activation funnel in PostHog before T-0.** | All-Hands | QA, Architecture |
+| Architect | 2026-03-09 | WARN (3): AGENT_ROLES numbers stale, MCP endpoint count hardcoded wrong, 3 core modules missing from CLAUDE.md Key Files. 8/10 quality. workers=1 confirmed (rate limit bypass resolved). | Architecture Review | QA, Admin |
+| QA | 2026-03-09 | PASS: 428/428 tests (407 unit + 21 e2e). SOW missing test_rpc_proxy.py — FIXED. No MCP server unit tests (coverage gap). | QA Review | Admin |
+| Analytics | 2026-03-09 | WARN (4): MCP/SSE path not usage-logged, /rpc proxy RPC method not tracked, registration_ip column unused, activation funnel endpoint EXISTS but PostHog funnel not defined. 14 checks passed. | Analytics Review | PM, Architect, Ops |
 | Ops | 2026-03-09 | WARN (7): no DB backup schedule, unbounded api.log. **ACTION: Fix log rotation + DB backup before launch traffic.** | All-Hands | Admin, Architect |
 | Agent Advocate | 2026-03-09 | **UPDATED**: Python SDK client created (`examples/satoshi_client.py`, 46 methods). Fee dashboard tutorial created + verified. DX audit framework adopted from agency-agents Developer Advocate consult. | Agency Consult + CEO | Architecture, PM, QA |
 | Admin Assistant | 2026-03-09 | **ACTION: Stamp 43 MCP tools across all docs.** Verify `LAUNCH_SUBMISSION_KIT.md` counts match live state. Pre-launch consistency sweep needed. | Agency Consult | Marketing, Architect |
@@ -266,12 +266,12 @@ Track the last run of each agent for staleness detection.
 | PM | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 4 | WARN (11/18 checks, triggers: Marketing, UX, Finance, Architect) |
 | UX | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 4 | WARN (2 P0 bugs found, triggers: Marketing, QA, Admin, Agent Advocate) |
 | Finance | 2026-03-07, 2026-03-08, 2026-03-08, 2026-03-08 | 3 | 0 | 3 | PASS (8/8 controls, triggers: PM, Marketing) |
-| Legal | 2026-03-07, 2026-03-08, 2026-03-08 | 2 | 0 | 2 | WARN (agent terms missing, triggers: Agent Advocate, UX, Security, Marketing, Admin, Architect) |
-| Marketing | 2026-03-07, 2026-03-08, 2026-03-08 | 4 | 0 | 4 | WARN (dirs not submitted, triggers: UX, Admin, Agent Advocate, PM) |
+| Legal | 2026-03-07, 2026-03-08, 2026-03-08, 2026-03-09 | 3 | 3 | 3 | PASS w/ WARNINGS (3 false-positive warnings; fixed: Coinbase/Kraken disclosure, RPC proxy in ToS+disclaimer, legal tracker updated) |
+| Marketing | 2026-03-07, 2026-03-08, 2026-03-08, 2026-03-09 | 5+8 | 13 | 2 | PASS w/ WARNINGS (0 errors, 7 advisory; fixed 5 script errors + 8 additional stale facts across 10 files) |
 | Security | 2026-03-07, 2026-03-07, 2026-03-07, 2026-03-08, 2026-03-08 | 4 | 0 | 3 | WARN (2 critical gaps, triggers: Architect, Agent Advocate, QA, Legal, PM) |
-| Architect | 2026-03-07, 2026-03-08, 2026-03-08 | 6 | 0 | 3 | WARN (3 scale concerns, triggers: QA, Agent Advocate, Security, PM) |
+| Architect | 2026-03-07, 2026-03-08, 2026-03-08, 2026-03-09 | 3 | 3 | 2 | WARN (3 doc stale: AGENT_ROLES numbers, MCP hardcoded count, CLAUDE.md missing files — ALL FIXED) |
 | QA | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 3 | WARN (422 actual vs 415 documented, triggers: Agent Advocate, Architect, Admin, Security) |
-| Analytics | 2026-03-07, 2026-03-08, 2026-03-08 | 5 | 0 | 4 | WARN (can't slice by MCP, triggers: Architect, QA, PM, Agent Advocate) |
+| Analytics | 2026-03-07, 2026-03-08, 2026-03-08, 2026-03-09 | 4 | 0 | 3 | WARN (4 gaps: MCP path blind, /rpc method untracked, registration_ip dead col, PostHog funnel not defined) |
 | Ops | 2026-03-07, 2026-03-08 | — | — | — | WARN (single-worker, triggers: Security, PM, Architect, Finance) |
 | Agent Advocate | 2026-03-08, 2026-03-08 | — | — | — | WARN (token waste, triggers: Architect, QA, PM, Marketing, Admin) |
 | Admin Assistant | 2026-03-07, 2026-03-08 | 5 | 5 | 2 | PASS (6/9 clean, triggers: Marketing, Architect) |
@@ -311,7 +311,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 83 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 87 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---

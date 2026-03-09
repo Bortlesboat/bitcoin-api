@@ -44,7 +44,6 @@ ALLOWED_METHODS: set[str] = {
     "estimatesmartfee",
     # Mining (read-only)
     "getmininginfo",
-    "getblocktemplate",
     "getnetworkhashps",
     # Network (read-only)
     "getnetworkinfo",
@@ -53,7 +52,6 @@ ALLOWED_METHODS: set[str] = {
     "getnodeaddresses",
     # UTXO
     "gettxoutsetinfo",
-    "scantxoutset",
     # Validation
     "validateaddress",
     # Help
@@ -81,6 +79,9 @@ async def rpc_proxy(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
     method = body.get("method", "")
     params = body.get("params", [])
     req_id = body.get("id", 1)
+
+    # Store RPC method name for middleware usage logging
+    request.state.rpc_method = method
 
     if method not in ALLOWED_METHODS:
         return JSONResponse(

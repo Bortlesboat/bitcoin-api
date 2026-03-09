@@ -13,9 +13,9 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **Process** | `python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332` |
 | **Config** | `.env` in repo root (loaded automatically by Pydantic Settings) |
 | **Database** | `data/bitcoin_api.db` (SQLite, auto-created) |
-| **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task "SatoshiAPI" |
+| **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task "SatoshiAPI". Watchdog: "SatoshiAPIWatchdog" (5 min). Backup: "SatoshiAPIBackup" (daily 3 AM) |
 | **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
-| **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min, auto-restart), smoke-test-api.sh (cron) |
+| **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min via "SatoshiAPIWatchdog" task, auto-restart), smoke-test-api.sh (cron) |
 | **Diagnostics** | `bash scripts/diagnose.sh` (node, tunnel, API, cache, DB, version, tests) |
 | **Version mgmt** | `bash scripts/release.sh` (tag, list, diff, revert) |
 
@@ -546,10 +546,7 @@ bash scripts/backup-db.sh
 
 - Uses `sqlite3 .backup` (WAL-safe), falls back to `cp`
 - Stores backups in `data/backups/`, retains last 7
-- **Schedule this daily** via Windows Task Scheduler:
-  ```
-  schtasks /create /tn "SatoshiAPIBackup" /tr "bash C:\Users\andre\Bortlesboat\bitcoin-api\scripts\backup-db.sh" /sc daily /st 03:00
-  ```
+- **Scheduled daily** via Windows Task Scheduler (`SatoshiAPIBackup`, 3:00 AM)
 
 ### Disaster Recovery
 
@@ -589,7 +586,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 
 | Location | What's there |
 |----------|-------------|
-| `src/bitcoin_api/` | All source code (17 modules + 24 routers + 6 services) |
+| `src/bitcoin_api/` | All source code (17 modules + 22 router files (21 REST + mcp_server sub-app) + 3 indexer routers + 6 services) |
 | `tests/` | Unit tests, e2e tests, load test, helpers |
 | `static/` | Landing page, SEO pages, legal pages, robots/sitemap |
 | `docs/` | SOW, self-hosting guide, marketing, legal |

@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (83 total)
+### 3.1 Endpoints (87 total: 83 core + 4 indexer)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -317,7 +317,7 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (83 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (87 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
 | Testing | A- | 407 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
@@ -417,7 +417,7 @@ Errors follow the same structure:
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
 | 29 | RPC proxy endpoint: `/api/v1/rpc` JSON-RPC proxy for bitcoin-mcp zero-config fallback. 30+ whitelisted read-only methods, wallet/admin methods blocked. Enables bitcoin-mcp to work without a local node. | 7 |
-| **Total** | **83 endpoints, 21 core routers (+ 3 indexer = 24 when enabled)** | **407 unit + 21 e2e** |
+| **Total** | **87 endpoints (83 core + 4 indexer), 21 core routers (+ 3 indexer = 24 when enabled)** | **407 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -449,6 +449,7 @@ Errors follow the same structure:
 - `tests/test_notifications.py` -- 14 tests (Resend email + PostHog analytics)
 - `tests/test_rate_limit_redis.py` -- 6 tests (Redis rate limiting + fallback)
 - `tests/test_failover.py` -- 6 tests (RPC failover/circuit breaker)
+- `tests/test_rpc_proxy.py` -- 7 tests (JSON-RPC proxy whitelist, error handling, envelope format)
 - `tests/test_indexer_parser.py` -- 25 tests (block parser, satoshi conversion, hex helpers)
 - `tests/test_indexer_reorg.py` -- 15 tests (reorg detection, fork point with RPC, rollback logic)
 - `tests/test_indexer_routers.py` -- 14 tests (indexed endpoints, auth, validation)

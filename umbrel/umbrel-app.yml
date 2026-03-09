@@ -4,7 +4,7 @@ name: Satoshi API
 tagline: Stop overpaying Bitcoin fees. Know when to send.
 icon: https://raw.githubusercontent.com/Bortlesboat/bitcoin-api/main/umbrel/icon.svg
 category: bitcoin
-version: "0.3.3"
+version: "0.3.4"
 port: 9332
 description: >-
   Save money on every Bitcoin transaction. Satoshi API tells you when to send,

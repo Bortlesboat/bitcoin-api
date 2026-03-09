@@ -87,15 +87,9 @@
   section { padding: 48px 0; }
   section + section { border-top: 1px solid var(--border); }
 
-  /* Nav */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
-  nav .logo { font-weight: 800; font-size: 0.85em; color: var(--text); letter-spacing: 0.1em; text-transform: uppercase; }
-  nav .logo a { color: var(--text); text-decoration: none; }
+        nav .logo a { color: var(--text); text-decoration: none; }
   nav .logo a:hover { text-decoration: none; }
-  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
-  nav .links a { color: var(--muted); }
-  nav .links a:hover { color: var(--text); text-decoration: none; }
-
+      
   /* Page header */
   .page-header { text-align: center; padding: 64px 0 32px; }
   .page-header h1 { font-size: 2.2em; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.5px; line-height: 1.2; }
@@ -143,8 +137,14 @@
     .use-cards { grid-template-columns: 1fr; }
     .comparison-table { font-size: 0.85em; }
     .comparison-table td, .comparison-table th { padding: 10px 8px; }
-    nav .links { gap: 12px; font-size: 0.8em; }
-  }
+      }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
 </style>
 <!-- PostHog Analytics (privacy-first: no autocapture, no session recording, IP anonymized) -->
 <script>
@@ -164,14 +164,15 @@
 </head>
 <body>
 
-<nav>
-  <div class="logo"><a href="/" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'home'})"><img src="/logo-128.png" alt="Satoshi API" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</a></div>
-  <div class="links">
-    <a href="/" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'home'})">Home</a>
-    <a href="/docs" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'docs'})">API Docs</a>
-    <a href="/bitcoin-mcp-setup-guide" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'mcp-setup'})">MCP Setup</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'github'})">GitHub</a>
-    <a href="/best-bitcoin-api-for-developers" onclick="posthog.capture('comparison_nav_click', {page: 'vs-mempool', target: 'compare'})">Compare</a>
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
+    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
 
@@ -261,7 +262,7 @@
       <tr>
         <td>Endpoint depth</td>
         <td>Broad: addresses, Lightning, mining pools</td>
-        <td>Focused: 82 analyzed endpoints + SSE streams</td>
+        <td>Focused: 87 analyzed endpoints + SSE streams</td>
       </tr>
       <tr>
         <td>Requires a node</td>

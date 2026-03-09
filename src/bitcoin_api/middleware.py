@@ -172,6 +172,19 @@ def register_middleware(app: FastAPI):
                         "Retry-After": str(retry_after),
                     })
             response = await call_next(request)
+            # Log MCP usage and record Prometheus metrics
+            mcp_path = request.url.path
+            elapsed_ms = (time.monotonic() - start_time) * 1000
+            log_usage(f"mcp:{client_ip}", mcp_path, response.status_code,
+                      method=req_method, response_time_ms=elapsed_ms,
+                      user_agent=req_user_agent, client_type=req_client_type,
+                      referrer=req_referrer, client_ip=client_ip, error_type="")
+            _norm = normalize_endpoint(mcp_path)
+            REQUEST_COUNT.labels(method=req_method, endpoint=_norm,
+                                 status=str(response.status_code), tier="mcp").inc()
+            REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe(elapsed_ms / 1000)
+            _emit_access_log(client_ip, req_method, mcp_path, response.status_code,
+                             "mcp", request_id, elapsed_ms)
             return response
         if request.url.path in _RATE_LIMIT_SKIP:
             response = await call_next(request)
@@ -345,11 +358,17 @@ def register_middleware(app: FastAPI):
             _error_type = "validation_error"
         elif response.status_code >= 400:
             _error_type = "client_error"
-        log_usage(bucket, path, response.status_code,
+        # Append RPC method name for /api/v1/rpc requests
+        _log_path = path
+        if path == "/api/v1/rpc":
+            _rpc_method = getattr(request.state, "rpc_method", "")
+            if _rpc_method:
+                _log_path = f"/api/v1/rpc:{_rpc_method}"
+        log_usage(bucket, _log_path, response.status_code,
                   method=req_method, response_time_ms=elapsed_ms, user_agent=req_user_agent,
                   client_type=req_client_type, referrer=req_referrer,
                   client_ip=client_ip, error_type=_error_type)
-        _emit_access_log(client_ip, request.method, path, response.status_code,
+        _emit_access_log(client_ip, request.method, _log_path, response.status_code,
                          key_info.tier, request_id, elapsed_ms)
         return response
 

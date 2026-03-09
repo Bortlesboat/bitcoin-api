@@ -43,6 +43,13 @@ ul { margin-left: 24px; margin-bottom: 16px; }
 footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
 footer a { color: var(--muted); }
 footer a:hover { color: var(--accent); }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
 </style>
 <script type="application/ld+json">
 {
@@ -85,13 +92,15 @@ footer a:hover { color: var(--accent); }
 </script>
 </head>
 <body>
-<nav style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg);">
-  <a href="/" style="font-weight:800;font-size:0.85em;color:var(--text);letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;">SATOSHI API</a>
-  <div style="display:flex;gap:24px;font-size:0.9em;">
-    <a href="/" style="color:var(--muted);">Home</a>
-    <a href="/terms" style="color:var(--muted);">Terms</a>
-    <a href="/privacy" style="color:var(--muted);">Privacy</a>
-    <a href="/docs" style="color:var(--muted);">API Docs</a>
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
+    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
 <div class="container">

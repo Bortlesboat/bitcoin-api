@@ -61,6 +61,24 @@ def test_proxy_sendrawtransaction_allowed(client, mock_rpc):
     assert resp.json()["result"] == "abc123txid"
 
 
+def test_proxy_blocks_scantxoutset(client):
+    """scantxoutset bypasses address router semaphore — DOS risk."""
+    resp = client.post("/api/v1/rpc", json={
+        "jsonrpc": "2.0", "id": 7, "method": "scantxoutset", "params": ["start", []]
+    })
+    assert resp.status_code == 403
+    assert "not allowed" in resp.json()["error"]["message"]
+
+
+def test_proxy_blocks_getblocktemplate(client):
+    """getblocktemplate is computationally expensive and not useful for API consumers."""
+    resp = client.post("/api/v1/rpc", json={
+        "jsonrpc": "2.0", "id": 8, "method": "getblocktemplate", "params": []
+    })
+    assert resp.status_code == 403
+    assert "not allowed" in resp.json()["error"]["message"]
+
+
 def test_proxy_returns_jsonrpc_envelope(client, mock_rpc):
     mock_rpc.getblockcount.return_value = 940025
     resp = client.post("/api/v1/rpc", json={

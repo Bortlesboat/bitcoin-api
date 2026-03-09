@@ -43,13 +43,7 @@
   section { padding: 80px 0; }
   section + section { border-top: 1px solid var(--border); }
 
-  /* Nav */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
-  nav .logo { font-weight: 700; font-size: 1.1em; color: var(--accent); }
-  nav .links { display: flex; gap: 24px; font-size: 0.9em; }
-  nav .links a { color: var(--muted); }
-  nav .links a:hover { color: var(--text); text-decoration: none; }
-
+            
   /* Hero */
   .hero { text-align: center; padding: 100px 0 80px; }
   .hero h1 { font-size: 2.6em; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
@@ -120,6 +114,13 @@
     .privacy-grid { grid-template-columns: 1fr; }
     .stack-layer { padding: 14px 24px; }
   }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin API for AI Agents","item":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents/#article","name":"Bitcoin API for AI Agents — MCP Integration for Claude, GPT, and More","description":"Satoshi API is the first Bitcoin API with native MCP (Model Context Protocol) integration. Give Claude, ChatGPT, or any AI agent direct access to real-time Bitcoin data from your own node.","url":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents","datePublished":"2026-03-08","dateModified":"2026-03-09","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
@@ -188,14 +189,15 @@
 </head>
 <body>
 
-<nav>
-  <a href="/" class="logo" style="text-decoration: none;">Satoshi API</a>
-  <div class="links">
-    <a href="/">Home</a>
-    <a href="/docs">API Docs</a>
-    <a href="/bitcoin-mcp-setup-guide">MCP Setup</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
-    <a href="/best-bitcoin-api-for-developers">Compare</a>
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
+    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
 
@@ -243,7 +245,7 @@
       <div class="stack-arrow">&#8595;</div>
       <div class="stack-layer active">
         <strong style="color: var(--accent);">Satoshi API</strong><br>
-        <span style="color: var(--muted); font-size: 0.85em;">REST API &mdash; 82 analyzed endpoints</span>
+        <span style="color: var(--muted); font-size: 0.85em;">REST API &mdash; 87 analyzed endpoints</span>
       </div>
       <div class="stack-arrow">&#8595;</div>
       <div class="stack-layer">
@@ -368,7 +370,7 @@
       As of 2026, no other Bitcoin API — BlockCypher, mempool.space, Blockchain.com, Blockstream, or any other provider — offers native MCP integration. Developers who want to give AI agents access to Bitcoin data through other APIs must build custom function-calling wrappers, handle authentication, parse responses, and manage error handling manually.
     </p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 24px;">
-      Satoshi API and bitcoin-mcp provide this out of the box. One <code>pip install</code> for the API, one for the MCP server, and the AI agent has structured tool-call access to 82 Bitcoin endpoints with typed responses, error handling, and rate limiting already built in.
+      Satoshi API and bitcoin-mcp provide this out of the box. One <code>pip install</code> for the API, one for the MCP server, and the AI agent has structured tool-call access to 87 Bitcoin endpoints with typed responses, error handling, and rate limiting already built in.
     </p>
     <table class="compare-table">
       <thead>
