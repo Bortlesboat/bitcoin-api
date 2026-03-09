@@ -210,7 +210,7 @@ Track the last run of each agent for staleness detection.
 | QA | 2026-03-08 | WARN (0 stale cache tests) | All-Hands | Architect, Security, Admin |
 | Analytics | 2026-03-08 | WARN (no stale Prometheus metric) | All-Hands | QA, Architect, Security, Admin |
 | Ops | 2026-03-07 | — (created) | All-Hands | — |
-| Agent Advocate | 2026-03-08 | — (created) | — | — |
+| Agent Advocate | 2026-03-08 | PASS (bitcoin-mcp v0.4.0 audit: 3 new tools, USD pricing, 16 recipes) | Manual | PM, Marketing |
 | Admin Assistant | 2026-03-07 | PASS (82 endpoints stamped, 26 files, 5 stale refs fixed) | Manual | Architect, Marketing |
 
 ## Performance Tracking
