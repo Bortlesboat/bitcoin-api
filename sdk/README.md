@@ -7,7 +7,7 @@ Typed Python client for the [Satoshi API](https://bitcoinsapi.com) — Bitcoin f
 ## Install
 
 ```bash
-pip install satoshi-api
+pip install satoshi-api-sdk
 ```
 
 ## Quick Start
