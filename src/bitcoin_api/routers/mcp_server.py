@@ -12,11 +12,13 @@ Lets any MCP client connect with just a URL, zero install:
 """
 
 import logging
+import os
 import re
 
 import httpx
 from mcp.server.fastmcp import FastMCP
 from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
 
 from .. import __version__
 
@@ -26,26 +28,46 @@ API_BASE = "http://127.0.0.1:9332/api/v1"
 _TXID_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 _HEX_RE = re.compile(r"^[a-fA-F0-9]+$")
 
+# Internal API key for loopback calls — avoids anonymous rate limits.
+# Set MCP_INTERNAL_API_KEY in .env to a valid key; without it, anonymous limits apply.
+_INTERNAL_KEY = os.environ.get("MCP_INTERNAL_API_KEY", "")
+
+# Shared httpx client — avoids creating a new TCP connection per request.
+_client: httpx.AsyncClient | None = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None or _client.is_closed:
+        _client = httpx.AsyncClient(base_url=API_BASE, timeout=15.0)
+    return _client
+
+
+def _internal_headers() -> dict:
+    """Return headers for loopback API calls, including the internal key if set."""
+    if _INTERNAL_KEY:
+        return {"X-API-Key": _INTERNAL_KEY}
+    return {}
+
 
 async def _api_get(path: str, params: dict | None = None, timeout: float = 30) -> dict:
     """Call the local Satoshi API and return the JSON response."""
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(f"{API_BASE}{path}", params=params, timeout=timeout)
-        resp.raise_for_status()
-        return resp.json()
+    client = _get_client()
+    resp = await client.get(path, params=params, headers=_internal_headers(), timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
 
 
 async def _api_post(path: str, json_body: dict, api_key: str | None = None,
                     timeout: float = 30) -> dict:
     """POST to the local Satoshi API."""
-    headers = {}
+    headers = _internal_headers()
     if api_key:
         headers["X-API-Key"] = api_key
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{API_BASE}{path}", json=json_body,
-                                 headers=headers, timeout=timeout)
-        resp.raise_for_status()
-        return resp.json()
+    client = _get_client()
+    resp = await client.post(path, json=json_body, headers=headers, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
 
 
 def _extract_data(result: dict) -> dict:
@@ -192,14 +214,16 @@ async def get_address_balance(address: str, api_key: str = "") -> dict:
     if not api_key:
         return {"error": "API key required for address lookups. Register free: POST https://bitcoinsapi.com/api/v1/register"}
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{API_BASE}/address/{address}",
-                headers={"X-API-Key": api_key},
-                timeout=90,
-            )
-            resp.raise_for_status()
-            return _extract_data(resp.json())
+        client = _get_client()
+        headers = _internal_headers()
+        headers["X-API-Key"] = api_key  # user's key takes precedence
+        resp = await client.get(
+            f"/address/{address}",
+            headers=headers,
+            timeout=90,
+        )
+        resp.raise_for_status()
+        return _extract_data(resp.json())
     except httpx.HTTPStatusError as e:
         return {"error": f"Address lookup failed: {e.response.status_code}", "detail": e.response.text}
 
@@ -229,16 +253,16 @@ async def plan_transaction(
 
 
 @mcp.tool()
-async def broadcast_transaction(hex: str, api_key: str = "") -> dict:
+async def broadcast_transaction(raw_tx_hex: str, api_key: str = "") -> dict:
     """Broadcast a signed raw transaction to the Bitcoin network.
     Requires an API key (register free at POST /api/v1/register).
-    The hex parameter is the fully signed transaction in hex format."""
+    The raw_tx_hex parameter is the fully signed transaction in hex format."""
     if not api_key:
         return {"error": "API key required. Register free: POST https://bitcoinsapi.com/api/v1/register"}
-    if not _HEX_RE.match(hex):
+    if not _HEX_RE.match(raw_tx_hex):
         return {"error": "Invalid hex string"}
     try:
-        result = await _api_post("/broadcast", {"hex": hex}, api_key=api_key)
+        result = await _api_post("/broadcast", {"hex": raw_tx_hex}, api_key=api_key)
         return _extract_data(result)
     except httpx.HTTPStatusError as e:
         return {"error": f"Broadcast failed: {e.response.status_code}", "detail": e.response.text}
@@ -331,4 +355,11 @@ async def search(query: str) -> dict:
 def create_mcp_app() -> Starlette:
     """Create and return the MCP SSE Starlette app for mounting."""
     log.info("Creating MCP server with %d tools", len(mcp._tool_manager._tools))
-    return mcp.sse_app()
+    app = mcp.sse_app()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET", "POST"],
+        allow_headers=["*"],
+    )
+    return app

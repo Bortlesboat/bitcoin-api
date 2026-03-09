@@ -154,10 +154,23 @@ def register_middleware(app: FastAPI):
         _common = dict(request_id=request_id, start_time=start_time, method=req_method,
                        user_agent=req_user_agent, client_type=req_client_type, referrer=req_referrer)
 
-        # --- Skip-path fast path ---
-        # MCP endpoints are mounted as a sub-app so they bypass middleware,
-        # but catch any stray /mcp paths that leak through
+        # --- MCP path: basic IP rate limit only (no auth/daily/circuit breaker) ---
         if request.url.path.startswith("/mcp"):
+            client_ip = _get_client_ip(request)
+            mcp_result = check_rate_limit_raw(f"mcp:{client_ip}", 60)
+            if not mcp_result.allowed:
+                retry_after = max(1, int(mcp_result.reset - time.time()))
+                return _error_response(
+                    429, "Rate Limit Exceeded",
+                    f"MCP rate limit: {mcp_result.limit} req/min per IP",
+                    request_id, error_type_key="rate_limit",
+                    retry_after_seconds=retry_after,
+                    extra_headers={
+                        "X-RateLimit-Limit": str(mcp_result.limit),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset": str(int(mcp_result.reset)),
+                        "Retry-After": str(retry_after),
+                    })
             response = await call_next(request)
             return response
         if request.url.path in _RATE_LIMIT_SKIP:
