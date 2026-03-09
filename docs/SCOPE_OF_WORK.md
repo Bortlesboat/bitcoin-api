@@ -421,11 +421,11 @@ Errors follow the same structure:
 
 ### 6.2 Files Delivered
 
-**Source (50 files):**
+**Source (51 files):**
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
 - `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (CoinGecko/Coinbase/Kraken fallback)
-- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, status, stream, supply, stats, transactions, websocket
+- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, rpc_proxy, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
 - `src/bitcoin_api/indexer/services/` -- address, transaction
