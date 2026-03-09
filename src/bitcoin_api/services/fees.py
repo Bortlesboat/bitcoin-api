@@ -180,6 +180,7 @@ def calculate_fee_landscape(fee_dict: dict, snapshots: list) -> dict:
         "recommendation": recommendation,
         "confidence": confidence,
         "reasoning": reasoning,
+        "fee_environment": _classify_fee_environment(next_block),
         "trend": {
             "direction": trend,
             "mempool_change_pct": trend_pct,
@@ -312,6 +313,19 @@ def _sats_to_usd(sats: int | float, btc_price: float) -> float:
     return round(sats / 1e8 * btc_price, 4)
 
 
+def _classify_fee_environment(next_block_rate: float) -> dict:
+    """Classify the current fee environment based on next-block fee rate."""
+    if next_block_rate <= 2:
+        return {"level": "rock-bottom", "message": "Fees are near the minimum. This is as cheap as it gets — excellent time to send or consolidate UTXOs."}
+    if next_block_rate <= 5:
+        return {"level": "low", "message": "Fees are low. Good time for non-urgent transactions and UTXO consolidation."}
+    if next_block_rate <= 20:
+        return {"level": "moderate", "message": "Fees are moderate. Consider waiting for a dip if your transaction isn't urgent."}
+    if next_block_rate <= 50:
+        return {"level": "elevated", "message": "Fees are elevated. Only send if urgent — waiting could save significantly."}
+    return {"level": "high", "message": "Fees are high. Delay non-urgent transactions. Consider batching or consolidating when fees drop."}
+
+
 def plan_transaction(
     fee_dict: dict,
     snapshots: list,
@@ -420,6 +434,7 @@ def plan_transaction(
         "recommendation": landscape["recommendation"],
         "recommendation_confidence": 1.0 if landscape["confidence"] == "high" else 0.6 if landscape["confidence"] == "medium" else 0.3,
         "reasoning": landscape["reasoning"],
+        "fee_environment": _classify_fee_environment(next_block),
         "delay_savings_pct": delay_savings_pct,
         "trend": landscape["trend"],
     }

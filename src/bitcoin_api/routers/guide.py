@@ -114,6 +114,8 @@ def _build_categories() -> list[dict]:
             "endpoints": [
                 _ep("GET", "/api/v1/fees", "Fee estimates for 1, 3, 6, 25, 144 block targets"),
                 _ep("GET", "/api/v1/fees/recommended", "Smart fee recommendation with context"),
+                _ep("GET", "/api/v1/fees/plan", "Transaction cost planner — estimate costs across urgency tiers (immediate/standard/patient/opportunistic). Supports profiles (simple_send, batch_payout, consolidation), address types, and USD currency."),
+                _ep("GET", "/api/v1/fees/savings", "Fee savings simulation — compare always-send-now vs optimal timing over the last 7 days. Shows savings per tx and monthly projection."),
                 _ep("GET", "/api/v1/fees/3", "Fee estimate for a specific block target"),
                 _ep("GET", "/api/v1/fees/landscape", "Full fee landscape across all targets"),
                 _ep("GET", "/api/v1/fees/estimate-tx", "Estimate fee for a specific transaction"),
