@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Documentation — Satoshi API</title>
+<meta name="description" content="Complete API documentation for Satoshi API. Bitcoin fee intelligence, mempool data, block analysis, and transaction tools. GET-only, JSON responses, no auth required for basic endpoints.">
+<meta name="keywords" content="bitcoin api documentation, bitcoin api reference, bitcoin rest api docs, satoshi api endpoints, bitcoin fee api docs, bitcoin mempool api docs">
+<link rel="canonical" href="https://bitcoinsapi.com/api-docs">
+<meta property="og:title" content="API Documentation — Satoshi API">
+<meta property="og:description" content="Complete API reference for Bitcoin fee intelligence, mempool data, block analysis, and transaction tools.">
+<meta property="og:url" content="https://bitcoinsapi.com/api-docs">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
+<meta name="twitter:title" content="API Documentation — Satoshi API">
+<meta name="twitter:description" content="Complete API reference for Bitcoin fee intelligence, mempool data, block analysis, and transaction tools.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://bitcoinsapi.com/#website",
+      "name": "Satoshi API",
+      "url": "https://bitcoinsapi.com"
+    },
+    {
+      "@type": "TechArticle",
+      "@id": "https://bitcoinsapi.com/api-docs/#article",
+      "name": "Satoshi API Documentation",
+      "description": "Complete API reference for Bitcoin fee intelligence, mempool data, block analysis, and transaction tools.",
+      "url": "https://bitcoinsapi.com/api-docs",
+      "datePublished": "2026-03-09",
+      "dateModified": "2026-03-09",
+      "author": { "@id": "https://bitcoinsapi.com/#organization" },
+      "publisher": { "@id": "https://bitcoinsapi.com/#organization" },
+      "isPartOf": { "@id": "https://bitcoinsapi.com/#website" },
+      "proficiencyLevel": "Beginner"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bitcoinsapi.com/" },
+        { "@type": "ListItem", "position": 2, "name": "API Documentation", "item": "https://bitcoinsapi.com/api-docs" }
+      ]
+    }
+  ]
+}
+</script>
+
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #21262d; --border-visible: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --dim: #6e7681;
+  --accent: #f7931a; --accent-hover: #FFB347; --accent-muted: #f7931a33;
+  --green: #3fb950; --warning: #d29922; --error: #f85149;
+  --blue: #58a6ff; --purple: #bc8cff; --pink: #f778ba;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.875em; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* Nav */
+nav { background: #1a1a2e; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+nav .logo { color: var(--accent); font-weight: 700; font-size: 1.2rem; text-decoration: none; }
+nav .logo:hover { text-decoration: none; }
+.nav-toggle { display: none; background: none; border: 1px solid var(--border-visible); border-radius: 4px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+.nav-links { display: flex; gap: 20px; align-items: center; }
+.nav-links a { color: #ccc; text-decoration: none; font-size: 0.9em; }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+.nav-links a.active { color: var(--accent); }
+
+/* Hero */
+.hero { text-align: center; padding: 64px 0 48px; }
+.hero h1 { font-size: 2.4em; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
+.hero h1 span { color: var(--accent); }
+.hero .subtitle { font-size: 1.1em; color: var(--muted); max-width: 640px; margin: 0 auto 28px; }
+.hero .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.hero .hero-links a { padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9em; transition: all 0.15s; display: inline-block; }
+.btn-primary { background: var(--accent); color: #000; border: 1px solid var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); text-decoration: none; }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-visible); }
+.btn-secondary:hover { border-color: var(--muted); text-decoration: none; }
+
+/* Section */
+.section { padding: 48px 0; }
+.section-header { margin-bottom: 32px; }
+.section-header h2 { font-size: 1.6em; font-weight: 800; margin-bottom: 6px; }
+.section-header h2 span { color: var(--accent); }
+.section-header p { color: var(--muted); font-size: 0.95em; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+/* Quick Start box */
+.quickstart { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; margin-bottom: 24px; }
+.quickstart h3 { font-size: 1.1em; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
+.step { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.step:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.step-label { font-weight: 600; font-size: 0.95em; }
+.step-detail { color: var(--muted); font-size: 0.88em; margin-top: 2px; }
+.step-code { display: block; margin-top: 8px; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; color: var(--text); overflow-x: auto; white-space: nowrap; position: relative; }
+.step-code .copy-btn { position: absolute; top: 6px; right: 8px; padding: 2px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--muted); font-size: 0.8em; cursor: pointer; font-family: inherit; }
+.step-code .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Info boxes */
+.info-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+.info-box h3 { font-size: 1.05em; font-weight: 700; margin-bottom: 10px; }
+.info-box p { color: var(--muted); font-size: 0.9em; line-height: 1.7; margin-bottom: 8px; }
+.info-box p:last-child { margin-bottom: 0; }
+
+/* Tier table */
+.tier-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.85em; }
+.tier-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; border-bottom: 2px solid var(--border-visible); }
+.tier-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.tier-table tr:hover { background: var(--surface); }
+.tier-table .tier-name { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.tier-table code { font-size: 0.9em; }
+
+/* Category cards */
+.category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.category-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; transition: border-color 0.2s; }
+.category-card:hover { border-color: var(--accent); }
+.category-card .cat-icon { font-size: 1.4em; margin-bottom: 6px; }
+.category-card h3 { font-size: 1em; font-weight: 700; margin-bottom: 4px; }
+.category-card .cat-desc { font-size: 0.82em; color: var(--muted); margin-bottom: 12px; }
+
+/* Endpoint items inside category */
+.endpoint-item { padding: 8px 0; border-top: 1px solid var(--border); }
+.endpoint-item:first-child { border-top: none; }
+.endpoint-item .ep-method { color: var(--green); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 0.75em; }
+.endpoint-item .ep-path { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; color: var(--text); }
+.endpoint-item .ep-desc { font-size: 0.78em; color: var(--dim); margin-top: 2px; }
+
+/* Collapsible details */
+details { margin-bottom: 16px; }
+details summary { cursor: pointer; font-weight: 700; font-size: 1.05em; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; list-style: none; display: flex; align-items: center; gap: 10px; transition: border-color 0.2s; }
+details summary:hover { border-color: var(--accent); }
+details summary::before { content: '\25B6'; font-size: 0.7em; color: var(--accent); transition: transform 0.2s; }
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-radius: 8px 8px 0 0; border-bottom-color: transparent; }
+details .detail-body { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; }
+
+/* Endpoint card (inside details) */
+.endpoint-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 12px; }
+.endpoint-card:last-child { margin-bottom: 0; }
+.endpoint-card .method-path { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; margin-bottom: 6px; }
+.endpoint-card .method { color: var(--green); font-weight: 700; }
+.endpoint-card .path { color: var(--text); }
+.endpoint-card .desc { color: var(--muted); font-size: 0.85em; margin-bottom: 10px; line-height: 1.6; }
+.endpoint-card .params { margin-bottom: 10px; }
+.endpoint-card .params span { display: inline-block; font-size: 0.75em; padding: 2px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-right: 6px; margin-bottom: 4px; }
+.endpoint-card .sample { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.78em; color: var(--muted); overflow-x: auto; white-space: pre; line-height: 1.5; }
+.endpoint-card .sample .key { color: var(--blue); }
+.endpoint-card .sample .str { color: var(--green); }
+.endpoint-card .sample .num { color: var(--accent); }
+
+/* Response format */
+.response-box { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.response-box .sample-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.response-box .sample-block h4 { font-size: 0.9em; margin-bottom: 10px; color: var(--text); }
+.response-box .sample-block pre { font-family: 'JetBrains Mono', monospace; font-size: 0.8em; color: var(--muted); line-height: 1.6; white-space: pre; overflow-x: auto; }
+.response-box .sample-block .key { color: var(--blue); }
+.response-box .sample-block .str { color: var(--green); }
+.response-box .sample-block .num { color: var(--accent); }
+.response-box .sample-block .err { color: var(--error); }
+
+/* Connector */
+.connector { display: flex; gap: 16px; margin: 32px 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; align-items: center; }
+.connector-icon { font-size: 2em; flex-shrink: 0; }
+.connector h3 { font-size: 1em; font-weight: 700; margin-bottom: 4px; }
+.connector p { font-size: 0.88em; color: var(--muted); margin-bottom: 8px; }
+.connector a.connector-link { display: inline-flex; align-items: center; gap: 4px; font-size: 0.85em; font-weight: 600; }
+
+/* Sidebar TOC */
+.toc { position: fixed; top: 80px; right: 24px; width: 200px; font-size: 0.78em; }
+.toc a { display: block; color: var(--dim); padding: 4px 0; text-decoration: none; border-left: 2px solid var(--border); padding-left: 12px; transition: all 0.15s; }
+.toc a:hover, .toc a.active { color: var(--accent); border-left-color: var(--accent); }
+
+/* Error codes */
+.error-table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin: 16px 0; }
+.error-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; border-bottom: 2px solid var(--border-visible); }
+.error-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.error-table .code { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.error-table .code-4xx { color: var(--warning); }
+.error-table .code-5xx { color: var(--error); }
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+footer .footer-links { margin-top: 12px; }
+footer .footer-links a { margin: 0 8px; }
+
+@media (max-width: 1200px) {
+  .toc { display: none; }
+}
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border-visible); margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+  .hero h1 { font-size: 1.8em; }
+  .category-grid { grid-template-columns: 1fr; }
+  .response-box { grid-template-columns: 1fr; }
+  .connector { flex-direction: column; text-align: center; }
+}
+</style>
+
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/guide">Guide</a>
+    <a href="/history">History</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/api-docs" class="active">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<!-- Sidebar TOC (desktop only) -->
+<div class="toc" id="toc">
+  <a href="#quickstart">Quick Start</a>
+  <a href="#authentication">Authentication</a>
+  <a href="#endpoints">Endpoints</a>
+  <a href="#responses">Response Format</a>
+  <a href="#errors">Error Codes</a>
+  <a href="#rate-limits">Rate Limits</a>
+  <a href="#mcp">MCP Integration</a>
+  <a href="#swagger">Swagger UI</a>
+</div>
+
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>API <span>Documentation</span></h1>
+    <p class="subtitle">Bitcoin fee intelligence that saves money on every transaction. REST API with real-time fee data, mempool analysis, block exploration, and 87 endpoints -- all from your own node.</p>
+    <div class="hero-links">
+      <a href="#quickstart" class="btn-primary">Quick Start</a>
+      <a href="/docs" class="btn-secondary">Interactive Swagger</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener" class="btn-secondary">GitHub</a>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Quick Start -->
+  <section class="section" id="quickstart">
+    <div class="section-header">
+      <h2>Quick <span>Start</span></h2>
+      <p>No signup, no API key. Hit these endpoints right now.</p>
+    </div>
+
+    <div class="info-box" style="margin-bottom: 24px;">
+      <h3>Base URL</h3>
+      <p style="margin-bottom: 4px;">All endpoints are prefixed with:</p>
+      <div class="step-code">
+        https://bitcoinsapi.com/api/v1
+        <button class="copy-btn" onclick="copyText('https://bitcoinsapi.com/api/v1', this)">Copy</button>
+      </div>
+      <p style="margin-top: 10px;">All requests are <code>GET</code> (read-only) unless noted. All responses are JSON with a <code>{data, meta}</code> envelope.</p>
+    </div>
+
+    <div class="quickstart">
+      <h3>Try it now</h3>
+      <div class="step">
+        <span class="step-label">Check if the API is alive</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/health
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/health', this)">Copy</button>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-label">Get fee recommendations (save money on your next transaction)</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/fees/recommended
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/fees/recommended', this)">Copy</button>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-label">Explore the genesis block</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/blocks/0
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/blocks/0', this)">Copy</button>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-label">Check the mempool</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/mempool
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/mempool', this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Authentication -->
+  <section class="section" id="authentication">
+    <div class="section-header">
+      <h2><span>Authentication</span></h2>
+      <p>Most GET endpoints work without any authentication. Register for free to unlock advanced features.</p>
+    </div>
+
+    <div class="info-box">
+      <h3>How it works</h3>
+      <p>Pass your API key in the <code>X-API-Key</code> header:</p>
+      <div class="step-code" style="margin: 10px 0;">
+        curl -H "X-API-Key: your_key_here" https://bitcoinsapi.com/api/v1/mining/hashrate
+        <button class="copy-btn" onclick="copyText('curl -H "X-API-Key: your_key_here" https://bitcoinsapi.com/api/v1/mining/hashrate', this)">Copy</button>
+      </div>
+      <p>No key? You still get access to all core endpoints. Keys unlock higher rate limits, streaming, and advanced analytics.</p>
+    </div>
+
+    <table class="tier-table">
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Auth</th>
+          <th>Rate Limit</th>
+          <th>Block Range</th>
+          <th>Access</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tier-name">Anonymous</td>
+          <td>None</td>
+          <td>30 req/min</td>
+          <td>Last 144 blocks</td>
+          <td>Core GET endpoints</td>
+        </tr>
+        <tr>
+          <td class="tier-name">Free</td>
+          <td><code>X-API-Key</code></td>
+          <td>60 req/min</td>
+          <td>Last 144 blocks</td>
+          <td>+ Mining, stats, POST</td>
+        </tr>
+        <tr>
+          <td class="tier-name">Pro</td>
+          <td><code>X-API-Key</code></td>
+          <td>300 req/min</td>
+          <td>Last 1,008 blocks</td>
+          <td>+ Streaming, analytics</td>
+        </tr>
+        <tr>
+          <td class="tier-name">Enterprise</td>
+          <td><code>X-API-Key</code></td>
+          <td>1,000 req/min</td>
+          <td>Last 2,016 blocks</td>
+          <td>+ Priority support</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="color: var(--muted); font-size: 0.88em; margin-top: 12px;">Register for a free key at <a href="/pricing">/pricing</a>. Self-hosted instances have no rate limits.</p>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Endpoint Categories -->
+  <section class="section" id="endpoints">
+    <div class="section-header">
+      <h2>API <span>Endpoints</span></h2>
+      <p>87 endpoints across 15 categories. Click any category to see key endpoints with example responses.</p>
+    </div>
+
+    <!-- Health -->
+    <details>
+      <summary>Health &amp; Status</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/health</span></div>
+          <p class="desc">Quick health check. Returns API status and node connectivity.</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"status"</span>: <span class="str">"healthy"</span>,
+    <span class="key">"node_connected"</span>: <span class="num">true</span>,
+    <span class="key">"block_height"</span>: <span class="num">886421</span>
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/health/deep</span></div>
+          <p class="desc">Detailed health check including cache, database, and node sync status.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/status</span></div>
+          <p class="desc">API version, uptime, feature flags, and node info.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Fees -->
+    <details open>
+      <summary>Fees (7 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/recommended</span></div>
+          <p class="desc">Human-readable fee recommendations with high/medium/low tiers. The most popular endpoint -- tells you exactly what fee to use and whether to send now or wait.</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"recommendation"</span>: <span class="str">"Fees are moderate. Medium priority recommended."</span>,
+    <span class="key">"estimates"</span>: {
+      <span class="key">"high"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">14.5</span>, <span class="key">"blocks"</span>: <span class="num">1</span> },
+      <span class="key">"medium"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">8.2</span>, <span class="key">"blocks"</span>: <span class="num">6</span> },
+      <span class="key">"low"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">3.1</span>, <span class="key">"blocks"</span>: <span class="num">24</span> }
+    },
+    <span class="key">"fee_landscape"</span>: {
+      <span class="key">"spread"</span>: <span class="num">11.4</span>,
+      <span class="key">"urgency_premium"</span>: <span class="str">"76.8%"</span>
+    }
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees</span></div>
+          <p class="desc">Fee estimates for all standard confirmation targets (1, 3, 6, 12, 24, 48, 144, 504, 1008 blocks) in sat/vB.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/{target}</span></div>
+          <p class="desc">Fee estimate for a specific block target. Example: <code>/fees/2</code> returns the sat/vB rate for 2-block confirmation.</p>
+          <div class="params"><span>target: int</span></div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/landscape</span></div>
+          <p class="desc">"Should I send now or wait?" Analyzes congestion, spread, and urgency premium.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/estimate-tx</span></div>
+          <p class="desc">Estimate transaction cost before sending. Pass input/output counts, get total fee in sats.</p>
+          <div class="params"><span>inputs: int</span> <span>outputs: int</span> <span>input_type: str</span></div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/history</span></div>
+          <p class="desc">Historical fee rates and the cheapest hour to send (UTC).</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/mempool-blocks</span></div>
+          <p class="desc">Fee distribution by projected blocks. Shows what fee rate gets you into block 1, 2, 3, etc.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Blocks -->
+    <details>
+      <summary>Blocks (8 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/blocks/latest</span></div>
+          <p class="desc">The most recently mined block with full details.</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"height"</span>: <span class="num">886421</span>,
+    <span class="key">"hash"</span>: <span class="str">"00000000000000000002a7c4..."</span>,
+    <span class="key">"time"</span>: <span class="num">1741529461</span>,
+    <span class="key">"tx_count"</span>: <span class="num">3847</span>,
+    <span class="key">"size"</span>: <span class="num">1648293</span>,
+    <span class="key">"weight"</span>: <span class="num">3993172</span>
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/blocks/{height_or_hash}</span></div>
+          <p class="desc">Get a block by height (integer) or hash (hex string). Returns header, size, tx count, and difficulty.</p>
+          <div class="params"><span>height_or_hash: int|str</span></div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/blocks/{id}/transactions</span></div>
+          <p class="desc">List transactions in a block with pagination.</p>
+          <div class="params"><span>page: int</span> <span>per_page: int</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- Transactions -->
+    <details>
+      <summary>Transactions (6 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/transactions/{txid}</span></div>
+          <p class="desc">Full transaction details including inputs, outputs, fee, size, and confirmation status.</p>
+          <div class="params"><span>txid: str (hex)</span></div>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"txid"</span>: <span class="str">"a1075db55..."</span>,
+    <span class="key">"confirmed"</span>: <span class="num">true</span>,
+    <span class="key">"block_height"</span>: <span class="num">57043</span>,
+    <span class="key">"fee_sats"</span>: <span class="num">0</span>,
+    <span class="key">"vsize"</span>: <span class="num">275</span>
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/transactions/{txid}/inputs</span></div>
+          <p class="desc">Decoded inputs for a transaction.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/transactions/{txid}/outputs</span></div>
+          <p class="desc">Decoded outputs with addresses and values.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">POST</span> <span class="path">/api/v1/transactions/decode</span></div>
+          <p class="desc">Decode a raw transaction hex without broadcasting. Requires API key.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Mempool -->
+    <details>
+      <summary>Mempool (4 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mempool</span></div>
+          <p class="desc">Mempool overview: size, transaction count, total fees, min fee rate.</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"size"</span>: <span class="num">14523</span>,
+    <span class="key">"bytes"</span>: <span class="num">52481920</span>,
+    <span class="key">"usage"</span>: <span class="num">198402048</span>,
+    <span class="key">"total_fee_btc"</span>: <span class="num">1.84291</span>,
+    <span class="key">"min_fee_rate"</span>: <span class="num">1.0</span>
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mempool/recent</span></div>
+          <p class="desc">Recently added mempool transactions.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mempool/{txid}</span></div>
+          <p class="desc">Mempool entry for a specific unconfirmed transaction.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Mining -->
+    <details>
+      <summary>Mining (5 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mining</span></div>
+          <p class="desc">Current mining overview: difficulty, hashrate, blocks until next adjustment.</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"difficulty"</span>: <span class="num">1.13e+14</span>,
+    <span class="key">"hashrate_eh"</span>: <span class="num">812.4</span>,
+    <span class="key">"blocks_until_adjustment"</span>: <span class="num">847</span>,
+    <span class="key">"estimated_adjustment"</span>: <span class="str">"+3.2%"</span>
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mining/hashrate</span></div>
+          <p class="desc">Network hashrate with configurable lookback window. Requires API key.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mining/difficulty</span></div>
+          <p class="desc">Difficulty adjustment details and countdown to next adjustment.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Network -->
+    <details>
+      <summary>Network (4 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/network</span></div>
+          <p class="desc">Network info: protocol version, connections, relay fee, node subversion (redacted for anonymous).</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/network/peers</span></div>
+          <p class="desc">Connected peer information.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/network/chain-tips</span></div>
+          <p class="desc">Chain tips for detecting forks and stale blocks.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Address -->
+    <details>
+      <summary>Address</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/address/{address}/validate</span></div>
+          <p class="desc">Validate a Bitcoin address and return its type (P2PKH, P2SH, P2WPKH, P2WSH, P2TR).</p>
+          <div class="params"><span>address: str</span></div>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"address"</span>: <span class="str">"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"</span>,
+    <span class="key">"valid"</span>: <span class="num">true</span>,
+    <span class="key">"type"</span>: <span class="str">"P2WPKH"</span>,
+    <span class="key">"network"</span>: <span class="str">"mainnet"</span>
+  }
+}</div>
+        </div>
+      </div>
+    </details>
+
+    <!-- Supply -->
+    <details>
+      <summary>Supply</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/supply</span></div>
+          <p class="desc">Circulating supply, inflation rate, halving countdown, and subsidy schedule.</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"circulating_btc"</span>: <span class="num">19831250.0</span>,
+    <span class="key">"max_supply"</span>: <span class="num">21000000</span>,
+    <span class="key">"percent_mined"</span>: <span class="num">94.43</span>,
+    <span class="key">"current_subsidy_btc"</span>: <span class="num">3.125</span>,
+    <span class="key">"next_halving_block"</span>: <span class="num">1050000</span>,
+    <span class="key">"blocks_until_halving"</span>: <span class="num">163579</span>
+  }
+}</div>
+        </div>
+      </div>
+    </details>
+
+    <!-- Stats -->
+    <details>
+      <summary>Stats (3 endpoints)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/stats/utxo-set</span></div>
+          <p class="desc">UTXO set size, total value, and output distribution. Requires API key.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/stats/segwit</span></div>
+          <p class="desc">SegWit adoption percentage across recent blocks.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/stats/op-return</span></div>
+          <p class="desc">OP_RETURN usage statistics and data embedding trends.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Prices & Exchange -->
+    <details>
+      <summary>Prices &amp; Exchange</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/prices</span></div>
+          <p class="desc">Current BTC/USD price from multiple providers (CoinGecko, Coinbase, Kraken fallback chain).</p>
+          <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"btc_usd"</span>: <span class="num">87432.50</span>,
+    <span class="key">"provider"</span>: <span class="str">"coingecko"</span>,
+    <span class="key">"timestamp"</span>: <span class="str">"2026-03-09T14:30:00Z"</span>
+  }
+}</div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/exchanges</span></div>
+          <p class="desc">Exchange rate conversions: BTC to sats, USD, EUR with fee-adjusted values.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- Streams -->
+    <details>
+      <summary>Streams (SSE)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/stream/fees</span></div>
+          <p class="desc">Server-Sent Events stream of fee updates every 30 seconds. Connect with <code>EventSource</code> in browsers or <code>curl -N</code>.</p>
+          <div class="step-code" style="margin-top: 8px;">
+            curl -N https://bitcoinsapi.com/api/v1/stream/fees
+            <button class="copy-btn" onclick="copyText('curl -N https://bitcoinsapi.com/api/v1/stream/fees', this)">Copy</button>
+          </div>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/stream/blocks</span></div>
+          <p class="desc">Real-time new block notifications via SSE.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- History & Guide -->
+    <details>
+      <summary>History &amp; Guide</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/history</span></div>
+          <p class="desc">26 key moments in Bitcoin history with linked on-chain data.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/history/concepts</span></div>
+          <p class="desc">Protocol concept definitions with API links and MCP tool references.</p>
+        </div>
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/guide</span></div>
+          <p class="desc">Full API catalog organized by use case with example curl commands.</p>
+          <div class="params"><span>lang: curl|python|javascript</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- RPC Proxy -->
+    <details>
+      <summary>RPC Proxy (JSON-RPC)</summary>
+      <div class="detail-body">
+        <div class="endpoint-card">
+          <div class="method-path"><span class="method">POST</span> <span class="path">/api/v1/rpc</span></div>
+          <p class="desc">JSON-RPC proxy to Bitcoin Core. 30+ whitelisted read-only methods. Designed for <a href="https://github.com/Bortlesboat/bitcoin-mcp">bitcoin-mcp</a> zero-config fallback when users don't have a local node.</p>
+          <div class="sample">{
+  <span class="key">"method"</span>: <span class="str">"getblockchaininfo"</span>,
+  <span class="key">"params"</span>: [],
+  <span class="key">"id"</span>: <span class="num">1</span>
+}</div>
+        </div>
+      </div>
+    </details>
+
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Response Format -->
+  <section class="section" id="responses">
+    <div class="section-header">
+      <h2>Response <span>Format</span></h2>
+      <p>Every response follows a consistent envelope pattern.</p>
+    </div>
+
+    <div class="response-box">
+      <div class="sample-block">
+        <h4 style="color: var(--green);">Success Response</h4>
+        <pre>{
+  <span class="key">"data"</span>: {
+    <span class="key">"status"</span>: <span class="str">"healthy"</span>,
+    <span class="key">"block_height"</span>: <span class="num">886421</span>
+  },
+  <span class="key">"meta"</span>: {
+    <span class="key">"timestamp"</span>: <span class="str">"2026-03-09T14:30:00Z"</span>,
+    <span class="key">"cached"</span>: <span class="num">true</span>,
+    <span class="key">"cache_age_seconds"</span>: <span class="num">4</span>,
+    <span class="key">"request_id"</span>: <span class="str">"a1b2c3d4"</span>
+  }
+}</pre>
+      </div>
+      <div class="sample-block">
+        <h4 style="color: var(--error);">Error Response</h4>
+        <pre>{
+  <span class="key">"error"</span>: {
+    <span class="key">"code"</span>: <span class="num">404</span>,
+    <span class="key">"message"</span>: <span class="err">"Block not found"</span>,
+    <span class="key">"request_id"</span>: <span class="str">"e5f6g7h8"</span>
+  }
+}</pre>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top: 20px;">
+      <p><strong>data</strong> contains the endpoint-specific payload. <strong>meta</strong> includes the UTC timestamp, cache status, and a unique request ID for debugging. Error responses replace both with a single <strong>error</strong> object.</p>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Error Codes -->
+  <section class="section" id="errors">
+    <div class="section-header">
+      <h2>Error <span>Codes</span></h2>
+      <p>Standard HTTP status codes with descriptive messages.</p>
+    </div>
+
+    <table class="error-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Meaning</th>
+          <th>Common Cause</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="code code-4xx">400</td>
+          <td>Bad Request</td>
+          <td>Invalid parameter (e.g., negative block height, malformed txid)</td>
+        </tr>
+        <tr>
+          <td class="code code-4xx">403</td>
+          <td>Forbidden</td>
+          <td>Endpoint requires API key or higher tier</td>
+        </tr>
+        <tr>
+          <td class="code code-4xx">404</td>
+          <td>Not Found</td>
+          <td>Block, transaction, or address not found on chain</td>
+        </tr>
+        <tr>
+          <td class="code code-4xx">422</td>
+          <td>Validation Error</td>
+          <td>Missing required parameter or wrong type</td>
+        </tr>
+        <tr>
+          <td class="code code-4xx">429</td>
+          <td>Rate Limited</td>
+          <td>Too many requests. Check <code>Retry-After</code> header.</td>
+        </tr>
+        <tr>
+          <td class="code code-5xx">500</td>
+          <td>Server Error</td>
+          <td>Internal error. Include <code>request_id</code> when reporting.</td>
+        </tr>
+        <tr>
+          <td class="code code-5xx">502</td>
+          <td>Node Unavailable</td>
+          <td>Bitcoin Core node is unreachable or circuit breaker tripped</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Rate Limits -->
+  <section class="section" id="rate-limits">
+    <div class="section-header">
+      <h2>Rate <span>Limits</span></h2>
+      <p>Sliding window rate limiting with daily caps. Self-hosted instances have no limits.</p>
+    </div>
+
+    <div class="info-box">
+      <p>Rate limits are applied per API key (or per IP for anonymous requests). When you hit a limit, the API returns <code>429</code> with a <code>Retry-After</code> header indicating seconds until your next allowed request.</p>
+      <p>Response headers on every request:</p>
+      <div class="step-code" style="margin-top: 8px; white-space: pre; line-height: 1.8;">X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 58
+X-RateLimit-Reset: 1741529520</div>
+      <p style="margin-top: 12px;">Need higher limits? <a href="/pricing">Upgrade your tier</a> or self-host with zero rate limits.</p>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- MCP Integration -->
+  <section class="section" id="mcp">
+    <div class="section-header">
+      <h2>MCP <span>Integration</span></h2>
+      <p>Give AI agents direct access to Bitcoin data.</p>
+    </div>
+
+    <div class="connector">
+      <div class="connector-icon">&#129302;</div>
+      <div>
+        <h3>bitcoin-mcp: AI Agents Meet Bitcoin</h3>
+        <p>The first Bitcoin MCP server on the Anthropic Registry. 43 tools that let Claude, Cursor, and any MCP-compatible client query blocks, transactions, fees, and mempool data in natural language.</p>
+        <p>Zero config: if you don't have a local Bitcoin node, bitcoin-mcp automatically falls back to Satoshi API's <code>/rpc</code> proxy.</p>
+        <div class="step-code" style="margin: 8px 0;">
+          pip install bitcoin-mcp && bitcoin-mcp
+          <button class="copy-btn" onclick="copyText('pip install bitcoin-mcp && bitcoin-mcp', this)">Copy</button>
+        </div>
+        <a href="/bitcoin-mcp-setup-guide" class="connector-link">Full MCP Setup Guide &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Swagger -->
+  <section class="section" id="swagger">
+    <div class="section-header">
+      <h2>Interactive <span>Swagger UI</span></h2>
+      <p>Try every endpoint live with auto-generated request/response schemas.</p>
+    </div>
+
+    <div class="info-box" style="text-align: center;">
+      <h3>Full Interactive Documentation</h3>
+      <p>The Swagger UI at <code>/docs</code> is auto-generated from the OpenAPI spec. It includes every endpoint, all request parameters, response schemas, and a "Try it out" button for live testing.</p>
+      <p style="margin-top: 16px;">
+        <a href="/docs" class="btn-primary" style="padding: 10px 28px; border-radius: 8px; font-weight: 600; font-size: 0.95em; display: inline-block;">Open Swagger UI &rarr;</a>
+      </p>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- CTA -->
+  <div class="connector">
+    <div class="connector-icon">&#9889;</div>
+    <div>
+      <h3>Ready to Build?</h3>
+      <p>Start with anonymous GET requests -- no signup needed. Register for free when you need higher limits, POST endpoints, or streaming.</p>
+      <a href="/pricing" class="connector-link">See Pricing &rarr;</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Powered by <a href="/">Satoshi API</a> -- Bitcoin fee intelligence for developers and AI agents</p>
+  <div class="footer-links">
+    <a href="/api-docs">API Docs</a> &middot;
+    <a href="/docs">Swagger</a> &middot;
+    <a href="/history">History</a> &middot;
+    <a href="/bitcoin-mcp-setup-guide">MCP Setup</a> &middot;
+    <a href="/pricing">Pricing</a> &middot;
+    <a href="/about">About</a> &middot;
+    <a href="/terms">Terms</a> &middot;
+    <a href="/privacy">Privacy</a>
+  </div>
+  <div class="footer-links" style="margin-top:8px">
+    <a href="/vs-mempool">vs Mempool.space</a> &middot;
+    <a href="/vs-blockcypher">vs BlockCypher</a> &middot;
+    <a href="/best-bitcoin-api-for-developers">Best Bitcoin API</a> &middot;
+    <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI</a> &middot;
+    <a href="/bitcoin-fee-api">Fee API</a>
+  </div>
+</footer>
+
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// TOC active state tracking
+const tocLinks = document.querySelectorAll('.toc a');
+const sections = [];
+tocLinks.forEach(link => {
+  const id = link.getAttribute('href').slice(1);
+  const el = document.getElementById(id);
+  if (el) sections.push({ id, el, link });
+});
+
+function updateTOC() {
+  let current = '';
+  sections.forEach(s => {
+    if (s.el.getBoundingClientRect().top <= 120) current = s.id;
+  });
+  tocLinks.forEach(l => l.classList.remove('active'));
+  if (current) {
+    const active = document.querySelector(`.toc a[href="#${current}"]`);
+    if (active) active.classList.add('active');
+  }
+}
+
+window.addEventListener('scroll', updateTOC, { passive: true });
+updateTOC();
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.getElementById(a.getAttribute('href').slice(1));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.pushState(null, '', a.getAttribute('href'));
+    }
+  });
+});
+</script>
+</body>
+</html>
