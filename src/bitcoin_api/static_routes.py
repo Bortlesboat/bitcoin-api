@@ -42,6 +42,18 @@ def register_static_routes(app: FastAPI):
             "api": "/api/v1/health",
         }
 
+    @app.get("/.well-known/mcp/server-card.json", include_in_schema=False)
+    def mcp_server_card():
+        """MCP server card for Smithery discovery."""
+        p = _STATIC_DIR / ".well-known" / "mcp" / "server-card.json"
+        if p.exists():
+            import json
+            return Response(
+                p.read_text(encoding="utf-8"),
+                media_type="application/json",
+            )
+        return Response(status_code=404)
+
     @app.get("/favicon.ico", include_in_schema=False)
     def favicon():
         p = _STATIC_DIR / "favicon.ico"

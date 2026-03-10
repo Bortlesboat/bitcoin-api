@@ -353,13 +353,33 @@ async def search(query: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def create_mcp_app() -> Starlette:
-    """Create and return the MCP SSE Starlette app for mounting."""
+    """Create and return the MCP Starlette app for mounting.
+
+    Uses streamable-http transport (POST /mcp) which works through
+    Cloudflare and Smithery. Mount at root so /mcp path works.
+    """
     log.info("Creating MCP server with %d tools", len(mcp._tool_manager._tools))
-    app = mcp.sse_app()
+    mcp.settings.streamable_http_path = "/"
+    # Allow public access through Cloudflare Tunnel
+    from mcp.server.transport_security import TransportSecuritySettings
+    mcp.settings.transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            "127.0.0.1:*", "localhost:*", "[::1]:*",
+            "bitcoinsapi.com", "bitcoinsapi.com:*",
+            "mcp.bitcoinsapi.com", "mcp.bitcoinsapi.com:*",
+        ],
+        allowed_origins=[
+            "http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*",
+            "https://bitcoinsapi.com", "https://mcp.bitcoinsapi.com",
+            "https://smithery.ai", "https://*.smithery.ai",
+        ],
+    )
+    app = mcp.streamable_http_app()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
-        allow_methods=["GET", "POST"],
+        allow_methods=["GET", "POST", "DELETE"],
         allow_headers=["*"],
     )
     return app

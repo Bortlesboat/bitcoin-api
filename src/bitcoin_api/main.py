@@ -60,7 +60,27 @@ async def lifespan(app: FastAPI):
         except Exception:
             log.exception("Failed to start indexer — continuing without it")
 
+    # Start MCP session manager for streamable-http transport
+    _mcp_cm = None
+    try:
+        from .routers.mcp_server import mcp as _mcp_server
+        if _mcp_server._session_manager is not None:
+            _mcp_cm = _mcp_server._session_manager.run()
+            await _mcp_cm.__aenter__()
+            log.info("MCP session manager started")
+    except Exception:
+        log.exception("Failed to start MCP session manager")
+        _mcp_cm = None
+
     yield
+
+    # Shutdown MCP session manager
+    if _mcp_cm is not None:
+        try:
+            await _mcp_cm.__aexit__(None, None, None)
+        except Exception:
+            pass
+        log.info("MCP session manager stopped")
 
     # Shutdown indexer
     if _indexer_task is not None:
@@ -159,12 +179,12 @@ if settings.enable_indexer:
     app.include_router(indexed_tx.router, prefix=PREFIX)
     app.include_router(indexer_status.router, prefix=PREFIX)
 
-# --- MCP server (SSE transport at /mcp) ---
+# --- MCP server (streamable-http transport at /mcp) ---
 try:
     from .routers.mcp_server import create_mcp_app
     mcp_app = create_mcp_app()
     app.mount("/mcp", mcp_app)
-    log.info("MCP server mounted at /mcp/sse")
+    log.info("MCP server mounted at /mcp (streamable-http)")
 except Exception:
     log.exception("Failed to mount MCP server — continuing without it")
 
