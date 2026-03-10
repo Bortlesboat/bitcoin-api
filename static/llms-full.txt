@@ -141,13 +141,29 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | POST | /billing/checkout | Create Stripe checkout session |
 | GET | /billing/status | Subscription status |
 
+### History Explorer
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /history/events | All curated Bitcoin history events |
+| GET | /history/events/{id} | Single event detail |
+| GET | /history/eras | All Bitcoin eras (Genesis → Ordinals) |
+| GET | /history/eras/{id} | Single era detail |
+| GET | /history/concepts | Protocol concepts (UTXO, SegWit, etc.) |
+| GET | /history/concepts/{id} | Single concept detail |
+| GET | /history/search?q={query} | Search events, eras, concepts |
+
+### Guide
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /guide | API guide with categories and use cases |
+| GET | /guide/categories | All endpoint categories |
+
 ### Status
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /health | API health check |
 | GET | /health/deep | Deep health check (node + DB) |
 | GET | /status | Service status and version |
-| GET | /guide | Interactive API guide |
 
 ### JSON-RPC Proxy
 | Method | Path | Description |
@@ -300,9 +316,34 @@ Response:
 - **Pro:** $19/mo — 500 req/min, 100K/day, extended block history
 - **Enterprise:** Custom — 2K req/min, dedicated support
 
+## MCP Setup (for AI agents)
+
+Install: pip install bitcoin-mcp
+
+Config for Claude Desktop/Cursor/Windsurf:
+```json
+{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp"
+    }
+  }
+}
+```
+
+Claude Code: claude mcp add bitcoin -- bitcoin-mcp
+
+Zero-config: auto-falls back to hosted Satoshi API when no local node.
+MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
+
 ## Links
 
-- OpenAPI docs: https://bitcoinsapi.com/docs
+- API docs (branded): https://bitcoinsapi.com/api-docs
+- API docs (OpenAPI/Swagger): https://bitcoinsapi.com/docs
+- MCP setup guide: https://bitcoinsapi.com/mcp-setup
+- Protocol guide: https://bitcoinsapi.com/guide
+- History explorer: https://bitcoinsapi.com/history
+- Pricing: https://bitcoinsapi.com/pricing
 - GitHub: https://github.com/Bortlesboat/bitcoin-api
 - PyPI: https://pypi.org/project/satoshi-api/
 - MCP server: https://github.com/Bortlesboat/bitcoin-mcp

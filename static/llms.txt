@@ -36,17 +36,46 @@ Register a free API key and start querying in seconds.
 ## MCP integration (for AI agent frameworks)
 
 Install: pip install bitcoin-mcp
-Config: point at https://bitcoinsapi.com with your API key
-Provides 43 tools, 6 prompts, and 7 resources that any
-MCP-compatible agent can discover and invoke.
+
+Claude Desktop config (paste into claude_desktop_config.json):
+```json
+{
+  "mcpServers": {
+    "bitcoin": {
+      "command": "bitcoin-mcp"
+    }
+  }
+}
+```
+
+Claude Code: claude mcp add bitcoin -- bitcoin-mcp
+
+No API key needed. No Bitcoin node needed. bitcoin-mcp auto-falls
+back to the hosted Satoshi API at bitcoinsapi.com. Provides 43 tools,
+6 prompts, and 7 resources that any MCP-compatible agent can
+discover and invoke.
+
+MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
+Setup guide: https://bitcoinsapi.com/mcp-setup
+
+## Agent self-registration
+
+POST https://bitcoinsapi.com/api/v1/register
+Body: {"email": "agent@example.com", "agreed_to_terms": true}
+Returns API key instantly. No approval wait. Free tier: 100 req/min, 10K/day.
 
 ## Base URL
 
 https://bitcoinsapi.com
 
-## API docs (OpenAPI)
+## Pages
 
-https://bitcoinsapi.com/docs
+- API docs (branded): https://bitcoinsapi.com/api-docs
+- API docs (OpenAPI/Swagger): https://bitcoinsapi.com/docs
+- Protocol guide: https://bitcoinsapi.com/guide
+- MCP setup: https://bitcoinsapi.com/mcp-setup
+- Bitcoin history explorer: https://bitcoinsapi.com/history
+- Pricing: https://bitcoinsapi.com/pricing
 
 ## Available endpoints
 
@@ -66,6 +95,13 @@ self-serve key registration.
 All responses include X-RateLimit-Limit, X-RateLimit-Remaining,
 X-RateLimit-Reset, X-RateLimit-Daily-Limit, X-RateLimit-Daily-Remaining
 headers for self-throttling.
+
+## JSON-RPC proxy (for direct Bitcoin Core calls)
+
+POST https://bitcoinsapi.com/api/v1/rpc
+Body: {"method": "getblockchaininfo", "params": []}
+Proxies read-only Bitcoin Core RPC calls. Used by bitcoin-mcp
+for zero-config mode. No API key required.
 
 ## Full documentation
 

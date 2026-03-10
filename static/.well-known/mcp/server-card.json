@@ -1,7 +1,7 @@
 {
   "serverInfo": {
     "name": "bitcoin",
-    "version": "0.4.2",
+    "version": "0.5.0",
     "description": "MCP server for Bitcoin — 43 tools for AI agents to save money on fees. Zero config, works out of the box."
   },
   "capabilities": {
