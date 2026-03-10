@@ -11,6 +11,8 @@ from . import __version__
 _STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 _LANDING_PAGE = _STATIC_DIR / "index.html"
 _404_PAGE = _STATIC_DIR / "404.html"
+_HISTORY_DIR = _STATIC_DIR / "history"
+_HISTORY_PAGES = {"index", "block", "tx", "address"}
 
 
 def _serve_404():
@@ -129,6 +131,40 @@ def register_static_routes(app: FastAPI):
         """Process-alive check (no RPC call). Use for container healthchecks."""
         return {"status": "ok"}
 
+    @app.get("/history", include_in_schema=False)
+    def history_index():
+        """Serve the History Explorer index page (feature-flag gated)."""
+        from .config import settings
+        if not settings.enable_history_explorer:
+            return _serve_404()
+        p = _HISTORY_DIR / "index.html"
+        if p.exists():
+            return HTMLResponse(p.read_text(encoding="utf-8"))
+        return _serve_404()
+
+    @app.get("/history/{page}", include_in_schema=False)
+    def history_page(page: str):
+        """Serve History Explorer sub-pages and static assets."""
+        from .config import settings
+        if not settings.enable_history_explorer:
+            return _serve_404()
+        # Known HTML pages
+        if page in _HISTORY_PAGES:
+            p = _HISTORY_DIR / f"{page}.html"
+            if p.exists():
+                return HTMLResponse(p.read_text(encoding="utf-8"))
+            return _serve_404()
+        # Static assets (.json, .css, .js) — with path traversal protection
+        if "/" in page or "\\" in page or ".." in page:
+            return _serve_404()
+        resolved = (_HISTORY_DIR / page).resolve()
+        if not str(resolved).startswith(str(_HISTORY_DIR.resolve())):
+            return _serve_404()
+        if resolved.exists() and resolved.suffix in (".json", ".css", ".js"):
+            media_types = {".json": "application/json", ".css": "text/css", ".js": "application/javascript"}
+            return Response(resolved.read_text(encoding="utf-8"), media_type=media_types[resolved.suffix])
+        return _serve_404()
+
     @app.get("/{page}", include_in_schema=False)
     def static_page(page: str):
         """Serve decision/comparison pages and IndexNow key from static directory."""
@@ -136,7 +172,7 @@ def register_static_routes(app: FastAPI):
             "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
             "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
             "bitcoin-fee-api", "bitcoin-mempool-api", "bitcoin-mcp-setup-guide",
-            "terms", "privacy", "disclaimer", "visualizer", "pricing", "about",
+            "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"

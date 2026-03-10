@@ -90,10 +90,13 @@ class Settings(BaseSettings):
     posthog_host: str = "https://us.i.posthog.com"
     posthog_enabled: bool = False
 
+    # History Explorer (siloed — curated Bitcoin history + on-chain exploration UI)
+    enable_history_explorer: bool = True
+
     # Blockchain indexer (siloed — see indexer/config.py for indexer-specific settings)
     enable_indexer: bool = False
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()

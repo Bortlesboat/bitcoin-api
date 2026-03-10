@@ -129,7 +129,7 @@ class TestGetApiInfo:
         result = await mcp._tool_manager._tools["get_api_info"].fn()
         assert result["name"] == "Satoshi API"
         assert result["version"] == __version__
-        assert result["endpoints"] == 87
+        assert result["endpoints"] == 95
         assert result["tools_exposed"] == 17
         assert "website" in result
         assert "docs" in result

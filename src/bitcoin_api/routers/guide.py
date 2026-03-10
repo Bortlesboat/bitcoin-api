@@ -30,6 +30,7 @@ class UseCaseFilter(str, Enum):
     billing = "billing"
     websocket = "websocket"
     admin = "admin"
+    history = "history"
     all = "all"
 
 
@@ -313,6 +314,21 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/stats/utxo-set", "UTXO set statistics"),
                 _ep("GET", "/api/v1/stats/segwit-adoption", "SegWit adoption metrics"),
                 _ep("GET", "/api/v1/stats/op-returns", "OP_RETURN data analysis"),
+            ],
+        })
+
+    # History Explorer (conditional — siloed feature)
+    if settings.enable_history_explorer:
+        cats.append({
+            "name": "History Explorer",
+            "use_case": "history",
+            "description": "Curated Bitcoin history timeline with on-chain exploration",
+            "endpoints": [
+                _ep("GET", "/api/v1/history/events", "List historical Bitcoin events (filterable by era, category, tag)"),
+                _ep("GET", "/api/v1/history/events/{event_id}", "Get details for a specific historical event"),
+                _ep("GET", "/api/v1/history/eras", "List all Bitcoin eras"),
+                _ep("GET", "/api/v1/history/concepts", "List Bitcoin protocol concepts with try-it links"),
+                _ep("GET", "/api/v1/history/search", "Search historical events by keyword"),
             ],
         })
 

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Protocol Guide — Satoshi API</title>
+<meta name="description" content="Learn Bitcoin from the protocol up. Understand UTXOs, halvings, SegWit, Taproot, and the fee market — then explore live on-chain data with the Satoshi API and bitcoin-mcp.">
+<link rel="canonical" href="https://bitcoinsapi.com/guide">
+<meta property="og:title" content="Bitcoin Protocol Guide — Satoshi API">
+<meta property="og:description" content="Learn Bitcoin from the protocol up. Interactive concepts with live on-chain data.">
+<meta property="og:url" content="https://bitcoinsapi.com/guide">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
+<meta name="twitter:title" content="Bitcoin Protocol Guide — Satoshi API">
+<meta name="twitter:description" content="Learn Bitcoin from the protocol up. Interactive concepts with live on-chain data.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bitcoinsapi.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Guide", "item": "https://bitcoinsapi.com/guide" }
+  ]
+}
+</script>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #21262d; --border-visible: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --dim: #6e7681;
+  --accent: #f7931a; --accent-hover: #FFB347; --accent-muted: #f7931a33;
+  --green: #3fb950; --warning: #d29922; --error: #f85149;
+  --blue: #58a6ff; --purple: #bc8cff; --pink: #f778ba;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.875em; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+/* Nav — matches inner page pattern */
+nav { background: #1a1a2e; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+nav .logo { color: var(--accent); font-weight: 700; font-size: 1.2rem; text-decoration: none; }
+nav .logo:hover { text-decoration: none; }
+.nav-toggle { display: none; background: none; border: 1px solid var(--border-visible); border-radius: 4px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+.nav-links { display: flex; gap: 20px; align-items: center; }
+.nav-links a { color: #ccc; text-decoration: none; font-size: 0.9em; }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+.nav-links a.active { color: var(--accent); }
+
+/* Hero */
+.hero { text-align: center; padding: 64px 0 48px; }
+.hero h1 { font-size: 2.4em; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
+.hero h1 span { color: var(--accent); }
+.hero .subtitle { font-size: 1.1em; color: var(--muted); max-width: 640px; margin: 0 auto 28px; }
+.hero .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.hero .hero-links a { padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9em; transition: all 0.15s; display: inline-block; }
+.btn-primary { background: var(--accent); color: #000; border: 1px solid var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); text-decoration: none; }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-visible); }
+.btn-secondary:hover { border-color: var(--muted); text-decoration: none; }
+
+/* Section headers */
+.section { padding: 48px 0; }
+.section-header { margin-bottom: 32px; }
+.section-header h2 { font-size: 1.6em; font-weight: 800; margin-bottom: 6px; }
+.section-header h2 span { color: var(--accent); }
+.section-header p { color: var(--muted); font-size: 0.95em; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+/* Concept cards */
+.concepts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.concept-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; transition: border-color 0.2s, transform 0.2s; cursor: pointer; position: relative; }
+.concept-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.concept-card:target { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-muted), 0 0 20px var(--accent-muted); }
+.concept-card .concept-icon { font-size: 1.5em; margin-bottom: 8px; }
+.concept-card h3 { font-size: 1.05em; font-weight: 700; margin-bottom: 6px; }
+.concept-card p { font-size: 0.88em; color: var(--muted); line-height: 1.6; }
+.concept-card .concept-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.concept-card .concept-actions a { font-size: 0.78em; padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--muted); transition: all 0.15s; font-family: 'JetBrains Mono', monospace; }
+.concept-card .concept-actions a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.concept-card .difficulty { position: absolute; top: 12px; right: 12px; font-size: 0.65em; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.diff-beginner { background: #3fb95022; color: var(--green); }
+.diff-intermediate { background: #d2992222; color: var(--warning); }
+.diff-advanced { background: #bc8cff22; color: var(--purple); }
+
+/* API Explorer section */
+.api-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.api-category { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; transition: border-color 0.15s; }
+.api-category:hover { border-color: var(--border-visible); }
+.api-category h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 4px; }
+.api-category .api-desc { font-size: 0.82em; color: var(--muted); margin-bottom: 10px; }
+.api-category .api-count { font-size: 0.72em; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
+.api-category .api-sample { font-family: 'JetBrains Mono', monospace; font-size: 0.78em; color: var(--accent); margin-top: 8px; display: block; }
+
+/* Quickstart */
+.quickstart { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; margin-bottom: 32px; }
+.quickstart h3 { font-size: 1.1em; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
+.step { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.step:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.step-num { display: inline-block; width: 24px; height: 24px; background: var(--accent); color: #000; border-radius: 50%; text-align: center; line-height: 24px; font-size: 0.75em; font-weight: 700; margin-right: 8px; }
+.step-label { font-weight: 600; }
+.step-code { display: block; margin-top: 6px; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; color: var(--text); overflow-x: auto; white-space: nowrap; position: relative; }
+.step-code .copy-btn { position: absolute; top: 6px; right: 8px; padding: 2px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--muted); font-size: 0.8em; cursor: pointer; font-family: inherit; }
+.step-code .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Connectors — how things link */
+.connector { display: flex; gap: 16px; margin: 48px 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; align-items: center; }
+.connector-icon { font-size: 2em; flex-shrink: 0; }
+.connector h3 { font-size: 1em; font-weight: 700; margin-bottom: 4px; }
+.connector p { font-size: 0.88em; color: var(--muted); margin-bottom: 8px; }
+.connector a.connector-link { display: inline-flex; align-items: center; gap: 4px; font-size: 0.85em; font-weight: 600; }
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; color: var(--muted); font-size: 0.85em; margin-top: 48px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+footer .footer-links { margin-top: 12px; }
+footer .footer-links a { margin: 0 8px; }
+
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border-visible); margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+  .hero h1 { font-size: 1.8em; }
+  .concepts-grid { grid-template-columns: 1fr; }
+  .api-grid { grid-template-columns: 1fr; }
+  .connector { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/guide" class="active">Guide</a>
+    <a href="/history">History</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/docs">Docs</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Bitcoin <span>Protocol</span> Guide</h1>
+    <p class="subtitle">Learn how Bitcoin actually works — from UTXOs to Taproot. Each concept links to live on-chain data you can explore right now.</p>
+    <div class="hero-links">
+      <a href="/history" class="btn-primary">Explore History</a>
+      <a href="/docs" class="btn-secondary">API Reference</a>
+      <a href="/bitcoin-mcp-setup-guide" class="btn-secondary">MCP Setup</a>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Quickstart -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Get Started in <span>30 Seconds</span></h2>
+      <p>No API key needed. Hit these endpoints from your terminal right now.</p>
+    </div>
+    <div class="quickstart">
+      <h3>Quickstart</h3>
+      <div class="step">
+        <span class="step-num">1</span>
+        <span class="step-label">Check the API is alive</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/health
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/health', this)">Copy</button>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <span class="step-label">Get current fee estimates</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/fees/recommended
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/fees/recommended', this)">Copy</button>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <span class="step-label">Look at the genesis block</span>
+        <div class="step-code">
+          curl https://bitcoinsapi.com/api/v1/blocks/0
+          <button class="copy-btn" onclick="copyText('curl https://bitcoinsapi.com/api/v1/blocks/0', this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Protocol Concepts -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Protocol <span>Concepts</span></h2>
+      <p>The building blocks of Bitcoin. Each concept links to a live API endpoint you can query and an MCP tool you can use with AI agents.</p>
+    </div>
+    <div class="concepts-grid" id="concepts-grid">
+      <!-- Populated by JS from /api/v1/history/concepts -->
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Connector: History -->
+  <div class="connector">
+    <div class="connector-icon">&#128218;</div>
+    <div>
+      <h3>See These Concepts in Action</h3>
+      <p>The History Explorer walks you through 26 key moments in Bitcoin's history — each one linked to the protocol concepts above and live on-chain data.</p>
+      <a href="/history" class="connector-link">Open History Explorer &rarr;</a>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- API Categories -->
+  <section class="section">
+    <div class="section-header">
+      <h2>API <span>Endpoint</span> Catalog</h2>
+      <p>Everything the Satoshi API offers, organized by what you're trying to do. Every endpoint returns clean JSON with a <code>{data, meta}</code> envelope.</p>
+    </div>
+    <div class="api-grid" id="api-grid">
+      <!-- Populated by JS from /api/v1/guide -->
+    </div>
+    <p style="text-align:center;margin-top:24px;color:var(--muted);font-size:0.9em">
+      Full interactive docs at <a href="/docs">/docs</a> &mdash; or get the machine-readable catalog: <code>curl /api/v1/guide</code>
+    </p>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- Connector: MCP -->
+  <div class="connector">
+    <div class="connector-icon">&#129302;</div>
+    <div>
+      <h3>Ask AI About Any Block or Transaction</h3>
+      <p>The bitcoin-mcp server connects AI assistants to your Bitcoin node. Ask questions in natural language — Claude, Cursor, or any MCP client.</p>
+      <div class="step-code" style="margin-bottom:8px">
+        pip install bitcoin-mcp && bitcoin-mcp
+        <button class="copy-btn" onclick="copyText('pip install bitcoin-mcp && bitcoin-mcp', this)">Copy</button>
+      </div>
+      <a href="/bitcoin-mcp-setup-guide" class="connector-link">MCP Setup Guide &rarr;</a>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Connector: Pricing -->
+  <div class="connector">
+    <div class="connector-icon">&#9889;</div>
+    <div>
+      <h3>Ready to Build?</h3>
+      <p>GET requests work without an API key. Register for free to unlock POST endpoints, higher rate limits, and streaming.</p>
+      <a href="/pricing" class="connector-link">See Pricing &rarr;</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Powered by <a href="/">Satoshi API</a> &mdash; Bitcoin fee intelligence for developers and AI agents</p>
+  <div class="footer-links">
+    <a href="/docs">API Docs</a> &middot;
+    <a href="/history">History</a> &middot;
+    <a href="/bitcoin-mcp-setup-guide">MCP Setup</a> &middot;
+    <a href="/pricing">Pricing</a> &middot;
+    <a href="/about">About</a> &middot;
+    <a href="/terms">Terms</a> &middot;
+    <a href="/privacy">Privacy</a>
+  </div>
+  <div class="footer-links" style="margin-top:8px">
+    <a href="/vs-mempool">vs Mempool.space</a> &middot;
+    <a href="/vs-blockcypher">vs BlockCypher</a> &middot;
+    <a href="/best-bitcoin-api-for-developers">Best Bitcoin API</a> &middot;
+    <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI</a> &middot;
+    <a href="/bitcoin-fee-api">Fee API</a>
+  </div>
+</footer>
+
+<script>
+const API = '/api/v1';
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Concept difficulty + icons mapping
+const conceptMeta = {
+  'coinbase-tx':           { icon: '&#9935;',  diff: 'beginner' },
+  'block-structure':       { icon: '&#129521;', diff: 'beginner' },
+  'utxo-model':            { icon: '&#128176;', diff: 'intermediate' },
+  'halving':               { icon: '&#9986;',   diff: 'beginner' },
+  'difficulty-adjustment':  { icon: '&#9881;',  diff: 'intermediate' },
+  'fee-market':            { icon: '&#128200;', diff: 'intermediate' },
+  'soft-fork':             { icon: '&#128295;', diff: 'intermediate' },
+  'hard-fork':             { icon: '&#128163;', diff: 'intermediate' },
+  'segwit':                { icon: '&#128640;', diff: 'advanced' },
+  'taproot':               { icon: '&#127795;', diff: 'advanced' },
+  'layer-2':               { icon: '&#9889;',   diff: 'advanced' },
+  'ordinals':              { icon: '&#128248;', diff: 'advanced' },
+  'self-custody':          { icon: '&#128272;', diff: 'beginner' },
+  'consensus':             { icon: '&#129309;', diff: 'intermediate' },
+};
+
+// Load concepts from history data
+async function loadConcepts() {
+  try {
+    const r = await fetch(API + '/history/concepts');
+    const json = await r.json();
+    const concepts = json.data || {};
+    const grid = document.getElementById('concepts-grid');
+    if (!grid) return;
+
+    // Order: beginner first, then intermediate, then advanced
+    const order = ['beginner', 'intermediate', 'advanced'];
+    const entries = Object.entries(concepts).sort((a, b) => {
+      const da = order.indexOf(conceptMeta[a[0]]?.diff || 'intermediate');
+      const db = order.indexOf(conceptMeta[b[0]]?.diff || 'intermediate');
+      return da - db;
+    });
+
+    let html = '';
+    entries.forEach(([id, c]) => {
+      const meta = conceptMeta[id] || { icon: '&#128218;', diff: 'intermediate' };
+      html += `
+        <div class="concept-card" id="${encodeURIComponent(id)}">
+          <span class="difficulty diff-${meta.diff}">${meta.diff}</span>
+          <div class="concept-icon">${meta.icon}</div>
+          <h3>${escapeHtml(c.name)}</h3>
+          <p>${escapeHtml(c.description)}</p>
+          <div class="concept-actions">
+            <a href="${escapeHtml(c.try_it)}" target="_blank">Try API</a>
+            <a href="/history">See in History</a>
+            <a href="#" onclick="copyText('${escapeHtml(c.mcp_tool)}', this); return false;">${escapeHtml(c.mcp_tool)}</a>
+          </div>
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  } catch (e) {
+    console.warn('Failed to load concepts:', e);
+    document.getElementById('concepts-grid').innerHTML = '<p style="color:var(--muted)">Concepts loading... <a href="/api/v1/history/concepts" target="_blank">View via API</a></p>';
+  }
+}
+
+// Load API categories from guide endpoint
+async function loadCategories() {
+  try {
+    const r = await fetch(API + '/guide?lang=curl');
+    const json = await r.json();
+    const data = json.data || json;
+    const cats = data.categories || [];
+    const grid = document.getElementById('api-grid');
+    if (!grid) return;
+
+    // Skip admin/billing/auth — focus on the useful developer categories
+    const skip = new Set(['admin', 'authentication', 'billing', 'websocket', 'status']);
+
+    let html = '';
+    cats.forEach(cat => {
+      if (skip.has(cat.use_case)) return;
+      const first = cat.endpoints?.[0];
+      const sample = first ? first.path : '';
+      html += `
+        <div class="api-category">
+          <h3>${escapeHtml(cat.name)}</h3>
+          <div class="api-desc">${escapeHtml(cat.description)}</div>
+          <div class="api-count">${cat.endpoints.length} endpoint${cat.endpoints.length > 1 ? 's' : ''}</div>
+          ${sample ? `<a class="api-sample" href="/docs#/${encodeURIComponent(cat.name)}" target="_blank">${escapeHtml(sample)}</a>` : ''}
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  } catch (e) {
+    console.warn('Failed to load categories:', e);
+    document.getElementById('api-grid').innerHTML = '<p style="color:var(--muted)">Loading API catalog... <a href="/docs" target="_blank">View full docs</a></p>';
+  }
+}
+
+loadConcepts().then(() => {
+  // Scroll to anchored concept after dynamic render
+  if (window.location.hash) {
+    const el = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+});
+loadCategories();
+</script>
+</body>
+</html>

@@ -172,6 +172,12 @@ for flag, router in _FEATURE_ROUTERS.items():
     if settings.feature_flags.get(flag, False):
         app.include_router(router, prefix=PREFIX)
 
+# History Explorer (conditional — siloed feature)
+if settings.enable_history_explorer:
+    from .routers.history import router as _history_router
+    app.include_router(_history_router, prefix=PREFIX)
+    log.info("History Explorer enabled")
+
 # Blockchain indexer routers (conditional — only if enabled)
 if settings.enable_indexer:
     from .indexer.routers import indexed_address, indexed_tx, indexer_status

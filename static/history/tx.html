@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Explorer — Bitcoin History — Satoshi API</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0D1117; --surface: #161B22; --border: #21262D; --text: #E6EDF3; --muted: #8B949E; --dim: #6E7681; --accent: #F7931A; --accent-hover: #FFB347; --accent-muted: #F7931A33; --green: #3FB950; --error: #F85149; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+a { color: var(--accent); text-decoration: none; } a:hover { color: var(--accent-hover); }
+code { font-family: 'JetBrains Mono', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 100; }
+nav .logo { font-weight: 800; font-size: 0.85em; letter-spacing: 0.1em; text-transform: uppercase; } nav .logo a { color: var(--text); }
+nav .links { display: flex; gap: 24px; font-size: 0.9em; } nav .links a { color: var(--muted); } nav .links a:hover, nav .links a.active { color: var(--text); }
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 1.8em; margin-bottom: 8px; word-break: break-all; } h1 span { color: var(--accent); }
+.txid-display { font-family: 'JetBrains Mono', monospace; font-size: 0.8em; color: var(--muted); word-break: break-all; margin-bottom: 16px; }
+.context-banner { background: var(--accent-muted); border: 1px solid var(--accent); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; }
+.context-banner h3 { color: var(--accent); font-size: 0.95em; margin-bottom: 4px; }
+.context-banner p { color: var(--muted); font-size: 0.9em; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 24px 0; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.stat-card .label { color: var(--muted); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card .value { font-size: 1.2em; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.coinbase-msg { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 16px 0; }
+.coinbase-msg h3 { color: var(--accent); font-size: 0.9em; margin-bottom: 8px; }
+.coinbase-msg pre { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--text); white-space: pre-wrap; word-break: break-all; }
+.io-section { margin: 24px 0; }
+.io-section h3 { margin-bottom: 12px; font-size: 1.1em; }
+.io-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin: 8px 0; font-size: 0.9em; }
+.io-item .addr { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-break: break-all; }
+.io-item .amount { color: var(--accent); font-weight: 600; float: right; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 24px 0; }
+.actions button { background: var(--surface); border: 1px solid var(--border); padding: 10px 18px; border-radius: 6px; color: var(--text); cursor: pointer; font-family: inherit; font-size: 0.9em; }
+.actions button:hover { border-color: var(--accent); color: var(--accent); }
+.detail-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; display: none; overflow-x: auto; }
+.detail-panel.open { display: block; }
+.detail-panel pre { background: var(--bg); padding: 16px; border-radius: 6px; font-size: 0.85em; white-space: pre-wrap; word-break: break-all; }
+.mcp-section { border-left: 3px solid var(--accent); background: var(--surface); padding: 24px; border-radius: 0 8px 8px 0; margin: 32px 0; }
+.mcp-section h3 { color: var(--accent); margin-bottom: 12px; }
+.mcp-cmd { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin: 6px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.8em; }
+.mcp-cmd .cmd-text { word-break: break-all; margin-right: 8px; }
+.mcp-cmd .copy-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; flex-shrink: 0; }
+.mcp-cmd .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.loading { text-align: center; padding: 48px; color: var(--muted); }
+.error-msg { text-align: center; padding: 48px; color: var(--error); }
+@media (max-width: 600px) { h1 { font-size: 1.3em; } nav .links { display: none; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo"><a href="/"><img src="/logo-128.png" alt="" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</a></div>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/history" class="active">History</a>
+    <a href="/docs">API Docs</a>
+    <a href="/visualizer">Visualizer</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</nav>
+<div class="container">
+  <h1 id="txTitle">Transaction Explorer</h1>
+  <div class="txid-display" id="txidDisplay"></div>
+  <div id="contextBanner" class="context-banner" style="display:none;"><h3 id="ctxTitle"></h3><p id="ctxDesc"></p></div>
+  <div id="loading" class="loading">Loading transaction data...</div>
+  <div id="errorMsg" class="error-msg" style="display:none;"></div>
+  <div id="txContent" style="display:none;">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div id="coinbaseMsg" class="coinbase-msg" style="display:none;"><h3>Coinbase Message</h3><pre id="coinbaseText"></pre></div>
+    <div class="io-section" id="inputsSection"><h3 id="inputsTitle">Inputs</h3><div id="inputsList"></div></div>
+    <div class="io-section" id="outputsSection"><h3 id="outputsTitle">Outputs</h3><div id="outputsList"></div></div>
+    <div class="actions">
+      <button onclick="togglePanel('rawApi')">Raw API Response</button>
+      <button onclick="togglePanel('rawHex')">Raw Hex</button>
+      <button onclick="togglePanel('outspends')">Output Spend Status</button>
+    </div>
+    <div class="detail-panel" id="rawApi"><pre id="rawApiContent"></pre></div>
+    <div class="detail-panel" id="rawHex"><pre id="rawHexContent"></pre></div>
+    <div class="detail-panel" id="outspends"><pre id="outspendsContent"></pre></div>
+    <div class="mcp-section">
+      <h3>MCP Command Builder</h3>
+      <div id="mcpCommands"></div>
+    </div>
+  </div>
+</div>
+<script>
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function copyToClipboard(text, btn) { navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); }); }
+function copyCmd(el) { const text = el.closest('.mcp-cmd').querySelector('.cmd-text').textContent; copyToClipboard(text, el); }
+
+const params = new URLSearchParams(window.location.search);
+const txid = params.get('txid');
+let txData = null;
+let curatedEvents = [];
+
+async function init() {
+  if (!txid) { document.getElementById('loading').style.display = 'none'; document.getElementById('errorMsg').textContent = 'No transaction ID specified. Use ?txid=...'; document.getElementById('errorMsg').style.display = 'block'; return; }
+  try {
+    const evResp = await fetch('/api/v1/history/events?limit=200');
+    curatedEvents = (await evResp.json()).data || [];
+  } catch (e) {}
+  try {
+    const resp = await fetch('/api/v1/tx/' + encodeURIComponent(txid));
+    if (!resp.ok) throw new Error('Transaction not found');
+    txData = (await resp.json()).data;
+    renderTx();
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('errorMsg').textContent = e.message;
+    document.getElementById('errorMsg').style.display = 'block';
+  }
+}
+
+function hexToAscii(hex) {
+  let str = '';
+  for (let i = 0; i < hex.length; i += 2) {
+    const c = parseInt(hex.substr(i, 2), 16);
+    str += (c >= 32 && c <= 126) ? String.fromCharCode(c) : '.';
+  }
+  return str;
+}
+
+function renderTx() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('txContent').style.display = 'block';
+  document.getElementById('txTitle').innerHTML = 'Transaction <span>Details</span>';
+  document.getElementById('txidDisplay').textContent = txid;
+  document.title = 'TX ' + txid.substring(0, 12) + '... — Bitcoin History — Satoshi API';
+
+  const ev = curatedEvents.find(e => e.txid === txid);
+  if (ev) {
+    document.getElementById('ctxTitle').textContent = ev.title;
+    document.getElementById('ctxDesc').textContent = ev.description;
+    document.getElementById('contextBanner').style.display = 'block';
+  }
+
+  const vin = txData.vin || [];
+  const vout = txData.vout || [];
+  const totalOut = vout.reduce((s, o) => s + (o.value || 0), 0);
+  const isCoinbase = vin.length > 0 && vin[0].coinbase;
+  const stats = [
+    { label: 'Total Output', value: totalOut.toFixed(8) + ' BTC' },
+    { label: 'Fee', value: txData.fee !== undefined ? txData.fee.toFixed(8) + ' BTC' : 'N/A (coinbase)' },
+    { label: 'Size', value: txData.size ? txData.size + ' bytes' : '—' },
+    { label: 'Weight', value: txData.weight ? txData.weight + ' WU' : '—' },
+    { label: 'Fee Rate', value: txData.weight && txData.fee ? (txData.fee * 100000000 / (txData.weight / 4)).toFixed(1) + ' sat/vB' : '—' },
+    { label: 'Inputs / Outputs', value: vin.length + ' / ' + vout.length }
+  ];
+  document.getElementById('statsGrid').innerHTML = stats.map(s => '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>').join('');
+
+  // Coinbase message
+  if (isCoinbase && vin[0].coinbase) {
+    const hex = vin[0].coinbase;
+    const ascii = hexToAscii(hex);
+    document.getElementById('coinbaseText').textContent = ascii + '\n\nHex: ' + hex;
+    document.getElementById('coinbaseMsg').style.display = 'block';
+  }
+
+  // Inputs
+  const inputsList = document.getElementById('inputsList');
+  document.getElementById('inputsTitle').textContent = 'Inputs (' + vin.length + ')';
+  if (isCoinbase) {
+    inputsList.innerHTML = '<div class="io-item"><span style="color:var(--accent);">Coinbase (newly generated coins)</span></div>';
+  } else {
+    inputsList.innerHTML = vin.map(inp => {
+      const addr = inp.prevout?.scriptpubkey_address || inp.address || 'Unknown';
+      const val = inp.prevout?.value ? (inp.prevout.value / 100000000).toFixed(8) : '';
+      return '<div class="io-item"><div class="addr">' + (addr !== 'Unknown' ? '<a href="/history/address?address=' + encodeURIComponent(addr) + '">' + escapeHtml(addr) + '</a>' : escapeHtml(addr)) + '</div>' + (val ? '<div class="amount">' + val + ' BTC</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  // Outputs
+  const outputsList = document.getElementById('outputsList');
+  document.getElementById('outputsTitle').textContent = 'Outputs (' + vout.length + ')';
+  outputsList.innerHTML = vout.map((out, i) => {
+    const addr = out.scriptPubKey?.address || out.scriptpubkey_address || '';
+    const val = out.value !== undefined ? out.value.toFixed(8) : '—';
+    return '<div class="io-item"><div class="addr">' + (addr ? '<a href="/history/address?address=' + encodeURIComponent(addr) + '">' + escapeHtml(addr) + '</a>' : '<em>OP_RETURN / non-standard</em>') + '</div><div class="amount">' + val + ' BTC</div></div>';
+  }).join('');
+
+  // MCP commands
+  const cmds = [
+    { label: 'Analyze Transaction', cmd: 'analyze_transaction ' + txid },
+    { label: 'Decode Raw TX', cmd: 'decode_raw_transaction ' + txid },
+  ];
+  // Check UTXO for first 5 outputs
+  vout.slice(0, 5).forEach((out, i) => {
+    cmds.push({ label: 'Check UTXO #' + i, cmd: 'check_utxo ' + txid + ' ' + i });
+  });
+  // First address
+  const firstAddr = vout.find(o => o.scriptPubKey?.address)?.scriptPubKey?.address;
+  if (firstAddr) cmds.push({ label: 'Address UTXOs', cmd: 'get_address_utxos ' + firstAddr });
+  // First scriptPubKey
+  const firstScript = vout[0]?.scriptPubKey?.hex || vout[0]?.scriptpubkey;
+  if (firstScript) cmds.push({ label: 'Explain Script', cmd: 'explain_script ' + firstScript });
+
+  document.getElementById('mcpCommands').innerHTML = cmds.map(c => '<div class="mcp-cmd"><span class="cmd-text">' + escapeHtml(c.cmd) + '</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>').join('');
+  document.getElementById('rawApiContent').textContent = JSON.stringify(txData, null, 2);
+}
+
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  panel.classList.toggle('open');
+  if (id === 'rawHex' && !document.getElementById('rawHexContent').textContent) {
+    fetch('/api/v1/tx/' + encodeURIComponent(txid) + '/hex').then(r => r.json()).then(j => {
+      document.getElementById('rawHexContent').textContent = j.data || JSON.stringify(j, null, 2);
+    }).catch(() => { document.getElementById('rawHexContent').textContent = 'Failed to load hex data'; });
+  }
+  if (id === 'outspends' && !document.getElementById('outspendsContent').textContent) {
+    fetch('/api/v1/tx/' + encodeURIComponent(txid) + '/outspends').then(r => r.json()).then(j => {
+      document.getElementById('outspendsContent').textContent = JSON.stringify(j.data || j, null, 2);
+    }).catch(() => { document.getElementById('outspendsContent').textContent = 'Failed to load spend status'; });
+  }
+}
+
+init();
+</script>
+</body>
+</html>

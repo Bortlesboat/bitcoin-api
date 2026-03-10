@@ -1,11 +1,11 @@
-"""Hosted MCP endpoint — serve MCP protocol over SSE at /mcp.
+"""Hosted MCP endpoint — serve MCP protocol over streamable-http at /mcp.
 
 Lets any MCP client connect with just a URL, zero install:
 
     {
         "mcpServers": {
             "satoshi-api": {
-                "url": "https://bitcoinsapi.com/mcp/sse"
+                "url": "https://bitcoinsapi.com/mcp"
             }
         }
     }
@@ -102,7 +102,7 @@ async def get_api_info() -> dict:
         "name": "Satoshi API",
         "version": __version__,
         "description": "Bitcoin fee intelligence that saves money on every transaction",
-        "endpoints": 87,
+        "endpoints": 95,
         "tools_exposed": 17,
         "website": "https://bitcoinsapi.com",
         "docs": "https://bitcoinsapi.com/docs",

@@ -1,0 +1,500 @@
+{
+  "eras": [
+    {
+      "id": "genesis",
+      "name": "Genesis Era",
+      "start_block": 0,
+      "end_block": 0,
+      "start_date": "2009-01-03",
+      "end_date": "2009-01-03",
+      "description": "The birth of Bitcoin. Satoshi Nakamoto mines the first block, embedding the now-famous Times headline in the coinbase transaction.",
+      "color": "#F7931A"
+    },
+    {
+      "id": "early-days",
+      "name": "Early Days",
+      "start_block": 1,
+      "end_block": 169,
+      "start_date": "2009-01-03",
+      "end_date": "2009-01-11",
+      "description": "Before any transactions between people. Satoshi mines alone, building the initial chain and proving the system works.",
+      "color": "#58A6FF"
+    },
+    {
+      "id": "first-transactions",
+      "name": "First Transactions",
+      "start_block": 170,
+      "end_block": 209999,
+      "start_date": "2009-01-12",
+      "end_date": "2012-11-27",
+      "description": "Bitcoin's first real-world use cases. From Hal Finney's first receive to the legendary pizza purchase, Bitcoin goes from experiment to currency.",
+      "color": "#3FB950"
+    },
+    {
+      "id": "post-first-halving",
+      "name": "Post First Halving",
+      "start_block": 210000,
+      "end_block": 419999,
+      "start_date": "2012-11-28",
+      "end_date": "2016-07-08",
+      "description": "Growing adoption and infrastructure. Exchanges emerge, the block reward drops to 25 BTC, and Bitcoin survives Mt. Gox and Silk Road.",
+      "color": "#BC8CFF"
+    },
+    {
+      "id": "scaling-wars",
+      "name": "Scaling Wars",
+      "start_block": 420000,
+      "end_block": 629999,
+      "start_date": "2016-07-09",
+      "end_date": "2020-05-10",
+      "description": "The great debate over Bitcoin's future. The community battles over block size, SegWit activates, Bitcoin Cash forks, and the Lightning Network launches.",
+      "color": "#F778BA"
+    },
+    {
+      "id": "institutional-era",
+      "name": "Institutional Era",
+      "start_block": 630000,
+      "end_block": 839999,
+      "start_date": "2020-05-11",
+      "end_date": "2024-04-19",
+      "description": "Wall Street discovers Bitcoin. MicroStrategy, Tesla, and El Salvador adopt BTC. Taproot upgrades the protocol. FTX and Luna crash test resilience.",
+      "color": "#D29922"
+    },
+    {
+      "id": "ordinals-beyond",
+      "name": "Ordinals & Beyond",
+      "start_block": 840000,
+      "end_block": null,
+      "start_date": "2024-04-20",
+      "end_date": null,
+      "description": "New frontiers: inscriptions, Runes, and the 4th halving. Bitcoin becomes a platform for digital artifacts while crossing $100K for the first time.",
+      "color": "#F85149"
+    }
+  ],
+  "events": [
+    {
+      "id": "genesis-block",
+      "title": "Genesis Block Mined",
+      "date": "2009-01-03",
+      "block_height": 0,
+      "txid": null,
+      "era": "genesis",
+      "category": "milestone",
+      "description": "Satoshi Nakamoto mines Bitcoin's first block, embedding the message: 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks.' The genesis block's 50 BTC coinbase reward is unspendable by design.",
+      "significance": "The founding moment of decentralized money. The embedded headline forever ties Bitcoin's origin to the failures of traditional banking.",
+      "tags": ["satoshi", "genesis"],
+      "learn": ["coinbase-tx", "block-structure"]
+    },
+    {
+      "id": "first-bitcoin-tx",
+      "title": "First Bitcoin Transaction (Satoshi to Hal Finney)",
+      "date": "2009-01-12",
+      "block_height": 170,
+      "txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+      "era": "first-transactions",
+      "category": "transaction",
+      "description": "Satoshi Nakamoto sends 10 BTC to Hal Finney in the first-ever person-to-person Bitcoin transaction. Finney had tweeted 'Running bitcoin' just three days earlier.",
+      "significance": "Proved that Bitcoin could actually transfer value between people. Hal Finney became Bitcoin's first user other than Satoshi.",
+      "tags": ["satoshi", "hal-finney"],
+      "learn": ["utxo-model", "coinbase-tx"]
+    },
+    {
+      "id": "satoshi-era-coins-moved",
+      "title": "Early Satoshi-Era Coins Move",
+      "date": "2009-11-01",
+      "block_height": null,
+      "txid": null,
+      "era": "first-transactions",
+      "category": "mystery",
+      "description": "Coins from blocks mined in Bitcoin's earliest days begin moving. The community watches closely any time early coinbase outputs are spent, searching for signs of Satoshi.",
+      "significance": "Created an enduring mystery around Satoshi's identity and holdings. Every movement of early coins triggers speculation about whether Satoshi is active.",
+      "tags": ["satoshi", "early-coins"],
+      "learn": ["coinbase-tx", "utxo-model"]
+    },
+    {
+      "id": "bitcoin-pizza",
+      "title": "Bitcoin Pizza Day (10,000 BTC for Two Pizzas)",
+      "date": "2010-05-22",
+      "block_height": 57043,
+      "txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "era": "first-transactions",
+      "category": "transaction",
+      "description": "Laszlo Hanyecz pays 10,000 BTC for two Papa John's pizzas, marking the first known commercial Bitcoin transaction. At the time, 10,000 BTC was worth about $41.",
+      "significance": "The first real-world purchase with Bitcoin established it as a medium of exchange, not just a technical curiosity. Now celebrated annually as Bitcoin Pizza Day.",
+      "tags": ["pizza", "laszlo", "commerce"],
+      "learn": ["utxo-model", "fee-market"]
+    },
+    {
+      "id": "value-overflow-bug",
+      "title": "Value Overflow Bug (184 Billion BTC Created)",
+      "date": "2010-08-15",
+      "block_height": 74638,
+      "txid": null,
+      "era": "first-transactions",
+      "category": "bug",
+      "description": "A critical integer overflow bug allows a transaction to create 184.467 billion BTC out of thin air. Satoshi quickly releases a patch, and the community reorganizes the chain to erase the invalid transaction.",
+      "significance": "Bitcoin's most serious bug was fixed within hours through community coordination. Demonstrated that the network could recover from critical failures through consensus.",
+      "tags": ["bug", "satoshi", "consensus"],
+      "learn": ["consensus", "soft-fork"]
+    },
+    {
+      "id": "last-satoshi-message",
+      "title": "Satoshi's Last Public Message",
+      "date": "2010-12-12",
+      "block_height": null,
+      "txid": null,
+      "era": "first-transactions",
+      "category": "mystery",
+      "description": "Satoshi Nakamoto posts their final message on the BitcoinTalk forum, then disappears from public communication forever. The last post discusses DoS attack prevention.",
+      "significance": "Satoshi's departure was perhaps Bitcoin's greatest gift — proving the network could thrive without its creator. No single person controls Bitcoin.",
+      "tags": ["satoshi", "decentralization"],
+      "learn": ["consensus"]
+    },
+    {
+      "id": "first-halving",
+      "title": "First Bitcoin Halving",
+      "date": "2012-11-28",
+      "block_height": 210000,
+      "txid": null,
+      "era": "post-first-halving",
+      "category": "halving",
+      "description": "The block reward drops from 50 BTC to 25 BTC at block 210,000. Bitcoin's programmatic monetary policy executes flawlessly for the first time.",
+      "significance": "Proved that Bitcoin's deflationary supply schedule works as designed. Each halving reduces new supply, a key driver of Bitcoin's long-term value proposition.",
+      "tags": ["halving", "supply", "monetary-policy"],
+      "learn": ["halving"]
+    },
+    {
+      "id": "silk-road-shutdown",
+      "title": "Silk Road Shut Down by FBI",
+      "date": "2013-10-02",
+      "block_height": null,
+      "txid": null,
+      "era": "post-first-halving",
+      "category": "milestone",
+      "description": "The FBI shuts down the Silk Road darknet marketplace and arrests its founder Ross Ulbricht. The government seizes approximately 144,000 BTC.",
+      "significance": "Ended Bitcoin's association with a single controversial use case. Paradoxically helped legitimize Bitcoin by proving it could survive government action against its largest marketplace.",
+      "tags": ["silk-road", "regulation", "law-enforcement"],
+      "learn": ["self-custody"]
+    },
+    {
+      "id": "btc-1000-first-time",
+      "title": "Bitcoin Crosses $1,000 for the First Time",
+      "date": "2013-11-28",
+      "block_height": null,
+      "txid": null,
+      "era": "post-first-halving",
+      "category": "price",
+      "description": "Bitcoin breaks through the $1,000 barrier on Mt. Gox, driven by growing Chinese demand and increasing mainstream awareness. The price had been under $15 at the start of 2013.",
+      "significance": "A psychological milestone that brought Bitcoin into mainstream financial media. The 100x yearly gain showed both Bitcoin's potential and its volatility.",
+      "tags": ["price", "milestone", "mt-gox"],
+      "learn": []
+    },
+    {
+      "id": "mt-gox-collapse",
+      "title": "Mt. Gox Exchange Collapses",
+      "date": "2014-02-24",
+      "block_height": null,
+      "txid": null,
+      "era": "post-first-halving",
+      "category": "disaster",
+      "description": "Mt. Gox, handling 70% of all Bitcoin trades, halts withdrawals and files for bankruptcy after losing approximately 850,000 BTC to hackers over several years.",
+      "significance": "The biggest lesson in Bitcoin history: 'Not your keys, not your coins.' Mt. Gox's collapse drove development of better custody solutions and the self-custody movement.",
+      "tags": ["mt-gox", "exchange", "hack", "custody"],
+      "learn": ["self-custody"]
+    },
+    {
+      "id": "second-halving",
+      "title": "Second Bitcoin Halving",
+      "date": "2016-07-09",
+      "block_height": 420000,
+      "txid": null,
+      "era": "scaling-wars",
+      "category": "halving",
+      "description": "The block reward drops from 25 BTC to 12.5 BTC at block 420,000. Bitcoin's inflation rate falls below most fiat currencies for the first time.",
+      "significance": "Reinforced the halving cycle narrative. The subsequent bull run to $20K in 2017 cemented the pattern of post-halving price appreciation in market psychology.",
+      "tags": ["halving", "supply", "monetary-policy"],
+      "learn": ["halving", "difficulty-adjustment"]
+    },
+    {
+      "id": "bitcoin-cash-fork",
+      "title": "Bitcoin Cash Hard Fork",
+      "date": "2017-08-01",
+      "block_height": 478559,
+      "txid": null,
+      "era": "scaling-wars",
+      "category": "fork",
+      "description": "Bitcoin Cash (BCH) forks from Bitcoin at block 478,559, increasing the block size to 8MB. The split culminates years of debate over how to scale Bitcoin.",
+      "significance": "The most contentious fork in Bitcoin's history. Proved that Bitcoin's consensus rules are resistant to change, even when backed by major miners and businesses.",
+      "tags": ["bitcoin-cash", "fork", "block-size", "scaling"],
+      "learn": ["hard-fork"]
+    },
+    {
+      "id": "segwit-activation",
+      "title": "SegWit Activates on Bitcoin",
+      "date": "2017-08-24",
+      "block_height": 481824,
+      "txid": null,
+      "era": "scaling-wars",
+      "category": "upgrade",
+      "description": "Segregated Witness (SegWit) activates at block 481,824, fixing transaction malleability and effectively increasing block capacity. The first SegWit transaction is sent shortly after activation.",
+      "significance": "The most significant Bitcoin protocol upgrade. SegWit fixed transaction malleability (enabling Lightning Network), increased effective block space, and proved soft forks could upgrade Bitcoin safely.",
+      "tags": ["segwit", "upgrade", "scaling", "soft-fork"],
+      "learn": ["segwit", "soft-fork"]
+    },
+    {
+      "id": "btc-20k-first-time",
+      "title": "Bitcoin Reaches $20,000",
+      "date": "2017-12-17",
+      "block_height": null,
+      "txid": null,
+      "era": "scaling-wars",
+      "category": "price",
+      "description": "Bitcoin hits $19,783 on major exchanges during the 2017 bull run, driven by ICO mania and retail FOMO. The parabolic rise from $1,000 in January captures global attention.",
+      "significance": "Made Bitcoin a household name worldwide. The subsequent crash to $3,200 taught a generation of investors about market cycles and the importance of long-term conviction.",
+      "tags": ["price", "milestone", "bull-run"],
+      "learn": []
+    },
+    {
+      "id": "lightning-mainnet",
+      "title": "Lightning Network Launches on Mainnet",
+      "date": "2018-03-15",
+      "block_height": null,
+      "txid": null,
+      "era": "scaling-wars",
+      "category": "milestone",
+      "description": "Lightning Labs releases lnd 0.4-beta, the first Lightning Network implementation ready for mainnet Bitcoin. Instant, low-cost Bitcoin payments become possible.",
+      "significance": "Opened Bitcoin's Layer 2 scaling path. Lightning enables millions of transactions per second without changing the base protocol, validating the small-block scaling approach.",
+      "tags": ["lightning", "layer-2", "scaling", "payments"],
+      "learn": ["layer-2"]
+    },
+    {
+      "id": "third-halving",
+      "title": "Third Bitcoin Halving",
+      "date": "2020-05-11",
+      "block_height": 630000,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "halving",
+      "description": "The block reward drops from 12.5 BTC to 6.25 BTC at block 630,000. This halving occurs during the COVID-19 pandemic as central banks print unprecedented amounts of money.",
+      "significance": "The contrast between Bitcoin's fixed supply schedule and unlimited fiat money printing became impossible to ignore. Institutional adoption accelerated in the months that followed.",
+      "tags": ["halving", "supply", "monetary-policy", "covid"],
+      "learn": ["halving"]
+    },
+    {
+      "id": "microstrategy-btc",
+      "title": "MicroStrategy Begins Bitcoin Accumulation",
+      "date": "2020-08-11",
+      "block_height": null,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "milestone",
+      "description": "MicroStrategy announces its first Bitcoin purchase of 21,454 BTC for $250 million, making it the first publicly traded company to adopt Bitcoin as a primary treasury reserve asset.",
+      "significance": "Opened the floodgates for corporate Bitcoin adoption. Michael Saylor's strategy proved that public companies could hold Bitcoin on their balance sheets, creating a new demand category.",
+      "tags": ["institutional", "microstrategy", "treasury", "saylor"],
+      "learn": []
+    },
+    {
+      "id": "el-salvador-legal-tender",
+      "title": "El Salvador Makes Bitcoin Legal Tender",
+      "date": "2021-06-09",
+      "block_height": null,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "milestone",
+      "description": "El Salvador becomes the first country to adopt Bitcoin as legal tender. President Nayib Bukele announces the Bitcoin Law, which passes on June 9, 2021 and takes effect September 7, 2021.",
+      "significance": "A sovereign nation recognizing Bitcoin as legal currency was unprecedented. Regardless of implementation challenges, it proved that Bitcoin could operate at the nation-state level.",
+      "tags": ["el-salvador", "legal-tender", "nation-state", "adoption"],
+      "learn": ["layer-2"]
+    },
+    {
+      "id": "btc-69k-ath",
+      "title": "Bitcoin Hits All-Time High of $69,000",
+      "date": "2021-11-10",
+      "block_height": null,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "price",
+      "description": "Bitcoin reaches $68,789 (rounded to $69K in popular culture), driven by institutional adoption, inflation fears, and the first Bitcoin futures ETF approval.",
+      "significance": "Marked the peak of the 2021 bull cycle. The subsequent crash through Luna/FTX collapses would test Bitcoin's resilience like never before.",
+      "tags": ["price", "ath", "milestone", "bull-run"],
+      "learn": []
+    },
+    {
+      "id": "taproot-activation",
+      "title": "Taproot Upgrade Activates",
+      "date": "2021-11-14",
+      "block_height": 709632,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "upgrade",
+      "description": "Taproot activates at block 709,632, introducing Schnorr signatures and MAST (Merkelized Abstract Syntax Trees). This improves privacy, efficiency, and smart contract capabilities.",
+      "significance": "Bitcoin's most significant upgrade since SegWit. Schnorr signatures make complex transactions indistinguishable from simple ones, improving privacy for all users.",
+      "tags": ["taproot", "schnorr", "upgrade", "privacy", "soft-fork"],
+      "learn": ["taproot", "soft-fork"]
+    },
+    {
+      "id": "luna-crash",
+      "title": "Terra/Luna Ecosystem Collapses",
+      "date": "2022-05-09",
+      "block_height": null,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "disaster",
+      "description": "The Terra/Luna algorithmic stablecoin loses its peg, wiping out $40 billion in value. The Luna Foundation Guard sells 80,000 BTC in a failed defense, crashing the Bitcoin price.",
+      "significance": "Exposed the fragility of algorithmic stablecoins and the contagion risk of interconnected crypto projects. Bitcoin survived; Luna did not.",
+      "tags": ["luna", "crash", "stablecoin", "contagion"],
+      "learn": ["self-custody"]
+    },
+    {
+      "id": "ftx-collapse",
+      "title": "FTX Exchange Collapses",
+      "date": "2022-11-11",
+      "block_height": null,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "disaster",
+      "description": "FTX, the world's third-largest crypto exchange, files for bankruptcy after revelations of massive fraud. Customer funds were secretly lent to Alameda Research, resulting in billions in losses.",
+      "significance": "History's most dramatic reminder that custodial risk is real. Drove massive adoption of self-custody wallets and hardware wallets. 'Not your keys, not your coins' proven right again.",
+      "tags": ["ftx", "fraud", "exchange", "custody", "sbf"],
+      "learn": ["self-custody"]
+    },
+    {
+      "id": "first-inscription",
+      "title": "First Ordinals Inscription on Bitcoin",
+      "date": "2023-02-01",
+      "block_height": 774628,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "milestone",
+      "description": "Casey Rodarmor's Ordinals protocol enables the first inscription of data directly on the Bitcoin blockchain. Inscription #0 is created at block 774,628, opening Bitcoin to digital artifacts.",
+      "significance": "Reignited debate about Bitcoin's purpose and block space usage. Ordinals proved Bitcoin could host digital artifacts without protocol changes, driving record transaction fees.",
+      "tags": ["ordinals", "inscriptions", "digital-artifacts", "casey-rodarmor"],
+      "learn": ["ordinals"]
+    },
+    {
+      "id": "spot-etf-approved",
+      "title": "Spot Bitcoin ETFs Approved in the US",
+      "date": "2024-01-10",
+      "block_height": null,
+      "txid": null,
+      "era": "institutional-era",
+      "category": "milestone",
+      "description": "The SEC approves 11 spot Bitcoin ETFs simultaneously, including offerings from BlackRock, Fidelity, and Invesco. Within weeks, billions of dollars flow into the new products.",
+      "significance": "The most anticipated regulatory decision in crypto history. ETFs gave traditional investors a familiar way to access Bitcoin, removing the custody barrier for institutions.",
+      "tags": ["etf", "sec", "blackrock", "fidelity", "institutional"],
+      "learn": ["self-custody"]
+    },
+    {
+      "id": "fourth-halving",
+      "title": "Fourth Bitcoin Halving",
+      "date": "2024-04-20",
+      "block_height": 840000,
+      "txid": null,
+      "era": "ordinals-beyond",
+      "category": "halving",
+      "description": "The block reward drops from 6.25 BTC to 3.125 BTC at block 840,000. The halving coincides with the launch of the Runes protocol, causing record-high transaction fees.",
+      "significance": "The first halving with significant fee revenue from inscriptions and Runes. Miners earned more in fees than the block subsidy on halving day, hinting at Bitcoin's long-term security model.",
+      "tags": ["halving", "supply", "runes", "monetary-policy"],
+      "learn": ["halving", "fee-market"]
+    },
+    {
+      "id": "btc-100k",
+      "title": "Bitcoin Crosses $100,000",
+      "date": "2024-12-05",
+      "block_height": null,
+      "txid": null,
+      "era": "ordinals-beyond",
+      "category": "price",
+      "description": "Bitcoin breaks through the $100,000 barrier for the first time, driven by ETF inflows, the post-halving supply squeeze, and growing institutional acceptance. The six-figure milestone captures global headlines.",
+      "significance": "The ultimate psychological price milestone. $100K Bitcoin validated the thesis of every long-term holder and made the asset impossible for traditional finance to dismiss.",
+      "tags": ["price", "milestone", "100k", "bull-run"],
+      "learn": []
+    }
+  ],
+  "concepts": {
+    "coinbase-tx": {
+      "name": "Coinbase Transaction",
+      "description": "The first transaction in every block, created by the miner. It has no inputs and creates new bitcoins as the block subsidy plus collected fees. The coinbase can include up to 100 bytes of arbitrary data — Satoshi used this to embed the famous Times headline in block 0.",
+      "try_it": "/api/v1/blocks/0",
+      "mcp_tool": "analyze_block"
+    },
+    "utxo-model": {
+      "name": "UTXO Model",
+      "description": "Bitcoin uses Unspent Transaction Outputs (UTXOs) instead of account balances. Each transaction consumes previous outputs and creates new ones. Your 'balance' is the sum of all UTXOs your keys can spend. This model enables parallel validation and better privacy than account-based systems.",
+      "try_it": "/api/v1/stats/utxo-set",
+      "mcp_tool": "check_utxo"
+    },
+    "halving": {
+      "name": "Halving",
+      "description": "Every 210,000 blocks (approximately 4 years), the block subsidy is cut in half. Starting at 50 BTC in 2009, it's now 3.125 BTC after the 2024 halving. This predictable supply schedule means only 21 million BTC will ever exist, making Bitcoin the hardest money ever created.",
+      "try_it": "/api/v1/supply",
+      "mcp_tool": "get_halving_countdown"
+    },
+    "difficulty-adjustment": {
+      "name": "Difficulty Adjustment",
+      "description": "Every 2,016 blocks (about 2 weeks), Bitcoin automatically adjusts mining difficulty to maintain an average 10-minute block time. If blocks are found too quickly, difficulty increases; too slowly, it decreases. This self-regulating mechanism keeps Bitcoin's issuance on schedule regardless of hashrate changes.",
+      "try_it": "/api/v1/mining",
+      "mcp_tool": "get_difficulty_adjustment"
+    },
+    "soft-fork": {
+      "name": "Soft Fork",
+      "description": "A backward-compatible protocol upgrade that tightens the rules. Old nodes still accept new blocks, but new nodes enforce additional constraints. SegWit and Taproot were both activated as soft forks, allowing the network to upgrade without forcing all nodes to update simultaneously.",
+      "try_it": "/api/v1/network/forks",
+      "mcp_tool": "get_block_stats"
+    },
+    "hard-fork": {
+      "name": "Hard Fork",
+      "description": "A backward-incompatible protocol change that loosens rules. Old nodes reject new blocks, causing a permanent chain split unless all nodes upgrade. Bitcoin Cash's 8MB block size increase was a hard fork — nodes that didn't upgrade continued on the original Bitcoin chain.",
+      "try_it": "/api/v1/network/forks",
+      "mcp_tool": "get_block_stats"
+    },
+    "segwit": {
+      "name": "Segregated Witness (SegWit)",
+      "description": "A 2017 soft fork that moves signature data ('witness') outside the transaction's main structure. This fixes transaction malleability (enabling Lightning Network), increases effective block capacity to ~4MB of weight units, and introduces the bech32 address format (bc1q...).",
+      "try_it": "/api/v1/stats/segwit-adoption",
+      "mcp_tool": "get_block_stats"
+    },
+    "taproot": {
+      "name": "Taproot",
+      "description": "A 2021 soft fork that introduces Schnorr signatures and MAST (Merkelized Abstract Syntax Trees). Schnorr signatures are more efficient and enable signature aggregation. MAST allows complex spending conditions while only revealing the condition that was used, improving both privacy and efficiency.",
+      "try_it": "/api/v1/blocks/709632/stats",
+      "mcp_tool": "analyze_block"
+    },
+    "self-custody": {
+      "name": "Self-Custody",
+      "description": "Holding your own Bitcoin private keys rather than trusting an exchange or custodian. 'Not your keys, not your coins' became the rallying cry after Mt. Gox (2014) and FTX (2022) collapsed, losing billions in customer funds. Hardware wallets and multisig setups are the gold standard.",
+      "try_it": "/api/v1/network/validate-address/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+      "mcp_tool": "validate_address"
+    },
+    "fee-market": {
+      "name": "Fee Market",
+      "description": "Bitcoin transactions compete for limited block space by offering fees to miners. When demand exceeds capacity, fees rise; when blocks have room, fees drop. Understanding the fee market lets you save money by timing transactions for low-fee periods.",
+      "try_it": "/api/v1/fees/recommended",
+      "mcp_tool": "estimate_smart_fee"
+    },
+    "layer-2": {
+      "name": "Layer 2 (Lightning Network)",
+      "description": "Protocols built on top of Bitcoin's base layer to enable faster, cheaper transactions. The Lightning Network creates payment channels between users, allowing millions of instant transactions that settle on-chain only when channels close. This keeps the base layer secure while scaling payments.",
+      "try_it": "/api/v1/fees/plan",
+      "mcp_tool": "estimate_smart_fee"
+    },
+    "ordinals": {
+      "name": "Ordinals & Inscriptions",
+      "description": "A protocol by Casey Rodarmor that assigns serial numbers to individual satoshis (ordinals) and allows data to be inscribed on them. Inscriptions store images, text, or code directly on the Bitcoin blockchain, creating 'digital artifacts' — Bitcoin's answer to NFTs, but fully on-chain.",
+      "try_it": "/api/v1/blocks/774628/stats",
+      "mcp_tool": "analyze_block"
+    },
+    "consensus": {
+      "name": "Consensus",
+      "description": "The mechanism by which all Bitcoin nodes agree on the state of the blockchain. Nodes independently validate every transaction and block against the consensus rules. If a block violates any rule, it is rejected — no matter who mined it. This trustless verification is what makes Bitcoin decentralized.",
+      "try_it": "/api/v1/network",
+      "mcp_tool": "get_block_stats"
+    },
+    "block-structure": {
+      "name": "Block Structure",
+      "description": "Each Bitcoin block contains a header (version, previous block hash, merkle root, timestamp, difficulty target, nonce) and a list of transactions. The header is only 80 bytes but commits to all transactions via the merkle root. Miners hash the header repeatedly until they find a valid proof-of-work.",
+      "try_it": "/api/v1/blocks/0",
+      "mcp_tool": "analyze_block"
+    }
+  }
+}

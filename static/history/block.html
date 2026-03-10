@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block Explorer — Bitcoin History — Satoshi API</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0D1117; --surface: #161B22; --border: #21262D; --border-visible: #30363d; --text: #E6EDF3; --muted: #8B949E; --dim: #6E7681; --accent: #F7931A; --accent-hover: #FFB347; --accent-muted: #F7931A33; --green: #3FB950; --error: #F85149; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+a { color: var(--accent); text-decoration: none; } a:hover { color: var(--accent-hover); }
+code { font-family: 'JetBrains Mono', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 100; }
+nav .logo { font-weight: 800; font-size: 0.85em; letter-spacing: 0.1em; text-transform: uppercase; } nav .logo a { color: var(--text); }
+nav .links { display: flex; gap: 24px; font-size: 0.9em; } nav .links a { color: var(--muted); } nav .links a:hover, nav .links a.active { color: var(--text); }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+.block-nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.block-nav .arrows { display: flex; gap: 8px; }
+.block-nav .arrows a { background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; color: var(--text); font-weight: 600; }
+.block-nav .arrows a:hover { border-color: var(--accent); }
+.block-nav .jump { display: flex; gap: 8px; }
+.block-nav .jump input { background: var(--surface); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; width: 120px; }
+.block-nav .jump button { background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+h1 { font-size: 2em; margin-bottom: 8px; } h1 span { color: var(--accent); }
+.context-banner { background: var(--accent-muted); border: 1px solid var(--accent); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; }
+.context-banner h3 { color: var(--accent); font-size: 0.95em; margin-bottom: 4px; }
+.context-banner p { color: var(--muted); font-size: 0.9em; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 24px 0; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.stat-card .label { color: var(--muted); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.tx-list { margin: 24px 0; }
+.tx-list h3 { margin-bottom: 12px; } .tx-list .tx-item { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.tx-list .tx-item a { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; word-break: break-all; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 24px 0; }
+.actions button { background: var(--surface); border: 1px solid var(--border); padding: 10px 18px; border-radius: 6px; color: var(--text); cursor: pointer; font-family: inherit; font-size: 0.9em; }
+.actions button:hover { border-color: var(--accent); color: var(--accent); }
+.detail-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; display: none; overflow-x: auto; }
+.detail-panel.open { display: block; }
+.detail-panel pre { background: var(--bg); padding: 16px; border-radius: 6px; font-size: 0.85em; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+.mcp-section { border-left: 3px solid var(--accent); background: var(--surface); padding: 24px; border-radius: 0 8px 8px 0; margin: 32px 0; }
+.mcp-section h3 { color: var(--accent); margin-bottom: 12px; }
+.mcp-cmd { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin: 6px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+.mcp-cmd .copy-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; flex-shrink: 0; }
+.mcp-cmd .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.loading { text-align: center; padding: 48px; color: var(--muted); }
+.error-msg { text-align: center; padding: 48px; color: var(--error); }
+@media (max-width: 600px) { h1 { font-size: 1.4em; } nav .links { display: none; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo"><a href="/"><img src="/logo-128.png" alt="" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</a></div>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/history" class="active">History</a>
+    <a href="/docs">API Docs</a>
+    <a href="/visualizer">Visualizer</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</nav>
+<div class="container">
+  <div class="block-nav">
+    <div class="arrows">
+      <a id="prevBlock" href="#">&#8592; Prev</a>
+      <a id="nextBlock" href="#">Next &#8594;</a>
+    </div>
+    <div class="jump">
+      <input type="number" id="jumpInput" placeholder="Height">
+      <button onclick="jumpToBlock()">Go</button>
+    </div>
+  </div>
+  <h1 id="blockTitle">Block <span>#---</span></h1>
+  <div id="contextBanner" class="context-banner" style="display:none;"><h3 id="ctxTitle"></h3><p id="ctxDesc"></p></div>
+  <div id="loading" class="loading">Loading block data...</div>
+  <div id="errorMsg" class="error-msg" style="display:none;"></div>
+  <div id="blockContent" style="display:none;">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="tx-list" id="txList"><h3>Transactions</h3></div>
+    <div class="actions">
+      <button onclick="togglePanel('detailStats')">Detailed Stats</button>
+      <button onclick="togglePanel('compareGenesis')">Compare to Genesis</button>
+      <button onclick="togglePanel('rawApi')">Raw API Response</button>
+    </div>
+    <div class="detail-panel" id="detailStats"><pre id="detailStatsContent"></pre></div>
+    <div class="detail-panel" id="compareGenesis"><pre id="compareGenesisContent"></pre></div>
+    <div class="detail-panel" id="rawApi"><pre id="rawApiContent"></pre></div>
+    <div class="mcp-section">
+      <h3>MCP Command Builder</h3>
+      <div id="mcpCommands"></div>
+    </div>
+  </div>
+</div>
+<script>
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+}
+function copyCmd(el) { const text = el.closest('.mcp-cmd').querySelector('.cmd-text').textContent; copyToClipboard(text, el); }
+
+const params = new URLSearchParams(window.location.search);
+let currentHeight = params.get('height') ? parseInt(params.get('height')) : null;
+const blockHash = params.get('hash');
+let blockData = null;
+let curatedEvents = [];
+
+async function init() {
+  try {
+    const evResp = await fetch('/api/v1/history/events?limit=200');
+    const evJson = await evResp.json();
+    curatedEvents = evJson.data || [];
+  } catch (e) {}
+
+  if (blockHash) await loadBlockByHash(blockHash);
+  else if (currentHeight !== null) await loadBlockByHeight(currentHeight);
+  else { document.getElementById('loading').style.display = 'none'; document.getElementById('errorMsg').textContent = 'No block specified. Use ?height=0 or ?hash=...'; document.getElementById('errorMsg').style.display = 'block'; }
+}
+
+async function loadBlockByHeight(h) {
+  try {
+    const resp = await fetch('/api/v1/blocks/' + h);
+    if (!resp.ok) throw new Error('Block not found');
+    const json = await resp.json();
+    blockData = json.data;
+    currentHeight = h;
+    renderBlock();
+  } catch (e) { showError(e.message); }
+}
+
+async function loadBlockByHash(hash) {
+  try {
+    const resp = await fetch('/api/v1/blocks/' + encodeURIComponent(hash));
+    if (!resp.ok) throw new Error('Block not found');
+    const json = await resp.json();
+    blockData = json.data;
+    currentHeight = blockData.height;
+    renderBlock();
+  } catch (e) { showError(e.message); }
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('errorMsg').textContent = msg;
+  document.getElementById('errorMsg').style.display = 'block';
+}
+
+function renderBlock() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('blockContent').style.display = 'block';
+  const h = blockData.height !== undefined ? blockData.height : currentHeight;
+  document.getElementById('blockTitle').innerHTML = 'Block <span>#' + h.toLocaleString() + '</span>';
+  document.title = 'Block #' + h.toLocaleString() + ' — Bitcoin History — Satoshi API';
+
+  // Nav
+  document.getElementById('prevBlock').href = h > 0 ? '/history/block?height=' + (h - 1) : '#';
+  document.getElementById('nextBlock').href = '/history/block?height=' + (h + 1);
+
+  // Context banner
+  const ev = curatedEvents.find(e => e.block_height === h);
+  if (ev) {
+    document.getElementById('ctxTitle').textContent = ev.title;
+    document.getElementById('ctxDesc').textContent = ev.description;
+    document.getElementById('contextBanner').style.display = 'block';
+  }
+
+  // Stats
+  const stats = [
+    { label: 'Transactions', value: blockData.tx_count || blockData.nTx || '—' },
+    { label: 'Size', value: blockData.size ? (blockData.size / 1000).toFixed(1) + ' KB' : '—' },
+    { label: 'Weight', value: blockData.weight ? (blockData.weight / 1000).toFixed(1) + ' KWU' : '—' },
+    { label: 'Difficulty', value: blockData.difficulty ? Number(blockData.difficulty).toExponential(2) : '—' },
+    { label: 'Confirmations', value: blockData.confirmations ? blockData.confirmations.toLocaleString() : '—' },
+    { label: 'Timestamp', value: blockData.time ? new Date(blockData.time * 1000).toISOString().replace('T', ' ').substring(0, 19) : '—' }
+  ];
+  document.getElementById('statsGrid').innerHTML = stats.map(s => '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>').join('');
+
+  // Transactions (first 25)
+  const txids = blockData.tx || [];
+  const txListDiv = document.getElementById('txList');
+  txListDiv.innerHTML = '<h3>Transactions (' + txids.length + ')</h3>';
+  txids.slice(0, 25).forEach((txid, i) => {
+    const item = document.createElement('div');
+    item.className = 'tx-item';
+    item.innerHTML = '<a href="/history/tx?txid=' + escapeHtml(txid) + '">' + (i === 0 ? '&#9733; ' : '') + escapeHtml(txid) + '</a>';
+    txListDiv.appendChild(item);
+  });
+  if (txids.length > 25) { const more = document.createElement('div'); more.style.cssText = 'color:var(--muted);padding:8px 0;font-size:0.9em;'; more.textContent = '... and ' + (txids.length - 25) + ' more transactions'; txListDiv.appendChild(more); }
+
+  // MCP commands
+  const cmds = [
+    { label: 'Analyze Block', cmd: 'analyze_block ' + h },
+    { label: 'Block Stats', cmd: 'get_block_stats ' + h },
+    { label: 'Compare to Genesis', cmd: 'compare_blocks 0 ' + h },
+    { label: 'Search Blocks', cmd: 'search_blocks --height ' + h },
+  ];
+  document.getElementById('mcpCommands').innerHTML = cmds.map(c => '<div class="mcp-cmd"><span class="cmd-text">' + escapeHtml(c.cmd) + '</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>').join('');
+
+  // Raw API
+  document.getElementById('rawApiContent').textContent = JSON.stringify(blockData, null, 2);
+}
+
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  panel.classList.toggle('open');
+  if (id === 'detailStats' && !document.getElementById('detailStatsContent').textContent) {
+    fetch('/api/v1/blocks/' + currentHeight + '/stats').then(r => r.json()).then(j => {
+      document.getElementById('detailStatsContent').textContent = JSON.stringify(j.data || j, null, 2);
+    });
+  }
+  if (id === 'compareGenesis' && !document.getElementById('compareGenesisContent').textContent) {
+    document.getElementById('compareGenesisContent').textContent = 'Comparing block ' + currentHeight + ' to genesis block 0...\nUse MCP: compare_blocks 0 ' + currentHeight;
+  }
+}
+
+function jumpToBlock() {
+  const v = document.getElementById('jumpInput').value;
+  if (v) window.location.href = '/history/block?height=' + parseInt(v);
+}
+
+init();
+</script>
+</body>
+</html>
