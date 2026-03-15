@@ -270,6 +270,48 @@ def test_founder_dashboard_with_valid_key(admin_client):
     assert "Traffic Origins" in resp.text
 
 
+def test_admin_dashboard_missing_file_returns_404(client, monkeypatch):
+    """Admin dashboard should return 404 HTML when static file is missing."""
+    from pathlib import Path
+    from bitcoin_api.config import settings
+    from pydantic import SecretStr
+    from bitcoin_api import static_routes
+
+    original_key = settings.admin_api_key
+    settings.admin_api_key = SecretStr("test-admin-secret")
+    real_path = static_routes._STATIC_DIR / "admin-dashboard.html"
+    monkeypatch.setattr(static_routes, "_STATIC_DIR",
+                        Path("nonexistent-dir-that-does-not-exist"))
+    try:
+        resp = client.get("/admin/dashboard?key=test-admin-secret")
+        assert resp.status_code == 404
+        assert resp.headers["content-type"].startswith("text/html")
+    finally:
+        settings.admin_api_key = original_key
+        monkeypatch.setattr(static_routes, "_STATIC_DIR", real_path.parent)
+
+
+def test_founder_dashboard_missing_file_returns_404(client, monkeypatch):
+    """Founder dashboard should return 404 HTML when static file is missing."""
+    from pathlib import Path
+    from bitcoin_api.config import settings
+    from pydantic import SecretStr
+    from bitcoin_api import static_routes
+
+    original_key = settings.admin_api_key
+    settings.admin_api_key = SecretStr("test-admin-secret")
+    real_path = static_routes._STATIC_DIR / "founder-dashboard.html"
+    monkeypatch.setattr(static_routes, "_STATIC_DIR",
+                        Path("nonexistent-dir-that-does-not-exist"))
+    try:
+        resp = client.get("/admin/founder?key=test-admin-secret")
+        assert resp.status_code == 404
+        assert resp.headers["content-type"].startswith("text/html")
+    finally:
+        settings.admin_api_key = original_key
+        monkeypatch.setattr(static_routes, "_STATIC_DIR", real_path.parent)
+
+
 # --- Prometheus /metrics ---
 
 

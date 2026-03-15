@@ -614,3 +614,18 @@ def test_migration_005_client_type_index():
     conn = get_db()
     indexes = [r[1] for r in conn.execute("PRAGMA index_list(usage_log)").fetchall()]
     assert "idx_usage_log_client_type" in indexes
+
+
+def test_migration_010_signup_columns_exist():
+    """Migration 010 should add all 9 first-touch attribution columns to api_keys."""
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(api_keys)").fetchall()]
+    expected = [
+        "utm_term", "utm_content",
+        "first_landing_path", "first_referrer",
+        "first_utm_source", "first_utm_medium", "first_utm_campaign",
+        "first_utm_term", "first_utm_content",
+    ]
+    for col in expected:
+        assert col in cols, f"Column '{col}' missing from api_keys (migration 010)"

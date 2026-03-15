@@ -1,5 +1,6 @@
 """Admin analytics endpoints for API usage monitoring."""
 
+import datetime
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -42,7 +43,12 @@ _PRODUCT_SQL = (
     "endpoint LIKE '/api/v1/mempool%' OR "
     "endpoint LIKE '/api/v1/blocks%' OR "
     "endpoint LIKE '/api/v1/network%' OR "
-    "endpoint LIKE '/api/v1/mining%'"
+    "endpoint LIKE '/api/v1/mining%' OR "
+    "endpoint LIKE '/api/v1/transactions%' OR "
+    "endpoint LIKE '/api/v1/address%' OR "
+    "endpoint LIKE '/api/v1/supply%' OR "
+    "endpoint LIKE '/api/v1/stats%' OR "
+    "endpoint LIKE '/api/v1/prices%'"
     ")"
 )
 
@@ -113,7 +119,6 @@ def analytics_public():
 
     min_ts = query_scalar("SELECT MIN(ts) FROM usage_log")
     if min_ts:
-        import datetime
         first_ts = datetime.datetime.fromisoformat(min_ts)
         now = datetime.datetime.now(datetime.timezone.utc)
         if first_ts.tzinfo is None:

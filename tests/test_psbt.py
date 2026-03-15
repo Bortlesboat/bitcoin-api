@@ -211,53 +211,43 @@ class TestPsbtEndpointAuth:
 
 def test_psbt_analyze_vulnerable(authed_client):
     """End-to-end: authed request returns vulnerable assessment."""
+    import pytest
     from bitcoin_api.config import settings
 
-    original = settings.enable_psbt_router
-    settings.enable_psbt_router = True
-    try:
-        psbt_hex = _build_psbt([0x83]).hex()
-        resp = authed_client.post("/api/v1/psbt/analyze", json={"psbt_hex": psbt_hex})
-        # 404 if feature flag wasn't wired at app startup (registered once at import)
-        if resp.status_code == 404:
-            return
-        assert resp.status_code == 200
-        body = resp.json()
-        assert "data" in body
-        assert body["data"]["overall_risk"] == "vulnerable"
-        assert len(body["data"]["inputs"]) == 1
-        assert "meta" in body
-    finally:
-        settings.enable_psbt_router = original
+    if not settings.enable_psbt_router:
+        pytest.skip("PSBT router disabled (enable_psbt_router=False)")
+
+    psbt_hex = _build_psbt([0x83]).hex()
+    resp = authed_client.post("/api/v1/psbt/analyze", json={"psbt_hex": psbt_hex})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "data" in body
+    assert body["data"]["overall_risk"] == "vulnerable"
+    assert len(body["data"]["inputs"]) == 1
+    assert "meta" in body
 
 
 def test_psbt_analyze_protected(authed_client):
     """End-to-end: protected listing returns protected assessment."""
+    import pytest
     from bitcoin_api.config import settings
 
-    original = settings.enable_psbt_router
-    settings.enable_psbt_router = True
-    try:
-        psbt_hex = _build_psbt([0x83], [_make_2of2_script()]).hex()
-        resp = authed_client.post("/api/v1/psbt/analyze", json={"psbt_hex": psbt_hex})
-        if resp.status_code == 404:
-            return
-        assert resp.status_code == 200
-        assert resp.json()["data"]["overall_risk"] == "protected"
-    finally:
-        settings.enable_psbt_router = original
+    if not settings.enable_psbt_router:
+        pytest.skip("PSBT router disabled (enable_psbt_router=False)")
+
+    psbt_hex = _build_psbt([0x83], [_make_2of2_script()]).hex()
+    resp = authed_client.post("/api/v1/psbt/analyze", json={"psbt_hex": psbt_hex})
+    assert resp.status_code == 200
+    assert resp.json()["data"]["overall_risk"] == "protected"
 
 
 def test_psbt_analyze_invalid_hex(authed_client):
     """End-to-end: malformed hex returns 422."""
+    import pytest
     from bitcoin_api.config import settings
 
-    original = settings.enable_psbt_router
-    settings.enable_psbt_router = True
-    try:
-        resp = authed_client.post("/api/v1/psbt/analyze", json={"psbt_hex": "deadbeefzz"})
-        if resp.status_code == 404:
-            return
-        assert resp.status_code == 422
-    finally:
-        settings.enable_psbt_router = original
+    if not settings.enable_psbt_router:
+        pytest.skip("PSBT router disabled (enable_psbt_router=False)")
+
+    resp = authed_client.post("/api/v1/psbt/analyze", json={"psbt_hex": "deadbeefzz"})
+    assert resp.status_code == 422
