@@ -17,7 +17,12 @@ from ..dependencies import get_rpc
 router = APIRouter(prefix="/stream", tags=["Streams"])
 
 _active_whale_streams: int = 0
+_active_block_streams: int = 0
+_active_fee_streams: int = 0
 _MAX_WHALE_STREAMS: int = 20
+_MAX_BLOCK_STREAMS: int = 50
+_MAX_FEE_STREAMS: int = 50
+_MAX_STREAM_DURATION_SECONDS: int = 3600  # 1 hour max per connection
 
 
 async def _block_event_generator(rpc: BitcoinRPC):
@@ -29,7 +34,8 @@ async def _block_event_generator(rpc: BitcoinRPC):
 
     yield f"event: connected\ndata: {json.dumps({'height': last_height})}\n\n"
 
-    while True:
+    start_time = time.time()
+    while time.time() - start_time < _MAX_STREAM_DURATION_SECONDS:
         await asyncio.sleep(poll_interval)
 
         try:
@@ -53,6 +59,8 @@ async def _block_event_generator(rpc: BitcoinRPC):
             yield ": keepalive\n\n"
             last_keepalive = time.time()
 
+    yield f"event: timeout\ndata: {json.dumps({'reason': 'max_duration_reached', 'duration_seconds': _MAX_STREAM_DURATION_SECONDS})}\n\n"
+
 
 async def _fee_event_generator(rpc: BitcoinRPC):
     """Yield SSE fee updates every 30 seconds."""
@@ -62,7 +70,8 @@ async def _fee_event_generator(rpc: BitcoinRPC):
 
     yield f"event: connected\ndata: {json.dumps({'status': 'ok'})}\n\n"
 
-    while True:
+    start_time = time.time()
+    while time.time() - start_time < _MAX_STREAM_DURATION_SECONDS:
         await asyncio.sleep(fee_interval)
 
         try:
@@ -81,12 +90,41 @@ async def _fee_event_generator(rpc: BitcoinRPC):
             yield ": keepalive\n\n"
             last_keepalive = time.time()
 
+    yield f"event: timeout\ndata: {json.dumps({'reason': 'max_duration_reached', 'duration_seconds': _MAX_STREAM_DURATION_SECONDS})}\n\n"
+
+
+async def _tracked_block_generator(rpc: BitcoinRPC):
+    global _active_block_streams
+    _active_block_streams += 1
+    try:
+        async for event in _block_event_generator(rpc):
+            yield event
+    finally:
+        _active_block_streams -= 1
+
+
+async def _tracked_fee_generator(rpc: BitcoinRPC):
+    global _active_fee_streams
+    _active_fee_streams += 1
+    try:
+        async for event in _fee_event_generator(rpc):
+            yield event
+    finally:
+        _active_fee_streams -= 1
+
 
 @router.get("/blocks")
 async def stream_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
     """SSE stream of new block events. Connect with `curl -N`."""
+    global _active_block_streams
+    if _active_block_streams >= _MAX_BLOCK_STREAMS:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"error": {"status": 503, "title": "Service Unavailable", "detail": "Max block stream connections reached. Try again later."}},
+        )
     return StreamingResponse(
-        _block_event_generator(rpc),
+        _tracked_block_generator(rpc),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -99,8 +137,15 @@ async def stream_blocks(rpc: BitcoinRPC = Depends(get_rpc)):
 @router.get("/fees")
 async def stream_fees(rpc: BitcoinRPC = Depends(get_rpc)):
     """SSE stream of fee rate updates every 30 seconds. Connect with `curl -N`."""
+    global _active_fee_streams
+    if _active_fee_streams >= _MAX_FEE_STREAMS:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"error": {"status": 503, "title": "Service Unavailable", "detail": "Max fee stream connections reached. Try again later."}},
+        )
     return StreamingResponse(
-        _fee_event_generator(rpc),
+        _tracked_fee_generator(rpc),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -120,7 +165,8 @@ async def _whale_tx_generator(rpc: BitcoinRPC, min_btc: float):
 
     yield f"event: connected\ndata: {json.dumps({'min_btc': min_btc})}\n\n"
 
-    while True:
+    start_time = time.time()
+    while time.time() - start_time < _MAX_STREAM_DURATION_SECONDS:
         await asyncio.sleep(poll_interval)
 
         try:
@@ -154,6 +200,8 @@ async def _whale_tx_generator(rpc: BitcoinRPC, min_btc: float):
         if time.time() - last_keepalive >= keepalive_interval:
             yield ": keepalive\n\n"
             last_keepalive = time.time()
+
+    yield f"event: timeout\ndata: {json.dumps({'reason': 'max_duration_reached', 'duration_seconds': _MAX_STREAM_DURATION_SECONDS})}\n\n"
 
 
 async def _tracked_whale_generator(rpc: BitcoinRPC, min_btc: float):

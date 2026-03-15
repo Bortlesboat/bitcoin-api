@@ -195,6 +195,25 @@ try:
 except Exception:
     log.exception("Failed to mount MCP server — continuing without it")
 
+# --- Redirect aliases for commonly-guessed singular endpoint paths ---
+from fastapi.responses import RedirectResponse as _RR  # noqa: E402
+
+
+@app.get(f"{PREFIX}/price", include_in_schema=False)
+def redirect_price():
+    return _RR(url=f"{PREFIX}/prices", status_code=308)
+
+
+@app.get(f"{PREFIX}/block/latest", include_in_schema=False)
+def redirect_block_latest():
+    return _RR(url=f"{PREFIX}/blocks/latest", status_code=308)
+
+
+@app.get(f"{PREFIX}/block/tip", include_in_schema=False)
+def redirect_block_tip():
+    return _RR(url=f"{PREFIX}/blocks/tip/height", status_code=308)
+
+
 register_static_routes(app)
 
 

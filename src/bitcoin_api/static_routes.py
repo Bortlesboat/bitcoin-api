@@ -3,7 +3,7 @@
 import secrets
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Cookie, FastAPI, Header, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from . import __version__
@@ -123,31 +123,52 @@ def register_static_routes(app: FastAPI):
             return Response(p.read_bytes(), media_type=_IMAGE_TYPES[suffix])
         return _serve_404()
 
+    def _check_admin_key(
+        key: str = Query(""),
+        x_admin_key: str | None = Header(None),
+        admin_token: str | None = Cookie(None),
+    ) -> str:
+        """Extract admin key from header, cookie, or query param (in that order)."""
+        return x_admin_key or admin_token or key
+
     @app.get("/admin/dashboard", include_in_schema=False)
-    def admin_dashboard(key: str = Query("")):
-        """Admin analytics dashboard — requires admin key via ?key= query param."""
+    def admin_dashboard(
+        key: str = Query(""),
+        x_admin_key: str | None = Header(None),
+        admin_token: str | None = Cookie(None),
+    ):
+        """Admin analytics dashboard — accepts X-Admin-Key header, admin_token cookie, or ?key= query param."""
         from .config import settings
         if not settings.admin_api_key:
             raise HTTPException(status_code=403, detail="Admin not configured")
-        if not key or not secrets.compare_digest(key, settings.admin_api_key.get_secret_value()):
+        resolved_key = _check_admin_key(key, x_admin_key, admin_token)
+        if not resolved_key or not secrets.compare_digest(resolved_key, settings.admin_api_key.get_secret_value()):
             raise HTTPException(status_code=403, detail="Invalid admin key")
         p = _STATIC_DIR / "admin-dashboard.html"
-        if p.exists():
-            return _render_html(p) or _serve_404()
-        return _serve_404()
+        response = _render_html(p) or _serve_404()
+        # Set cookie so subsequent page loads don't need the key in the URL
+        if isinstance(response, HTMLResponse) and not admin_token:
+            response.set_cookie("admin_token", resolved_key, httponly=True, secure=True, samesite="strict", max_age=86400)
+        return response
 
     @app.get("/admin/founder", include_in_schema=False)
-    def founder_dashboard(key: str = Query("")):
-        """Founder analytics dashboard — requires admin key via ?key= query param."""
+    def founder_dashboard(
+        key: str = Query(""),
+        x_admin_key: str | None = Header(None),
+        admin_token: str | None = Cookie(None),
+    ):
+        """Founder analytics dashboard — accepts X-Admin-Key header, admin_token cookie, or ?key= query param."""
         from .config import settings
         if not settings.admin_api_key:
             raise HTTPException(status_code=403, detail="Admin not configured")
-        if not key or not secrets.compare_digest(key, settings.admin_api_key.get_secret_value()):
+        resolved_key = _check_admin_key(key, x_admin_key, admin_token)
+        if not resolved_key or not secrets.compare_digest(resolved_key, settings.admin_api_key.get_secret_value()):
             raise HTTPException(status_code=403, detail="Invalid admin key")
         p = _STATIC_DIR / "founder-dashboard.html"
-        if p.exists():
-            return _render_html(p) or _serve_404()
-        return _serve_404()
+        response = _render_html(p) or _serve_404()
+        if isinstance(response, HTMLResponse) and not admin_token:
+            response.set_cookie("admin_token", resolved_key, httponly=True, secure=True, samesite="strict", max_age=86400)
+        return response
 
     @app.get("/healthz", include_in_schema=False)
     def healthz():

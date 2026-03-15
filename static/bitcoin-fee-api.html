@@ -13,6 +13,7 @@
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BTCOrangeCoin">
 <meta name="twitter:title" content="Bitcoin Fee API - Know When to Send">
 <meta name="twitter:description" content="Bitcoin fee intelligence API for apps and AI agents. Get live sat/vB recommendations, mempool context, and transaction cost estimates so you know when to send and when to wait.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
@@ -81,6 +82,10 @@
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
   code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+  /* Sync Warning Banner */
+  .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
+  .sync-banner a { color: #FFB347; text-decoration: underline; }
 
   /* Layout */
   .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
@@ -185,6 +190,11 @@
     <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
+
+<!-- Sync Warning Banner -->
+<div class="sync-banner" id="sync-banner">
+  Node is syncing (<span id="sync-pct">--</span>% complete). Fee data may be inaccurate. <a href="/api/v1/status">View status</a>
+</div>
 
 <!-- Header -->
 <div class="page-header">
@@ -581,6 +591,23 @@
   } catch (e) {
     /* Ignore localStorage failures */
   }
+})();
+
+/* Sync Warning Banner */
+(function() {
+  fetch('/api/v1/status')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data || json;
+      if (d.syncing) {
+        var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
+        var el = document.getElementById('sync-pct');
+        if (el) el.textContent = pct;
+        var banner = document.getElementById('sync-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    })
+    .catch(function() {});
 })();
 </script>
 

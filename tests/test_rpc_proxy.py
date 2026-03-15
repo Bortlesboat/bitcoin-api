@@ -31,6 +31,8 @@ def test_proxy_blocks_disallowed_method(client):
     assert resp.status_code == 403
     body = resp.json()
     assert "not allowed" in body["error"]["message"]
+    # Allowlist should NOT be leaked in the error message
+    assert "getblockchaininfo" not in body["error"]["message"]
 
 
 def test_proxy_blocks_wallet_methods(client):
@@ -42,19 +44,44 @@ def test_proxy_blocks_wallet_methods(client):
 
 
 def test_proxy_handles_rpc_error(client, mock_rpc):
+    """Non-RPC exceptions (no .code attr) are sanitized to a generic message."""
     mock_rpc.getrawtransaction.side_effect = Exception("No such mempool or blockchain transaction")
     resp = client.post("/api/v1/rpc", json={
         "jsonrpc": "2.0", "id": 5, "method": "getrawtransaction", "params": ["deadbeef"]
     })
     assert resp.status_code == 500
     body = resp.json()
-    assert "No such mempool" in body["error"]["message"]
+    assert body["error"]["message"] == "Internal RPC error"
 
 
-def test_proxy_sendrawtransaction_allowed(client, mock_rpc):
-    """sendrawtransaction is the one write operation we allow."""
-    mock_rpc.sendrawtransaction.return_value = "abc123txid"
+def test_proxy_handles_rpc_error_with_code(client, mock_rpc):
+    """RPC errors (with .code attr) pass through their message."""
+    class RPCError(Exception):
+        def __init__(self, msg, code):
+            super().__init__(msg)
+            self.code = code
+    mock_rpc.getrawtransaction.side_effect = RPCError("No such mempool or blockchain transaction", -5)
     resp = client.post("/api/v1/rpc", json={
+        "jsonrpc": "2.0", "id": 5, "method": "getrawtransaction", "params": ["deadbeef"]
+    })
+    assert resp.status_code == 500
+    body = resp.json()
+    assert "No such mempool" in body["error"]["message"]
+    assert body["error"]["code"] == -5
+
+
+def test_proxy_sendrawtransaction_requires_auth(client, mock_rpc):
+    """sendrawtransaction requires an API key (anonymous is rejected)."""
+    resp = client.post("/api/v1/rpc", json={
+        "jsonrpc": "2.0", "id": 6, "method": "sendrawtransaction", "params": ["0200..."]
+    })
+    assert resp.status_code == 403
+
+
+def test_proxy_sendrawtransaction_allowed_with_auth(authed_client, mock_rpc):
+    """sendrawtransaction works with a valid API key."""
+    mock_rpc.sendrawtransaction.return_value = "abc123txid"
+    resp = authed_client.post("/api/v1/rpc", json={
         "jsonrpc": "2.0", "id": 6, "method": "sendrawtransaction", "params": ["0200..."]
     })
     assert resp.status_code == 200

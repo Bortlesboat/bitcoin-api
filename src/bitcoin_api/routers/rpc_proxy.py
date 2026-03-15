@@ -3,11 +3,12 @@
 import json
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from bitcoinlib_rpc import BitcoinRPC
 
+from ..auth import require_api_key
 from ..dependencies import get_rpc
 
 log = logging.getLogger(__name__)
@@ -90,12 +91,15 @@ async def rpc_proxy(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
                 "id": req_id,
                 "error": {
                     "code": -32601,
-                    "message": f"Method '{method}' not allowed. "
-                    f"Allowed: {', '.join(sorted(ALLOWED_METHODS))}",
+                    "message": f"Method '{method}' is not allowed. See /docs for available RPC methods.",
                 },
             },
             status_code=403,
         )
+
+    # sendrawtransaction requires authentication (matches /broadcast behavior)
+    if method == "sendrawtransaction":
+        require_api_key(request, "sendrawtransaction via RPC proxy")
 
     try:
         # BitcoinRPC uses __getattr__ to proxy any method name
@@ -111,13 +115,14 @@ async def rpc_proxy(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
 
     except Exception as e:
         log.warning("RPC proxy error for %s: %s", method, e)
-        # Extract RPC error code if available
         code = getattr(e, "code", -32603)
+        # Only expose RPC error messages (they have a .code attr); sanitize others
+        msg = str(e) if hasattr(e, "code") else "Internal RPC error"
         return JSONResponse(
             {
                 "jsonrpc": "2.0",
                 "id": req_id,
-                "error": {"code": code, "message": str(e)},
+                "error": {"code": code, "message": msg},
             },
             status_code=500,
         )

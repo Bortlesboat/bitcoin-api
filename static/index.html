@@ -16,6 +16,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BTCOrangeCoin">
 <meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
 <meta name="twitter:title" content="Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents">
 <meta name="twitter:description" content="Know when to send Bitcoin and when to wait. Live fee recommendations, mempool context, and transaction cost estimates for apps and AI agents.">
@@ -76,6 +77,10 @@
   .btn-secondary { background: transparent; border: 1px solid var(--border-visible); color: var(--text); }
   .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
   .hero-code { margin-top: 56px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+  /* Sync Warning Banner */
+  .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
+  .sync-banner a { color: #FFB347; text-decoration: underline; }
 
   /* Live Stats Bar */
   .stats-bar { display: flex; justify-content: center; gap: 48px; padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
@@ -409,6 +414,11 @@
     <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="uptime-badge" style="text-decoration:none;"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>Live</a>
   </div>
 </nav>
+
+<!-- Sync Warning Banner (shown when node is syncing) -->
+<div class="sync-banner" id="sync-banner">
+  Node is syncing (<span id="sync-pct">--</span>% complete). Fee and mempool data may be inaccurate. <a href="/api/v1/status">View status</a>
+</div>
 
 <!-- Hero -->
 <section class="hero">
@@ -1066,6 +1076,23 @@ function handleRegister(e) {
   });
   return false;
 }
+
+/* Sync Warning Banner */
+(function() {
+  fetch('/api/v1/status')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data || json;
+      if (d.syncing) {
+        var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
+        var el = document.getElementById('sync-pct');
+        if (el) el.textContent = pct;
+        var banner = document.getElementById('sync-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    })
+    .catch(function() { /* silently ignore */ });
+})();
 
 /* Live Stats */
 (function() {
