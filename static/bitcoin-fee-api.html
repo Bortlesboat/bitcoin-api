@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcoin Fee API — Real-Time Fee Estimation in sat/vB</title>
-<meta name="description" content="Get real-time Bitcoin fee estimates in sat/vB from 7 dedicated endpoints. Fee recommendations, landscape analysis, historical rates, mempool block projections, and transaction cost estimation — all from your own node.">
+<title>Bitcoin Fee API - Know When to Send</title>
+<meta name="description" content="Bitcoin fee intelligence API for apps and AI agents. Get live sat/vB recommendations, mempool context, and transaction cost estimates so you know when to send and when to wait.">
 <meta name="keywords" content="bitcoin fee api, bitcoin fee estimation api, bitcoin transaction fee api, sat/vb api, bitcoin fee rate, bitcoin mempool fees, bitcoin fee estimator api">
 <link rel="canonical" href="https://bitcoinsapi.com/bitcoin-fee-api">
-<meta property="og:title" content="Bitcoin Fee API — Real-Time Fee Intelligence">
-<meta property="og:description" content="Get real-time Bitcoin fee estimates in sat/vB from 7 dedicated endpoints. Fee recommendations, landscape analysis, historical rates, mempool block projections, and transaction cost estimation — all from your own node.">
+<meta property="og:title" content="Bitcoin Fee API - Know When to Send">
+<meta property="og:description" content="Bitcoin fee intelligence API for apps and AI agents. Get live sat/vB recommendations, mempool context, and transaction cost estimates so you know when to send and when to wait.">
 <meta property="og:url" content="https://bitcoinsapi.com/bitcoin-fee-api">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Bitcoin Fee API — Real-Time Fee Intelligence">
-<meta name="twitter:description" content="Get real-time Bitcoin fee estimates in sat/vB from 7 dedicated endpoints. Fee recommendations, landscape analysis, historical rates, mempool block projections, and transaction cost estimation — all from your own node.">
+<meta name="twitter:title" content="Bitcoin Fee API - Know When to Send">
+<meta name="twitter:description" content="Bitcoin fee intelligence API for apps and AI agents. Get live sat/vB recommendations, mempool context, and transaction cost estimates so you know when to send and when to wait.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin Fee API","item":"https://bitcoinsapi.com/bitcoin-fee-api"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-fee-api/#article","name":"Bitcoin Fee API — Real-Time Fee Estimation in sat/vB","description":"Get real-time Bitcoin fee estimates in sat/vB from 7 dedicated endpoints. Fee recommendations, landscape analysis, historical rates, mempool block projections, and transaction cost estimation — all from your own node.","url":"https://bitcoinsapi.com/bitcoin-fee-api","datePublished":"2026-03-08","dateModified":"2026-03-09","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin Fee API","item":"https://bitcoinsapi.com/bitcoin-fee-api"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-fee-api/#article","name":"Bitcoin Fee API - Real-Time Fee Estimation in sat/vB","description":"Bitcoin fee intelligence API for apps and AI agents. Get live sat/vB recommendations, mempool context, and transaction cost estimates so you know when to send and when to wait.","url":"https://bitcoinsapi.com/bitcoin-fee-api","datePublished":"2026-03-08","dateModified":"2026-03-12","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
 </script>
 
 <script type="application/ld+json">
@@ -58,7 +58,7 @@
       "name": "Is there a free Bitcoin fee estimation API?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Several free options exist. Mempool.space offers a public fee estimation endpoint. Satoshi API is free and open source — you run it on your own node with no rate limits and no third-party dependencies. Bitcoin Core itself provides the estimatesmartfee RPC, though it returns raw BTC/kVB values without analysis."
+        "text": "Several free options exist. Mempool.space offers a public fee estimation endpoint. Satoshi API offers a free hosted tier for testing and can also be self-hosted on your own node for full control. Bitcoin Core itself provides the estimatesmartfee RPC, though it returns raw BTC/kVB values without analysis."
       }
     }
   ]
@@ -77,10 +77,10 @@
     --green: #3fb950;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
 
   /* Layout */
   .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
@@ -180,9 +180,8 @@
   <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
   <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
     <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
-    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
-    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
     <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="/#get-api-key" style="color:#ccc;text-decoration:none;">Get Free API Key</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
 </nav>
@@ -190,9 +189,13 @@
 <!-- Header -->
 <div class="page-header">
   <div class="container">
-    <h1>Bitcoin <span>Fee API</span> — Real-Time Estimation in sat/vB</h1>
-    <p class="subtitle">Accurate fee estimation is critical for Bitcoin applications. Satoshi API provides 7 fee-related endpoints that analyze Bitcoin Core's fee data and return human-readable recommendations in sat/vB.</p>
-    <p class="meta" style="color: var(--muted); font-size: 0.9em; margin-top: 12px;">Last verified: March 2026</p>
+    <h1>Bitcoin <span>Fee API</span> — Know When to Send</h1>
+    <p class="subtitle">Satoshi API gives apps and AI agents live fee recommendations, mempool context, and transaction cost estimates in sat/vB so they can decide whether to send now or wait for a cheaper window.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+      <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Try the API</a>
+      <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+    </div>
+    <p class="meta" style="color: var(--muted); font-size: 0.9em; margin-top: 12px;">Hosted API is free for basic testing. Self-host for unlimited use and full privacy.</p>
   </div>
 </div>
 
@@ -200,7 +203,7 @@
 <section>
   <div class="container">
     <h2 class="section-title">Fee Endpoints</h2>
-    <p class="section-subtitle">Seven endpoints covering every fee estimation use case — from simple recommendations to historical analysis and mempool projections.</p>
+    <p class="section-subtitle">Seven endpoints for the full fee decision loop — current recommendations, mempool pressure, historical context, and transaction cost estimation.</p>
 
     <div class="endpoint-card">
       <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees</span></div>
@@ -309,11 +312,11 @@
   </div>
 </section>
 
-<!-- Live Example -->
+<!-- Example Response -->
 <section>
   <div class="container prose">
-    <h2>Live Example</h2>
-    <p>Query the fee recommendation endpoint on the live instance. No API key required for GET requests.</p>
+    <h2>Example Response</h2>
+    <p>Query the fee recommendation endpoint on the live instance. No API key is required for GET requests, so you can check the current send window immediately. The sample below was captured from the live API.</p>
 
     <div class="code-block">
       <pre><span class="comment"># Get recommended fee rates from the live API</span>
@@ -325,21 +328,21 @@
     <div class="code-block">
       <pre>{
   "data": {
-    "recommendation": "Fees are moderate. Medium priority recommended.",
+    "recommendation": "Fees are very low. 1.0 sat/vB should confirm within a day.",
     "estimates": {
-      "high":   { "sat_per_vb": 14.5, "blocks": 1 },
-      "medium": { "sat_per_vb": 8.2,  "blocks": 6 },
-      "low":    { "sat_per_vb": 3.1,  "blocks": 24 }
-    },
-    "fee_landscape": {
-      "spread": 11.4,
-      "urgency_premium": "76.8%"
+      "1": 2.133,
+      "3": 1.2,
+      "6": 1.134,
+      "25": 1.0,
+      "144": 1.0
     }
   },
   "meta": {
-    "timestamp": "2026-03-07T14:22:01Z",
+    "timestamp": "2026-03-12T03:04:32Z",
+    "node_height": 940339,
+    "chain": "main",
     "cached": true,
-    "cache_age_seconds": 4
+    "cache_age_seconds": 0
   }
 }</pre>
     </div>
@@ -355,12 +358,12 @@
     <p>Satoshi API sits on top of your own Bitcoin Core node. When a fee endpoint is called, the API:</p>
     <ol>
       <li><strong>Calls <code>estimatesmartfee</code></strong> for multiple confirmation targets (1, 3, 6, 12, 24, 48, 144, 504, 1008 blocks), collecting the raw BTC/kVB estimates from your node.</li>
-      <li><strong>Converts to sat/vB</strong> — the standard unit developers and wallets actually use. No more manual BTC/kVB-to-sat/vB math.</li>
-      <li><strong>Analyzes the fee landscape</strong> — calculates the spread between high and low priority, the urgency premium percentage, and the congestion level based on mempool state.</li>
-      <li><strong>Returns structured recommendations</strong> — plain-language advice alongside the raw numbers, so both humans and machines can consume the data.</li>
+      <li><strong>Converts to sat/vB</strong> - the standard unit developers and wallets actually use. No more manual BTC/kVB-to-sat/vB math.</li>
+      <li><strong>Analyzes the fee landscape</strong> - calculates the spread between high and low priority, the urgency premium percentage, and the congestion level based on mempool state.</li>
+      <li><strong>Returns structured recommendations</strong> - plain-language advice alongside the raw numbers, so both humans and machines can consume the data.</li>
     </ol>
-    <p>Smart caching refreshes data every 10 seconds. This means rapid successive requests are served from cache (sub-millisecond), while the underlying data never goes stale. The cache is reorg-aware — if a block reorganization is detected, cached data is invalidated immediately.</p>
-    <p>Because the API runs on your own node, there is no third-party dependency. Your fee queries never leave your infrastructure. No rate limits, no API keys required for reads, no vendor lock-in.</p>
+    <p>Smart caching refreshes data every 10 seconds. This means rapid successive requests are served from cache (sub-millisecond), while the underlying data never goes stale. The cache is reorg-aware - if a block reorganization is detected, cached data is invalidated immediately.</p>
+    <p>Self-hosting keeps your fee queries on your own infrastructure with no vendor lock-in. If you want the fastest path, the hosted API is free for testing and easy onboarding.</p>
   </div>
 </section>
 
@@ -477,7 +480,7 @@
 <section>
   <div class="container prose">
     <h2>Get Started</h2>
-    <p>Satoshi API is open source and installable via pip. Point it at any Bitcoin Core node and all 7 fee endpoints are live in under a minute.</p>
+    <p>Satoshi API is open source and installable via pip. Point it at any Bitcoin Core node and you can answer "should I send now or wait?" in under a minute.</p>
 
     <div class="code-block">
       <pre><span class="comment"># Install from PyPI</span>
@@ -505,9 +508,18 @@
 
     <div class="cta-box">
       <h3>Full API Documentation</h3>
-      <p>Interactive Swagger docs with all endpoints, request/response schemas, and try-it-live buttons.</p>
+      <p>Interactive Swagger docs with all endpoints, request/response schemas, and try-it-live buttons for your fee workflow.</p>
       <p><a href="/docs">bitcoinsapi.com/docs</a></p>
+      <p>Want to help shape the product? Be an early tester and send feedback via <a href="https://github.com/Bortlesboat/bitcoin-api/issues" target="_blank" rel="noopener noreferrer">GitHub issues</a> or the <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord community</a>.</p>
     </div>
+    <div class="cta-box" style="text-align: left;">
+      <h3>How this saves money in practice</h3>
+      <p>Using the live numbers above, a typical 140 vB transaction would cost about <strong>299 sats</strong> at the next-block rate of <strong>2.133 sat/vB</strong>.</p>
+      <p>If that payment is not urgent and you wait about an hour, the 6-block rate of <strong>1.134 sat/vB</strong> drops the same transaction to about <strong>159 sats</strong>.</p>
+      <p>That is a savings of roughly <strong>140 sats</strong>, or about <strong>46.8%</strong>, from one better timing decision. Wait for the cheapest window in this example and the fee drops to about <strong>140 sats</strong>, a <strong>53.1%</strong> savings versus sending immediately.</p>
+      <p style="font-size: 0.9em;">This example is based on the live sample captured on March 12, 2026. The exact sats will change with network conditions, but the workflow stays the same: urgent send, wait an hour, or wait for the cheapest window.</p>
+    </div>
+    <p style="font-size: 0.9em;">This page shows a captured example for clarity. Use the live endpoint above or the interactive docs for the current recommendation.</p>
   </div>
 </section>
 
@@ -534,6 +546,43 @@
     </p>
   </div>
 </footer>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (!window.localStorage) return;
+  try {
+    if (!localStorage.getItem('satoshi_first_touch') && (hasAttribution || candidate.referrer)) {
+      localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+    }
+    if (hasAttribution || candidate.referrer) {
+      localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+    }
+  } catch (e) {
+    /* Ignore localStorage failures */
+  }
+})();
+</script>
 
 </body>
 </html>

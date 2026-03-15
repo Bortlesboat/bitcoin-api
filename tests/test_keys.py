@@ -148,6 +148,49 @@ def test_register_captures_utm_params(client):
     assert row["utm_campaign"] == "launch-2026"
 
 
+def test_register_captures_first_touch_attribution(client):
+    """Registration should store first-touch attribution fields when provided."""
+    with patch("bitcoin_api.routers.keys._check_reg_rate_limit", return_value=True), \
+         patch("bitcoin_api.routers.keys.send_welcome_email"), \
+         patch("bitcoin_api.routers.keys.track_registration"):
+        resp = client.post("/api/v1/register", json={
+            "email": "first-touch@example.com",
+            "agreed_to_terms": True,
+            "utm_source": "reddit",
+            "utm_medium": "social",
+            "utm_campaign": "launch-2026",
+            "utm_term": "bitcoin-api",
+            "utm_content": "post-a",
+            "first_landing_path": "/bitcoin-fee-api",
+            "first_referrer": "https://www.reddit.com/r/Bitcoin/comments/example",
+            "first_utm_source": "reddit",
+            "first_utm_medium": "social",
+            "first_utm_campaign": "r_bitcoin_launch",
+            "first_utm_term": "fees",
+            "first_utm_content": "hero-link",
+        })
+    assert resp.status_code == 200
+
+    from bitcoin_api.db import get_db
+    conn = get_db()
+    row = conn.execute(
+        "SELECT utm_term, utm_content, first_landing_path, first_referrer, "
+        "first_utm_source, first_utm_medium, first_utm_campaign, first_utm_term, first_utm_content "
+        "FROM api_keys WHERE email = ?",
+        ("first-touch@example.com",),
+    ).fetchone()
+    assert row is not None
+    assert row["utm_term"] == "bitcoin-api"
+    assert row["utm_content"] == "post-a"
+    assert row["first_landing_path"] == "/bitcoin-fee-api"
+    assert row["first_referrer"] == "https://www.reddit.com/r/Bitcoin/comments/example"
+    assert row["first_utm_source"] == "reddit"
+    assert row["first_utm_medium"] == "social"
+    assert row["first_utm_campaign"] == "r_bitcoin_launch"
+    assert row["first_utm_term"] == "fees"
+    assert row["first_utm_content"] == "hero-link"
+
+
 def test_require_api_key_anonymous_rejected():
     """require_api_key raises 403 for anonymous tier."""
     from unittest.mock import MagicMock

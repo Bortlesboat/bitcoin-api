@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Satoshi API — The Bitcoin API Built for AI Agents</title>
-<meta name="description" content="The first Bitcoin MCP server on the Anthropic Registry. Give your AI agents real-time fee intelligence, mempool data, and transaction tools. Free, open source, self-hostable.">
+<title>Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents</title>
+<meta name="description" content="Know when to send Bitcoin and when to wait. Satoshi API gives apps and AI agents live fee recommendations, mempool context, and transaction cost estimates. Free, open source, self-hostable.">
 <meta name="google-site-verification" content="AD9lQsKgOGRhHn2Lb6LvPs2caMbkUE9igca5A3A726U" />
 <meta name="keywords" content="bitcoin api, bitcoin rest api, free bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
 <link rel="canonical" href="https://bitcoinsapi.com">
-<meta property="og:title" content="Satoshi API — The Bitcoin API Built for AI Agents">
-<meta property="og:description" content="First Bitcoin MCP server on the Anthropic Registry. Fee intelligence that saves money on every transaction. Free, open source.">
+<meta property="og:title" content="Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents">
+<meta property="og:description" content="Know when to send Bitcoin and when to wait. Live fee recommendations, mempool context, and transaction cost estimates for apps and AI agents.">
 <meta property="og:url" content="https://bitcoinsapi.com">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://bitcoinsapi.com/og-image.png">
@@ -17,8 +17,8 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
-<meta name="twitter:title" content="Satoshi API — The Bitcoin API Built for AI Agents">
-<meta name="twitter:description" content="First Bitcoin MCP server on the Anthropic Registry. Fee intelligence that saves money on every transaction. Free, open source.">
+<meta name="twitter:title" content="Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents">
+<meta name="twitter:description" content="Know when to send Bitcoin and when to wait. Live fee recommendations, mempool context, and transaction cost estimates for apps and AI agents.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -156,16 +156,6 @@
   footer a { color: var(--muted); }
   footer a:hover { color: var(--accent); }
 
-  /* Roadmap */
-  .roadmap { max-width: 560px; margin: 48px auto 0; }
-  .roadmap-item { display: flex; gap: 20px; padding: 16px 0; }
-  .roadmap-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
-  .roadmap-dot.now { background: var(--accent); }
-  .roadmap-dot.future { background: var(--dim); }
-  .roadmap-content h4 { font-size: 0.95em; font-weight: 700; margin-bottom: 4px; }
-  .roadmap-content p { font-size: 0.9em; color: var(--muted); }
-  .roadmap-content .dim { color: var(--dim); }
-
   @media (max-width: 600px) {
     .hero h1 { font-size: 2em; letter-spacing: -0.5px; }
     .hero .subtitle { font-size: 1em; }
@@ -233,7 +223,7 @@
       "name": "Satoshi API",
       "url": "https://bitcoinsapi.com",
       "logo": "https://bitcoinsapi.com/og-image.png",
-      "description": "AI-native Bitcoin API. MCP integration on the Anthropic Registry, fee intelligence that saves money on every transaction. Free, open source.",
+      "description": "Bitcoin fee intelligence API for apps and AI agents. Free, open source, and self-hostable.",
       "email": "api@bitcoinsapi.com",
       "contactPoint": {
         "@type": "ContactPoint",
@@ -257,7 +247,7 @@
     {
       "@type": "SoftwareApplication",
       "name": "Satoshi API",
-      "description": "AI-native Bitcoin API with MCP integration on the Anthropic Registry. Fee intelligence that saves money on every transaction, real-time mempool data, and agent-ready tooling. Free, open source, self-hostable.",
+      "description": "Bitcoin fee intelligence API with MCP integration, real-time mempool data, and agent-ready tooling. Free, open source, self-hostable.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Linux, macOS, Windows, Docker",
       "url": "https://bitcoinsapi.com",
@@ -281,17 +271,9 @@
           "priceCurrency": "USD",
           "description": "No node required. 1,000 requests/day, all GET endpoints, no signup needed."
         },
-        {
-          "@type": "Offer",
-          "name": "Pro",
-          "price": "19",
-          "priceCurrency": "USD",
-          "billingDuration": "P1M",
-          "description": "100,000 requests/day, 500 requests/min, POST access, priority support."
-        }
       ],
       "featureList": [
-        "AI agent support via MCP (Anthropic Registry)",
+        "AI agent support via MCP",
         "Fee intelligence: know when to send Bitcoin",
         "Save money on every transaction",
         "Real-time fee streaming (SSE + WebSocket)",
@@ -356,7 +338,7 @@
           "name": "What is Satoshi API?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Satoshi API is an AI-native Bitcoin API — the first Bitcoin MCP server on the Anthropic Registry. It gives AI agents and developers real-time fee intelligence, mempool data, and transaction tools. Fee recommendations save money on every transaction. Free to use, open source, and self-hostable."
+            "text": "Satoshi API is a Bitcoin fee intelligence API for apps and AI agents. It gives developers real-time fee recommendations, mempool data, and transaction tools. Free to use, open source, and self-hostable."
           }
         },
         {
@@ -372,7 +354,7 @@
           "name": "Is Satoshi API free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Self-hosted Satoshi API is free forever under the Apache-2.0 license. The hosted API at bitcoinsapi.com offers a free tier with 1,000 requests/day. A Pro tier at $19/month provides 100,000 requests/day."
+            "text": "Yes. Self-hosted Satoshi API is free forever under the Apache-2.0 license. The hosted API at bitcoinsapi.com offers a free tier with 1,000 requests/day, and a free API key increases that to 10,000 requests/day."
           }
         },
         {
@@ -419,16 +401,11 @@
   <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="links">
     <a href="#why-satoshi">Why Satoshi API</a>
-    <a href="#features">Features</a>
-    <a href="#try-these">Try It</a>
-    <a href="#endpoints">Endpoints</a>
-    <a href="#pricing">Pricing</a>
-    <a href="/guide">Guide</a>
-    <a href="/history">History</a>
-    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
-    <a href="/api-docs">API Docs</a>
+    <a href="/bitcoin-fee-api">Fee API</a>
     <a href="/mcp-setup">MCP Setup</a>
-    <a href="https://discord.com/oauth2/authorize?client_id=1479972638918049895&permissions=2048&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener noreferrer">Discord Bot</a>
+    <a href="/docs">Docs</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="uptime-badge" style="text-decoration:none;"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>Live</a>
   </div>
 </nav>
@@ -436,13 +413,13 @@
 <!-- Hero -->
 <section class="hero">
   <div class="container">
-    <p class="label" style="font-size: 1.1em; color: var(--accent); font-weight: 600; margin-bottom: 8px;">First Bitcoin MCP Server on the Anthropic Registry</p>
-    <p class="label">Give your AI agents real-time Bitcoin data. Free. No signup.</p>
-    <h1>Bitcoin data for <span>AI agents.</span></h1>
-    <p class="subtitle">The Bitcoin API built for the agent era. MCP-native tooling, fee intelligence that saves money on every transaction, and real-time mempool data — so your agents make smart Bitcoin decisions without human babysitting.</p>
+    <p class="label" style="font-size: 1.1em; color: var(--accent); font-weight: 600; margin-bottom: 8px;">Free and open source. Hosted or self-hosted.</p>
+    <p class="label">Bitcoin fee intelligence for apps and AI agents. No signup for basic testing.</p>
+    <h1>Know the cheapest time to <span>send Bitcoin.</span></h1>
+    <p class="subtitle">Satoshi API gives apps and AI agents live fee recommendations, mempool context, and transaction cost estimates so they can answer the only question that matters: send now or wait and save money.</p>
     <div class="cta">
-      <a href="#quickstart" class="btn-primary" onclick="posthog.capture('cta_click', {location:'hero',target:'quickstart'})">Get Started</a>
-      <a href="/docs" class="btn-secondary" onclick="posthog.capture('cta_click', {location:'hero',target:'docs'})">Explore the API</a>
+      <a href="/bitcoin-fee-api" class="btn-primary" onclick="posthog.capture('cta_click', {location:'hero',target:'fee_api'})">Check Live Fees</a>
+      <a href="#get-api-key" class="btn-secondary" onclick="posthog.capture('cta_click', {location:'hero',target:'get_api_key'})">Get Free API Key</a>
     </div>
     <div class="hero-code">
 <pre><code><span style="color: var(--muted)">$ </span>pip install bitcoin-mcp</code></pre>
@@ -451,11 +428,12 @@
           <span style="color: var(--green); font-weight: 600;">You:</span> <span style="color: var(--text);">"Should I send Bitcoin right now?"</span>
         </div>
         <div>
-          <span style="color: var(--accent); font-weight: 600;">Claude:</span> <span style="color: var(--muted);">"Fees are currently low at 4 sat/vB — a standard transaction would cost ~$0.56. This is the cheapest window in the last 12 hours. Send now to save ~60% vs. peak fees."</span>
+          <span style="color: var(--accent); font-weight: 600;">Claude:</span> <span style="color: var(--muted);">"Fees are low right now. I would either send now if it is urgent or wait for the cheaper 1-hour window if it is not. Here are the exact sat/vB options and the cost difference."</span>
         </div>
       </div>
       <div class="live-badge" style="margin-top: 12px;"><span class="pulse"></span> Live from bitcoinsapi.com</div>
 <pre id="live-response"><code id="live-json" style="color: var(--muted);">Loading live fee data...</code></pre>
+      <p style="color: var(--muted); margin-top: 12px; font-size: 0.95em;">Want the same answers inside Claude or your own agent? Pair the API with <a href="/mcp-setup">bitcoin-mcp</a>.</p>
     </div>
   </div>
 </section>
@@ -478,9 +456,9 @@
 <!-- Try These Prompts -->
 <section id="try-these" class="bg-surface">
   <div class="container">
-    <p class="section-label">Try These Prompts</p>
-    <h2 class="section-title">Install the MCP. Ask Claude about Bitcoin. Get answers, not data.</h2>
-    <p class="section-subtitle">Copy any prompt below into Claude Desktop with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> installed. Each one works out of the box.</p>
+    <p class="section-label">For AI Agents</p>
+    <h2 class="section-title">Use the same fee logic inside Claude or your own agent.</h2>
+    <p class="section-subtitle">Copy any prompt below into Claude Desktop with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> installed. These are the highest-value workflows for first-time users.</p>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px;">
 
       <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="What's the current fee environment? Should I send a transaction now or wait for lower fees? How much would I save by waiting?">
@@ -511,23 +489,9 @@
         <p style="color: var(--muted); font-size: 0.85em;">Side-by-side: next block vs. 3 blocks vs. 6 blocks vs. 1 day. Exact sats at each level.</p>
       </div>
 
-      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Decode and explain this transaction in plain English: [paste txid here]">
-        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
-        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Learn</h3>
-        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"Decode this transaction"</p>
-        <p style="color: var(--muted); font-size: 0.85em;">Full breakdown: inputs, outputs, fee rate, SegWit/Taproot flags, script types. Plain English.</p>
-      </div>
-
-      <div class="feature" style="cursor: pointer; position: relative;" onclick="copyPrompt(this)" data-prompt="Analyze the current block template. What transactions are likely in the next block? What's the minimum fee to get in?">
-        <div style="position: absolute; top: 12px; right: 12px; font-size: 0.7em; color: var(--muted); opacity: 0.6;">click to copy</div>
-        <h3 style="color: var(--accent); font-size: 0.85em; font-weight: 600; margin-bottom: 8px;">Predict</h3>
-        <p style="color: var(--text); font-size: 1em; font-weight: 600; margin-bottom: 8px;">"What will the next block look like?"</p>
-        <p style="color: var(--muted); font-size: 0.85em;">Projected next block: tx count, total fees, fee percentiles, and top-paying transactions.</p>
-      </div>
-
     </div>
     <p style="text-align: center; margin-top: 32px;">
-      <a href="https://github.com/Bortlesboat/bitcoin-mcp#recipes" target="_blank" rel="noopener noreferrer" style="font-weight: 600;" onclick="posthog.capture('cta_click', {location:'try_these', target:'mcp_recipes'})">See all 16 recipes &rarr;</a>
+      <a href="/bitcoin-api-for-ai-agents" style="font-weight: 600;" onclick="posthog.capture('cta_click', {location:'try_these', target:'ai_agents_page'})">See the AI agent setup guide &rarr;</a>
     </p>
   </div>
 </section>
@@ -541,11 +505,11 @@
     <div class="features" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
       <div class="feature">
         <h3>Saves Time: AI-Native</h3>
-        <p>First Bitcoin API on the Anthropic MCP Registry. Your AI agents check fees, verify payments, and monitor addresses — no human babysitting a block explorer.</p>
+        <p>Pair Satoshi API with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> so your AI agents can check fees, verify payments, and monitor addresses without custom wrappers.</p>
       </div>
       <div class="feature">
         <h3>Saves Money: Fee Intelligence</h3>
-        <p>"Fees are low. Good time to send." Combines multiple fee targets with mempool state so you never overpay. Every transaction where you wait instead of overpaying = sats saved.</p>
+        <p>"Fees are low. Good time to send." Combines multiple fee targets with mempool state so you never overpay. In the March 12 live example, waiting about an hour cut a 140 vB transaction from 299 sats to 159 sats, a 46.8% savings.</p>
       </div>
       <div class="feature">
         <h3>Saves Money: Self-Hostable</h3>
@@ -561,7 +525,7 @@
     <p class="section-label">The Stack</p>
     <h2 class="section-title">Bitcoin data, agent-ready.</h2>
     <p style="color: var(--muted); max-width: 700px; margin-bottom: 24px;">
-      Bitcoin Core's JSON-RPC was built for humans at a terminal. Satoshi API wraps it in a clean REST layer that AI agents and applications can consume directly — with MCP tooling, fee intelligence, typed responses, and smart caching.
+      Bitcoin Core's JSON-RPC was built for humans at a terminal. Satoshi API wraps it in a clean REST layer that AI agents and applications can consume directly - with MCP tooling, fee intelligence, typed responses, and smart caching.
       Instead of calling <code>estimatesmartfee</code> five times and doing math, your agent gets a single endpoint with human-readable recommendations in sat/vB.
     </p>
     <div class="stack">
@@ -580,16 +544,16 @@
 <section id="features" class="bg-surface">
   <div class="container">
     <p class="section-label">What You Get</p>
-    <h2 class="section-title">Everything Bitcoin Core is missing for agents and apps.</h2>
-    <p class="section-subtitle">MCP tooling, fee intelligence, and production infrastructure.</p>
+    <h2 class="section-title">Everything you need to make a better Bitcoin fee decision.</h2>
+    <p class="section-subtitle">Clear fee recommendations, easy integration, and a path from first call to production use.</p>
     <div class="features">
       <div class="feature">
         <h3>MCP-Native for AI Agents</h3>
-        <p>First Bitcoin API on the Anthropic MCP Registry. Pair with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> to give Claude or GPT direct access to your node via MCP tool calls. Your agents check fees, verify payments, and broadcast transactions.</p>
+        <p>Pair with <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> to give Claude or GPT direct access to live Bitcoin fee and mempool data through MCP tool calls.</p>
       </div>
       <div class="feature">
         <h3>Fee Intelligence</h3>
-        <p>"Send now or wait?" Not just a fee rate — actual recommendations with mempool context. Congestion scores. Block weight analysis. All in sat/vB.</p>
+        <p>"Send now or wait?" Not just a fee rate - actual recommendations with mempool context. Congestion scores. Block weight analysis. All in sat/vB.</p>
       </div>
       <div class="feature">
         <h3>Self-Hosted</h3>
@@ -597,15 +561,11 @@
       </div>
       <div class="feature">
         <h3>Agent-Ready Responses</h3>
-        <p>Every response: <code>{ data, meta }</code>. Every error: <code>{ error }</code>. Request IDs on everything. Consistent and predictable — ideal for agent parsing.</p>
+        <p>Every response: <code>{ data, meta }</code>. Every error: <code>{ error }</code>. Request IDs on everything. Consistent and predictable - ideal for agent parsing.</p>
       </div>
       <div class="feature">
-        <h3>L402 Lightning Payments</h3>
-        <p>Optional <a href="https://docs.lightning.engineering/the-lightning-network/l402" target="_blank" rel="noopener noreferrer">L402</a> support via the <code>bitcoin-api-l402</code> extension package. Pay-per-request via Lightning for Bitcoin-native API access.</p>
-      </div>
-      <div class="feature">
-        <h3>Production Infrastructure</h3>
-        <p>Reorg-aware caching, tiered rate limiting, input validation, API key auth, 421+ tests, Docker support, and Cloudflare Tunnel deployment. Battle-tested so you don't have to be.</p>
+        <h3>Production-Ready API</h3>
+        <p>Reorg-aware caching, tiered rate limiting, input validation, API key auth, Docker support, and a consistent envelope from the first curl call to a real integration.</p>
       </div>
     </div>
   </div>
@@ -646,47 +606,36 @@
 <section id="use-cases">
   <div class="container">
     <p class="section-label">Built For</p>
-    <h2 class="section-title">AI agents, developers, and node operators.</h2>
-    <p class="section-subtitle">Anyone who needs programmatic Bitcoin data that saves money or time.</p>
+    <h2 class="section-title">Built for people making Bitcoin decisions in software.</h2>
+    <p class="section-subtitle">Start with the fee workflow, then expand into payments, mempool analysis, and self-hosted infrastructure.</p>
     <div class="use-cases">
       <div class="use-case">
+        <h3>Wallet and App Developers</h3>
+        <p>Building a wallet, payment processor, or Bitcoin app? Start with fee recommendations, transaction cost estimates, and mempool context before you wire in more advanced flows.</p>
+<pre><code>curl https://bitcoinsapi.com/api/v1/fees/landscape</code></pre>
+      </div>
+      <div class="use-case">
         <h3>AI Agent Builders</h3>
-        <p>Give your AI agents real-time Bitcoin data via MCP. Fee checks, payment verification, address monitoring — all through tool calls, no custom integration code.</p>
-<pre><code><span style="color: var(--muted)"># claude desktop config</span>
+        <p>Give Claude or your own agent a safe, structured way to answer fee questions, compare urgency levels, and explain what is happening in the mempool.</p>
+<pre><code><span style="color: var(--muted)"># Claude Desktop via bitcoin-mcp</span>
 "bitcoin": {
   "command": "bitcoin-mcp",
-  "env": {"SATOSHI_API_URL":
-    "http://localhost:9332"}
+  "env": {"SATOSHI_API_URL": "http://localhost:9332"}
 }</code></pre>
       </div>
       <div class="use-case">
-        <h3>Wallet and App Developers</h3>
-        <p>Building a wallet, payment processor, or Bitcoin app? Fee estimates, broadcast transactions, look up UTXOs. All validated and typed.</p>
-<pre><code>curl -X POST localhost:9332/api/v1/broadcast \
-  -H "X-API-Key: sk_..." \
-  -d '{"hex": "0200000001..."}'</code></pre>
-      </div>
-      <div class="use-case">
         <h3>Node Operators</h3>
-        <p>You run a node already. Check fees, monitor the mempool, build a dashboard. Point at your node, done.</p>
+        <p>You already run Bitcoin Core. Add a cleaner REST layer on top so you can query fees, monitor the mempool, and build dashboards without repeating RPC plumbing.</p>
 <pre><code>curl localhost:9332/api/v1/mempool
 <span style="color: var(--muted)"># Congestion level, fee buckets,
 # next-block minimum fee</span></code></pre>
       </div>
       <div class="use-case">
-        <h3>Data and Analytics</h3>
-        <p>Pull block stats, mining data, and fee trends into your analytics pipeline. JSON responses, consistent format.</p>
+        <h3>Analysts and Educators</h3>
+        <p>Use the live API and docs to explain fee timing, compare urgency levels, and show how mempool pressure changes the cost of a transaction.</p>
 <pre><code>curl localhost:9332/api/v1/mining
 <span style="color: var(--muted)"># Difficulty, hashrate, next
 # retarget height, blocks until</span></code></pre>
-      </div>
-      <div class="use-case">
-        <h3>Privacy-Focused Users</h3>
-        <p>Third-party APIs correlate your address lookups with your IP. Self-hosted means zero data leakage. Query your own node, keep your privacy.</p>
-      </div>
-      <div class="use-case">
-        <h3>Educators and Researchers</h3>
-        <p>Teaching Bitcoin internals? The interactive docs at /docs let students explore blocks, transactions, and the mempool with live data.</p>
       </div>
     </div>
   </div>
@@ -757,10 +706,10 @@
 <section id="quickstart">
   <div class="container">
     <p class="section-label">Get Started</p>
-    <h2 class="section-title">From zero to Bitcoin data in 60 seconds.</h2>
+    <h2 class="section-title">From zero to a better fee decision in 60 seconds.</h2>
 
     <h3 style="margin-top: 40px; margin-bottom: 12px;">Option 1: Use the hosted API (no setup)</h3>
-    <p style="color: var(--muted); margin-bottom: 12px;">No node, no install, no signup. Just start making requests:</p>
+    <p style="color: var(--muted); margin-bottom: 12px;">No node, no install, no signup. Start with the fee endpoints that answer &quot;send now or wait?&quot;:</p>
 <pre><code><span style="color: var(--muted)"># Get current fee recommendations</span>
 curl https://bitcoinsapi.com/api/v1/fees/recommended
 
@@ -811,8 +760,8 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
 <section id="pricing" class="bg-surface">
   <div class="container">
     <p class="section-label">Pricing</p>
-    <h2 class="section-title">Free to explore. Upgrade when you are ready.</h2>
-    <p class="section-subtitle">Start free. No node required. Upgrade when you need more.</p>
+    <h2 class="section-title">Free to start. Self-host when you want full control.</h2>
+    <p class="section-subtitle">The hosted API is the fastest way to try it. Self-hosting is the long-term path if you want unlimited usage and full privacy.</p>
     <div class="pricing-grid">
       <div class="price-card featured">
         <h3>Hosted API</h3>
@@ -838,22 +787,8 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
         </ul>
         <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('pricing_viewed', {tier:'self_hosted'})">View on GitHub</a>
       </div>
-      <!-- Pro tier preserved but hidden until demand materializes -->
-      <div class="price-card" style="display:none">
-        <h3>Pro</h3>
-        <div class="price">$19<span>/mo</span></div>
-        <ul>
-          <li>100,000 requests/day</li>
-          <li>500 requests/min</li>
-          <li>POST access (decode, broadcast)</li>
-          <li>Priority support</li>
-        </ul>
-        <a href="mailto:api@bitcoinsapi.com?subject=Satoshi%20API%20Pro%20Tier" class="btn-secondary" style="display: block; padding: 10px; border-radius: 6px; margin-top: 16px;">Contact Us</a>
-      </div>
     </div>
-    <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">
-      <strong>Enterprise</strong> — Need higher limits? Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> for enterprise pricing.
-    </p>
+    <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">Need higher hosted limits or a specific integration path? Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
   </div>
 </section>
 
@@ -867,9 +802,9 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
         <tr><th>Feature</th><th>Satoshi API</th><th>Raw RPC</th><th>Hosted APIs</th></tr>
       </thead>
       <tbody>
-        <tr><td>AI agent support (MCP)</td><td style="color: var(--green);">On Anthropic Registry</td><td>No</td><td>No</td></tr>
+        <tr><td>AI agent support (MCP)</td><td style="color: var(--green);">Yes, via bitcoin-mcp</td><td>No</td><td>No</td></tr>
         <tr><td>Fee intelligence</td><td style="color: var(--green);">Send now or wait? Congestion scoring</td><td>Raw values only</td><td>Varies</td></tr>
-        <tr><td>Setup time</td><td style="color: var(--green);">3 lines</td><td>Already there</td><td>Sign up + API key</td></tr>
+        <tr><td>Setup time</td><td style="color: var(--green);">Minutes, not hours</td><td>Already there</td><td>Sign up + API key</td></tr>
         <tr><td>Self-hosted</td><td style="color: var(--green);">Yes</td><td>Yes</td><td>No</td></tr>
         <tr><td>Privacy</td><td style="color: var(--green);">Your node, your data</td><td style="color: var(--green);">Your node</td><td>They see your queries</td></tr>
         <tr><td>Caching</td><td style="color: var(--green);">Reorg-aware TTL</td><td>None</td><td>Varies</td></tr>
@@ -882,55 +817,17 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
   </div>
 </section>
 
-<!-- The Road Ahead -->
-<section>
-  <div class="container">
-    <p class="section-label">The Road Ahead</p>
-    <h2 class="section-title">Every next step saves more money or time.</h2>
-    <div class="roadmap">
-      <div class="roadmap-item">
-        <div class="roadmap-dot now"></div>
-        <div class="roadmap-content">
-          <h4>Now &mdash; AI-Native Bitcoin Data</h4>
-          <p>MCP server on the Anthropic Registry. Agents check fees, verify payments, and broadcast transactions.</p>
-        </div>
-      </div>
-      <div class="roadmap-item">
-        <div class="roadmap-dot now"></div>
-        <div class="roadmap-content">
-          <h4>Done &mdash; Fee Intelligence</h4>
-          <p>Know when to send. Stop overpaying. Real-time fee streams and congestion scoring.</p>
-        </div>
-      </div>
-      <div class="roadmap-item">
-        <div class="roadmap-dot future"></div>
-        <div class="roadmap-content">
-          <h4 class="dim">Next &mdash; Fee Alerts &amp; Payment Monitoring</h4>
-          <p class="dim">"Notify me when fees drop below 5 sat/vB." "Tell me when this payment confirms."</p>
-        </div>
-      </div>
-      <div class="roadmap-item">
-        <div class="roadmap-dot future"></div>
-        <div class="roadmap-content">
-          <h4 class="dim">Vision &mdash; DCA Fee Optimizer</h4>
-          <p class="dim">For recurring buys, find the cheapest fee windows automatically.</p>
-        </div>
-      </div>
-    </div>
-    <p style="text-align: center; margin-top: 40px;"><a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer" style="font-weight: 600;">Follow the journey on GitHub &rarr;</a></p>
-  </div>
-</section>
-
 <!-- Bottom CTA -->
 <section class="bottom-cta bg-surface">
   <div class="container">
-    <h2>Give your agents Bitcoin data in 60 seconds.</h2>
-    <p>No signup, no install, no node. MCP-ready or plain REST.</p>
+    <h2>Get a better Bitcoin fee decision in 60 seconds.</h2>
+    <p>No signup, no install, no node. Check live fees now or plug the API into Claude via MCP.</p>
     <div class="cta" style="display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
       <a href="#quickstart" class="btn-primary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('cta_click', {location:'bottom',target:'quickstart'})">Get Started Free</a>
+      <a href="#get-api-key" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('cta_click', {location:'bottom',target:'get_api_key'})">Get Free API Key</a>
       <a href="/docs" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" onclick="posthog.capture('docs_click', {location:'bottom'})">Interactive Docs</a>
-      <a href="https://discord.com/oauth2/authorize?client_id=1479972638918049895&permissions=2048&scope=bot+applications.commands" class="btn-secondary" style="padding: 14px 28px; border-radius: 8px; font-weight: 600;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('cta_click', {location:'bottom',target:'discord-bot'})">Add to Discord</a>
     </div>
+    <p style="color: var(--muted); margin-top: 16px; font-size: 0.95em;">Want to be an early tester? <a href="https://github.com/Bortlesboat/bitcoin-api/issues" target="_blank" rel="noopener noreferrer">Open a GitHub issue</a> or join the <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord community</a> and tell me what is missing, confusing, or broken.</p>
   </div>
 </section>
 
@@ -942,10 +839,9 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
     <p style="margin-top: 12px;">
       <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
       <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
-      <a href="/api-docs">API Docs</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
       <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer">Status</a> &middot;
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a> &middot;
-      <a href="https://github.com/Bortlesboat/satoshi-discord-bot" target="_blank" rel="noopener noreferrer">Discord Bot</a> &middot;
       <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a> &middot;
       <a href="/terms">Terms of Service</a> &middot;
       <a href="/privacy">Privacy Policy</a> &middot;
@@ -995,6 +891,54 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
   }
 })();
 
+function storeAttribution() {
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (!window.localStorage) return;
+  try {
+    var existingFirst = localStorage.getItem('satoshi_first_touch');
+    if (!existingFirst && (hasAttribution || candidate.referrer)) {
+      localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+    }
+    if (hasAttribution || candidate.referrer) {
+      localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+    }
+  } catch (e) {
+    /* Ignore localStorage failures */
+  }
+}
+
+function readStoredAttribution(key) {
+  if (!window.localStorage) return null;
+  try {
+    var raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+storeAttribution();
+
 /* API Key Registration */
 function handleRegister(e) {
   e.preventDefault();
@@ -1010,17 +954,44 @@ function handleRegister(e) {
   var body = { email: email, agreed_to_terms: termsChecked };
   if (label) body.label = label;
 
-  /* Capture UTM params from URL for conversion tracking */
+  /* Capture first-touch and latest-touch attribution for signup tracking */
   var params = new URLSearchParams(window.location.search);
-  if (params.get('utm_source')) body.utm_source = params.get('utm_source');
-  if (params.get('utm_medium')) body.utm_medium = params.get('utm_medium');
-  if (params.get('utm_campaign')) body.utm_campaign = params.get('utm_campaign');
+  var firstTouch = readStoredAttribution('satoshi_first_touch');
+  var lastTouch = readStoredAttribution('satoshi_last_touch');
+  var currentTouch = {
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || ''
+  };
+  var activeTouch = currentTouch.utm_source || currentTouch.utm_medium || currentTouch.utm_campaign || currentTouch.utm_term || currentTouch.utm_content
+    ? currentTouch
+    : (lastTouch || {});
+
+  if (activeTouch.utm_source) body.utm_source = activeTouch.utm_source;
+  if (activeTouch.utm_medium) body.utm_medium = activeTouch.utm_medium;
+  if (activeTouch.utm_campaign) body.utm_campaign = activeTouch.utm_campaign;
+  if (activeTouch.utm_term) body.utm_term = activeTouch.utm_term;
+  if (activeTouch.utm_content) body.utm_content = activeTouch.utm_content;
+
+  if (firstTouch) {
+    if (firstTouch.landing_path) body.first_landing_path = firstTouch.landing_path;
+    if (firstTouch.referrer) body.first_referrer = firstTouch.referrer;
+    if (firstTouch.utm_source) body.first_utm_source = firstTouch.utm_source;
+    if (firstTouch.utm_medium) body.first_utm_medium = firstTouch.utm_medium;
+    if (firstTouch.utm_campaign) body.first_utm_campaign = firstTouch.utm_campaign;
+    if (firstTouch.utm_term) body.first_utm_term = firstTouch.utm_term;
+    if (firstTouch.utm_content) body.first_utm_content = firstTouch.utm_content;
+  }
 
   posthog.capture('registration_submitted', {
     location: 'register_form',
     utm_source: body.utm_source || '',
     utm_medium: body.utm_medium || '',
-    utm_campaign: body.utm_campaign || ''
+    utm_campaign: body.utm_campaign || '',
+    first_utm_source: body.first_utm_source || '',
+    first_landing_path: body.first_landing_path || ''
   });
 
   fetch('/api/v1/register', {

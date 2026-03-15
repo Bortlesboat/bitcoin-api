@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **History Explorer** — 7 new endpoints: `/history/events`, `/history/events/{id}`, `/history/eras`, `/history/eras/{id}`, `/history/concepts`, `/history/concepts/{id}`, `/history/search`
+- **MCP streamable-http transport** — MCP server now mounted at `/mcp` using streamable-http (replaces SSE transport at `/mcp/sse`)
+- **MCP discovery** — `.well-known/mcp/server-card.json` route for MCP server discovery
+- **Smithery listing** — live at smithery.ai/servers/Bortlesboat/bitcoin-mcp
+
+### Changed
+- MCP transport upgraded from SSE (`/mcp/sse`) to streamable-http (`/mcp`)
+- Endpoints: 87 → 95 (84 core + 7 history + 4 indexer)
+- Routers: 24 → 25 (22 core + 3 indexer)
+- Unit tests: 407 → 454 (475 total with 21 e2e)
+
 ## [0.3.3] - 2026-03-08
 
 ### Added

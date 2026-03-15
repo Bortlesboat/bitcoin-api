@@ -9,13 +9,13 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | Fact | Value | Updated |
 |------|-------|---------|
 | **Version** | 0.3.4 | 2026-03-09 |
-| **Endpoints** | 87 total (83 core + 4 indexer) | 2026-03-09 |
-| **Tests** | 407 unit + 21 e2e = 428 total | 2026-03-09 |
-| **Routers** | 24 (21 core + 3 indexer) | 2026-03-09 |
+| **Endpoints** | 95 total (84 core + 7 history + 4 indexer) | 2026-03-09 |
+| **Tests** | 454 unit + 21 e2e = 475 total | 2026-03-09 |
+| **Routers** | 25 (22 core + 3 indexer) | 2026-03-09 |
 | **Live URL** | https://bitcoinsapi.com | — |
 | **Infra cost** | ~$3/mo | 2026-03-08 |
 | **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
-| **Latest release** | v0.3.4 — RPC proxy endpoint for bitcoin-mcp zero-config, 428 tests, 87 endpoints (83 core + 4 indexer), 24 routers (21 core + 3 indexer) | 2026-03-09 |
+| **Latest release** | v0.3.4 — RPC proxy endpoint for bitcoin-mcp zero-config, 475 tests, 95 endpoints (84 core + 7 history + 4 indexer), 25 routers (22 core + 3 indexer) | 2026-03-09 |
 | **MCP tools** | 43 tools, 6 prompts, 7 resources (bitcoin-mcp) | 2026-03-09 |
 | **Launch status** | **LAUNCH SPRINT ACTIVE** — content pipeline loaded, T-0 = Show HN Tuesday | 2026-03-09 |
 | **Open issues** | None critical — legal audit PASS w/ 3 false-positive warnings (static links, not data processors) | 2026-03-09 |
@@ -77,7 +77,7 @@ Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
 | **UX** | Monitor first-user experience. Flag any onboarding friction from HN/Reddit feedback. | T+1 through T+7 |
 | **Finance** | Baseline pre-launch metrics. Track CAC by channel after launch. | T-1, T+7 |
 | **Agent Advocate** | Verify SDK client works against live API. Monitor MCP directory acceptance. | Before T-0, ongoing |
-| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 87 endpoints, 428 tests). Verify cross-doc consistency. | Before T-0 |
+| **Admin Assistant** | Stamp all content with correct counts (43 MCP tools, 95 endpoints, 475 tests). Verify cross-doc consistency. | Before T-0 |
 | **QA** | Run full test suite pre-launch. Verify examples/ code runs. | Before T-0 |
 | **Security** | Monitor for abuse after HN traffic spike. | T+0 through T+3 |
 | **Analytics** | Set up PostHog funnel: visit → register → first call → 3+ calls. | Before T-0 |
@@ -253,8 +253,8 @@ Track the last run of each agent for staleness detection.
 | Marketing | 2026-03-09 | **PASS WITH WARNINGS (7)**: 0 errors, 7 advisory warnings (all false positives: cross-product version refs + technical section endpoint counts). Fixed: 5 errors (82→83 endpoints in 2 drafts, 40→43 MCP tools in 2 files, stale versions in 5 files), plus 8 stale test counts, 4 stale version refs. All content pipeline assets verified accurate. | Marketing Sync | Admin, QA |
 | Security | 2026-03-09 | WARN (8): CSP unsafe-inline, no pip audit — no critical issues | All-Hands | Architect, QA |
 | Architect | 2026-03-09 | WARN (3): AGENT_ROLES numbers stale, MCP endpoint count hardcoded wrong, 3 core modules missing from CLAUDE.md Key Files. 8/10 quality. workers=1 confirmed (rate limit bypass resolved). | Architecture Review | QA, Admin |
-| QA | 2026-03-09 | PASS: 428/428 tests (407 unit + 21 e2e). SOW missing test_rpc_proxy.py — FIXED. No MCP server unit tests (coverage gap). | QA Review | Admin |
-| Analytics | 2026-03-09 | WARN (4): MCP/SSE path not usage-logged, /rpc proxy RPC method not tracked, registration_ip column unused, activation funnel endpoint EXISTS but PostHog funnel not defined. 14 checks passed. | Analytics Review | PM, Architect, Ops |
+| QA | 2026-03-09 | PASS: 475/475 tests (454 unit + 21 e2e). SOW missing test_rpc_proxy.py — FIXED. No MCP server unit tests (coverage gap). | QA Review | Admin |
+| Analytics | 2026-03-09 | WARN (4): MCP path not usage-logged, /rpc proxy RPC method not tracked, registration_ip column unused, activation funnel endpoint EXISTS but PostHog funnel not defined. 14 checks passed. | Analytics Review | PM, Architect, Ops |
 | Ops | 2026-03-09 | WARN (7): no DB backup schedule, unbounded api.log. **ACTION: Fix log rotation + DB backup before launch traffic.** | All-Hands | Admin, Architect |
 | Agent Advocate | 2026-03-09 | **UPDATED**: Python SDK client created (`examples/satoshi_client.py`, 46 methods). Fee dashboard tutorial created + verified. DX audit framework adopted from agency-agents Developer Advocate consult. | Agency Consult + CEO | Architecture, PM, QA |
 | Admin Assistant | 2026-03-09 | **ACTION: Stamp 43 MCP tools across all docs.** Verify `LAUNCH_SUBMISSION_KIT.md` counts match live state. Pre-launch consistency sweep needed. | Agency Consult | Marketing, Architect |
@@ -311,7 +311,7 @@ When two agents disagree, apply this priority order (highest wins):
 | Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
 | Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 87 endpoints, self-documented |
+| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | 95 endpoints, self-documented |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---

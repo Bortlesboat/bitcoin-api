@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcoin API for AI Agents — MCP Integration for Claude, GPT, and More</title>
-<meta name="description" content="Satoshi API is the first Bitcoin API with native MCP (Model Context Protocol) integration. Give Claude, ChatGPT, or any AI agent direct access to real-time Bitcoin data from your own node.">
+<title>Bitcoin Fee Intelligence for AI Agents - MCP for Claude and GPT</title>
+<meta name="description" content="Give Claude or any AI agent live Bitcoin fee intelligence via MCP. Satoshi API + bitcoin-mcp lets agents decide when to send, what fee to use, and how much a transaction will cost.">
 <meta name="keywords" content="bitcoin api for ai agents, bitcoin mcp, bitcoin tool for chatgpt, bitcoin api for claude, bitcoin model context protocol, bitcoin ai integration, mcp bitcoin server">
 <link rel="canonical" href="https://bitcoinsapi.com/bitcoin-api-for-ai-agents">
-<meta property="og:title" content="Bitcoin API for AI Agents — MCP-Native">
-<meta property="og:description" content="Satoshi API is the first Bitcoin API with native MCP (Model Context Protocol) integration. Give Claude, ChatGPT, or any AI agent direct access to real-time Bitcoin data from your own node.">
+<meta property="og:title" content="Bitcoin Fee Intelligence for AI Agents - MCP-Native">
+<meta property="og:description" content="Give Claude or any AI agent live Bitcoin fee intelligence via MCP. Satoshi API + bitcoin-mcp lets agents decide when to send, what fee to use, and how much a transaction will cost.">
 <meta property="og:url" content="https://bitcoinsapi.com/bitcoin-api-for-ai-agents">
 <meta property="og:type" content="article">
 <meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Bitcoin API for AI Agents — MCP-Native">
-<meta name="twitter:description" content="Satoshi API is the first Bitcoin API with native MCP (Model Context Protocol) integration. Give Claude, ChatGPT, or any AI agent direct access to real-time Bitcoin data from your own node.">
+<meta name="twitter:title" content="Bitcoin Fee Intelligence for AI Agents - MCP-Native">
+<meta name="twitter:description" content="Give Claude or any AI agent live Bitcoin fee intelligence via MCP. Satoshi API + bitcoin-mcp lets agents decide when to send, what fee to use, and how much a transaction will cost.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,10 +31,10 @@
     --green: #3fb950;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
   pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; font-size: 0.85em; line-height: 1.7; }
   pre code { background: none; padding: 0; }
 
@@ -123,7 +123,7 @@
 }
 </style>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin API for AI Agents","item":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents/#article","name":"Bitcoin API for AI Agents — MCP Integration for Claude, GPT, and More","description":"Satoshi API is the first Bitcoin API with native MCP (Model Context Protocol) integration. Give Claude, ChatGPT, or any AI agent direct access to real-time Bitcoin data from your own node.","url":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents","datePublished":"2026-03-08","dateModified":"2026-03-09","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin API for AI Agents","item":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents/#article","name":"Bitcoin API for AI Agents - MCP Integration for Claude, GPT, and More","description":"Give Claude or any AI agent live Bitcoin fee intelligence via MCP. Satoshi API + bitcoin-mcp lets agents decide when to send, what fee to use, and how much a transaction will cost.","url":"https://bitcoinsapi.com/bitcoin-api-for-ai-agents","datePublished":"2026-03-08","dateModified":"2026-03-12","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
 </script>
 <script type="application/ld+json">
 {
@@ -143,7 +143,7 @@
       "name": "What is MCP (Model Context Protocol) and how does it work with Bitcoin?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "MCP (Model Context Protocol) is an open standard created by Anthropic that allows AI assistants to call external tools. bitcoin-mcp is an MCP server that wraps Satoshi API endpoints as tool calls, enabling AI agents like Claude to query Bitcoin fees, blocks, mempool status, and mining data directly during a conversation."
+        "text": "MCP (Model Context Protocol) is an open standard for connecting AI assistants to external tools. bitcoin-mcp wraps Satoshi API endpoints as tool calls, enabling agents like Claude to query Bitcoin fees, blocks, mempool status, and mining data directly during a conversation."
       }
     },
     {
@@ -151,7 +151,7 @@
       "name": "Can ChatGPT or Claude access Bitcoin blockchain data?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. With Satoshi API and bitcoin-mcp, Claude can access Bitcoin data natively via MCP tool calls. ChatGPT and other agents can integrate via the REST API or function calling. Satoshi API is the only Bitcoin API with native MCP support, making it the simplest way to give any AI agent real-time blockchain access."
+        "text": "Yes. With Satoshi API and bitcoin-mcp, Claude can access Bitcoin data via MCP tool calls. ChatGPT and other agents can integrate via the REST API or function calling. This gives teams a practical way to bring live Bitcoin fee intelligence and blockchain context into agent workflows."
       }
     },
     {
@@ -159,7 +159,7 @@
       "name": "Is it safe to let an AI agent query my Bitcoin node?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Satoshi API provides a read-only REST layer over your node by default. The AI agent never connects to your node's RPC directly — it queries Satoshi API, which has rate limiting, input validation, and API key authentication. POST endpoints (broadcast, decode) require explicit API key authorization. Self-hosting means no third party sees your queries."
+        "text": "Satoshi API provides a read-only REST layer over your node by default. The AI agent never connects to your node's RPC directly - it queries Satoshi API, which has rate limiting, input validation, and API key authentication. POST endpoints require explicit API key authorization. Self-hosting means no third party sees your queries."
       }
     },
     {
@@ -167,7 +167,7 @@
       "name": "What Bitcoin data can an AI agent access through Satoshi API?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "An AI agent can access fee intelligence (sat/vB recommendations), mempool congestion analysis, block details and statistics, transaction lookups, mining stats (difficulty, hashrate, next retarget), network information, price data, and real-time streams for new blocks and fee changes — all through a single REST API."
+        "text": "An AI agent can access fee intelligence (sat/vB recommendations), mempool congestion analysis, block details and statistics, transaction lookups, mining stats (difficulty, hashrate, next retarget), network information, price data, and live streams for new blocks and fee changes through a single REST API."
       }
     }
   ]
@@ -194,8 +194,7 @@
   <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
   <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
     <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
-    <a href="/pricing" style="color:#ccc;text-decoration:none;">Pricing</a>
-    <a href="/about" style="color:#ccc;text-decoration:none;">About</a>
+    <a href="/bitcoin-fee-api" style="color:#ccc;text-decoration:none;">Fee API</a>
     <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
   </div>
@@ -204,9 +203,13 @@
 <!-- Hero -->
 <section class="hero">
   <div class="container">
-    <h1>Bitcoin API for <span>AI Agents</span></h1>
-    <p class="subtitle">AI assistants like Claude, ChatGPT, and custom agents increasingly need access to real-time Bitcoin data. Satoshi API is the first Bitcoin API with native MCP (Model Context Protocol) integration, enabling AI agents to query blockchain data directly.</p>
-    <p class="meta" style="color: var(--muted); font-size: 0.9em; margin-top: 12px;">Last verified: March 2026</p>
+    <h1>Bitcoin fee intelligence for <span>AI agents</span></h1>
+    <p class="subtitle">Give Claude, ChatGPT, or any custom agent live Bitcoin fee and mempool context via MCP so it can answer practical questions like "should I send now?", "what fee gets me into the next 3 blocks?", and "what will this transaction cost?"</p>
+    <div class="cta" style="margin-top:24px;">
+      <a href="/mcp-setup" class="btn-primary">Read MCP Setup Guide</a>
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" class="btn-secondary" target="_blank" rel="noopener noreferrer">Get bitcoin-mcp</a>
+    </div>
+    <p class="meta" style="color: var(--muted); font-size: 0.9em; margin-top: 12px;">Best for teams that want live fee answers inside Claude or their own MCP-compatible agent.</p>
   </div>
 </section>
 
@@ -216,7 +219,7 @@
     <h2 class="section-title">What is MCP?</h2>
     <p class="section-subtitle">The standard that connects AI to external tools.</p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 16px;">
-      Model Context Protocol (MCP) is an open standard created by Anthropic that lets AI assistants call external tools during a conversation. Instead of the AI guessing or relying on stale training data, it makes a structured tool call to a live data source and gets back a real-time response.
+      Model Context Protocol (MCP) is an open standard that lets AI assistants call external tools during a conversation. Instead of the AI guessing or relying on stale training data, it makes a structured tool call to a live data source and gets back a current response.
     </p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 16px;">
       An MCP server exposes a set of tools — functions that the AI can invoke with parameters and receive structured results. The AI decides when to call which tool based on the user's question. This is fundamentally different from RAG or prompt stuffing: the AI actively queries live systems rather than searching pre-loaded documents.
@@ -245,7 +248,7 @@
       <div class="stack-arrow">&#8595;</div>
       <div class="stack-layer active">
         <strong style="color: var(--accent);">Satoshi API</strong><br>
-        <span style="color: var(--muted); font-size: 0.85em;">REST API &mdash; 87 analyzed endpoints</span>
+        <span style="color: var(--muted); font-size: 0.85em;">REST API for fee intelligence and Bitcoin data</span>
       </div>
       <div class="stack-arrow">&#8595;</div>
       <div class="stack-layer">
@@ -263,7 +266,7 @@
 <section id="examples">
   <div class="container">
     <h2 class="section-title">What can an AI agent do with Bitcoin data?</h2>
-    <p class="section-subtitle">Real questions, real endpoints, real-time answers.</p>
+    <p class="section-subtitle">Real fee questions, real endpoints, current answers.</p>
     <div class="examples">
       <div class="example-card">
         <div class="question">"What are current Bitcoin fees?"</div>
@@ -297,7 +300,7 @@
 <section id="setup">
   <div class="container">
     <h2 class="section-title">Setup Guide</h2>
-    <p class="section-subtitle">Three steps from zero to AI-powered Bitcoin queries.</p>
+    <p class="section-subtitle">Three steps from zero to AI-powered Bitcoin fee decisions.</p>
     <div class="steps">
       <div class="step">
         <div class="step-content">
@@ -341,7 +344,7 @@
 <section id="privacy">
   <div class="container">
     <h2 class="section-title">Why self-hosted matters for AI</h2>
-    <p class="section-subtitle">AI queries about Bitcoin are sensitive. Keep them private.</p>
+    <p class="section-subtitle">Fee and transaction queries are sensitive. Keep them private.</p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 16px;">
       When an AI agent queries a third-party API, the API provider sees every request: which addresses were looked up, which transactions were checked, what fee thresholds triggered a send decision. Over time, these queries build a detailed profile of the user's Bitcoin activity.
     </p>
@@ -365,12 +368,12 @@
 <section id="unique">
   <div class="container">
     <h2 class="section-title">No other Bitcoin API has this</h2>
-    <p class="section-subtitle">MCP integration is a unique differentiator.</p>
+    <p class="section-subtitle">MCP plus fee intelligence is the real differentiator.</p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 24px;">
-      As of 2026, no other Bitcoin API — BlockCypher, mempool.space, Blockchain.com, Blockstream, or any other provider — offers native MCP integration. Developers who want to give AI agents access to Bitcoin data through other APIs must build custom function-calling wrappers, handle authentication, parse responses, and manage error handling manually.
+      Most Bitcoin APIs are designed for direct application use, not AI tool calling. Teams that want to give agents access to Bitcoin data usually end up building their own wrappers, auth handling, and response normalization on top.
     </p>
     <p style="color: var(--muted); max-width: 720px; margin-bottom: 24px;">
-      Satoshi API and bitcoin-mcp provide this out of the box. One <code>pip install</code> for the API, one for the MCP server, and the AI agent has structured tool-call access to 87 Bitcoin endpoints with typed responses, error handling, and rate limiting already built in.
+      Satoshi API and bitcoin-mcp provide this out of the box. One <code>pip install</code> for the API, one for the MCP server, and your agent gets structured tool-call access to live Bitcoin fee and mempool workflows without custom plumbing.
     </p>
     <table class="compare-table">
       <thead>
@@ -389,7 +392,7 @@
     <div class="highlight-box">
       <h3>The AI-native Bitcoin stack</h3>
       <p>
-        The combination of Satoshi API + bitcoin-mcp is the only production-ready way to give an AI agent direct, structured, tool-call access to a Bitcoin full node. Whether the agent is Claude asking about fees, a GPT-based trading bot checking mempool congestion, or a custom agent monitoring mining difficulty, this stack provides the interface.
+        The combination of Satoshi API + bitcoin-mcp gives you a practical way to give an AI agent direct, structured, tool-call access to a Bitcoin full node. Whether the agent is Claude asking about fees, a GPT-based bot checking mempool congestion, or a custom workflow monitoring mining difficulty, this stack provides the interface.
       </p>
     </div>
   </div>
@@ -398,12 +401,13 @@
 <!-- Bottom CTA -->
 <section class="bottom-cta">
   <div class="container">
-    <h2>Give your AI agent access to Bitcoin.</h2>
-    <p>Two pip installs. Three lines of config. Real-time blockchain data via MCP.</p>
+    <h2>Give your AI agent a real answer on Bitcoin fees.</h2>
+    <p>Two pip installs. Three lines of config. Live fee recommendations and mempool context via MCP.</p>
     <div class="cta">
-      <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" target="_blank" rel="noopener noreferrer">Get Satoshi API</a>
+      <a href="/mcp-setup" class="btn-primary">Read MCP Setup Guide</a>
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" class="btn-secondary" target="_blank" rel="noopener noreferrer">Get bitcoin-mcp</a>
     </div>
+    <p style="color: var(--muted); margin-top: 16px;">Testing agent workflows with this? <a href="https://github.com/Bortlesboat/bitcoin-api/issues" target="_blank" rel="noopener noreferrer">Open an issue</a> or join the <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord community</a> with the prompt, workflow, or edge case you want supported.</p>
   </div>
 </section>
 
@@ -430,6 +434,43 @@
     </p>
   </div>
 </footer>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (!window.localStorage) return;
+  try {
+    if (!localStorage.getItem('satoshi_first_touch') && (hasAttribution || candidate.referrer)) {
+      localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+    }
+    if (hasAttribution || candidate.referrer) {
+      localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+    }
+  } catch (e) {
+    /* Ignore localStorage failures */
+  }
+})();
+</script>
 
 </body>
 </html>

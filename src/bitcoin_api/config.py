@@ -47,6 +47,7 @@ class Settings(BaseSettings):
             "address_router": self.enable_address_router,
             "supply_router": self.enable_supply_router,
             "stats_router": self.enable_stats_router,
+            "psbt_router": self.enable_psbt_router,
         }
 
     # Logging format ("text" or "json")
@@ -92,6 +93,9 @@ class Settings(BaseSettings):
 
     # History Explorer (siloed — curated Bitcoin history + on-chain exploration UI)
     enable_history_explorer: bool = True
+
+    # PSBT security analysis (siloed — no node required, pure parsing)
+    enable_psbt_router: bool = False
 
     # Blockchain indexer (siloed — see indexer/config.py for indexer-specific settings)
     enable_indexer: bool = False

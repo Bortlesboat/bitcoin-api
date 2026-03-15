@@ -103,6 +103,11 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `src/bitcoin_api/services/stats.py` | Output type classification, OP_RETURN parsing |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
 | `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
+| `src/bitcoin_api/routers/history.py` | History Explorer API (7 endpoints: events, eras, concepts, search) |
+| `static/history/index.html` | History timeline page |
+| `static/history/history-data.json` | Curated history data (26 events, 7 eras, 14 concepts) |
+| `static/guide.html` | Protocol guide + API catalog |
+| `static/api-docs.html` | Branded API documentation |
 | `static/visualizer.html` | ECharts live visualization dashboard |
 | `tests/test_health.py` | Health, root, status, healthz endpoints (11 tests) |
 | `tests/test_blocks.py` | Block-related endpoints (18 tests) |
@@ -122,8 +127,9 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_rate_limit_redis.py` | Redis rate limiting + fallback tests (6) |
 | `tests/test_failover.py` | RPC failover/circuit breaker tests (6) |
 | `tests/test_e2e.py` | E2E tests (21) |
+| `tests/test_history.py` | History Explorer tests (45 tests) |
 | `tests/helpers.py` | Isolated router test client factory |
-| | Total: 407 unit + 21 e2e = 428 tests |
+| | Total: 567 unit + 21 e2e = 588 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |

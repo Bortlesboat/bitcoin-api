@@ -49,6 +49,15 @@ class RegisterRequest(BaseModel):
     utm_source: str | None = Field(None, max_length=100)
     utm_medium: str | None = Field(None, max_length=100)
     utm_campaign: str | None = Field(None, max_length=100)
+    utm_term: str | None = Field(None, max_length=100)
+    utm_content: str | None = Field(None, max_length=100)
+    first_landing_path: str | None = Field(None, max_length=255)
+    first_referrer: str | None = Field(None, max_length=500)
+    first_utm_source: str | None = Field(None, max_length=100)
+    first_utm_medium: str | None = Field(None, max_length=100)
+    first_utm_campaign: str | None = Field(None, max_length=100)
+    first_utm_term: str | None = Field(None, max_length=100)
+    first_utm_content: str | None = Field(None, max_length=100)
 
 
 @router.post("/register")
@@ -98,12 +107,18 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
 
     # Capture registration source for funnel tracking
     reg_referrer = request.headers.get("referer", "")
+    first_referrer = body.first_referrer or ""
     conn.execute(
         "INSERT INTO api_keys (key_hash, prefix, tier, label, email, "
-        "registration_referrer, utm_source, utm_medium, utm_campaign) "
-        "VALUES (?, ?, 'free', ?, ?, ?, ?, ?, ?)",
+        "registration_referrer, utm_source, utm_medium, utm_campaign, utm_term, utm_content, "
+        "first_landing_path, first_referrer, first_utm_source, first_utm_medium, first_utm_campaign, first_utm_term, first_utm_content) "
+        "VALUES (?, ?, 'free', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (key_hash, prefix, body.label, email,
-         reg_referrer, body.utm_source or "", body.utm_medium or "", body.utm_campaign or ""),
+         reg_referrer, body.utm_source or "", body.utm_medium or "", body.utm_campaign or "",
+         body.utm_term or "", body.utm_content or "",
+         body.first_landing_path or "", first_referrer,
+         body.first_utm_source or "", body.first_utm_medium or "", body.first_utm_campaign or "",
+         body.first_utm_term or "", body.first_utm_content or ""),
     )
     conn.commit()
     clear_auth_cache()

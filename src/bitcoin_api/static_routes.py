@@ -4,7 +4,7 @@ import secrets
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from . import __version__
 
@@ -15,14 +15,30 @@ _HISTORY_DIR = _STATIC_DIR / "history"
 _HISTORY_PAGES = {"index", "block", "tx", "address"}
 
 
+def _render_html(path: Path) -> HTMLResponse | None:
+    """Render a static HTML file with runtime substitutions."""
+    if not path.exists():
+        return None
+
+    from .config import settings
+
+    html = path.read_text(encoding="utf-8")
+    ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
+    html = html.replace("__POSTHOG_API_KEY__", ph_key)
+
+    # Keep public navigation safe when the History Explorer is disabled.
+    if not settings.enable_history_explorer:
+        html = html.replace('href="/history"', 'href="/guide"')
+
+    return HTMLResponse(html)
+
+
 def _serve_404():
     """Return branded 404 page with PostHog key injected."""
-    if _404_PAGE.exists():
-        from .config import settings
-        html = _404_PAGE.read_text(encoding="utf-8")
-        ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
-        html = html.replace("__POSTHOG_API_KEY__", ph_key)
-        return HTMLResponse(html, status_code=404)
+    response = _render_html(_404_PAGE)
+    if response is not None:
+        response.status_code = 404
+        return response
     return Response(status_code=404)
 
 
@@ -31,18 +47,12 @@ def register_static_routes(app: FastAPI):
 
     @app.get("/", include_in_schema=False)
     def root():
-        if _LANDING_PAGE.exists():
-            from .config import settings
-            html = _LANDING_PAGE.read_text(encoding="utf-8")
-            ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
-            html = html.replace("__POSTHOG_API_KEY__", ph_key)
-            return HTMLResponse(html)
-        return {
-            "name": "Satoshi API",
-            "version": __version__,
-            "docs": "/docs",
-            "api": "/api/v1/health",
-        }
+        return _render_html(_LANDING_PAGE) or _serve_404()
+
+    @app.get("/api-docs", include_in_schema=False)
+    def api_docs_redirect():
+        """Avoid maintaining a second docs surface; send users to live Swagger docs."""
+        return RedirectResponse(url="/docs", status_code=307)
 
     @app.get("/.well-known/mcp/server-card.json", include_in_schema=False)
     def mcp_server_card():
@@ -123,7 +133,20 @@ def register_static_routes(app: FastAPI):
             raise HTTPException(status_code=403, detail="Invalid admin key")
         p = _STATIC_DIR / "admin-dashboard.html"
         if p.exists():
-            return HTMLResponse(p.read_text(encoding="utf-8"))
+            return _render_html(p) or _serve_404()
+        return _serve_404()
+
+    @app.get("/admin/founder", include_in_schema=False)
+    def founder_dashboard(key: str = Query("")):
+        """Founder analytics dashboard — requires admin key via ?key= query param."""
+        from .config import settings
+        if not settings.admin_api_key:
+            raise HTTPException(status_code=403, detail="Admin not configured")
+        if not key or not secrets.compare_digest(key, settings.admin_api_key.get_secret_value()):
+            raise HTTPException(status_code=403, detail="Invalid admin key")
+        p = _STATIC_DIR / "founder-dashboard.html"
+        if p.exists():
+            return _render_html(p) or _serve_404()
         return _serve_404()
 
     @app.get("/healthz", include_in_schema=False)
@@ -138,9 +161,7 @@ def register_static_routes(app: FastAPI):
         if not settings.enable_history_explorer:
             return _serve_404()
         p = _HISTORY_DIR / "index.html"
-        if p.exists():
-            return HTMLResponse(p.read_text(encoding="utf-8"))
-        return _serve_404()
+        return _render_html(p) or _serve_404()
 
     @app.get("/history/{page}", include_in_schema=False)
     def history_page(page: str):
@@ -151,9 +172,7 @@ def register_static_routes(app: FastAPI):
         # Known HTML pages
         if page in _HISTORY_PAGES:
             p = _HISTORY_DIR / f"{page}.html"
-            if p.exists():
-                return HTMLResponse(p.read_text(encoding="utf-8"))
-            return _serve_404()
+            return _render_html(p) or _serve_404()
         # Static assets (.json, .css, .js) — with path traversal protection
         if "/" in page or "\\" in page or ".." in page:
             return _serve_404()
@@ -173,16 +192,12 @@ def register_static_routes(app: FastAPI):
             "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
             "bitcoin-fee-api", "bitcoin-mempool-api", "bitcoin-mcp-setup-guide",
             "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
-            "mcp-setup", "api-docs",
+            "mcp-setup",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"
             if p.exists():
-                from .config import settings
-                html = p.read_text(encoding="utf-8")
-                ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
-                html = html.replace("__POSTHOG_API_KEY__", ph_key)
-                return HTMLResponse(html)
+                return _render_html(p) or _serve_404()
         if page.endswith(".txt") and len(page) == 36:
             p = _STATIC_DIR / page
             if p.exists():

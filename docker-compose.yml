@@ -14,3 +14,24 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  postgres-indexer:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: satoshi
+      POSTGRES_PASSWORD: satoshi
+      POSTGRES_DB: satoshi_index
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satoshi -d satoshi_index"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  pgdata:

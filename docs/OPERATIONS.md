@@ -87,6 +87,37 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 - `ENABLE_SUPPLY_ROUTER=true` -- toggle supply endpoint
 - `ENABLE_STATS_ROUTER=true` -- toggle statistics endpoints (utxo-set, segwit, op-returns)
 
+### Indexer Configuration
+
+The blockchain indexer provides address transaction history and enriched transaction lookups. It requires PostgreSQL.
+
+**Enable:**
+```bash
+# In .env:
+ENABLE_INDEXER=true
+INDEXER_POSTGRES_DSN=postgresql://satoshi:satoshi@localhost:5432/satoshi_index
+INDEXER_ZMQ_ENDPOINT=tcp://127.0.0.1:28332  # optional, falls back to 10s polling
+INDEXER_BATCH_SIZE=50
+```
+
+**Start PostgreSQL:**
+```bash
+docker compose up -d postgres-indexer
+```
+
+**Monitor sync progress:**
+```bash
+curl http://localhost:9332/api/v1/indexed/status
+```
+
+The indexer starts automatically when the API boots with `ENABLE_INDEXER=true`. Initial sync takes several days (940K+ blocks). Address queries return partial results during sync.
+
+**Endpoints (4):**
+- `GET /api/v1/indexed/address/{addr}/balance` — balance, tx count, first/last seen
+- `GET /api/v1/indexed/address/{addr}/txs` — paginated tx history
+- `GET /api/v1/indexed/tx/{txid}` — enriched tx with resolved inputs + spent status
+- `GET /api/v1/indexed/status` — sync progress, ETA, blocks/sec
+
 ### Stripe Billing (optional)
 ```ini
 STRIPE_SECRET_KEY=sk_live_...       # Stripe API secret key

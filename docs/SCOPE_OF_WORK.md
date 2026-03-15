@@ -62,7 +62,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 21 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 23 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (87 total: 83 core + 4 indexer)
+### 3.1 Endpoints (~102 total: 84 core + 7 history API + 7 content pages + 4 indexer)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -169,6 +169,20 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/indexed/address/{addr}/txs` | GET | Yes (free+) |
 | | `/api/v1/indexed/tx/{txid}` | GET | Yes (free+) |
 | | `/api/v1/indexed/status` | GET | No |
+| **History Explorer** | `/api/v1/history/events` | GET | No |
+| | `/api/v1/history/eras` | GET | No |
+| | `/api/v1/history/concepts` | GET | No |
+| | `/api/v1/history/search` | GET | No |
+| | `/api/v1/history/events/{id}` | GET | No |
+| | `/api/v1/history/eras/{id}` | GET | No |
+| | `/api/v1/history/concepts/{id}` | GET | No |
+| **Content Pages** | `/history` | GET | No |
+| | `/history/block` | GET | No |
+| | `/history/tx` | GET | No |
+| | `/history/address` | GET | No |
+| | `/guide` | GET | No |
+| | `/mcp-setup` | GET | No |
+| | `/api-docs` | GET | No |
 
 ### 3.2 Endpoint Tiers
 
@@ -183,6 +197,7 @@ Endpoints are grouped into Core (always on) and Extended (toggleable via feature
 | **Extended** | supply | `ENABLE_SUPPLY_ROUTER` (default: true) |
 | **Extended** | stats | `ENABLE_STATS_ROUTER` (default: true) |
 | **Indexer** | indexed address, indexed tx, indexer status | `ENABLE_INDEXER` (default: false) |
+| **Content** | history | `enable_history_explorer` (default: true) |
 
 All flags default to `true` so tests pass unchanged and Swagger `/docs` shows everything. Production `.env` controls what's actually exposed.
 
@@ -317,9 +332,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (87 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (95 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 407 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 567 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -414,25 +429,27 @@ Errors follow the same structure:
 | 24 | Phase 3 analytics: client classification (`classify_client`), MCP funnel analytics endpoints (client-types, mcp-funnel), migration 005, User-Agent tracking in bitcoin-mcp L402 client | 12 |
 | 25 | Tier gating (7 expensive endpoints), block-walking caps per tier, Stripe price_id guard, Electrs limitation docs | 12 |
 | 26 | Resend email integration, Upstash Redis rate limiting, PostHog analytics, 19 new tests (notifications, Redis rate limit, integration) | 19 |
-| 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=false` default. Optional deps: asyncpg, pyzmq. | 50 |
+| 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=true` in production. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
 | 29 | RPC proxy endpoint: `/api/v1/rpc` JSON-RPC proxy for bitcoin-mcp zero-config fallback. 30+ whitelisted read-only methods, wallet/admin methods blocked. Enables bitcoin-mcp to work without a local node. | 7 |
-| **Total** | **87 endpoints (83 core + 4 indexer), 21 core routers (+ 3 indexer = 24 when enabled)** | **407 unit + 21 e2e** |
+| 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 45 |
+| 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
+| **Total** | **~103 endpoints (85 core + 7 history API + 7 content pages + 4 indexer), 24 core routers (+ 3 indexer = 27 when enabled)** | **567 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
-**Source (51 files):**
+**Source (52 files):**
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
 - `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (CoinGecko/Coinbase/Kraken fallback)
-- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, keys, mempool, metrics, mining, network, prices, rpc_proxy, status, stream, supply, stats, transactions, websocket
+- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
 - `src/bitcoin_api/indexer/services/` -- address, transaction
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (22 test files + 2 support files):**
+**Tests (23 test files + 2 support files):**
 - `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
 - `tests/test_fees.py` -- 30 tests (fee endpoints)
@@ -450,6 +467,7 @@ Errors follow the same structure:
 - `tests/test_rate_limit_redis.py` -- 6 tests (Redis rate limiting + fallback)
 - `tests/test_failover.py` -- 6 tests (RPC failover/circuit breaker)
 - `tests/test_rpc_proxy.py` -- 7 tests (JSON-RPC proxy whitelist, error handling, envelope format)
+- `tests/test_history.py` -- 45 tests (History Explorer API: events, eras, concepts, search, detail endpoints)
 - `tests/test_indexer_parser.py` -- 25 tests (block parser, satoshi conversion, hex helpers)
 - `tests/test_indexer_reorg.py` -- 15 tests (reorg detection, fork point with RPC, rollback logic)
 - `tests/test_indexer_routers.py` -- 14 tests (indexed endpoints, auth, validation)
@@ -499,7 +517,7 @@ Errors follow the same structure:
 - `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
-**Website (14 files):**
+**Website (23 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -508,11 +526,19 @@ Errors follow the same structure:
 - `static/self-hosted-bitcoin-api.html` -- SEO decision page: self-hosting
 - `static/bitcoin-fee-api.html` -- SEO feature page: fee estimation endpoints
 - `static/bitcoin-mempool-api.html` -- SEO feature page: mempool analysis endpoints
-- `static/bitcoin-mcp-setup-guide.html` -- SEO guide: MCP setup for AI agents
+- `static/bitcoin-mcp-setup-guide.html` -- SEO guide: MCP setup for AI agents (legacy, replaced by /mcp-setup)
+- `static/mcp-setup.html` -- MCP setup guide with zero-config focus, tool catalog, copy buttons
+- `static/api-docs.html` -- Branded API documentation with 14 endpoint categories, auth tiers, error codes, sidebar TOC
+- `static/guide.html` -- Protocol guide with concepts + full API catalog
+- `static/history/index.html` -- History Explorer timeline page
+- `static/history/block.html` -- History: block explorer context
+- `static/history/tx.html` -- History: transaction explorer context
+- `static/history/address.html` -- History: address explorer context
+- `static/history/history-data.json` -- Curated history data (26 events, 7 eras, 14 concepts)
 - `static/robots.txt` -- Search engine crawl directives (welcomes AI crawlers)
 - `static/terms.html` -- Terms of Service page
 - `static/privacy.html` -- Privacy Policy page
-- `static/sitemap.xml` -- XML sitemap for search engines (12 URLs)
+- `static/sitemap.xml` -- XML sitemap for search engines (16+ URLs, includes /history, /guide, /mcp-setup, /api-docs)
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 - `static/visualizer.html` -- ECharts live visualization dashboard
 
@@ -552,7 +578,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 407 unit tests pass
+- [x] All 454 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
