@@ -103,23 +103,25 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `src/bitcoin_api/services/stats.py` | Output type classification, OP_RETURN parsing |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
 | `src/bitcoin_api/migrations/004_add_subscriptions.sql` | subscriptions table + stripe_customer_id column |
+| `src/bitcoin_api/migrations/009_add_registration_source.sql` | registration_referrer, utm_source/medium/campaign, registration_ip columns on api_keys |
+| `src/bitcoin_api/migrations/010_add_signup_attribution.sql` | 9 first-touch attribution columns on api_keys (utm_term, utm_content, first_landing_path, first_referrer, first_utm_*) |
 | `src/bitcoin_api/routers/history.py` | History Explorer API (7 endpoints: events, eras, concepts, search) |
 | `static/history/index.html` | History timeline page |
 | `static/history/history-data.json` | Curated history data (26 events, 7 eras, 14 concepts) |
 | `static/guide.html` | Protocol guide + API catalog |
 | `static/api-docs.html` | Branded API documentation |
 | `static/visualizer.html` | ECharts live visualization dashboard |
-| `tests/test_health.py` | Health, root, status, healthz endpoints (11 tests) |
+| `tests/test_health.py` | Health, root, status, healthz endpoints (15 tests) |
 | `tests/test_blocks.py` | Block-related endpoints (18 tests) |
 | `tests/test_fees.py` | Fee endpoint tests (30 tests) |
 | `tests/test_transactions.py` | Transaction endpoint tests (27 tests) |
 | `tests/test_mempool.py` | Mempool endpoint tests (7 tests) |
 | `tests/test_mining.py` | Mining endpoint + service tests (21 tests) |
 | `tests/test_network.py` | Network, rate limit, error handling tests (26 tests) |
-| `tests/test_keys.py` | API key registration & auth tests (16 tests) |
+| `tests/test_keys.py` | API key registration & auth tests (17 tests) |
 | `tests/test_billing.py` | Stripe billing tests (12 tests) |
 | `tests/test_guide.py` | Guide endpoint tests (8 tests) |
-| `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (30 tests) |
+| `tests/test_admin.py` | Admin dashboard, analytics, metrics tests (34 tests) |
 | `tests/test_misc.py` | Supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations (51 tests) |
 | `tests/test_stale_cache.py` | Stale cache fallback tests (19 tests) |
 | `tests/test_notifications.py` | Resend + PostHog notification tests (14) |
@@ -129,7 +131,7 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/test_history.py` | History Explorer tests (45 tests) |
 | `tests/helpers.py` | Isolated router test client factory |
-| | Total: 567 unit + 21 e2e = 588 tests |
+| | Total: 568 unit + 21 e2e = 589 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |

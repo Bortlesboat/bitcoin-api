@@ -52,7 +52,7 @@ _SIGHASH_VULNERABLE = 0x83  # SINGLE|ANYONECANPAY without multisig lock = snipea
 
 
 class PsbtAnalyzeRequest(BaseModel):
-    psbt_hex: str = Field(..., description="Hex-encoded PSBT (BIP 174 / BIP 370 v0)")
+    psbt_hex: str = Field(..., description="Hex-encoded PSBT (BIP 174 / BIP 370 v0)", max_length=100_000)
 
 
 class PsbtInputAnalysis(BaseModel):

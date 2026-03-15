@@ -4,6 +4,7 @@ import os
 os.environ.setdefault("RATE_LIMIT_BACKEND", "memory")
 os.environ.setdefault("RESEND_ENABLED", "false")
 os.environ.setdefault("POSTHOG_ENABLED", "false")
+os.environ["ENABLE_INDEXER"] = "false"  # Indexer tries asyncpg (~4s timeout per test)
 
 import pytest
 from fastapi.testclient import TestClient

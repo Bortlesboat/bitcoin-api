@@ -65,7 +65,7 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
     if not body.agreed_to_terms:
         raise HTTPException(
             status_code=422,
-            detail="You must agree to the Terms of Service (agreed_to_terms: true). See https://bitcoinsapi.com/terms",
+            detail={"message": "You must agree to the Terms of Service.", "agreed_to_terms": "Set agreed_to_terms: true to register. A human operator must review the terms before registering.", "terms_url": "https://bitcoinsapi.com/terms"},
         )
 
     # Per-IP rate limit on registration

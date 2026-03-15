@@ -77,7 +77,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 </nav>
 <div class="container">
 <h1>Privacy Policy</h1>
-<p class="meta">Last updated: March 8, 2026</p>
+<p class="meta">Last updated: March 14, 2026</p>
 
 <p>This Privacy Policy describes how the Satoshi API hosted service at bitcoinsapi.com ("Service") collects, uses, and protects your information. The Service is operated by Satoshi API ("Operator", "we", "us").</p>
 
@@ -99,12 +99,19 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <tr><td>Client type</td><td>Every request</td><td>Classification derived from User-Agent (e.g., browser, AI agent, SDK), stored per-request</td><td>90 days</td></tr>
 <tr><td>Stripe customer ID</td><td>Paid plan subscription</td><td>Payment processor identifier, stored locally when you subscribe to a paid plan</td><td>Until account deletion</td></tr>
 <tr><td>Subscription status</td><td>Paid plan subscription</td><td>Active/cancelled/past_due, stored locally for billing</td><td>Until account deletion</td></tr>
+<tr><td>Registration IP address</td><td>API key registration</td><td>Permanently stored server-side alongside email address for abuse prevention and fraud detection</td><td>Until key deletion</td></tr>
+<tr><td>First landing page path</td><td>Captured at registration from browser</td><td>Marketing attribution — the page URL you first visited before registering, stored permanently in your account record</td><td>Until key deletion</td></tr>
+<tr><td>UTM attribution (server-side)</td><td>API key registration</td><td>utm_source, utm_medium, utm_campaign, utm_term, utm_content, first_referrer — captured from browser at registration, stored permanently in your account record for marketing attribution</td><td>Until key deletion</td></tr>
+<tr><td>UTM attribution (localStorage)</td><td>Landing page visit</td><td>First-touch and last-touch marketing attribution temporarily stored in your browser's localStorage; read and sent to our servers at registration</td><td>Until browser storage is cleared (browser-side)</td></tr>
+<tr><td>API key (localStorage)</td><td>History Explorer pages</td><td>Stored in your browser's localStorage for convenience; never sent to our servers automatically</td><td>Until browser storage is cleared</td></tr>
 </tbody>
 </table>
 
 <h2>2. Information We Do NOT Collect</h2>
 <ul>
-<li>We do not use cookies. We use PostHog with in-memory persistence for anonymous page view analytics — no data persists in your browser between sessions.</li>
+<li>We do not use cookies.</li>
+<li><strong>Browser localStorage:</strong> Our landing pages store UTM attribution data (<code>satoshi_first_touch</code>, <code>satoshi_last_touch</code>) in your browser's localStorage to track which marketing channel referred you. This data is read at registration and sent to PostHog as part of the signup event. The History Explorer pages store your API key in localStorage (<code>satoshi_api_key</code>) as a convenience so you do not need to re-enter it. localStorage data is never sent to our servers directly and persists until you clear your browser storage.</li>
+<li>We use PostHog with in-memory persistence for anonymous page view analytics.</li>
 <li>We do not collect personal information beyond email (for key registration) and IP addresses (for rate limiting).</li>
 <li>We do not store your API key in plaintext. Only the SHA-256 hash is stored.</li>
 <li>We do not log the content of your API requests or responses (e.g., transaction hex data you broadcast is not stored).</li>
@@ -149,7 +156,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <h2>7. Your Rights</h2>
 <p>You may request:</p>
 <ul>
-<li><strong>Deletion</strong> of your API key and associated email by contacting us.</li>
+<li><strong>Deletion</strong> of your API key and all associated data by contacting us. Deletion covers: email address, API key hash, registration IP address, first landing page path, referrer, all UTM attribution fields (utm_source, utm_medium, utm_campaign, utm_term, utm_content, first_utm_*, first_referrer), usage logs, and all other records tied to your account.</li>
 <li><strong>Information</strong> about what data we hold about your email address.</li>
 </ul>
 <p>Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> for data requests.</p>
@@ -157,7 +164,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <h2>8. European Privacy Rights (GDPR)</h2>
 <p>If you are located in the European Economic Area (EEA), the following applies to our processing of your personal data:</p>
 <ul>
-<li><strong>Lawful basis:</strong> We process IP addresses and API key hashes under legitimate interest for rate limiting and service operation. Email addresses are processed on the basis of consent provided at registration.</li>
+<li><strong>Lawful basis:</strong> We process IP addresses and API key hashes under legitimate interest for rate limiting and service operation. Email addresses, registration IP address, first landing page path, and UTM marketing attribution data are processed on the basis of consent provided at registration (by accepting the Terms of Service and submitting the registration form).</li>
 <li><strong>Data portability:</strong> You have the right to receive your personal data in a structured, machine-readable format. Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a> to request a data export.</li>
 <li><strong>Supervisory authority:</strong> You have the right to lodge a complaint with your local data protection supervisory authority.</li>
 <li><strong>International transfers:</strong> Your data is processed in the United States. By using the Service, you consent to this transfer.</li>

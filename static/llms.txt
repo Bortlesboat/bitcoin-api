@@ -51,12 +51,22 @@ Claude Desktop config (paste into claude_desktop_config.json):
 Claude Code: claude mcp add bitcoin -- bitcoin-mcp
 
 No API key needed. No Bitcoin node needed. bitcoin-mcp auto-falls
-back to the hosted Satoshi API at bitcoinsapi.com. Provides 43 tools,
+back to the hosted Satoshi API at bitcoinsapi.com. Provides 49 tools,
 6 prompts, and 7 resources that any MCP-compatible agent can
 discover and invoke.
 
 MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
 Setup guide: https://bitcoinsapi.com/mcp-setup
+
+## Agent efficiency tips
+
+Use the guide endpoint with filters to pull only what you need:
+  GET https://bitcoinsapi.com/api/v1/guide?use_case=fees&lang=curl
+  (use_case options: fees, blocks, transactions, mempool, mining, network,
+   streams, prices, address, tools, status, authentication, supply, billing)
+
+Every response includes X-Auth-Tier header showing your current tier
+(anonymous, free, pro, enterprise) — no separate status call needed.
 
 ## Agent self-registration
 

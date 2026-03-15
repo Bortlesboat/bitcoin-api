@@ -2,7 +2,7 @@
   "serverInfo": {
     "name": "bitcoin",
     "version": "0.5.0",
-    "description": "MCP server for Bitcoin — 43 tools for AI agents to save money on fees. Zero config, works out of the box."
+    "description": "MCP server for Bitcoin — 49 tools for AI agents to save money on fees. Zero config, works out of the box."
   },
   "capabilities": {
     "tools": { "listChanged": false },
@@ -52,7 +52,13 @@
     { "name": "get_situation_summary", "description": "Get a comprehensive Bitcoin network situation summary." },
     { "name": "describe_rpc_command", "description": "Get help text for a specific Bitcoin Core RPC command." },
     { "name": "list_rpc_commands", "description": "List all available Bitcoin Core RPC commands." },
-    { "name": "query_remote_api", "description": "Query a remote Satoshi API instance." }
+    { "name": "query_remote_api", "description": "Query a remote Satoshi API instance." },
+    { "name": "get_address_balance", "description": "Get indexed address balance and transaction summary." },
+    { "name": "get_address_history", "description": "Get indexed address transaction history." },
+    { "name": "get_indexed_transaction", "description": "Get full indexed transaction details including input values." },
+    { "name": "get_indexer_status", "description": "Get Bitcoin transaction indexer status and sync progress." },
+    { "name": "analyze_psbt_security", "description": "Analyze a PSBT for inscription listing sniping vulnerabilities." },
+    { "name": "explain_inscription_listing_security", "description": "Explain the PSBT sighash vulnerability used to snipe ordinals listings." }
   ],
   "resources": [
     { "uri": "bitcoin://connection/status", "name": "Connection Status", "description": "Connection status: mode, network, and whether connected." },

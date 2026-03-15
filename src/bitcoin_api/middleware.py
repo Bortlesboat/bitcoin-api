@@ -128,6 +128,7 @@ _PAGEVIEW_LOG_PATHS = {
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
     "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
     "/terms", "/privacy", "/disclaimer", "/about", "/pricing", "/mcp-setup", "/guide",
+    "/history",
 }
 
 _RATE_LIMIT_SKIP = {
