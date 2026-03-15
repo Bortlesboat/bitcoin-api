@@ -28,3 +28,4 @@ blog-post.md
 .coverage
 requirements.lock
 scripts/run-*.bat
+.playwright-cli/

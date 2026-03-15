@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satoshi API - Founder Analytics</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#e6edf3;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;padding:24px;line-height:1.5}
+a{color:#f7931a;text-decoration:none}
+a:hover{text-decoration:underline}
+h1{font-size:2rem;margin-bottom:8px}
+p.lead{color:#8b949e;max-width:800px;margin-bottom:24px}
+.status{display:flex;gap:16px;flex-wrap:wrap;color:#8b949e;font-size:.9rem;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
+.card,.panel{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px}
+.label{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:#8b949e;margin-bottom:8px}
+.value{font-size:2rem;font-weight:800;color:#f7931a}
+.sub{font-size:.9rem;color:#8b949e;margin-top:8px}
+.panels{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-bottom:24px}
+.panel h2{font-size:1.05rem;margin-bottom:12px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 8px;border-bottom:1px solid #30363d;text-align:left;font-size:.92rem;vertical-align:top}
+th{color:#8b949e;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+code{background:#0d1117;padding:2px 6px;border-radius:4px;font-size:.9em}
+ul{padding-left:18px;color:#c9d1d9}
+li{margin-bottom:8px}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.8rem;font-weight:600}
+.good{background:#16351f;color:#3fb950}
+.warn{background:#3d2c16;color:#d29922}
+.bad{background:#3d1717;color:#f85149}
+.muted{color:#8b949e}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.controls label{display:flex;gap:8px;align-items:center;color:#c9d1d9;font-size:.9rem}
+.input,select,textarea{background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:8px;padding:10px 12px;font:inherit}
+textarea{width:100%;min-height:88px;resize:vertical}
+button{background:#f7931a;color:#111;border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.05)}
+.builder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:12px 0}
+@media (max-width: 900px){.panels{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Founder Analytics</h1>
+<p class="lead">This view strips out most ops noise and helps answer the founder questions: are real people showing up, what are they trying, and where should you focus to get your first 10 good testers?</p>
+
+<div class="status">
+  <span>Period: <strong id="period">7d</strong></span>
+  <span>Last updated: <strong id="last-updated">-</strong></span>
+  <span><a id="raw-link" href="/admin/dashboard">Open full admin dashboard</a></span>
+</div>
+
+<div class="grid">
+  <div class="card"><div class="label">Real Usage</div><div class="value" id="real-requests">-</div><div class="sub" id="real-share">-</div></div>
+  <div class="card"><div class="label">Scanner Noise</div><div class="value" id="scanner-requests">-</div><div class="sub" id="scanner-share">-</div></div>
+  <div class="card"><div class="label">Active Keys</div><div class="value" id="total-keys">-</div><div class="sub" id="new-keys">-</div></div>
+  <div class="card"><div class="label">Homepage Hits</div><div class="value" id="homepage-hits">-</div><div class="sub">People who saw the landing page</div></div>
+  <div class="card"><div class="label">Docs Hits</div><div class="value" id="docs-hits">-</div><div class="sub">People who got into API docs</div></div>
+  <div class="card"><div class="label">Fee Endpoint Hits</div><div class="value" id="fee-hits">-</div><div class="sub">`/fees/recommended` usage</div></div>
+  <div class="card"><div class="label">Register Posts</div><div class="value" id="register-hits">-</div><div class="sub">Free-key signup attempts</div></div>
+  <div class="card"><div class="label">Requests Today</div><div class="value" id="requests-today">-</div><div class="sub" id="requests-dod">-</div></div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h2>Likely Testers</h2>
+    <p class="muted" style="margin-bottom:12px;">These are actors with multiple product-relevant requests after filtering out obvious scanner and monitoring traffic.</p>
+    <table>
+      <thead><tr><th>Actor</th><th>Hits</th><th>Endpoints</th><th>Error %</th><th>Last Seen</th></tr></thead>
+      <tbody id="testers-table"></tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>What People Actually Use</h2>
+    <p class="muted" style="margin-bottom:12px;">Top product endpoints after filtering out health checks and obvious scanner traffic.</p>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Hits</th></tr></thead>
+      <tbody id="endpoints-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h2>Real Candidate Signups</h2>
+    <p class="muted" style="margin-bottom:12px;">These exclude obvious test and internal signups so you can spot actual prospective users faster.</p>
+    <table>
+      <thead><tr><th>Email</th><th>Source</th><th>Landing</th><th>Created</th></tr></thead>
+      <tbody id="real-signups-table"></tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>Recent Real Users</h2>
+    <p class="muted" style="margin-bottom:12px;">Likely real actors after filtering out bots, local tests, and obvious automation traffic.</p>
+    <table>
+      <thead><tr><th>Actor</th><th>Hits</th><th>Endpoints</th><th>Last Seen</th></tr></thead>
+      <tbody id="real-users-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h2>Recent Signups</h2>
+    <p class="muted" style="margin-bottom:12px;">These are the API key registrations in the selected period, including the email address they used and the best source clue we captured.</p>
+    <div class="controls">
+      <label><input type="checkbox" id="signups-real-only"> Show likely real signups only</label>
+    </div>
+    <table>
+      <thead><tr><th>Email</th><th>Label</th><th>Source</th><th>Notes</th><th>Created</th></tr></thead>
+      <tbody id="signups-table"></tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>Signup Sources</h2>
+    <p class="muted" style="margin-bottom:12px;">Best-effort attribution from `utm_source` first, then registration referrer domain if available.</p>
+    <table>
+      <thead><tr><th>Source</th><th>Count</th></tr></thead>
+      <tbody id="sources-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h2>Traffic Origins</h2>
+    <p class="muted" style="margin-bottom:12px;">External referrers help answer whether visits are coming from posts like Reddit, HN, or X.</p>
+    <table>
+      <thead><tr><th>Referrer</th><th>Hits</th></tr></thead>
+      <tbody id="referrers-table"></tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>Signup Context</h2>
+    <p class="muted" style="margin-bottom:12px;">Where signups first landed and which campaigns are actually producing registrations.</p>
+    <table style="margin-bottom:16px;">
+      <thead><tr><th>Landing Page</th><th>Count</th></tr></thead>
+      <tbody id="landing-pages-table"></tbody>
+    </table>
+    <table>
+      <thead><tr><th>Campaign</th><th>Count</th></tr></thead>
+      <tbody id="campaigns-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h2>Campaign Links</h2>
+    <p class="muted" style="margin-bottom:12px;">Build tagged links before you post anywhere so future traffic is attributable from first touch through signup.</p>
+    <div class="builder-grid">
+      <select id="campaign-channel">
+        <option value="reddit">Reddit</option>
+        <option value="hn">Hacker News</option>
+        <option value="x">X</option>
+        <option value="producthunt">Product Hunt</option>
+        <option value="dm">Direct DM</option>
+      </select>
+      <input class="input" id="campaign-name" type="text" value="first_testers" placeholder="campaign name">
+      <select id="campaign-target">
+        <option value="/">Homepage</option>
+        <option value="/bitcoin-fee-api">Fee API</option>
+        <option value="/bitcoin-api-for-ai-agents">AI Agents</option>
+        <option value="/docs">Docs</option>
+      </select>
+      <button id="campaign-copy" type="button">Copy Link</button>
+    </div>
+    <textarea id="campaign-url" readonly></textarea>
+  </div>
+  <div class="panel">
+    <h2>Founder Notes</h2>
+    <ul id="notes-list"></ul>
+  </div>
+  <div class="panel">
+    <h2>How To Use This</h2>
+    <ul>
+      <li><strong>Ignore total requests</strong> if scanner noise is bigger than likely real usage.</li>
+      <li><strong>Watch homepage to docs to register</strong> as your simple onboarding funnel.</li>
+      <li><strong>Watch fee endpoint hits</strong> as the best signal that the core wedge is resonating.</li>
+      <li><strong>DM likely testers directly</strong> if you can identify them from labels, emails, or conversations elsewhere.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const ADMIN_KEY = params.get('key') || '';
+const PERIOD = params.get('period') || '7d';
+const BASE = window.location.origin + '/api/v1';
+
+document.getElementById('period').textContent = PERIOD;
+document.getElementById('raw-link').href = '/admin/dashboard?key=' + encodeURIComponent(ADMIN_KEY);
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString();
+}
+
+function pct(v) {
+  return (Number(v || 0)).toFixed(2) + '%';
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+}
+
+async function apiFetch(path) {
+  const resp = await fetch(BASE + path, {headers: {'X-Admin-Key': ADMIN_KEY}});
+  if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+  return resp.json();
+}
+
+function buildCampaignUrl() {
+  const channel = document.getElementById('campaign-channel').value;
+  const campaign = document.getElementById('campaign-name').value.trim() || 'first_testers';
+  const target = document.getElementById('campaign-target').value;
+  const url = new URL(target, window.location.origin);
+  url.searchParams.set('utm_source', channel);
+  url.searchParams.set('utm_medium', channel === 'dm' ? 'outreach' : 'social');
+  url.searchParams.set('utm_campaign', campaign);
+  document.getElementById('campaign-url').value = url.toString();
+}
+
+async function refresh() {
+  const payload = await apiFetch('/analytics/founder?period=' + encodeURIComponent(PERIOD));
+  const data = payload.data;
+  const summary = data.summary;
+  const funnel = data.funnel;
+  const growth = data.growth;
+
+  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+  document.getElementById('real-requests').textContent = fmt(summary.likely_real_requests_in_period);
+  document.getElementById('real-share').textContent = pct(summary.likely_real_share_pct) + ' of requests in period';
+  document.getElementById('scanner-requests').textContent = fmt(summary.scanner_requests_in_period);
+  document.getElementById('scanner-share').textContent = pct(summary.scanner_share_pct) + ' of requests in period';
+  document.getElementById('total-keys').textContent = fmt(summary.total_keys);
+  document.getElementById('new-keys').textContent = fmt(summary.new_keys_in_period) + ' new keys in period';
+  document.getElementById('homepage-hits').textContent = fmt(funnel.homepage_hits);
+  document.getElementById('docs-hits').textContent = fmt(funnel.docs_hits);
+  document.getElementById('fee-hits').textContent = fmt(funnel.fee_recommendation_hits);
+  document.getElementById('register-hits').textContent = fmt(funnel.register_posts);
+  document.getElementById('requests-today').textContent = fmt(growth.requests_today);
+  document.getElementById('requests-dod').textContent = growth.requests_dod_pct == null ? 'No comparison yet' : (growth.requests_dod_pct >= 0 ? '+' : '') + growth.requests_dod_pct + '% vs yesterday';
+
+  const testers = document.getElementById('testers-table');
+  testers.innerHTML = data.likely_testers.map(row => `
+    <tr>
+      <td><code>${escapeHtml(row.actor)}</code><div class="muted" style="margin-top:4px;">${escapeHtml(row.user_agent)}</div></td>
+      <td>${fmt(row.hits)}</td>
+      <td>${fmt(row.endpoint_count)}</td>
+      <td>${pct(row.error_rate_pct)}</td>
+      <td>${escapeHtml(row.last_seen || '-')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="muted">No likely testers in this period yet.</td></tr>';
+
+  const endpoints = document.getElementById('endpoints-table');
+  endpoints.innerHTML = data.top_real_endpoints.map(row => `
+    <tr><td><code>${escapeHtml(row.endpoint)}</code></td><td>${fmt(row.hits)}</td></tr>
+  `).join('') || '<tr><td colspan="2" class="muted">No product usage in this period yet.</td></tr>';
+
+  const signups = document.getElementById('signups-table');
+  const realOnly = document.getElementById('signups-real-only').checked;
+  const visibleSignups = data.recent_signups.filter(row => !realOnly || !row.is_likely_test);
+  signups.innerHTML = visibleSignups.map(row => `
+    <tr>
+      <td><code>${escapeHtml(row.email)}</code><div class="muted" style="margin-top:4px;">${escapeHtml(row.prefix || '-')}</div></td>
+      <td>${row.label ? escapeHtml(row.label) : '<span class="muted">-</span>'}</td>
+      <td><strong>${escapeHtml(row.source_guess)}</strong><div class="muted" style="margin-top:4px;">${escapeHtml(row.first_referrer || row.registration_referrer || row.first_utm_campaign || row.utm_campaign || row.utm_medium || '')}</div></td>
+      <td>${row.is_likely_test ? `<span class="pill warn">${escapeHtml(row.test_reason || 'likely test')}</span>` : '<span class="pill good">likely real</span>'}</td>
+      <td>${escapeHtml(row.created_at)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="muted">No signups matching this filter in this period.</td></tr>';
+
+  const realSignups = document.getElementById('real-signups-table');
+  realSignups.innerHTML = data.recent_real_signups.map(row => `
+    <tr>
+      <td><code>${escapeHtml(row.email)}</code><div class="muted" style="margin-top:4px;">${escapeHtml(row.label || row.prefix || '-')}</div></td>
+      <td><strong>${escapeHtml(row.source_guess)}</strong><div class="muted" style="margin-top:4px;">${escapeHtml(row.first_referrer || row.registration_referrer || '')}</div></td>
+      <td><code>${escapeHtml(row.first_landing_path || '-')}</code><div class="muted" style="margin-top:4px;">${escapeHtml(row.first_utm_campaign || row.utm_campaign || '')}</div></td>
+      <td>${escapeHtml(row.created_at)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="muted">No likely real signups yet.</td></tr>';
+
+  const realUsers = document.getElementById('real-users-table');
+  realUsers.innerHTML = data.recent_real_users.map(row => `
+    <tr>
+      <td><code>${escapeHtml(row.actor)}</code><div class="muted" style="margin-top:4px;">${escapeHtml(row.user_agent)}</div></td>
+      <td>${fmt(row.hits)}</td>
+      <td>${fmt(row.endpoint_count)}</td>
+      <td>${escapeHtml(row.last_seen || '-')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="muted">No likely real users identified yet.</td></tr>';
+
+  const sources = document.getElementById('sources-table');
+  sources.innerHTML = data.top_signup_sources.map(row => `
+    <tr><td>${escapeHtml(row.source)}</td><td>${fmt(row.count)}</td></tr>
+  `).join('') || '<tr><td colspan="2" class="muted">No source data yet.</td></tr>';
+
+  const referrers = document.getElementById('referrers-table');
+  referrers.innerHTML = data.top_external_referrers.map(row => `
+    <tr><td>${escapeHtml(row.source)}</td><td>${fmt(row.count)}</td></tr>
+  `).join('') || '<tr><td colspan="2" class="muted">No external referrer data yet.</td></tr>';
+
+  const landingPages = document.getElementById('landing-pages-table');
+  landingPages.innerHTML = data.top_signup_landing_pages.map(row => `
+    <tr><td><code>${escapeHtml(row.path)}</code></td><td>${fmt(row.count)}</td></tr>
+  `).join('') || '<tr><td colspan="2" class="muted">No landing page data yet.</td></tr>';
+
+  const campaigns = document.getElementById('campaigns-table');
+  campaigns.innerHTML = data.top_signup_campaigns.map(row => `
+    <tr><td>${escapeHtml(row.campaign)}</td><td>${fmt(row.count)}</td></tr>
+  `).join('') || '<tr><td colspan="2" class="muted">No campaign data yet.</td></tr>';
+
+  const notes = document.getElementById('notes-list');
+  notes.innerHTML = data.notes.map(text => `<li>${escapeHtml(text)}</li>`).join('') || '<li>No notes yet.</li>';
+}
+
+document.getElementById('campaign-channel').addEventListener('change', buildCampaignUrl);
+document.getElementById('campaign-name').addEventListener('input', buildCampaignUrl);
+document.getElementById('campaign-target').addEventListener('change', buildCampaignUrl);
+document.getElementById('campaign-copy').addEventListener('click', async () => {
+  buildCampaignUrl();
+  const value = document.getElementById('campaign-url').value;
+  try {
+    await navigator.clipboard.writeText(value);
+    document.getElementById('campaign-copy').textContent = 'Copied';
+    window.setTimeout(() => {
+      document.getElementById('campaign-copy').textContent = 'Copy Link';
+    }, 1200);
+  } catch {
+    document.getElementById('campaign-url').focus();
+    document.getElementById('campaign-url').select();
+  }
+});
+document.getElementById('signups-real-only').addEventListener('change', () => {
+  refresh().catch(err => {
+    document.body.insertAdjacentHTML('beforeend', `<p style="margin-top:16px;color:#f85149;">Failed to load analytics: ${err.message}</p>`);
+  });
+});
+buildCampaignUrl();
+
+refresh().catch(err => {
+  document.body.insertAdjacentHTML('beforeend', `<p style="margin-top:16px;color:#f85149;">Failed to load analytics: ${err.message}</p>`);
+});
+</script>
+</body>
+</html>

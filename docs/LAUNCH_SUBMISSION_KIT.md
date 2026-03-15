@@ -18,7 +18,7 @@ Satoshi API is the first Bitcoin MCP server on the Anthropic Registry. It gives 
 
 ## Long Description (1 paragraph)
 
-Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines multiple fee estimation targets with real-time mempool state to tell you exactly when to send and what to pay. Instead of calling `estimatesmartfee` five times and doing math, you get a single endpoint that says "Fees are low. Good time to send." — saving money on every transaction. It's the first Bitcoin API on the Anthropic MCP Registry, meaning AI agents like Claude and ChatGPT can check fees, verify payments, and monitor addresses without human intervention. Install with `pip install satoshi-api`, point it at your Bitcoin Core node, and you're running in 60 seconds. Self-hostable at $0/month, or use the free hosted tier at bitcoinsapi.com with no signup required. Apache-2.0 licensed, 428 tests, built by a Bitcoin Core contributor.
+Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines multiple fee estimation targets with real-time mempool state to tell you exactly when to send and what to pay. Instead of calling `estimatesmartfee` five times and doing math, you get a single endpoint that says "Fees are low. Good time to send." — saving money on every transaction. It's the first Bitcoin API on the Anthropic MCP Registry, meaning AI agents like Claude and ChatGPT can check fees, verify payments, and monitor addresses without human intervention. Install with `pip install satoshi-api`, point it at your Bitcoin Core node, and you're running in 60 seconds. Self-hostable at $0/month, or use the free hosted tier at bitcoinsapi.com with no signup required. Apache-2.0 licensed, 475 tests, built by a Bitcoin Core contributor.
 
 ---
 
@@ -85,7 +85,7 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 
 **BetaList:** Emphasize the free tier and open source nature. BetaList audience loves trying things without commitment.
 
-**Peerlist:** Developer-focused. Highlight the `pip install` simplicity and 428 test count. Link to GitHub prominently.
+**Peerlist:** Developer-focused. Highlight the `pip install` simplicity and 475 test count. Link to GitHub prominently.
 
 **Indie Hackers:** Solo builder story — built by a Bitcoin Core contributor and FP&A analyst. Self-hosted = $0 infra cost narrative resonates.
 
@@ -102,4 +102,4 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 - Current version: v0.3.4
 - Python: 3.10+
 - License: Apache-2.0
-- Tests: 428 (407 unit + 21 e2e)
+- Tests: 475 (454 unit + 21 e2e)

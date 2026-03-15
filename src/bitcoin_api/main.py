@@ -15,7 +15,7 @@ from .notifications import init_notifications
 from .rate_limit import init_redis
 from .static_routes import register_static_routes
 from . import __version__
-from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address, health_deep, guide, metrics as metrics_router, websocket as ws_router, billing as billing_router, supply, stats, rpc_proxy
+from .routers import status, blocks, transactions, mempool, fees, mining, network, prices, keys, stream, exchanges, address, health_deep, guide, metrics as metrics_router, websocket as ws_router, billing as billing_router, supply, stats, rpc_proxy, psbt as psbt_router
 
 log = logging.getLogger("bitcoin_api")
 
@@ -167,6 +167,7 @@ _FEATURE_ROUTERS = {
     "exchange_compare": exchanges.router,
     "supply_router": supply.router,
     "stats_router": stats.router,
+    "psbt_router": psbt_router.router,  # PSBT security analysis (off by default)
 }
 for flag, router in _FEATURE_ROUTERS.items():
     if settings.feature_flags.get(flag, False):

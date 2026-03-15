@@ -120,7 +120,15 @@ def classify_client(user_agent: str) -> str:
         return "browser"
     return "unknown"
 
-_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/visualizer"}
+_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/admin/founder", "/visualizer"}
+
+_PAGEVIEW_LOG_PATHS = {
+    "/", "/docs", "/redoc", "/admin/dashboard", "/admin/founder",
+    "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
+    "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
+    "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
+    "/terms", "/privacy", "/disclaimer", "/about", "/pricing", "/mcp-setup", "/guide",
+}
 
 _RATE_LIMIT_SKIP = {
     "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
@@ -130,7 +138,7 @@ _RATE_LIMIT_SKIP = {
     "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
     "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
     "/terms", "/privacy", "/disclaimer", "/about", "/pricing",
-    "/admin/dashboard",
+    "/admin/dashboard", "/admin/founder",
     "/metrics",
     "/api/v1/ws",
     "/api/v1/billing/webhook",
@@ -193,6 +201,11 @@ def register_middleware(app: FastAPI):
                 key_info = authenticate(request)
                 _log_and_respond(key_info.key_hash, request.url.path, response.status_code,
                                  response=response, record_metrics=False, **_common)
+            elif request.url.path in _PAGEVIEW_LOG_PATHS:
+                client_ip = _get_client_ip(request)
+                _log_and_respond(client_ip, request.url.path, response.status_code,
+                                 response=response, record_metrics=False, tier="unknown",
+                                 client_ip=client_ip, error_type="", **_common)
             # Record skipped-path metrics for Prometheus visibility
             _norm = normalize_endpoint(request.url.path)
             elapsed_ms = (time.monotonic() - start_time) * 1000
@@ -400,7 +413,7 @@ def register_middleware(app: FastAPI):
         if request.url.path not in _DOCS_PATHS:
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com; "
+                "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://us.i.posthog.com; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "

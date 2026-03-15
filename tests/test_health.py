@@ -1,12 +1,24 @@
 """Tests for health, root, status, and process-alive endpoints."""
 
+from pathlib import Path
 from unittest.mock import patch, MagicMock
+
+from bitcoin_api import static_routes
+from bitcoin_api.config import settings
 
 
 def test_root(client):
     resp = client.get("/")
     assert resp.status_code == 200
     assert "Satoshi API" in resp.text
+
+
+def test_root_returns_404_when_landing_page_is_missing(client, monkeypatch):
+    monkeypatch.setattr(static_routes, "_LANDING_PAGE", Path("missing-index.html"))
+    resp = client.get("/")
+    assert resp.status_code == 404
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "Page Not Found" in resp.text
 
 
 def test_health_returns_envelope(client):
@@ -61,6 +73,12 @@ def test_docs_accessible(client):
     assert resp.status_code == 200
 
 
+def test_api_docs_redirects_to_live_docs(client):
+    resp = client.get("/api-docs", follow_redirects=False)
+    assert resp.status_code == 307
+    assert resp.headers["location"] == "/docs"
+
+
 def test_envelope_format(client):
     with patch("bitcoin_api.routers.status.cached_status") as mock_cached:
         mock_status = MagicMock()
@@ -86,6 +104,25 @@ def test_healthz_no_rpc(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
+
+
+def test_history_nav_hidden_when_history_explorer_disabled(client):
+    original = settings.enable_history_explorer
+    try:
+        settings.enable_history_explorer = False
+        resp = client.get("/")
+    finally:
+        settings.enable_history_explorer = original
+
+    assert resp.status_code == 200
+    assert 'href="/history"' not in resp.text
+
+
+def test_root_csp_allows_configured_analytics_scripts(client):
+    resp = client.get("/")
+    assert resp.status_code == 200
+    csp = resp.headers["content-security-policy"]
+    assert "https://us.i.posthog.com" in csp
 
 
 def test_health_deep(authed_client):

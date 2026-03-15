@@ -198,6 +198,38 @@ def test_analytics_funnel_requires_admin(client):
     assert resp.status_code == 403
 
 
+def test_analytics_founder_with_admin_key(admin_client):
+    """Founder analytics should return curated growth and traffic quality data."""
+    resp = admin_client.get("/api/v1/analytics/founder?period=7d")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "summary" in data
+    assert "funnel" in data
+    assert "growth" in data
+    assert "top_real_endpoints" in data
+    assert "likely_testers" in data
+    assert "recent_signups" in data
+    assert "recent_real_signups" in data
+    assert "recent_real_users" in data
+    assert "top_signup_sources" in data
+    assert "top_external_referrers" in data
+    assert "top_signup_landing_pages" in data
+    assert "top_signup_campaigns" in data
+    assert "notes" in data
+    if data["recent_signups"]:
+        signup = data["recent_signups"][0]
+        assert "source_guess" in signup
+        assert "first_landing_path" in signup
+        assert "is_likely_test" in signup
+        assert "test_reason" in signup
+
+
+def test_analytics_founder_requires_admin(client):
+    """Founder analytics should return 403 without admin key."""
+    resp = client.get("/api/v1/analytics/founder")
+    assert resp.status_code == 403
+
+
 # --- Admin Dashboard ---
 
 
@@ -219,6 +251,23 @@ def test_admin_dashboard_with_valid_key(admin_client):
     resp = admin_client.get(f"/admin/dashboard?key={settings.admin_api_key.get_secret_value()}")
     assert resp.status_code == 200
     assert "Admin Dashboard" in resp.text
+
+
+def test_founder_dashboard_requires_key(client):
+    """Founder dashboard should return 403 without key."""
+    resp = client.get("/admin/founder")
+    assert resp.status_code == 403
+
+
+def test_founder_dashboard_with_valid_key(admin_client):
+    """Founder dashboard should return HTML with valid key."""
+    from bitcoin_api.config import settings
+    resp = admin_client.get(f"/admin/founder?key={settings.admin_api_key.get_secret_value()}")
+    assert resp.status_code == 200
+    assert "Founder Analytics" in resp.text
+    assert "Campaign Links" in resp.text
+    assert "Real Candidate Signups" in resp.text
+    assert "Traffic Origins" in resp.text
 
 
 # --- Prometheus /metrics ---

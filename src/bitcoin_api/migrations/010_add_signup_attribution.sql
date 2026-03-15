@@ -1,0 +1,10 @@
+-- Preserve first-touch marketing attribution and richer signup context
+ALTER TABLE api_keys ADD COLUMN utm_term TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN utm_content TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_landing_path TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_referrer TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_utm_source TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_utm_medium TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_utm_campaign TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_utm_term TEXT DEFAULT '';
+ALTER TABLE api_keys ADD COLUMN first_utm_content TEXT DEFAULT '';

@@ -1,5 +1,6 @@
 """Tests for indexer router endpoints."""
 
+import os
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -247,8 +248,8 @@ async def test_status_no_auth_required(mock_gp):
 def test_indexer_routes_absent_when_disabled():
     """When ENABLE_INDEXER=false, /indexed/* routes should not be registered (404)."""
     from bitcoin_api.config import settings
-    # The default is enable_indexer=False, so the main app won't register indexer routes
-    assert settings.enable_indexer is False, "Test assumes ENABLE_INDEXER defaults to False"
+    if settings.enable_indexer:
+        pytest.skip("ENABLE_INDEXER=true — routes registered at import time, cannot test absent state")
     from fastapi.testclient import TestClient
     from bitcoin_api.main import app
     client = TestClient(app, raise_server_exceptions=False)
