@@ -10,7 +10,7 @@ from .metrics import WS_MESSAGES_DROPPED
 
 log = logging.getLogger("bitcoin_api.pubsub")
 
-CHANNELS = {"new_block", "new_fees", "mempool_update"}
+CHANNELS = {"new_block", "new_fees", "mempool_update", "market_data"}
 
 
 class PubSubHub:

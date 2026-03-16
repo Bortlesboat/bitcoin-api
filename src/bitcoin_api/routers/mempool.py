@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Path, Query
 
 from bitcoinlib_rpc import BitcoinRPC
 
-from ..cache import cached_mempool_analysis, cached_raw_mempool
+from ..cache import cached_mempool_analysis, cached_mempool_info, cached_raw_mempool
 from ..dependencies import get_rpc
 from ..models import ApiResponse, MempoolAnalysisData, rpc_envelope
 from ..services.serializers import sanitize_for_json
@@ -126,8 +126,8 @@ def mempool_analysis(rpc: BitcoinRPC = Depends(get_rpc)):
 
 @router.get("/info", response_model=ApiResponse[dict], responses=_MEMPOOL_INFO_EXAMPLE)
 def mempool_info(rpc: BitcoinRPC = Depends(get_rpc)):
-    """Raw mempool info from getmempoolinfo RPC."""
-    mpi = rpc.call("getmempoolinfo")
+    """Raw mempool info from getmempoolinfo RPC. Cached for 10 seconds."""
+    mpi = cached_mempool_info(rpc)
     return rpc_envelope(mpi, rpc)
 
 

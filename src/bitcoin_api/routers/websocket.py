@@ -19,7 +19,7 @@ router = APIRouter(tags=["WebSocket"])
 _active_connections: set[WebSocket] = set()
 
 # Public channels available to all connections (authenticated or not)
-PUBLIC_CHANNELS = {"new_block", "new_fees", "mempool_update"}
+PUBLIC_CHANNELS = {"new_block", "new_fees", "mempool_update", "market_data"}
 
 # Premium channels requiring a valid API key (empty for now; add channel names to gate them)
 PREMIUM_CHANNELS: set[str] = set()

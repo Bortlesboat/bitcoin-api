@@ -97,8 +97,9 @@ def get_all_cache_stats() -> dict[str, dict]:
 # --- Cache instances ---
 
 # Mutable data — short TTL
-_fee = create_cache("fee", TTLCache(maxsize=1, ttl=10))
+_fee = create_cache("fee", TTLCache(maxsize=1, ttl=30))
 _mempool = create_cache("mempool", TTLCache(maxsize=1, ttl=5))
+_mempool_info = create_cache("mempool_info", TTLCache(maxsize=1, ttl=10))
 _status = create_cache("status", TTLCache(maxsize=1, ttl=30))
 _blockchain_info = create_cache("blockchain_info", TTLCache(maxsize=1, ttl=10))
 _block_count = create_cache("block_count", TTLCache(maxsize=1, ttl=5))
@@ -264,6 +265,11 @@ def cached_fee_estimates(rpc):
     return _cached_rpc(_fee, rpc, lambda r: get_fee_estimates(r))
 
 
+def cached_mempool_info(rpc):
+    """Cache getmempoolinfo for 10 seconds — lightweight RPC, prevents hammering."""
+    return _cached_rpc(_mempool_info, rpc, lambda r: r.call("getmempoolinfo"))
+
+
 def cached_mempool_analysis(rpc):
     from bitcoinlib_rpc.mempool import analyze_mempool
     return _cached_rpc(_mempool, rpc, lambda r: analyze_mempool(r))
@@ -371,3 +377,26 @@ _network_info = create_cache("network_info", TTLCache(maxsize=1, ttl=30))
 
 def cached_network_info(rpc):
     return _cached_rpc(_network_info, rpc, lambda r: r.call("getnetworkinfo"))
+
+
+# --- Pre-computed market data bundle (updated by fast ticker thread) ---
+
+_market_data_lock = threading.Lock()
+_market_data: dict | None = None
+_market_data_time: float = 0
+
+
+def set_market_data(data: dict) -> None:
+    """Store pre-computed market data bundle (called by fast ticker thread)."""
+    global _market_data, _market_data_time
+    with _market_data_lock:
+        _market_data = data
+        _market_data_time = time.time()
+
+
+def get_market_data() -> tuple[dict | None, float]:
+    """Return (pre-computed market data, age_seconds). None if never computed."""
+    with _market_data_lock:
+        if _market_data is None:
+            return None, 0
+        return _market_data, time.time() - _market_data_time

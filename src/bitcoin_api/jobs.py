@@ -1,11 +1,11 @@
-"""Background jobs: fee collector thread with health monitoring."""
+"""Background jobs: fee collector thread + fast market data ticker with health monitoring."""
 
 import logging
 import threading
 import time
 
 from .db import record_fee_snapshot, prune_fee_history, prune_old_logs
-from .cache import record_mempool_snapshot, feerate_to_sat_vb
+from .cache import record_mempool_snapshot, feerate_to_sat_vb, set_market_data
 from .metrics import BLOCK_HEIGHT, JOB_ERRORS
 from .pubsub import hub
 
@@ -13,6 +13,7 @@ log = logging.getLogger("bitcoin_api")
 
 _bg_stop = threading.Event()
 _bg_thread: threading.Thread | None = None
+_ticker_thread: threading.Thread | None = None
 
 # Health monitoring — exposed to /health/deep
 _last_run_time: float | None = None
@@ -159,12 +160,71 @@ def _fee_collector():
             backoff = min(backoff * 2, 300)
 
 
+def _market_data_ticker():
+    """Fast background thread: pre-compute market data bundle every 5 seconds.
+
+    This makes /market-data respond in <1ms (just returns the pre-built dict)
+    and pushes to WebSocket subscribers for zero-latency trading signals.
+    """
+    from .dependencies import get_rpc as _get_rpc_dep
+
+    # Import price fetcher (same one used by /prices endpoint)
+    from .routers.prices import _get_cached_price
+
+    while not _bg_stop.is_set():
+        try:
+            rpc = _get_rpc_dep()
+
+            # Mempool info (fast RPC, ~5ms)
+            mempool = rpc.call("getmempoolinfo")
+
+            # Fee estimates — reuse cached values when available (30s TTL)
+            from .cache import cached_fee_estimates
+            try:
+                estimates = cached_fee_estimates(rpc)
+                fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
+            except Exception:
+                fee_dict = {}
+
+            # Price (60s cache, external API — never blocks on network here)
+            price_data = {}
+            try:
+                price_data = _get_cached_price()
+            except Exception:
+                pass
+
+            bundle = {
+                "price": price_data,
+                "mempool": {
+                    "size": mempool.get("size", 0),
+                    "bytes": mempool.get("bytes", 0),
+                    "total_fee": mempool.get("total_fee", 0),
+                    "usage": mempool.get("usage", 0),
+                    "mempoolminfee": mempool.get("mempoolminfee", 0),
+                },
+                "fees": {"estimates": fee_dict} if fee_dict else {},
+                "timestamp": int(time.time()),
+            }
+
+            set_market_data(bundle)
+
+            # Push to WebSocket subscribers
+            hub.publish("market_data", bundle)
+
+        except Exception as exc:
+            log.debug("Market data ticker failed: %s", exc)
+
+        _bg_stop.wait(5)  # 5-second refresh
+
+
 def start_background_jobs():
     """Start all background threads."""
-    global _bg_thread
+    global _bg_thread, _ticker_thread
     _bg_stop.clear()
     _bg_thread = threading.Thread(target=_fee_collector, daemon=True, name="fee-collector")
     _bg_thread.start()
+    _ticker_thread = threading.Thread(target=_market_data_ticker, daemon=True, name="market-ticker")
+    _ticker_thread.start()
 
 
 def stop_background_jobs():
@@ -172,3 +232,5 @@ def stop_background_jobs():
     _bg_stop.set()
     if _bg_thread is not None:
         _bg_thread.join(timeout=5)
+    if _ticker_thread is not None:
+        _ticker_thread.join(timeout=5)
