@@ -231,6 +231,22 @@ footer a:hover { color: var(--accent); }
     <a href="/" class="cta btn-primary">Get Started</a>
   </div>
 
+  <!-- Pro — $19/month (center position for visual anchoring) -->
+  <div class="tier featured">
+    <div class="tier-name">Pro</div>
+    <div class="tier-price">$19<span class="period">/month</span></div>
+    <p class="tier-desc">For trading bots and apps that save money on every transaction.</p>
+    <ul>
+      <li>100,000 requests/day</li>
+      <li>500 requests/min</li>
+      <li>All endpoints including POST</li>
+      <li>Priority support</li>
+      <li>One fee-optimized transaction pays for it</li>
+    </ul>
+    <a href="#" onclick="upgradeToPro(event)" class="cta btn-primary" id="pro-cta">Upgrade to Pro</a>
+    <p id="pro-status" style="font-size:0.8em;color:var(--muted);margin-top:8px;display:none;"></p>
+  </div>
+
   <!-- Self-Hosted — Free Forever -->
   <div class="tier">
     <div class="tier-name">Self-Hosted</div>
@@ -244,20 +260,6 @@ footer a:hover { color: var(--accent); }
       <li>pip install or Docker</li>
     </ul>
     <a href="https://github.com/Bortlesboat/bitcoin-api" class="cta btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-  </div>
-
-  <!-- Pro — $19/month -->
-  <div class="tier featured">
-    <div class="tier-name">Pro</div>
-    <div class="tier-price">$19<span class="period">/month</span></div>
-    <p class="tier-desc">For production workloads that need higher throughput.</p>
-    <ul>
-      <li>100,000 requests/day</li>
-      <li>500 requests/min</li>
-      <li>All endpoints including POST</li>
-      <li>Priority support</li>
-    </ul>
-    <a href="mailto:api@bitcoinsapi.com" class="cta btn-primary">Contact Us</a>
   </div>
 
 </div>
@@ -324,5 +326,39 @@ footer a:hover { color: var(--accent); }
   </div>
 </footer>
 
+<script>
+async function upgradeToPro(e) {
+  e.preventDefault();
+  var status = document.getElementById('pro-status');
+  var key = prompt('Enter your API key to upgrade to Pro.\n\nDon\'t have one? Register free at bitcoinsapi.com/#get-api-key');
+  if (!key || !key.trim()) return;
+  status.style.display = 'block';
+  status.textContent = 'Creating checkout session...';
+  status.style.color = 'var(--muted)';
+  try {
+    var res = await fetch('/api/v1/billing/checkout', {
+      method: 'POST',
+      headers: {'X-API-Key': key.trim()}
+    });
+    var data = await res.json();
+    if (res.ok && data.data && data.data.checkout_url) {
+      status.textContent = 'Redirecting to Stripe...';
+      window.location.href = data.data.checkout_url;
+    } else if (res.status === 503) {
+      status.textContent = 'Pro billing coming soon. Email api@bitcoinsapi.com for early access.';
+      status.style.color = 'var(--accent)';
+    } else if (res.status === 401) {
+      status.textContent = 'Invalid API key. Register free at bitcoinsapi.com first.';
+      status.style.color = '#f85149';
+    } else {
+      status.textContent = (data.error && data.error.detail) || 'Something went wrong. Email api@bitcoinsapi.com';
+      status.style.color = '#f85149';
+    }
+  } catch (err) {
+    status.textContent = 'Connection error. Try again or email api@bitcoinsapi.com';
+    status.style.color = '#f85149';
+  }
+}
+</script>
 </body>
 </html>
