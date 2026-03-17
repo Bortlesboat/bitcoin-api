@@ -1,5 +1,6 @@
-"""HTTP middleware: security headers, CORS setup, auth + rate limiting."""
+"""HTTP middleware: security headers, CORS setup, auth + rate limiting, request timeout."""
 
+import asyncio
 import json
 import logging
 import time
@@ -28,31 +29,60 @@ log = logging.getLogger("bitcoin_api")
 # Helper functions (extracted from auth_and_rate_limit)
 # ---------------------------------------------------------------------------
 
-def _get_client_ip(request: Request) -> str:
+def get_client_ip(request: Request) -> str:
     """Extract the real client IP, preferring Cloudflare's header."""
     return (request.headers.get("CF-Connecting-IP")
             or (request.client.host if request.client else "unknown"))
 
 
+def _upgrade_info(current_tier: str) -> dict | None:
+    """Return upgrade path info for rate-limited responses."""
+    upgrades = {
+        "anonymous": {
+            "current_tier": "anonymous",
+            "current_limit": 1000,
+            "next_tier": "free",
+            "next_limit": 10000,
+            "next_price": "Free",
+            "multiplier": "10x",
+            "message": "Register for free: 10x more requests. Takes 10 seconds.",
+            "action_url": "https://bitcoinsapi.com/#get-api-key",
+            "action_api": "POST /api/v1/register",
+        },
+        "free": {
+            "current_tier": "free",
+            "current_limit": 10000,
+            "next_tier": "pro",
+            "next_limit": 100000,
+            "next_price": "$19/mo",
+            "multiplier": "10x",
+            "message": "Pro gives you 100,000 req/day for $19/mo. One fee-optimized transaction pays for it.",
+            "action_url": "https://bitcoinsapi.com/pricing?utm_source=api&utm_medium=429&utm_campaign=upgrade",
+        },
+    }
+    return upgrades.get(current_tier)
+
+
 def _error_response(status: int, title: str, detail: str, request_id: str,
                     *, error_type_key: str,
                     extra_headers: dict | None = None,
-                    retry_after_seconds: int | None = None) -> JSONResponse:
+                    retry_after_seconds: int | None = None,
+                    upgrade: dict | None = None) -> JSONResponse:
     """Build a standardised JSON error response with X-Request-ID."""
-    resp = JSONResponse(
-        status_code=status,
-        content=ErrorResponse(
-            error=ErrorDetail(
-                type=ERROR_TYPES[error_type_key],
-                status=status,
-                title=title,
-                detail=detail,
-                request_id=request_id,
-                help_url=_GUIDE_URL,
-                retry_after_seconds=retry_after_seconds,
-            )
-        ).model_dump(),
-    )
+    content = ErrorResponse(
+        error=ErrorDetail(
+            type=ERROR_TYPES[error_type_key],
+            status=status,
+            title=title,
+            detail=detail,
+            request_id=request_id,
+            help_url=_GUIDE_URL,
+            retry_after_seconds=retry_after_seconds,
+        )
+    ).model_dump()
+    if upgrade:
+        content["upgrade"] = upgrade
+    resp = JSONResponse(status_code=status, content=content)
     resp.headers["X-Request-ID"] = request_id
     if extra_headers:
         for k, v in extra_headers.items():
@@ -140,7 +170,6 @@ _RATE_LIMIT_SKIP = {
     "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
     "/terms", "/privacy", "/disclaimer", "/about", "/pricing",
     "/admin/dashboard", "/admin/founder",
-    "/metrics",
     "/api/v1/ws",
     "/api/v1/billing/webhook",
 }
@@ -165,7 +194,7 @@ def register_middleware(app: FastAPI):
 
         # --- MCP path: basic IP rate limit only (no auth/daily/circuit breaker) ---
         if request.url.path.startswith("/mcp"):
-            client_ip = _get_client_ip(request)
+            client_ip = get_client_ip(request)
             mcp_result = check_rate_limit_raw(f"mcp:{client_ip}", 60)
             if not mcp_result.allowed:
                 retry_after = max(1, int(mcp_result.reset - time.time()))
@@ -203,7 +232,7 @@ def register_middleware(app: FastAPI):
                 _log_and_respond(key_info.key_hash, request.url.path, response.status_code,
                                  response=response, record_metrics=False, **_common)
             elif request.url.path in _PAGEVIEW_LOG_PATHS:
-                client_ip = _get_client_ip(request)
+                client_ip = get_client_ip(request)
                 _log_and_respond(client_ip, request.url.path, response.status_code,
                                  response=response, record_metrics=False, tier="unknown",
                                  client_ip=client_ip, error_type="", **_common)
@@ -218,6 +247,7 @@ def register_middleware(app: FastAPI):
         # --- Authentication ---
         key_info = authenticate(request)
         request.state.tier = key_info.tier
+        request.state.key_hash = key_info.key_hash
 
         if key_info.tier == "invalid":
             resp = _error_response(401, "Unauthorized",
@@ -228,19 +258,23 @@ def register_middleware(app: FastAPI):
             REQUEST_LATENCY.labels(method=req_method, endpoint=_norm).observe(time.monotonic() - start_time)
             return resp
 
-        client_ip = _get_client_ip(request)
+        client_ip = get_client_ip(request)
         bucket = key_info.key_hash or client_ip
+
+        # --- Skip rate limiting for registration (users must always be able to upgrade) ---
+        _skip_rate_limit = request.url.path == "/api/v1/register"
 
         # --- Per-minute rate limit ---
         result = check_rate_limit(bucket, key_info.tier)
-        if not result.allowed:
+        if not _skip_rate_limit and not result.allowed:
             retry_after = max(1, int(result.reset - time.time()))
             detail_msg = f"Limit: {result.limit} req/min for {key_info.tier} tier"
             if key_info.tier == "anonymous":
-                detail_msg += ". Upgrade: POST /api/v1/register"
+                detail_msg += ". Register for free: 10x more requests, takes 10 seconds."
             resp = _error_response(429, "Rate Limit Exceeded", detail_msg, request_id,
                                    error_type_key="rate_limit",
                                    retry_after_seconds=retry_after,
+                                   upgrade=_upgrade_info(key_info.tier),
                                    extra_headers={
                                        "X-RateLimit-Limit": str(result.limit),
                                        "X-RateLimit-Remaining": "0",
@@ -276,15 +310,38 @@ def register_middleware(app: FastAPI):
                                         client_ip=client_ip, error_type="rate_limited",
                                         **_common)
 
+        # --- AI-specific rate limit (tighter — LLM calls cost real money) ---
+        if request.url.path.startswith("/api/v1/ai/"):
+            from .config import settings as _cfg
+            ai_bucket = f"ai:{bucket}"
+            ai_result = check_rate_limit_raw(ai_bucket, _cfg.ai_rate_limit)
+            if not ai_result.allowed:
+                ai_retry = max(1, int(ai_result.reset - time.time()))
+                resp = _error_response(
+                    429, "AI Rate Limit Exceeded",
+                    f"AI endpoint limit: {_cfg.ai_rate_limit} requests per minute.",
+                    request_id, error_type_key="rate_limit",
+                    retry_after_seconds=ai_retry,
+                    extra_headers={
+                        "X-RateLimit-Limit": str(_cfg.ai_rate_limit),
+                        "X-RateLimit-Remaining": "0",
+                        "Retry-After": str(ai_retry),
+                    })
+                return _log_and_respond(bucket, request.url.path, 429,
+                                        response=resp, record_metrics=False,
+                                        client_ip=client_ip, error_type="rate_limited",
+                                        **_common)
+
         # --- Daily rate limit ---
         daily_result = check_daily_limit(bucket, key_info.tier)
-        if not daily_result.allowed:
+        if not _skip_rate_limit and not daily_result.allowed:
             daily_detail = f"Daily limit: {daily_result.limit} requests for {key_info.tier} tier"
             if key_info.tier == "anonymous":
-                daily_detail += ". Upgrade: POST /api/v1/register"
+                daily_detail += ". Register for free: 10x more requests, takes 10 seconds."
             resp = _error_response(429, "Daily Rate Limit Exceeded", daily_detail, request_id,
                                    error_type_key="rate_limit",
                                    retry_after_seconds=3600,
+                                   upgrade=_upgrade_info(key_info.tier),
                                    extra_headers={
                                        "X-RateLimit-Daily-Limit": str(daily_result.limit),
                                        "X-RateLimit-Daily-Remaining": "0",
@@ -359,6 +416,15 @@ def register_middleware(app: FastAPI):
         response.headers["X-RateLimit-Daily-Limit"] = str(daily_result.limit)
         response.headers["X-RateLimit-Daily-Remaining"] = str(daily_result.remaining)
 
+        # Upgrade nudge: hint when free tier users approach daily limit
+        if key_info.tier in ("anonymous", "free") and daily_result.limit > 0:
+            usage_pct = (daily_result.limit - daily_result.remaining) / daily_result.limit
+            if usage_pct >= 0.80:
+                response.headers["X-Upgrade-Notice"] = (
+                    f"You've used {usage_pct:.0%} of your daily limit. "
+                    "Upgrade to Pro for 100K requests/day: https://bitcoinsapi.com/pricing?utm_source=api&utm_medium=header&utm_campaign=upgrade"
+                )
+
         # --- Log usage + access log ---
         elapsed_ms = (time.monotonic() - start_time) * 1000
         _error_type = ""
@@ -395,6 +461,7 @@ def register_middleware(app: FastAPI):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins,
+        allow_credentials=False,
         allow_methods=["GET", "POST"],
         allow_headers=["X-API-Key"],
     )
@@ -410,11 +477,10 @@ def register_middleware(app: FastAPI):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
         if request.url.path not in _DOCS_PATHS:
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://us.i.posthog.com; "
+                "script-src 'self' 'strict-dynamic' https://us-assets.i.posthog.com https://us.i.posthog.com; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "
@@ -448,3 +514,36 @@ def register_middleware(app: FastAPI):
             response.headers["Age"] = str(cache_age)
 
         return response
+
+    # --- Request timeout (innermost — cancels slow requests) ---
+    # Registered last so it wraps the route handler directly.
+    # Skips SSE streams and WebSocket upgrades which are long-lived by design.
+    _TIMEOUT_SKIP_PREFIXES = ("/api/v1/stream/", "/api/v1/ws")
+
+    @app.middleware("http")
+    async def request_timeout(request: Request, call_next):
+        if any(request.url.path.startswith(p) for p in _TIMEOUT_SKIP_PREFIXES):
+            return await call_next(request)
+
+        try:
+            return await asyncio.wait_for(
+                call_next(request),
+                timeout=settings.request_timeout,
+            )
+        except asyncio.TimeoutError:
+            request_id = getattr(request.state, "request_id", "unknown")
+            log.warning("Request timed out after %ds: %s %s [%s]",
+                        settings.request_timeout, request.method, request.url.path, request_id)
+            return JSONResponse(
+                status_code=504,
+                content={
+                    "error": {
+                        "type": "https://bitcoinsapi.com/errors/timeout",
+                        "status": 504,
+                        "title": "Gateway Timeout",
+                        "detail": f"Request exceeded {settings.request_timeout}s timeout. Try again or use a simpler query.",
+                        "request_id": request_id,
+                    }
+                },
+                headers={"X-Request-ID": request_id},
+            )
