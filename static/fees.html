@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts</title>
+<meta name="description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting. Free, updated every 30 seconds.">
+<meta name="keywords" content="bitcoin fee tracker, current bitcoin fees, bitcoin fee chart, bitcoin transaction fees live, bitcoin mempool fees">
+<link rel="canonical" href="https://bitcoinsapi.com/fees">
+<meta property="og:title" content="Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts">
+<meta property="og:description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting. Free, updated every 30 seconds.">
+<meta property="og:url" content="https://bitcoinsapi.com/fees">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BTCOrangeCoin">
+<meta name="twitter:title" content="Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts">
+<meta name="twitter:description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Fee Tracker","item":"https://bitcoinsapi.com/fees"}]},{"@type":"WebApplication","@id":"https://bitcoinsapi.com/fees/#app","name":"Bitcoin Fee Tracker","description":"Real-time Bitcoin fee tracker with send-or-wait verdicts, congestion monitoring, and savings calculator.","url":"https://bitcoinsapi.com/fees","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"}}]}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How often is the fee data updated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The fee tracker refreshes every 30 seconds from a Bitcoin Core node. Data is sourced from estimatesmartfee RPC calls with smart caching to keep estimates fresh without overloading the node."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does 'send or wait' mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Satoshi API analyzes the current fee environment, mempool congestion, and fee trends to recommend whether you should send your transaction now or wait for a cheaper window. A 'send' verdict means fees are reasonable; 'wait' means you could save significantly by delaying."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is the savings percentage calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The savings percentage compares the current next-block (high priority) fee rate to the economy (low priority) fee rate. For example, if the next-block fee is 20 sat/vB and the economy fee is 5 sat/vB, waiting saves 75%."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I get this data via API?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. All fee data shown on this page is available via the free Satoshi API. Use GET /api/v1/fees/landscape for the send-or-wait verdict, GET /api/v1/fees/recommended for fee tiers, and GET /api/v1/mempool/info for mempool status. Full documentation at bitcoinsapi.com/docs."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+  /* Sync Warning Banner */
+  .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
+  .sync-banner a { color: #FFB347; text-decoration: underline; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  nav .logo a { color: var(--accent); }
+  nav .logo a:hover { text-decoration: none; }
+
+  /* Page header */
+  .page-header { text-align: center; padding: 80px 0 40px; }
+  .page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+  /* Section headings */
+  .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 24px; }
+
+  /* Prose */
+  .prose { max-width: 760px; margin: 0 auto; }
+  .prose p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; line-height: 1.7; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.85em; }
+  .compare-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .compare-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .compare-table tr:hover { background: var(--surface); }
+  .compare-table .row-label { color: var(--text); font-weight: 600; white-space: nowrap; min-width: 140px; }
+
+  /* Code block */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+  .code-block pre { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd { color: var(--green); }
+
+  /* CTA */
+  .cta-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; margin-top: 32px; }
+  .cta-box h3 { margin-bottom: 12px; font-size: 1.2em; }
+  .cta-box p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; }
+  .cta-box code { font-size: 1em; padding: 6px 12px; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  /* Verdict Card */
+  .verdict-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .verdict-send { background: #3fb95015; border-color: #3fb95040; }
+  .verdict-wait { background: #f7931a15; border-color: #f7931a40; }
+  .verdict-urgent { background: #f8514915; border-color: #f8514940; }
+  .verdict-label {
+    font-size: 2.2em;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .verdict-send .verdict-label { color: var(--green); }
+  .verdict-wait .verdict-label { color: var(--accent); }
+  .verdict-urgent .verdict-label { color: #f85149; }
+  .verdict-reasoning {
+    color: var(--muted);
+    font-size: 1.05em;
+    margin-bottom: 16px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .verdict-meta {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .verdict-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: var(--muted);
+  }
+
+  /* Live dot */
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(63, 185, 80, 0); }
+  }
+
+  /* Congestion indicator */
+  .congestion-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .congestion-low { background: var(--green); }
+  .congestion-moderate { background: var(--accent); }
+  .congestion-high { background: #f85149; }
+
+  /* Congestion bar */
+  .congestion-bar-wrapper {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    height: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+  .congestion-bar {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease, background 0.5s ease;
+    min-width: 2%;
+  }
+  .congestion-bar-low { background: var(--green); }
+  .congestion-bar-medium { background: var(--accent); }
+  .congestion-bar-high { background: #f85149; }
+  .congestion-bar-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75em;
+    font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* Refresh timer */
+  .refresh-timer {
+    font-size: 0.8em;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-label {
+    font-size: 0.8em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* Savings row */
+  .savings-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .savings-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .savings-card h4 {
+    font-size: 0.85em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .savings-card .fee-amount {
+    font-size: 1.4em;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .savings-card .fee-usd {
+    font-size: 0.9em;
+    color: var(--muted);
+  }
+  .savings-highlight {
+    border-color: var(--green);
+  }
+  .savings-highlight .fee-amount {
+    color: var(--green);
+  }
+
+  /* FAQ */
+  .faq-item { margin-bottom: 24px; }
+  .faq-item h3 { font-size: 1.05em; font-weight: 600; margin-bottom: 6px; }
+  .faq-item p { color: var(--muted); font-size: 0.95em; line-height: 1.7; }
+
+  @media (max-width: 600px) {
+    .page-header h1 { font-size: 1.6em; }
+    .page-header .subtitle { font-size: 1em; }
+    section { padding: 40px 0; }
+    .compare-table { font-size: 0.75em; }
+    .verdict-label { font-size: 1.6em; }
+    .stat-value { font-size: 1.4em; }
+  }
+
+  /* Unified nav mobile */
+  @media (max-width: 768px) {
+    .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+    .nav-links.open { display: flex !important; }
+    .nav-toggle { display: block !important; }
+  }
+</style>
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="/#get-api-key" style="color:#ccc;text-decoration:none;">Get Free API Key</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- Sync Warning Banner -->
+<div class="sync-banner" id="sync-banner">
+  Node is syncing (<span id="sync-pct">--</span>% complete). Fee data may be inaccurate. <a href="/api/v1/status">View status</a>
+</div>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="container">
+    <h1>Bitcoin <span>Fee Tracker</span></h1>
+    <p class="subtitle">Live fee rates and send-or-wait verdicts. Updated every 30 seconds.</p>
+  </div>
+</div>
+
+<!-- Verdict Card -->
+<section style="padding-top: 0;">
+  <div class="container">
+    <div class="verdict-card" id="verdict-card">
+      <div class="verdict-label" id="verdict-label">CONNECTING...</div>
+      <p class="verdict-reasoning" id="verdict-reasoning">Fetching latest fee data from Bitcoin Core node...</p>
+      <div class="verdict-meta">
+        <div class="verdict-meta-item">
+          <span class="congestion-dot congestion-low" id="congestion-dot"></span>
+          <span id="congestion-text">--</span>
+        </div>
+        <div class="verdict-meta-item" id="savings-hint" style="display:none;">
+          <span id="savings-hint-text"></span>
+        </div>
+        <div class="verdict-meta-item">
+          <span>Suggested fee:</span>
+          <strong id="suggested-fee">-- sat/vB</strong>
+        </div>
+      </div>
+      <div class="refresh-timer"><span class="live-dot"></span> Updated <span id="refresh-counter">--</span>s ago</div>
+    </div>
+
+    <!-- Fee Tiers Table -->
+    <h2 class="section-title">Fee Tiers</h2>
+    <p class="section-subtitle">Current fee rates for different confirmation speeds.</p>
+    <div style="overflow-x: auto;">
+      <table class="compare-table" id="fee-table">
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Fee Rate</th>
+            <th>Est. Cost (2-in/2-out)</th>
+            <th>Est. USD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">High Priority <span style="color:var(--muted);font-weight:400;">(next block)</span></td>
+            <td id="fee-high">-- sat/vB</td>
+            <td id="cost-high">-- sats</td>
+            <td id="usd-high">--</td>
+          </tr>
+          <tr>
+            <td class="row-label">Medium <span style="color:var(--muted);font-weight:400;">(~6 blocks)</span></td>
+            <td id="fee-med">-- sat/vB</td>
+            <td id="cost-med">-- sats</td>
+            <td id="usd-med">--</td>
+          </tr>
+          <tr>
+            <td class="row-label">Economy <span style="color:var(--muted);font-weight:400;">(~24 blocks)</span></td>
+            <td id="fee-low">-- sat/vB</td>
+            <td id="cost-low">-- sats</td>
+            <td id="usd-low">--</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Mempool Status -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Mempool Status</h2>
+    <p class="section-subtitle">Current state of the Bitcoin transaction queue.</p>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="mempool-txcount">--</div>
+        <div class="stat-label">Transactions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="mempool-size">--</div>
+        <div class="stat-label">Mempool Size</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="mempool-usage">--</div>
+        <div class="stat-label">Usage</div>
+      </div>
+    </div>
+    <div class="congestion-bar-wrapper">
+      <div class="congestion-bar congestion-bar-low" id="usage-bar" style="width:2%;"></div>
+      <div class="congestion-bar-label" id="usage-bar-label">--%</div>
+    </div>
+  </div>
+</section>
+
+<!-- Savings Calculator -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Savings Calculator</h2>
+    <p class="section-subtitle">Standard transaction (2 inputs, 2 outputs): <strong>141 vBytes</strong></p>
+    <div class="savings-row">
+      <div class="savings-card">
+        <h4>High Priority</h4>
+        <div class="fee-amount" id="save-high-sats">-- sats</div>
+        <div class="fee-usd" id="save-high-usd">$--</div>
+      </div>
+      <div class="savings-card">
+        <h4>Economy</h4>
+        <div class="fee-amount" id="save-low-sats">-- sats</div>
+        <div class="fee-usd" id="save-low-usd">$--</div>
+      </div>
+      <div class="savings-card savings-highlight">
+        <h4>You Save</h4>
+        <div class="fee-amount" id="save-pct">--%</div>
+        <div class="fee-usd" id="save-abs">-- sats</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Want this data in your app?</h2>
+    <p class="section-subtitle">All the data on this page is available via the free Satoshi API.</p>
+
+    <div class="code-block">
+      <pre><span class="comment"># Get the send-or-wait verdict</span>
+<span class="cmd">curl</span> https://bitcoinsapi.com/api/v1/fees/landscape</pre>
+    </div>
+
+    <div class="code-block">
+      <pre><span class="comment"># Python — 3 lines to fee intelligence</span>
+import requests
+data = requests.get("https://bitcoinsapi.com/api/v1/fees/landscape").json()
+print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
+    </div>
+
+    <div class="code-block">
+      <pre><span class="comment"># For AI agents</span>
+<span class="cmd">pip install</span> bitcoin-mcp</pre>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+      <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Get Free API Key</a>
+      <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">View API Docs</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="container prose">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h3>How often is the fee data updated?</h3>
+      <p>Every 30 seconds from a Bitcoin Core node. The underlying data is cached with a 10-second TTL, so you always get near-real-time estimates without overloading the node.</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>What does "send or wait" mean?</h3>
+      <p>Satoshi API analyzes the current fee environment, mempool congestion, and fee trends to recommend whether you should send your transaction now or wait for a cheaper window. A "send" verdict means fees are reasonable; "wait" means you could save significantly by delaying.</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>How is the savings percentage calculated?</h3>
+      <p>It compares the current next-block (high priority) fee rate to the economy (low priority) fee rate. For example, if the next-block fee is 20 sat/vB and the economy fee is 5 sat/vB, waiting saves 75%.</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>Can I get this data via API?</h3>
+      <p>Yes. All fee data shown on this page is available via the free Satoshi API. Use <code>GET /api/v1/fees/landscape</code> for the send-or-wait verdict, <code>GET /api/v1/fees/recommended</code> for fee tiers, and <code>GET /api/v1/mempool/info</code> for mempool status. Full documentation at <a href="/docs">bitcoinsapi.com/docs</a>.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the Apache-2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/">Home</a> &middot;
+      <a href="/bitcoin-fee-api">Fee API</a> &middot;
+      <a href="/best-time-to-send-bitcoin">Best Time to Send</a> &middot;
+      <a href="/bitcoin-transaction-fee-calculator">Fee Calculator</a> &middot;
+      <a href="/bitcoin-fee-estimator">Fee Estimator</a> &middot;
+      <a href="/pricing">Pricing</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/terms">Terms of Service</a> &middot;
+      <a href="/privacy">Privacy Policy</a> &middot;
+      <a href="/disclaimer">Disclaimer</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  /* ---- Attribution tracking (same as other pages) ---- */
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (window.localStorage) {
+    try {
+      if (!localStorage.getItem('satoshi_first_touch') && (hasAttribution || candidate.referrer)) {
+        localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+      }
+      if (hasAttribution || candidate.referrer) {
+        localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+      }
+    } catch (e) {}
+  }
+
+  /* ---- Sync Warning Banner ---- */
+  fetch('/api/v1/status')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data || json;
+      if (d.syncing) {
+        var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
+        var el = document.getElementById('sync-pct');
+        if (el) el.textContent = pct;
+        var banner = document.getElementById('sync-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    })
+    .catch(function() {});
+
+  /* ---- State ---- */
+  var VSIZE = 141; // standard 2-in-2-out P2WPKH vBytes
+  var lastUpdate = null;
+  var btcPrice = 0;
+  var refreshInterval = null;
+
+  /* ---- Helpers ---- */
+  function fmt(n, decimals) {
+    if (n == null || isNaN(n)) return '--';
+    return Number(n).toFixed(decimals != null ? decimals : 1);
+  }
+  function fmtSats(n) {
+    if (n == null || isNaN(n)) return '-- sats';
+    return Math.round(n).toLocaleString() + ' sats';
+  }
+  function fmtUsd(sats) {
+    if (!sats || !btcPrice) return '--';
+    var usd = (sats / 1e8) * btcPrice;
+    return '$' + usd.toFixed(usd < 0.01 ? 4 : 2);
+  }
+  function fmtBytes(bytes) {
+    if (bytes == null) return '--';
+    var mb = bytes / 1048576;
+    return mb.toFixed(1) + ' MB';
+  }
+  function fmtNumber(n) {
+    if (n == null) return '--';
+    return Number(n).toLocaleString();
+  }
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  /* ---- Fetch helpers (graceful failure) ---- */
+  function safeFetch(url) {
+    return fetch(url)
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .catch(function() { return null; });
+  }
+
+  /* ---- Main data fetch ---- */
+  function refreshData() {
+    Promise.all([
+      safeFetch('/api/v1/fees/landscape'),
+      safeFetch('/api/v1/fees/recommended'),
+      safeFetch('/api/v1/mempool/info'),
+      safeFetch('/api/v1/prices/btc')
+    ]).then(function(results) {
+      var landscape = results[0];
+      var recommended = results[1];
+      var mempool = results[2];
+      var price = results[3];
+
+      // Price
+      if (price && price.data) {
+        btcPrice = price.data.usd || price.data.USD || 0;
+      }
+
+      // Landscape / Verdict
+      if (landscape && landscape.data) {
+        var d = landscape.data;
+        var card = document.getElementById('verdict-card');
+        var label = document.getElementById('verdict-label');
+        var reasoning = document.getElementById('verdict-reasoning');
+        var dot = document.getElementById('congestion-dot');
+        var congText = document.getElementById('congestion-text');
+        var savingsHint = document.getElementById('savings-hint');
+        var savingsHintText = document.getElementById('savings-hint-text');
+        var suggestedFee = document.getElementById('suggested-fee');
+
+        // Verdict display
+        var rec = d.recommendation || 'send';
+        card.className = 'verdict-card';
+        if (rec === 'send') {
+          card.classList.add('verdict-send');
+          label.textContent = 'SEND NOW';
+        } else if (rec === 'wait') {
+          card.classList.add('verdict-wait');
+          label.textContent = 'WAIT';
+        } else if (rec === 'urgent_only') {
+          card.classList.add('verdict-urgent');
+          label.textContent = 'URGENT ONLY';
+        } else {
+          card.classList.add('verdict-send');
+          label.textContent = rec.toUpperCase();
+        }
+
+        reasoning.textContent = d.reasoning || '';
+
+        // Fee environment as congestion proxy
+        var env = (d.fee_environment || 'low').toLowerCase();
+        dot.className = 'congestion-dot';
+        if (env === 'low' || env === 'very_low') {
+          dot.classList.add('congestion-low');
+          congText.textContent = 'LOW congestion';
+        } else if (env === 'moderate' || env === 'medium') {
+          dot.classList.add('congestion-moderate');
+          congText.textContent = 'MODERATE congestion';
+        } else {
+          dot.classList.add('congestion-high');
+          congText.textContent = 'HIGH congestion';
+        }
+
+        // Savings hint (from scenarios)
+        if (d.scenarios && d.scenarios.wait_low && d.scenarios.wait_low.savings_vs_now_pct) {
+          var pct = d.scenarios.wait_low.savings_vs_now_pct;
+          savingsHintText.textContent = 'Save ~' + Math.round(pct) + '% by waiting';
+          savingsHint.style.display = '';
+        } else {
+          savingsHint.style.display = 'none';
+        }
+
+        // Suggested fee = next block from current_fees
+        if (d.current_fees) {
+          var sf = d.current_fees.six_blocks || d.current_fees.next_block || 0;
+          suggestedFee.textContent = fmt(sf) + ' sat/vB';
+        }
+      }
+
+      // Fee Tiers (from recommended endpoint)
+      if (recommended && recommended.data) {
+        var est = recommended.data.estimates || {};
+        // The recommended endpoint returns {conf_target: fee_rate}
+        // Keys are integers: 1, 3, 6, 25, 144
+        var highRate = est['1'] || est[1] || 0;
+        var medRate = est['6'] || est[6] || est['3'] || est[3] || 0;
+        var lowRate = est['144'] || est[144] || est['25'] || est[25] || 0;
+
+        setText('fee-high', fmt(highRate) + ' sat/vB');
+        setText('fee-med', fmt(medRate) + ' sat/vB');
+        setText('fee-low', fmt(lowRate) + ' sat/vB');
+
+        var costHigh = Math.round(highRate * VSIZE);
+        var costMed = Math.round(medRate * VSIZE);
+        var costLow = Math.round(lowRate * VSIZE);
+
+        setText('cost-high', fmtSats(costHigh));
+        setText('cost-med', fmtSats(costMed));
+        setText('cost-low', fmtSats(costLow));
+
+        setText('usd-high', fmtUsd(costHigh));
+        setText('usd-med', fmtUsd(costMed));
+        setText('usd-low', fmtUsd(costLow));
+
+        // Savings calculator
+        setText('save-high-sats', fmtSats(costHigh));
+        setText('save-high-usd', fmtUsd(costHigh));
+        setText('save-low-sats', fmtSats(costLow));
+        setText('save-low-usd', fmtUsd(costLow));
+
+        if (costHigh > 0 && costLow > 0) {
+          var savePct = ((1 - costLow / costHigh) * 100);
+          var saveAbs = costHigh - costLow;
+          setText('save-pct', Math.round(savePct) + '%');
+          setText('save-abs', fmtSats(saveAbs) + ' saved');
+        }
+      }
+
+      // Mempool
+      if (mempool && mempool.data) {
+        var mp = mempool.data;
+        setText('mempool-txcount', fmtNumber(mp.size));
+        setText('mempool-size', fmtBytes(mp.bytes));
+
+        var maxMem = mp.maxmempool || 300000000; // default 300MB
+        var usagePct = mp.usage != null ? (mp.usage / maxMem * 100) : (mp.bytes ? (mp.bytes / maxMem * 100) : 0);
+        usagePct = Math.min(usagePct, 100);
+        setText('mempool-usage', fmt(usagePct, 1) + '%');
+
+        var bar = document.getElementById('usage-bar');
+        var barLabel = document.getElementById('usage-bar-label');
+        if (bar) {
+          bar.style.width = Math.max(2, usagePct) + '%';
+          bar.className = 'congestion-bar';
+          if (usagePct < 50) bar.classList.add('congestion-bar-low');
+          else if (usagePct < 80) bar.classList.add('congestion-bar-medium');
+          else bar.classList.add('congestion-bar-high');
+        }
+        if (barLabel) barLabel.textContent = fmt(usagePct, 1) + '%';
+      }
+
+      // Update timestamp
+      lastUpdate = Date.now();
+    });
+  }
+
+  /* ---- Refresh counter ---- */
+  function updateCounter() {
+    if (!lastUpdate) return;
+    var ago = Math.floor((Date.now() - lastUpdate) / 1000);
+    setText('refresh-counter', ago);
+  }
+
+  /* ---- Init ---- */
+  refreshData();
+  setInterval(refreshData, 30000);
+  setInterval(updateCounter, 1000);
+})();
+</script>
+
+</body>
+</html>
