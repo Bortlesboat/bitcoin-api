@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Time to Send Bitcoin - Save Up to 46% on Fees</title>
+<meta name="description" content="Find the cheapest time to send Bitcoin. Satoshi API analyzes mempool congestion and fee patterns to tell you when to send and when to wait.">
+<meta name="keywords" content="best time to send bitcoin, cheapest time to send bitcoin, bitcoin fee timing, when to send bitcoin, bitcoin low fees, bitcoin transaction timing">
+<link rel="canonical" href="https://bitcoinsapi.com/best-time-to-send-bitcoin">
+<meta property="og:title" content="Best Time to Send Bitcoin - Save Up to 46% on Fees">
+<meta property="og:description" content="Find the cheapest time to send Bitcoin. Satoshi API analyzes mempool congestion and fee patterns to tell you when to send and when to wait.">
+<meta property="og:url" content="https://bitcoinsapi.com/best-time-to-send-bitcoin">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BTCOrangeCoin">
+<meta name="twitter:title" content="Best Time to Send Bitcoin - Save Up to 46% on Fees">
+<meta name="twitter:description" content="Find the cheapest time to send Bitcoin. Satoshi API analyzes mempool congestion and fee patterns to tell you when to send and when to wait.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Best Time to Send Bitcoin","item":"https://bitcoinsapi.com/best-time-to-send-bitcoin"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/best-time-to-send-bitcoin/#article","name":"Best Time to Send Bitcoin - Save Up to 46% on Fees","description":"Find the cheapest time to send Bitcoin. Satoshi API analyzes mempool congestion and fee patterns to tell you when to send and when to wait.","url":"https://bitcoinsapi.com/best-time-to-send-bitcoin","datePublished":"2026-03-17","dateModified":"2026-03-17","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the cheapest time to send Bitcoin?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bitcoin fees tend to be lowest on weekends and during US nighttime hours (roughly 2 AM to 8 AM EST), when fewer transactions compete for block space. However, these patterns shift with network events like halvings, ordinals activity, and exchange batching schedules. The only reliable way to find the cheapest moment is to check real-time mempool data. Satoshi API's /fees/landscape endpoint gives you a live send-or-wait verdict based on current congestion."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much can I save by timing my Bitcoin transactions?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Savings vary with network conditions, but waiting a few hours for lower congestion can reduce fees by 40-60%. For example, a typical 141 vByte transaction at 28 sat/vB costs 3,948 sats. Wait for 12 sat/vB and the same transaction costs 1,692 sats — a 57% savings. During extreme congestion events, the difference can be even larger."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Bitcoin transaction fee change by day of week?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Historically, weekdays (especially Tuesday through Thursday) see higher fees due to business and exchange activity. Weekends tend to have lower fees as trading volume drops. But these are general trends, not rules — a single large batch of inscriptions or a protocol upgrade can spike fees on any day. Real-time data from a mempool API is more reliable than day-of-week heuristics."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check Bitcoin fees before sending?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can check current Bitcoin fee rates using Satoshi API's /fees/recommended endpoint, which returns three priority tiers (high, medium, low) with sat/vB rates. For a send-or-wait decision, use the /fees/landscape endpoint which analyzes congestion and tells you whether now is a good time to send. Both endpoints are free to use and require no API key for GET requests."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+  /* Sync Warning Banner */
+  .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
+  .sync-banner a { color: #FFB347; text-decoration: underline; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+        nav .logo a { color: var(--accent); }
+  nav .logo a:hover { text-decoration: none; }
+
+  /* Page header */
+  .page-header { text-align: center; padding: 80px 0 40px; }
+  .page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+  /* Section headings */
+  .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 24px; }
+
+  /* Prose */
+  .prose { max-width: 760px; margin: 0 auto; }
+  .prose p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; line-height: 1.7; }
+  .prose h2 { font-size: 1.5em; font-weight: 700; margin: 48px 0 12px; color: var(--text); }
+  .prose h3 { font-size: 1.15em; font-weight: 600; margin: 32px 0 8px; color: var(--text); }
+  .prose ul, .prose ol { color: var(--muted); font-size: 0.95em; margin: 0 0 16px 24px; line-height: 1.8; }
+  .prose li { margin-bottom: 4px; }
+  .prose strong { color: var(--text); }
+
+  /* Endpoint cards */
+  .endpoint-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+  .endpoint-card .method-path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.95em; margin-bottom: 8px; }
+  .endpoint-card .method { color: var(--green); font-weight: 700; }
+  .endpoint-card .path { color: var(--text); }
+  .endpoint-card .desc { color: var(--muted); font-size: 0.9em; margin-bottom: 10px; line-height: 1.6; }
+  .endpoint-card .sample { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8em; color: var(--muted); overflow-x: auto; white-space: pre; line-height: 1.5; }
+  .endpoint-card .sample .key { color: var(--blue); }
+  .endpoint-card .sample .str { color: var(--green); }
+  .endpoint-card .sample .num { color: var(--accent); }
+
+  /* Code block */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+  .code-block pre { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd { color: var(--green); }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.85em; }
+  .compare-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .compare-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .compare-table tr:hover { background: var(--surface); }
+  .compare-table .row-label { color: var(--text); font-weight: 600; white-space: nowrap; min-width: 140px; }
+  .yes { color: var(--green); }
+  .no { color: var(--muted); }
+  .partial { color: var(--accent); }
+
+  /* CTA */
+  .cta-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; margin-top: 32px; }
+  .cta-box h3 { margin-bottom: 12px; font-size: 1.2em; }
+  .cta-box p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; }
+  .cta-box code { font-size: 1em; padding: 6px 12px; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  @media (max-width: 600px) {
+    .page-header h1 { font-size: 1.6em; }
+    .page-header .subtitle { font-size: 1em; }
+    section { padding: 40px 0; }
+    .compare-table { font-size: 0.75em; }
+  }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
+</style>
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="/#get-api-key" style="color:#ccc;text-decoration:none;">Get Free API Key</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- Sync Warning Banner -->
+<div class="sync-banner" id="sync-banner">
+  Node is syncing (<span id="sync-pct">--</span>% complete). Fee data may be inaccurate. <a href="/api/v1/status">View status</a>
+</div>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="container">
+    <h1>Best Time to <span>Send Bitcoin</span></h1>
+    <p class="subtitle">Bitcoin fees fluctuate constantly. Satoshi API analyzes mempool congestion in real time so you know whether to send now or wait a few hours and save up to 46%.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+      <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Try the API</a>
+      <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+    </div>
+  </div>
+</div>
+
+<!-- When Are Bitcoin Fees Lowest? -->
+<section>
+  <div class="container prose">
+    <h2>When Are Bitcoin Fees Lowest?</h2>
+    <p>Bitcoin transaction fees are driven by supply and demand. Every block has roughly 1 MB of space (4 million weight units), and when more transactions compete for that space, fees rise. When fewer transactions are waiting, fees drop.</p>
+    <p><strong>Daily patterns:</strong> Fees tend to dip during US nighttime hours (roughly 2 AM to 8 AM EST / 7 AM to 1 PM UTC). This is when US and European trading volume overlaps the least, and fewer businesses are batching payments.</p>
+    <p><strong>Weekly patterns:</strong> Weekends typically see lower fees than weekdays. Tuesday through Thursday are historically the most expensive days to send Bitcoin, driven by business activity, exchange withdrawals, and institutional batching.</p>
+    <p><strong>Post-halving dynamics:</strong> After each halving, miners earn fewer BTC per block. This can shift fee pressure as miners become more selective about which transactions to include. The 2024 halving also brought ordinals and inscriptions, which periodically flood the mempool and spike fees unpredictably.</p>
+    <p>Here is the problem with rules of thumb: <strong>they break.</strong> A single wave of inscription mints can spike fees at 3 AM on a Sunday. An exchange consolidating UTXOs can clear the mempool on a Wednesday afternoon. The only reliable approach is checking real-time mempool data before you send.</p>
+  </div>
+</section>
+
+<!-- How Satoshi API Tells You When to Send -->
+<section>
+  <div class="container">
+    <h2 class="section-title">How Satoshi API Tells You When to Send</h2>
+    <p class="section-subtitle">Three endpoints that turn raw mempool data into a send-or-wait decision.</p>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/landscape</span></div>
+      <p class="desc">The send-or-wait verdict engine. Analyzes fee spread, urgency premium, and congestion to tell you whether now is a good time to send or whether waiting will save you money. This is the single endpoint that answers "should I send Bitcoin right now?"</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"recommendation"</span>: <span class="str">"Fees are low. Good time to send."</span>,
+    <span class="key">"congestion"</span>: <span class="str">"low"</span>,
+    <span class="key">"spread"</span>: <span class="num">5.2</span>,
+    <span class="key">"urgency_premium_pct"</span>: <span class="num">42.1</span>,
+    <span class="key">"optimal_tier"</span>: <span class="str">"medium"</span>
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/recommended</span></div>
+      <p class="desc">Three-tier fee recommendations: high priority (next block), medium (within 6 blocks, ~1 hour), and low (within 24 blocks, ~4 hours). Each tier shows the sat/vB rate your wallet should use. Pick the tier that matches your urgency.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"recommendation"</span>: <span class="str">"Fees are moderate. Medium priority recommended."</span>,
+    <span class="key">"estimates"</span>: {
+      <span class="key">"high"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">14.5</span>, <span class="key">"blocks"</span>: <span class="num">1</span> },
+      <span class="key">"medium"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">8.2</span>, <span class="key">"blocks"</span>: <span class="num">6</span> },
+      <span class="key">"low"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">3.1</span>, <span class="key">"blocks"</span>: <span class="num">24</span> }
+    },
+    <span class="key">"fee_landscape"</span>: {
+      <span class="key">"spread"</span>: <span class="num">11.4</span>,
+      <span class="key">"urgency_premium"</span>: <span class="str">"76.8%"</span>
+    }
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mempool/info</span></div>
+      <p class="desc">Current mempool state: how many transactions are waiting, how much data is queued, and the minimum fee to get in. Use this to gauge overall network congestion before deciding when to broadcast.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"size"</span>: <span class="num">14823</span>,
+    <span class="key">"bytes"</span>: <span class="num">8741205</span>,
+    <span class="key">"usage"</span>: <span class="num">52447232</span>,
+    <span class="key">"total_fee"</span>: <span class="num">0.48219300</span>,
+    <span class="key">"mempoolminfee"</span>: <span class="num">0.00001000</span>,
+    <span class="key">"minrelaytxfee"</span>: <span class="num">0.00001000</span>
+  }
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- Real Savings Example -->
+<section>
+  <div class="container prose">
+    <h2>Real Savings Example</h2>
+    <p>A typical Bitcoin transaction with 2 inputs and 2 outputs (for example, sending to one address with change back to yourself) is approximately <strong>141 virtual bytes</strong>.</p>
+    <p>During a congestion spike, the next-block fee rate might be <strong>28 sat/vB</strong>. That means your transaction costs:</p>
+    <p style="text-align:center;font-size:1.1em;color:var(--text);"><strong>141 vB x 28 sat/vB = 3,948 sats (~$2.50)</strong></p>
+    <p>Wait 2 hours for congestion to clear, and the fee rate drops to <strong>12 sat/vB</strong>:</p>
+    <p style="text-align:center;font-size:1.1em;color:var(--text);"><strong>141 vB x 12 sat/vB = 1,692 sats (~$1.07)</strong></p>
+    <p>That is a savings of <strong>2,256 sats (~$1.43), or 57%</strong>, from one timing decision. During extreme congestion events (inscription waves, exchange runs), the spread between peak and trough can exceed 10x, turning a $15 fee into a $1.50 fee for the same transaction.</p>
+    <p>The <code>/fees/landscape</code> endpoint tells you when you are in a peak and when you are in a trough, so you do not have to guess.</p>
+  </div>
+</section>
+
+<!-- For AI Agents -->
+<section>
+  <div class="container prose">
+    <h2>For AI Agents</h2>
+    <p>AI agents that manage Bitcoin wallets or automate payments need programmatic access to fee timing decisions. The <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> server exposes Satoshi API's fee intelligence as MCP tools that any LLM can call.</p>
+
+    <div class="code-block">
+      <pre><span class="comment"># Install the MCP server</span>
+<span class="cmd">pip install</span> bitcoin-mcp
+
+<span class="comment"># Zero config — auto-connects to Satoshi API if no local node</span></pre>
+    </div>
+
+    <p>Once connected, an AI agent can ask natural-language questions and get structured answers:</p>
+
+    <div class="code-block">
+      <pre><span class="comment"># User prompt to Claude, ChatGPT, or any MCP-compatible agent:</span>
+"Should I send bitcoin right now, or should I wait?"
+
+<span class="comment"># The agent calls the get_fee_recommendation tool, which hits</span>
+<span class="comment"># /api/v1/fees/landscape under the hood, and responds:</span>
+
+"Congestion is currently high (urgency premium 76.8%).
+ I'd recommend waiting 1-2 hours. Medium priority at
+ 8.2 sat/vB would save you 43% vs sending at next-block
+ rates right now."</pre>
+    </div>
+
+    <p>No prompt engineering required. The agent gets structured fee data and translates it into a human-readable recommendation. This is how autonomous Bitcoin agents make cost-optimal timing decisions.</p>
+  </div>
+</section>
+
+<!-- Why Not Just Check Mempool.space? -->
+<section>
+  <div class="container prose">
+    <h2>Why Not Just Check Mempool.space?</h2>
+    <p>Mempool.space is an excellent block explorer. It shows you the current fee rates, the mempool size, and projected blocks. But it answers a different question.</p>
+    <p>Mempool.space tells you <strong>what fees are right now</strong>. Satoshi API tells you <strong>whether you should send right now</strong>.</p>
+    <p>The difference matters. Seeing "15 sat/vB for next block" does not tell you whether 15 is high or low relative to the last few hours. It does not tell you the urgency premium you are paying. It does not score the congestion level or recommend waiting.</p>
+    <p>Satoshi API's <code>/fees/landscape</code> endpoint calculates the spread between high and low priority tiers, measures the urgency premium as a percentage, scores the congestion level, and returns a plain-language verdict: send now, or wait.</p>
+    <p>If you are building an application, Mempool.space's API gives you raw fee data. Satoshi API gives you a <strong>decision</strong>. Both have their place. If you want to display a fee chart, use Mempool. If you want to tell your users "wait 2 hours and save 46%", use Satoshi API.</p>
+  </div>
+</section>
+
+<!-- Comparison Table -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Feature Comparison</h2>
+    <p class="section-subtitle">How different tools help you decide when to send Bitcoin.</p>
+
+    <div style="overflow-x: auto;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Satoshi API</th>
+            <th>Mempool.space</th>
+            <th>Wallet Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Send-or-wait verdict</td>
+            <td class="yes">Yes (plain-language recommendation)</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Congestion scoring</td>
+            <td class="yes">Yes (low / moderate / high)</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Fee trend context</td>
+            <td class="yes">Yes (spread, urgency premium, history)</td>
+            <td class="partial">Partial (mempool blocks view)</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Real-time API</td>
+            <td class="yes">Yes (REST + SSE stream)</td>
+            <td class="yes">Yes (REST + WebSocket)</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">AI agent support</td>
+            <td class="yes">Yes (MCP server, structured responses)</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Self-hostable</td>
+            <td class="yes">Yes (pip install, your node)</td>
+            <td class="partial">Yes (complex setup)</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Cost</td>
+            <td class="yes">Free tier + self-host option</td>
+            <td class="yes">Free</td>
+            <td class="yes">Included with wallet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="container prose">
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>What is the cheapest time to send Bitcoin?</h3>
+    <p>Bitcoin fees tend to be lowest on weekends and during US nighttime hours (roughly 2 AM to 8 AM EST), when fewer transactions compete for block space. However, these patterns shift with network events like halvings, ordinals activity, and exchange batching schedules. The only reliable way to find the cheapest moment is to check real-time mempool data. Satoshi API's <code>/fees/landscape</code> endpoint gives you a live send-or-wait verdict based on current congestion.</p>
+
+    <h3>How much can I save by timing my Bitcoin transactions?</h3>
+    <p>Savings vary with network conditions, but waiting a few hours for lower congestion can reduce fees by 40-60%. A typical 141 vByte transaction at 28 sat/vB costs 3,948 sats. Wait for 12 sat/vB and the same transaction costs 1,692 sats — a 57% savings. During extreme congestion events, the difference can be even larger.</p>
+
+    <h3>Does Bitcoin transaction fee change by day of week?</h3>
+    <p>Yes. Historically, weekdays (especially Tuesday through Thursday) see higher fees due to business and exchange activity. Weekends tend to have lower fees as trading volume drops. But these are general trends, not rules — a single large batch of inscriptions or a protocol upgrade can spike fees on any day. Real-time data from a mempool API is more reliable than day-of-week heuristics.</p>
+
+    <h3>How do I check Bitcoin fees before sending?</h3>
+    <p>You can check current Bitcoin fee rates using Satoshi API's <code>/fees/recommended</code> endpoint, which returns three priority tiers (high, medium, low) with sat/vB rates. For a send-or-wait decision, use the <code>/fees/landscape</code> endpoint which analyzes congestion and tells you whether now is a good time to send. Both endpoints are free to use and require no API key for GET requests.</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-box">
+      <h3>Stop guessing. Start saving.</h3>
+      <p>Check real-time mempool congestion and get a send-or-wait verdict before your next Bitcoin transaction.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Try the API</a>
+        <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the Apache-2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="/">Home</a> &middot;
+      <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+      <a href="/bitcoin-transaction-fee-calculator">Fee Calculator</a> &middot;
+      <a href="/vs-mempool">vs Mempool.space</a> &middot;
+      <a href="/bitcoin-mempool-api">Mempool API</a> &middot;
+      <a href="/pricing">Pricing</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/terms">Terms of Service</a> &middot;
+      <a href="/privacy">Privacy Policy</a> &middot;
+      <a href="/disclaimer">Disclaimer</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (!window.localStorage) return;
+  try {
+    if (!localStorage.getItem('satoshi_first_touch') && (hasAttribution || candidate.referrer)) {
+      localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+    }
+    if (hasAttribution || candidate.referrer) {
+      localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+    }
+  } catch (e) {
+    /* Ignore localStorage failures */
+  }
+})();
+
+/* Sync Warning Banner */
+(function() {
+  fetch('/api/v1/status')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data || json;
+      if (d.syncing) {
+        var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
+        var el = document.getElementById('sync-pct');
+        if (el) el.textContent = pct;
+        var banner = document.getElementById('sync-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    })
+    .catch(function() {});
+})();
+</script>
+
+</body>
+</html>

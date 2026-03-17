@@ -86,6 +86,11 @@ https://bitcoinsapi.com
 - MCP setup: https://bitcoinsapi.com/mcp-setup
 - Bitcoin history explorer: https://bitcoinsapi.com/history
 - Pricing: https://bitcoinsapi.com/pricing
+- Bitcoin transaction fee calculator: https://bitcoinsapi.com/bitcoin-transaction-fee-calculator
+- Best time to send Bitcoin: https://bitcoinsapi.com/best-time-to-send-bitcoin
+- Bitcoin fee estimator: https://bitcoinsapi.com/bitcoin-fee-estimator
+- Bitcoin API for trading bots: https://bitcoinsapi.com/bitcoin-api-for-trading-bots
+- How to reduce Bitcoin transaction fees: https://bitcoinsapi.com/how-to-reduce-bitcoin-transaction-fees
 
 ## Available endpoints
 

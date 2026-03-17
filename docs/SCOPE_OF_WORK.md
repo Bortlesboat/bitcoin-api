@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~102 total: 84 core + 7 history API + 7 content pages + 4 indexer)
+### 3.1 Endpoints (~117 total: 84 core + 4 AI + 6 alerts + 7 history API + 12 content pages + 4 indexer)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -134,9 +134,9 @@ Bitcoin Core RPC (port 8332, localhost only)
 | **Statistics** | `/api/v1/stats/utxo-set` | GET | No |
 | | `/api/v1/stats/segwit-adoption` | GET | No |
 | | `/api/v1/stats/op-returns` | GET | No |
-| **Streams** | `/api/v1/stream/blocks` | GET (SSE) | No |
-| | `/api/v1/stream/fees` | GET (SSE) | No |
-| | `/api/v1/stream/whale-txs` | GET (SSE) | No |
+| **Streams** | `/api/v1/stream/blocks` | GET (SSE) | No (1hr max, 50 conn cap) |
+| | `/api/v1/stream/fees` | GET (SSE) | No (1hr max, 50 conn cap) |
+| | `/api/v1/stream/whale-txs` | GET (SSE) | No (1hr max, 20 conn cap) |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
 | | `/api/v1/unsubscribe` | POST | Yes (free+) |
@@ -163,8 +163,11 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/billing/webhook` | POST | No (Stripe signature) |
 | | `/api/v1/billing/status` | GET | Yes (free+) |
 | | `/api/v1/billing/cancel` | POST | Yes (free+) |
-| **RPC Proxy** | `/api/v1/rpc` | POST | Yes (free+) |
-| **Admin UI** | `/admin/dashboard` | GET | Admin key (query param) |
+| **RPC Proxy** | `/api/v1/rpc` | POST | Yes (free+); `sendrawtransaction` requires API key |
+| **Redirect Aliases** | `/api/v1/price` | GET | Redirects to `/api/v1/prices` |
+| | `/api/v1/block/latest` | GET | Redirects to `/api/v1/blocks/latest` |
+| | `/api/v1/block/tip` | GET | Redirects to `/api/v1/blocks/tip/height` |
+| **Admin UI** | `/admin/dashboard` | GET | Admin key (query param, `X-Admin-Key` header, or `admin_token` cookie) |
 | **Indexed** | `/api/v1/indexed/address/{addr}/balance` | GET | Yes (free+) |
 | | `/api/v1/indexed/address/{addr}/txs` | GET | Yes (free+) |
 | | `/api/v1/indexed/tx/{txid}` | GET | Yes (free+) |
@@ -183,6 +186,16 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/guide` | GET | No |
 | | `/mcp-setup` | GET | No |
 | | `/api-docs` | GET | No |
+| **AI** | `/api/v1/ai/explain/transaction/{txid}` | GET | No |
+| | `/api/v1/ai/explain/block/{hash_or_height}` | GET | No |
+| | `/api/v1/ai/fees/advice` | GET | No |
+| | `/api/v1/ai/chat` | GET | No |
+| **Alerts** | `/api/v1/alerts/fees` | POST | Yes (free+) |
+| | `/api/v1/alerts/fees` | GET | Yes (free+) |
+| | `/api/v1/alerts/fees/{alert_id}` | DELETE | Yes (free+) |
+| | `/api/v1/alerts/tx/watch/{txid}` | POST | Yes (free+) |
+| | `/api/v1/alerts/tx` | GET | Yes (free+) |
+| | `/api/v1/alerts/tx/{watch_id}` | DELETE | Yes (free+) |
 
 ### 3.2 Endpoint Tiers
 
@@ -196,6 +209,8 @@ Endpoints are grouped into Core (always on) and Extended (toggleable via feature
 | **Extended** | exchanges | `ENABLE_EXCHANGE_COMPARE` (default: true) |
 | **Extended** | supply | `ENABLE_SUPPLY_ROUTER` (default: true) |
 | **Extended** | stats | `ENABLE_STATS_ROUTER` (default: true) |
+| **AI** | ai (explain tx, explain block, fee advice, chat) | `ENABLE_AI_FEATURES` (default: false) |
+| **Alerts** | alerts (fee alerts, tx watches) | Always enabled (requires API key) |
 | **Indexer** | indexed address, indexed tx, indexer status | `ENABLE_INDEXER` (default: false) |
 | **Content** | history | `enable_history_explorer` (default: true) |
 
@@ -267,7 +282,8 @@ Errors follow the same structure:
 | **Rate Limiting** | Per-minute + daily | Sliding window (in-memory or Upstash Redis) + DB-backed daily counts |
 | **Input Validation** | Regex + Pydantic | 64-hex txid, non-negative heights, hex-only bodies |
 | **Body Size** | 2MB limit | Pydantic `Field(max_length=2_000_000)` on hex inputs |
-| **Node Protection** | RPC whitelist | Only 21 safe commands allowed via `rpcwhitelist` |
+| **Node Protection** | RPC whitelist | Only 21 safe commands allowed via `rpcwhitelist`. Allowlist hidden from error messages. |
+| **RPC Proxy Auth Gate** | `sendrawtransaction` gated | `sendrawtransaction` via `/api/v1/rpc` requires API key (was anonymous). Error messages sanitized to prevent RPC command enumeration. |
 | **Network** | Localhost-only RPC | `rpcbind=127.0.0.1`, `rpcallowip=127.0.0.1` |
 | **Broadcast Validation** | Decode-before-send | `decoderawtransaction` pre-check; RPC -25 → 409, -26 → 422, -27 → 409 |
 | **Information Hiding** | Version redaction | Node version/subversion hidden from anonymous users |
@@ -332,9 +348,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (95 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (~103 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 568 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 570 unit tests + 21 e2e + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Could pin tighter. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -381,6 +397,11 @@ Errors follow the same structure:
 28. **Metrics endpoint publicly exposed** -- Added `X-Admin-Key` auth with `secrets.compare_digest()` on `/metrics` endpoint
 29. **No per-IP registration rate limit** -- Added sliding window (5 registrations/hour/IP) with `threading.Lock` + `time.monotonic()`
 30. **Unbounded email/label input** -- Added Pydantic `Field(max_length=254)` on email, `Field(max_length=100)` on label
+
+**Security Hardening (Mar 15):**
+31. **RPC proxy sendrawtransaction anonymous** -- `sendrawtransaction` via `/api/v1/rpc` now requires API key authentication (was accessible anonymously)
+32. **RPC error message leaks allowlist** -- Error messages sanitized; RPC command allowlist hidden from error responses to prevent enumeration
+33. **SSE streams unbounded** -- Added 1-hour max duration and per-stream connection caps (50 block, 50 fee, 20 whale) to prevent resource exhaustion
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
@@ -435,14 +456,14 @@ Errors follow the same structure:
 | 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 45 |
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
-| **Total** | **~103 endpoints (85 core + 7 history API + 7 content pages + 4 indexer), 24 core routers (+ 3 indexer = 27 when enabled)** | **568 unit + 21 e2e** |
+| **Total** | **~108 endpoints (85 core + 7 history API + 12 content pages + 4 indexer), 24 core routers (+ 3 indexer = 27 when enabled)** | **570 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
 **Source (52 files):**
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
-- `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (CoinGecko/Coinbase/Kraken fallback)
+- `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (Binance/CoinGecko/Coinbase/Kraken fallback, 10s TTL)
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql, 009_add_registration_source.sql, 010_add_signup_attribution.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
@@ -518,7 +539,7 @@ Errors follow the same structure:
 - `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
-**Website (23 files):**
+**Website (28 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -527,6 +548,11 @@ Errors follow the same structure:
 - `static/self-hosted-bitcoin-api.html` -- SEO decision page: self-hosting
 - `static/bitcoin-fee-api.html` -- SEO feature page: fee estimation endpoints
 - `static/bitcoin-mempool-api.html` -- SEO feature page: mempool analysis endpoints
+- `static/bitcoin-transaction-fee-calculator.html` -- SEO feature page: fee calculator tool
+- `static/best-time-to-send-bitcoin.html` -- SEO decision page: timing recommendations
+- `static/bitcoin-fee-estimator.html` -- SEO tool page: fee estimator endpoint
+- `static/bitcoin-api-for-trading-bots.html` -- SEO feature page: bot trading integration
+- `static/how-to-reduce-bitcoin-transaction-fees.html` -- SEO guide: fee optimization strategies
 - `static/bitcoin-mcp-setup-guide.html` -- SEO guide: MCP setup for AI agents (legacy, replaced by /mcp-setup)
 - `static/mcp-setup.html` -- MCP setup guide with zero-config focus, tool catalog, copy buttons
 - `static/api-docs.html` -- Branded API documentation with 14 endpoint categories, auth tiers, error codes, sidebar TOC
@@ -579,7 +605,7 @@ All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTH
 
 ### 7.4 Go-Live Checklist
 
-- [x] All 454 unit tests pass
+- [x] All 595 unit tests pass
 - [x] Security check script passes all 9 checks
 - [x] E2E tests pass against live node
 - [x] Load test: 50 users, 0 errors, p95 < 500ms (4ms median)
@@ -735,6 +761,19 @@ twine upload dist/*
 - Auto-start for Bitcoin Knots and cloudflared tunnel via Registry Run keys (API already had auto-start)
 - Sanitized error messages — external-facing errors now say "Temporarily Unavailable" instead of exposing internal details
 - Unit tests expanded (340 → 400)
+
+### v0.4.0 (Cloud Sprint — COMPLETE)
+- 4 AI endpoints: explain transaction, explain block, fee advice, Bitcoin chat
+- AI provider abstraction: Azure OpenAI > OpenAI > Ollama > Noop (zero lock-in)
+- Fee alert webhooks: register threshold alerts + transaction watches (6 CRUD endpoints)
+- Portable fee alert worker: runs as Azure Function or standalone cron
+- Interactive AI chat page at `/ai` with fee advisor tab
+- Azure staging: Container Apps + ACR + App Insights
+- AWS: S3 artifacts + Lambda health + CloudFront CDN
+- Extended Locust load test scenarios (baseline, scale, spike, endurance)
+- Bitcoin Core CI Dockerfile + ACI test runner script
+- Architecture docs + blog post draft
+- 25 new tests (13 AI + 12 alerts) — total: 595 unit + 21 e2e = 616 tests
 
 ### v0.3.4 (Security Hardening — Next)
 - CSP nonce-based script loading (remove `'unsafe-inline'` from script-src)

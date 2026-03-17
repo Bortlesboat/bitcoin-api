@@ -147,6 +147,13 @@ Returns standard Prometheus text format with counters, histograms, and gauges fo
 
 Connect to `/api/v1/ws` for real-time push notifications (blocks, fees, mempool changes). Requires an API key.
 
+### SSE Streams
+
+SSE streams (`/api/v1/stream/blocks`, `/api/v1/stream/fees`, `/api/v1/stream/whale-txs`) have the following limits:
+- **Max duration:** 1 hour per connection (auto-disconnects, clients should reconnect)
+- **Connection caps:** 50 concurrent block streams, 50 fee streams, 20 whale streams
+- Connections beyond the cap receive a 429 response
+
 ```python
 import websockets, json
 
@@ -267,6 +274,11 @@ POSTHOG_ENABLED=true             # Set to false to disable (default)
 
 Open in browser: `http://localhost:9332/admin/dashboard?key=YOUR_KEY`
 
+**Authentication methods (any one works):**
+- Query parameter: `?key=YOUR_KEY` (original, convenient for bookmarks)
+- Header: `X-Admin-Key: YOUR_KEY` (for programmatic access)
+- Cookie: `admin_token=YOUR_KEY` (set automatically after first query-param login, persists across refreshes)
+
 Auto-refreshes every 60 seconds. Shows KPI cards, charts (requests over time, top endpoints, latency percentiles), per-key usage table, and retention metrics.
 
 ### How to query
@@ -353,7 +365,7 @@ Users can POST to `/api/v1/register` with `agreed_to_terms: true` to get a free 
 cd ~/Bortlesboat/bitcoin-api
 python scripts/seo_metrics.py
 ```
-Shows: page accessibility (all 10 pages), GitHub stars, PyPI downloads, PR merge status, Bing indexing, search mentions, API usage stats. Saves data to `data/seo_metrics.db`.
+Shows: page accessibility (all 15 pages), GitHub stars, PyPI downloads, PR merge status, Bing indexing, search mentions, API usage stats. Saves data to `data/seo_metrics.db`.
 
 ### Daily analytics digest
 ```bash

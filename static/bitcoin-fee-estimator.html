@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Fee Estimator - Predict Costs Before Sending</title>
+<meta name="description" content="Free Bitcoin fee estimator API. Predict transaction costs based on inputs, outputs, and real-time mempool data. Works with wallets, bots, and AI agents.">
+<meta name="keywords" content="bitcoin fee estimator, bitcoin fee prediction, btc fee estimator, estimate bitcoin fee, bitcoin transaction cost estimator, bitcoin fee checker">
+<link rel="canonical" href="https://bitcoinsapi.com/bitcoin-fee-estimator">
+<meta property="og:title" content="Bitcoin Fee Estimator - Predict Costs Before Sending">
+<meta property="og:description" content="Free Bitcoin fee estimator API. Predict transaction costs based on inputs, outputs, and real-time mempool data. Works with wallets, bots, and AI agents.">
+<meta property="og:url" content="https://bitcoinsapi.com/bitcoin-fee-estimator">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BTCOrangeCoin">
+<meta name="twitter:title" content="Bitcoin Fee Estimator - Predict Costs Before Sending">
+<meta name="twitter:description" content="Free Bitcoin fee estimator API. Predict transaction costs based on inputs, outputs, and real-time mempool data. Works with wallets, bots, and AI agents.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin Fee Estimator","item":"https://bitcoinsapi.com/bitcoin-fee-estimator"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-fee-estimator/#article","name":"Bitcoin Fee Estimator - Predict Costs Before Sending","description":"Free Bitcoin fee estimator API. Predict transaction costs based on inputs, outputs, and real-time mempool data. Works with wallets, bots, and AI agents.","url":"https://bitcoinsapi.com/bitcoin-fee-estimator","datePublished":"2026-03-17","dateModified":"2026-03-17","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How accurate is Bitcoin fee estimation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bitcoin fee estimation is probabilistic, not guaranteed. Bitcoin Core's estimatesmartfee uses historical confirmation data from the last several thousand blocks to predict what fee rate is likely to get confirmed within a target number of blocks. Satoshi API layers congestion analysis and trend detection on top of this, improving the signal. Accuracy is highest for short targets (1-6 blocks) and decreases for longer targets because mempool conditions can change significantly over hours. No estimator can predict sudden fee spikes from ordinal mints or exchange consolidations."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the difference between sat/vB and BTC/kVB?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both units measure fee rates, just at different scales. sat/vB (satoshis per virtual byte) is what wallets and developers use — a typical fee rate might be 5-20 sat/vB. BTC/kVB (bitcoin per kilovirtual byte) is Bitcoin Core's native RPC format — the same range would be 0.00005000 to 0.00020000 BTC/kVB. To convert: multiply sat/vB by 0.00001 to get BTC/kVB, or multiply BTC/kVB by 100,000 to get sat/vB. Satoshi API returns sat/vB by default so you don't need to convert."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I estimate fees for SegWit transactions?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Satoshi API's /fees/estimate-tx endpoint uses SegWit (P2WPKH) transaction weight calculations by default, which is the most common transaction type today. SegWit transactions use virtual bytes (vBytes) rather than raw bytes, giving them a discount on fees compared to legacy transactions. The estimator accounts for the witness discount when calculating the virtual size of your transaction based on the number of inputs and outputs you specify."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a free Bitcoin fee estimation API?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Satoshi API offers a free hosted tier at bitcoinsapi.com with no API key required for GET requests. You can also self-host it on your own Bitcoin Core node for unlimited, private fee estimation at zero cost. Other free options include Mempool.space's public API and Bitcoin Core's built-in estimatesmartfee RPC (though Core returns raw BTC/kVB without analysis). Satoshi API is the only free option that includes congestion scoring, send-or-wait verdicts, and transaction cost estimation in a single API."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+  /* Sync Warning Banner */
+  .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
+  .sync-banner a { color: #FFB347; text-decoration: underline; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+        nav .logo a { color: var(--accent); }
+  nav .logo a:hover { text-decoration: none; }
+
+  /* Page header */
+  .page-header { text-align: center; padding: 80px 0 40px; }
+  .page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+  /* Section headings */
+  .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 24px; }
+
+  /* Prose */
+  .prose { max-width: 760px; margin: 0 auto; }
+  .prose p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; line-height: 1.7; }
+  .prose h2 { font-size: 1.5em; font-weight: 700; margin: 48px 0 12px; color: var(--text); }
+  .prose h3 { font-size: 1.15em; font-weight: 600; margin: 32px 0 8px; color: var(--text); }
+  .prose ul, .prose ol { color: var(--muted); font-size: 0.95em; margin: 0 0 16px 24px; line-height: 1.8; }
+  .prose li { margin-bottom: 4px; }
+  .prose strong { color: var(--text); }
+
+  /* Endpoint cards */
+  .endpoint-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+  .endpoint-card .method-path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.95em; margin-bottom: 8px; }
+  .endpoint-card .method { color: var(--green); font-weight: 700; }
+  .endpoint-card .path { color: var(--text); }
+  .endpoint-card .desc { color: var(--muted); font-size: 0.9em; margin-bottom: 10px; line-height: 1.6; }
+  .endpoint-card .sample { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8em; color: var(--muted); overflow-x: auto; white-space: pre; line-height: 1.5; }
+  .endpoint-card .sample .key { color: var(--blue); }
+  .endpoint-card .sample .str { color: var(--green); }
+  .endpoint-card .sample .num { color: var(--accent); }
+
+  /* Code block */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+  .code-block pre { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd { color: var(--green); }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.85em; }
+  .compare-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .compare-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .compare-table tr:hover { background: var(--surface); }
+  .compare-table .row-label { color: var(--text); font-weight: 600; white-space: nowrap; min-width: 140px; }
+  .yes { color: var(--green); }
+  .no { color: var(--muted); }
+  .partial { color: var(--accent); }
+
+  /* CTA */
+  .cta-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; margin-top: 32px; }
+  .cta-box h3 { margin-bottom: 12px; font-size: 1.2em; }
+  .cta-box p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; }
+  .cta-box code { font-size: 1em; padding: 6px 12px; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  @media (max-width: 600px) {
+    .page-header h1 { font-size: 1.6em; }
+    .page-header .subtitle { font-size: 1em; }
+    section { padding: 40px 0; }
+    .compare-table { font-size: 0.75em; }
+  }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
+</style>
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="/#get-api-key" style="color:#ccc;text-decoration:none;">Get Free API Key</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- Sync Warning Banner -->
+<div class="sync-banner" id="sync-banner">
+  Node is syncing (<span id="sync-pct">--</span>% complete). Fee data may be inaccurate. <a href="/api/v1/status">View status</a>
+</div>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="container">
+    <h1>Bitcoin <span>Fee Estimator</span> — Predict Costs Before Sending</h1>
+    <p class="subtitle">Most fee estimators give you a number. Satoshi API gives you a decision: send now at this cost, or wait and save. Free, self-hostable, and built for developers.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+      <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Try the API</a>
+      <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+    </div>
+    <p class="meta" style="color: var(--muted); font-size: 0.9em; margin-top: 12px;">Hosted API is free for basic testing. Self-host for unlimited use and full privacy.</p>
+  </div>
+</div>
+
+<!-- How Fee Estimation Works -->
+<section>
+  <div class="container prose">
+    <h2>How Fee Estimation Works</h2>
+    <p>Bitcoin Core's <code>estimatesmartfee</code> RPC uses historical block data to predict how much you need to pay for a transaction to confirm within a target number of blocks. It analyzes the fee rates of transactions that were included in recent blocks and builds a statistical model of what fee rate is likely to succeed for each confirmation target.</p>
+    <p>This works well as a raw signal, but it has limitations. It returns values in BTC/kVB (a unit nobody uses in practice), it gives you a single number without context, and it tells you nothing about whether now is actually a good time to send.</p>
+    <p>Satoshi API wraps <code>estimatesmartfee</code> with congestion analysis, trend detection, and cost projection. Instead of a raw fee rate, you get actionable estimates: the cost in satoshis for your specific transaction shape, whether fees are trending up or down, and a clear send-or-wait recommendation based on current mempool conditions. The result is fee intelligence you can act on, not just fee data you have to interpret.</p>
+  </div>
+</section>
+
+<!-- Estimation Endpoints -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Estimation Endpoints</h2>
+    <p class="section-subtitle">Four endpoints that cover the full estimation workflow — from raw fee curves to send-or-wait decisions.</p>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees</span></div>
+      <p class="desc">Returns the full fee curve across all standard confirmation targets (1, 3, 6, 12, 24, 48, 144, 504, 1008 blocks). Each estimate includes the fee rate in sat/vB and the target block count. Use this when you need to see the entire fee landscape at a glance or build custom fee selection UI.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"estimates"</span>: [
+      { <span class="key">"blocks"</span>: <span class="num">1</span>, <span class="key">"fee_rate"</span>: <span class="num">14.5</span>, <span class="key">"fee_rate_btc_kvb"</span>: <span class="num">0.00014500</span> },
+      { <span class="key">"blocks"</span>: <span class="num">6</span>, <span class="key">"fee_rate"</span>: <span class="num">8.2</span>, <span class="key">"fee_rate_btc_kvb"</span>: <span class="num">0.00008200</span> },
+      { <span class="key">"blocks"</span>: <span class="num">144</span>, <span class="key">"fee_rate"</span>: <span class="num">3.1</span>, <span class="key">"fee_rate_btc_kvb"</span>: <span class="num">0.00003100</span> }
+    ]
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/recommended</span></div>
+      <p class="desc">Human-readable fee recommendations with three priority tiers: high (next block), medium (within 6 blocks), and low (within 24 blocks). Returns the sat/vB rate for each tier along with a plain-language recommendation. Ideal for wallet UIs and payment flows where users need a simple choice, not a fee curve.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"recommendation"</span>: <span class="str">"Fees are moderate. Medium priority recommended."</span>,
+    <span class="key">"estimates"</span>: {
+      <span class="key">"high"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">14.5</span>, <span class="key">"blocks"</span>: <span class="num">1</span> },
+      <span class="key">"medium"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">8.2</span>, <span class="key">"blocks"</span>: <span class="num">6</span> },
+      <span class="key">"low"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">3.1</span>, <span class="key">"blocks"</span>: <span class="num">24</span> }
+    },
+    <span class="key">"fee_landscape"</span>: {
+      <span class="key">"spread"</span>: <span class="num">11.4</span>,
+      <span class="key">"urgency_premium"</span>: <span class="str">"76.8%"</span>
+    }
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/estimate-tx</span></div>
+      <p class="desc">Transaction cost estimator. Pass the number of inputs and outputs as query parameters (e.g., <code>?inputs=2&outputs=2</code>) to get the estimated virtual size in vBytes and the total fee in satoshis at current rates for each priority tier. Essential for wallets, bots, and payment processors that need to display fee previews before signing.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"inputs"</span>: <span class="num">2</span>,
+    <span class="key">"outputs"</span>: <span class="num">2</span>,
+    <span class="key">"estimated_vsize"</span>: <span class="num">226</span>,
+    <span class="key">"fee_estimates"</span>: {
+      <span class="key">"high"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">14.5</span>, <span class="key">"total_sats"</span>: <span class="num">3277</span> },
+      <span class="key">"medium"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">8.2</span>, <span class="key">"total_sats"</span>: <span class="num">1853</span> },
+      <span class="key">"low"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">3.1</span>, <span class="key">"total_sats"</span>: <span class="num">701</span> }
+    }
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/landscape</span></div>
+      <p class="desc">The "should I send now or wait?" decision engine. Analyzes the current fee environment and returns a send/wait recommendation based on fee spread, urgency premium, and mempool conditions. Includes a congestion level indicator and the optimal fee tier for cost-conscious transactions.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"recommendation"</span>: <span class="str">"Fees are low. Good time to send."</span>,
+    <span class="key">"congestion"</span>: <span class="str">"low"</span>,
+    <span class="key">"spread"</span>: <span class="num">5.2</span>,
+    <span class="key">"urgency_premium_pct"</span>: <span class="num">42.1</span>,
+    <span class="key">"optimal_tier"</span>: <span class="str">"medium"</span>
+  }
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section>
+  <div class="container prose">
+    <h2>Quick Start</h2>
+    <p>Get a fee estimate in seconds. No API key required for GET requests.</p>
+
+    <h3>cURL</h3>
+    <div class="code-block">
+      <pre><span class="comment"># Get recommended fee rates, pretty-printed</span>
+<span class="cmd">curl</span> -s bitcoinsapi.com/api/v1/fees/recommended | python -m json.tool</pre>
+    </div>
+
+    <h3>Python</h3>
+    <div class="code-block">
+      <pre><span class="comment"># Estimate cost for a 2-input, 2-output transaction</span>
+<span class="cmd">import</span> requests
+resp = requests.get(<span class="str">"https://bitcoinsapi.com/api/v1/fees/estimate-tx"</span>, params={<span class="str">"inputs"</span>: 2, <span class="str">"outputs"</span>: 2})
+print(resp.json()[<span class="str">"data"</span>][<span class="str">"fee_estimates"</span>])</pre>
+    </div>
+
+    <h3>MCP (AI Agents)</h3>
+    <div class="code-block">
+      <pre><span class="comment"># Install the MCP server for Claude, GPT, or any AI agent</span>
+<span class="cmd">pip install</span> bitcoin-mcp
+
+<span class="comment"># Then ask your AI agent:</span>
+<span class="str">"What will my Bitcoin transaction cost with 3 inputs and 1 output?"</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Table -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Satoshi API vs Other Estimators</h2>
+    <p class="section-subtitle">How different Bitcoin fee estimation sources compare for developers building wallets, bots, and payment systems.</p>
+
+    <div style="overflow-x: auto;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Satoshi API</th>
+            <th>Bitcoin Core RPC</th>
+            <th>Mempool.space</th>
+            <th>BlockCypher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Output format</td>
+            <td class="yes">sat/vB (developer-friendly)</td>
+            <td>BTC/kVB (raw)</td>
+            <td class="yes">sat/vB</td>
+            <td>satoshis/byte</td>
+          </tr>
+          <tr>
+            <td class="row-label">Tx cost estimation</td>
+            <td class="yes">Yes (inputs/outputs to total sats)</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Send-or-wait verdict</td>
+            <td class="yes">Yes (landscape endpoint)</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Congestion scoring</td>
+            <td class="yes">Yes (low/moderate/high)</td>
+            <td class="no">No</td>
+            <td class="partial">Implicit (mempool blocks)</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">AI agent support</td>
+            <td class="yes">Yes (49 MCP tools)</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Self-hostable</td>
+            <td class="yes">Yes (pip install)</td>
+            <td class="yes">Yes (runs a full node)</td>
+            <td class="partial">Optional (heavy setup)</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td class="row-label">Pricing</td>
+            <td class="yes">Free (hosted + self-hosted)</td>
+            <td class="yes">Free (requires node)</td>
+            <td class="yes">Free (public API)</td>
+            <td class="partial">Free tier, then $49-75/mo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Why Developers Choose Satoshi API -->
+<section>
+  <div class="container prose">
+    <h2>Why Developers Choose Satoshi API</h2>
+    <p><strong>Fee intelligence, not just fee rates.</strong> Most APIs return a number and leave you to interpret it. Satoshi API tells you what the number means in context — whether fees are trending up or down, whether it's worth waiting, and exactly how much your specific transaction will cost at each priority level. This is the difference between data and a decision.</p>
+    <p><strong>Works with AI agents out of the box.</strong> The <a href="https://github.com/Bortlesboat/bitcoin-mcp">bitcoin-mcp</a> package exposes 49 tools that any MCP-compatible AI agent (Claude, GPT, Gemini) can use natively. Ask "What will my transaction cost?" in natural language and get a real answer backed by live node data. No other fee API supports this.</p>
+    <p><strong>Free and self-hostable.</strong> The hosted API at bitcoinsapi.com is free for testing. For production, install it on your own Bitcoin Core node with <code>pip install satoshi-api</code> and run unlimited fee queries with full privacy at $0/month. Competitors charge $49-100/month for comparable API access, and none of them offer self-hosting.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="container prose">
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>How accurate is Bitcoin fee estimation?</h3>
+    <p>Bitcoin fee estimation is probabilistic, not guaranteed. Bitcoin Core's <code>estimatesmartfee</code> uses historical confirmation data from the last several thousand blocks to predict what fee rate is likely to get confirmed within a target number of blocks. Satoshi API layers congestion analysis and trend detection on top of this, improving the signal. Accuracy is highest for short targets (1-6 blocks) and decreases for longer targets because mempool conditions can change significantly over hours. No estimator can predict sudden fee spikes from ordinal mints or exchange consolidations.</p>
+
+    <h3>What's the difference between sat/vB and BTC/kVB?</h3>
+    <p>Both units measure fee rates, just at different scales. <strong>sat/vB</strong> (satoshis per virtual byte) is what wallets and developers use — a typical fee rate might be 5-20 sat/vB. <strong>BTC/kVB</strong> (bitcoin per kilovirtual byte) is Bitcoin Core's native RPC format — the same range would be 0.00005000 to 0.00020000 BTC/kVB. To convert: multiply sat/vB by 0.00001 to get BTC/kVB, or multiply BTC/kVB by 100,000 to get sat/vB. Satoshi API returns sat/vB by default so you don't need to convert.</p>
+
+    <h3>Can I estimate fees for SegWit transactions?</h3>
+    <p>Yes. Satoshi API's <code>/fees/estimate-tx</code> endpoint uses SegWit (P2WPKH) transaction weight calculations by default, which is the most common transaction type today. SegWit transactions use virtual bytes (vBytes) rather than raw bytes, giving them a discount on fees compared to legacy transactions. The estimator accounts for the witness discount when calculating the virtual size of your transaction based on the number of inputs and outputs you specify.</p>
+
+    <h3>Is there a free Bitcoin fee estimation API?</h3>
+    <p>Yes. Satoshi API offers a free hosted tier at bitcoinsapi.com with no API key required for GET requests. You can also self-host it on your own Bitcoin Core node for unlimited, private fee estimation at zero cost. Other free options include Mempool.space's public API and Bitcoin Core's built-in <code>estimatesmartfee</code> RPC (though Core returns raw BTC/kVB without analysis). Satoshi API is the only free option that includes congestion scoring, send-or-wait verdicts, and transaction cost estimation in a single API.</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-box">
+      <h3>Better estimates. Lower fees.</h3>
+      <p>Stop overpaying on Bitcoin transactions. Get fee intelligence that tells you exactly what to pay and when to send.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Try the API</a>
+        <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the Apache-2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="/">Home</a> &middot;
+      <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+      <a href="/bitcoin-transaction-fee-calculator">Fee Calculator</a> &middot;
+      <a href="/best-time-to-send-bitcoin">Best Time to Send</a> &middot;
+      <a href="/vs-mempool">vs Mempool.space</a> &middot;
+      <a href="/pricing">Pricing</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/terms">Terms of Service</a> &middot;
+      <a href="/privacy">Privacy Policy</a> &middot;
+      <a href="/disclaimer">Disclaimer</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (!window.localStorage) return;
+  try {
+    if (!localStorage.getItem('satoshi_first_touch') && (hasAttribution || candidate.referrer)) {
+      localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+    }
+    if (hasAttribution || candidate.referrer) {
+      localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+    }
+  } catch (e) {
+    /* Ignore localStorage failures */
+  }
+})();
+
+/* Sync Warning Banner */
+(function() {
+  fetch('/api/v1/status')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data || json;
+      if (d.syncing) {
+        var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
+        var el = document.getElementById('sync-pct');
+        if (el) el.textContent = pct;
+        var banner = document.getElementById('sync-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    })
+    .catch(function() {});
+})();
+</script>
+
+</body>
+</html>

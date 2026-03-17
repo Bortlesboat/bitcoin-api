@@ -212,8 +212,11 @@ def register_static_routes(app: FastAPI):
             "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
             "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
             "bitcoin-fee-api", "bitcoin-mempool-api", "bitcoin-mcp-setup-guide",
+            "bitcoin-transaction-fee-calculator", "best-time-to-send-bitcoin",
+            "bitcoin-fee-estimator", "bitcoin-api-for-trading-bots",
+            "how-to-reduce-bitcoin-transaction-fees",
             "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
-            "mcp-setup",
+            "mcp-setup", "ai",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"

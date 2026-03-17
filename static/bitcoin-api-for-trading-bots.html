@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin API for Trading Bots - Fee-Optimized Transactions</title>
+<meta name="description" content="Build smarter Bitcoin trading bots with real-time fee intelligence. Optimize transaction timing, reduce costs, and automate fee decisions. Free API with Pro tier for high-volume bots.">
+<meta name="keywords" content="bitcoin api trading bot, bitcoin trading bot api, btc bot api, bitcoin automated trading api, bitcoin fee optimization bot, crypto trading bot api">
+<link rel="canonical" href="https://bitcoinsapi.com/bitcoin-api-for-trading-bots">
+<meta property="og:title" content="Bitcoin API for Trading Bots - Fee-Optimized Transactions">
+<meta property="og:description" content="Build smarter Bitcoin trading bots with real-time fee intelligence. Optimize transaction timing, reduce costs, and automate fee decisions. Free API with Pro tier for high-volume bots.">
+<meta property="og:url" content="https://bitcoinsapi.com/bitcoin-api-for-trading-bots">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BTCOrangeCoin">
+<meta name="twitter:title" content="Bitcoin API for Trading Bots - Fee-Optimized Transactions">
+<meta name="twitter:description" content="Build smarter Bitcoin trading bots with real-time fee intelligence. Optimize transaction timing, reduce costs, and automate fee decisions. Free API with Pro tier for high-volume bots.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://bitcoinsapi.com/best-bitcoin-api-for-developers"},{"@type":"ListItem","position":3,"name":"Bitcoin API for Trading Bots","item":"https://bitcoinsapi.com/bitcoin-api-for-trading-bots"}]},{"@type":"Article","@id":"https://bitcoinsapi.com/bitcoin-api-for-trading-bots/#article","name":"Bitcoin API for Trading Bots - Fee-Optimized Transactions","description":"Build smarter Bitcoin trading bots with real-time fee intelligence. Optimize transaction timing, reduce costs, and automate fee decisions.","url":"https://bitcoinsapi.com/bitcoin-api-for-trading-bots","datePublished":"2026-03-17","dateModified":"2026-03-17","author":{"@id":"https://bitcoinsapi.com/#organization"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"},"isPartOf":{"@id":"https://bitcoinsapi.com/#website"}}]}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What API do Bitcoin trading bots use for fee data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bitcoin trading bots typically use fee estimation APIs to time transactions optimally. Satoshi API provides a /fees/landscape endpoint that returns a send-or-wait recommendation based on current mempool conditions, congestion level, and fee spread. Bots can poll this endpoint (or subscribe via WebSocket) to decide when to execute withdrawals, rebalances, and consolidations at the lowest possible fee rate."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How can a trading bot minimize Bitcoin transaction fees?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A trading bot can minimize fees by checking the fee landscape before every transaction. When the API reports low congestion and a 'send' recommendation, the bot executes pending transactions. When fees are high, it queues them for later. Over hundreds of transactions per month, this timing strategy saves 20-60% on total fee spend. The /fees/estimate-tx endpoint also helps by calculating the exact cost for a given transaction shape before broadcasting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What rate limits does Satoshi API have for bots?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Satoshi API offers four tiers: Anonymous (144 requests/day, no key needed), Free (10,000 requests/day), Pro (100,000 requests/day at $19/month), and Enterprise (custom limits). The Free tier is sufficient for bots checking fees every 5 minutes. Pro is designed for production bots that need high-frequency polling or multiple concurrent strategies. You can also self-host for unlimited requests."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I self-host the API for my trading bot?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Satoshi API is open source and installable via pip install satoshi-api. Point it at your own Bitcoin Core node and you get unlimited requests with zero rate limits, full privacy (no third party sees your queries), and the lowest possible latency. Self-hosting is ideal for high-frequency trading bots and institutional setups where every millisecond and every data leak matters."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f7931a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+  /* Sync Warning Banner */
+  .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
+  .sync-banner a { color: #FFB347; text-decoration: underline; }
+
+  /* Layout */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+        nav .logo a { color: var(--accent); }
+  nav .logo a:hover { text-decoration: none; }
+
+  /* Page header */
+  .page-header { text-align: center; padding: 80px 0 40px; }
+  .page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+
+  /* Section headings */
+  .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
+  .section-subtitle { color: var(--muted); font-size: 1.05em; margin-bottom: 24px; }
+
+  /* Prose */
+  .prose { max-width: 760px; margin: 0 auto; }
+  .prose p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; line-height: 1.7; }
+  .prose h2 { font-size: 1.5em; font-weight: 700; margin: 48px 0 12px; color: var(--text); }
+  .prose h3 { font-size: 1.15em; font-weight: 600; margin: 32px 0 8px; color: var(--text); }
+  .prose ul, .prose ol { color: var(--muted); font-size: 0.95em; margin: 0 0 16px 24px; line-height: 1.8; }
+  .prose li { margin-bottom: 4px; }
+  .prose strong { color: var(--text); }
+
+  /* Endpoint cards */
+  .endpoint-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+  .endpoint-card .method-path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.95em; margin-bottom: 8px; }
+  .endpoint-card .method { color: var(--green); font-weight: 700; }
+  .endpoint-card .path { color: var(--text); }
+  .endpoint-card .desc { color: var(--muted); font-size: 0.9em; margin-bottom: 10px; line-height: 1.6; }
+  .endpoint-card .sample { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8em; color: var(--muted); overflow-x: auto; white-space: pre; line-height: 1.5; }
+  .endpoint-card .sample .key { color: var(--blue); }
+  .endpoint-card .sample .str { color: var(--green); }
+  .endpoint-card .sample .num { color: var(--accent); }
+
+  /* Code block */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+  .code-block pre { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd { color: var(--green); }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.85em; }
+  .compare-table th { text-align: left; color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; padding: 10px 12px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .compare-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .compare-table tr:hover { background: var(--surface); }
+  .compare-table .row-label { color: var(--text); font-weight: 600; white-space: nowrap; min-width: 140px; }
+  .yes { color: var(--green); }
+  .no { color: var(--muted); }
+  .partial { color: var(--accent); }
+
+  /* CTA */
+  .cta-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; margin-top: 32px; }
+  .cta-box h3 { margin-bottom: 12px; font-size: 1.2em; }
+  .cta-box p { color: var(--muted); font-size: 0.95em; margin-bottom: 16px; }
+  .cta-box code { font-size: 1em; padding: 6px 12px; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; color: var(--muted); font-size: 0.85em; }
+
+  @media (max-width: 600px) {
+    .page-header h1 { font-size: 1.6em; }
+    .page-header .subtitle { font-size: 1em; }
+    section { padding: 40px 0; }
+    .compare-table { font-size: 0.75em; }
+  }
+
+/* Unified nav mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; width: 100%; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #30363d; margin-top: 12px; }
+  .nav-links.open { display: flex !important; }
+  .nav-toggle { display: block !important; }
+}
+</style>
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('__POSTHOG_API_KEY__', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: true,
+        capture_pageleave: true,
+        disable_session_recording: true,
+        ip: false,
+        persistence: 'memory',
+        property_denylist: ['$ip'],
+    });
+</script>
+</head>
+<body>
+
+<nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
+  <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
+    <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
+    <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
+    <a href="/#get-api-key" style="color:#ccc;text-decoration:none;">Get Free API Key</a>
+    <a href="https://github.com/Bortlesboat/bitcoin-api" style="color:#ccc;text-decoration:none;" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- Sync Warning Banner -->
+<div class="sync-banner" id="sync-banner">
+  Node is syncing (<span id="sync-pct">--</span>% complete). Fee data may be inaccurate. <a href="/api/v1/status">View status</a>
+</div>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="container">
+    <h1>Bitcoin API for <span>Trading Bots</span></h1>
+    <p class="subtitle">Your bot sends transactions. Satoshi API tells it when to send them cheaply. Fee intelligence that pays for itself on the first optimized withdrawal.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+      <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Try the API</a>
+      <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+    </div>
+  </div>
+</div>
+
+<!-- Why Trading Bots Need Fee Intelligence -->
+<section>
+  <div class="container prose">
+    <h2>Why Trading Bots Need Fee Intelligence</h2>
+    <p>Every withdrawal, rebalance, and UTXO consolidation your bot executes has a transaction fee attached to it. Bots that time their transactions around fee conditions save <strong>20-60% on fees</strong>. Over hundreds of transactions per month, that adds up to real money — money that goes straight to your bottom line instead of to miners.</p>
+    <p>Most trading bots use hardcoded fee rates or wallet defaults. They send at 15 sat/vB when 3 sat/vB would have confirmed within the hour. They broadcast during peak congestion when waiting 30 minutes would have cut costs in half. They leave money on the table because they have no visibility into the fee environment.</p>
+    <p>Satoshi API gives your bot the same fee awareness that experienced Bitcoin users have — except automated, real-time, and available via a single API call. One endpoint tells your bot whether to send now or wait. Another tells it exactly what the transaction will cost before it broadcasts. Your bot makes better decisions, and you keep more of your profits.</p>
+  </div>
+</section>
+
+<!-- Key Endpoints for Bots -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Key Endpoints for Bots</h2>
+    <p class="section-subtitle">Five endpoints that cover the full bot decision loop — timing, cost estimation, mempool awareness, pricing, and real-time updates.</p>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/landscape</span></div>
+      <p class="desc">The send-or-wait decision engine. Returns a recommendation based on current fee spread, congestion level, and mempool conditions. This is the core loop for bot transaction timing — call it before every withdrawal or rebalance.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"recommendation"</span>: <span class="str">"Fees are low. Good time to send."</span>,
+    <span class="key">"congestion"</span>: <span class="str">"low"</span>,
+    <span class="key">"spread"</span>: <span class="num">5.2</span>,
+    <span class="key">"urgency_premium_pct"</span>: <span class="num">42.1</span>,
+    <span class="key">"optimal_tier"</span>: <span class="str">"medium"</span>,
+    <span class="key">"suggested_fee_rate"</span>: <span class="num">3.1</span>,
+    <span class="key">"potential_savings_percent"</span>: <span class="num">46.8</span>
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/estimate-tx</span></div>
+      <p class="desc">Transaction cost calculator. Pass your input and output counts to get the estimated virtual size and total fee in satoshis at current rates. Use this to calculate exact costs before broadcasting, so your bot can decide if a consolidation or withdrawal is worth executing at current fee levels.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"inputs"</span>: <span class="num">2</span>,
+    <span class="key">"outputs"</span>: <span class="num">2</span>,
+    <span class="key">"estimated_vsize"</span>: <span class="num">226</span>,
+    <span class="key">"fee_estimates"</span>: {
+      <span class="key">"high"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">14.5</span>, <span class="key">"total_sats"</span>: <span class="num">3277</span> },
+      <span class="key">"medium"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">8.2</span>, <span class="key">"total_sats"</span>: <span class="num">1853</span> },
+      <span class="key">"low"</span>: { <span class="key">"sat_per_vb"</span>: <span class="num">3.1</span>, <span class="key">"total_sats"</span>: <span class="num">701</span> }
+    }
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/mempool/info</span></div>
+      <p class="desc">Raw mempool state — transaction count, total size in bytes, memory usage, and minimum relay fee. Your bot can use this to gauge network congestion independently and build custom timing logic on top of the raw data.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"size"</span>: <span class="num">14832</span>,
+    <span class="key">"bytes"</span>: <span class="num">8291456</span>,
+    <span class="key">"usage"</span>: <span class="num">52428800</span>,
+    <span class="key">"mempoolminfee"</span>: <span class="num">0.00001000</span>,
+    <span class="key">"minrelaytxfee"</span>: <span class="num">0.00001000</span>
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/prices/btc</span></div>
+      <p class="desc">Current BTC/USD price from multiple providers (Binance, CoinGecko, Coinbase, Kraken fallback chain). Essential for P&amp;L calculations, position sizing, and converting fee costs from satoshis to dollar amounts for reporting.</p>
+      <div class="sample">{
+  <span class="key">"data"</span>: {
+    <span class="key">"price_usd"</span>: <span class="num">84250.00</span>,
+    <span class="key">"source"</span>: <span class="str">"binance"</span>,
+    <span class="key">"timestamp"</span>: <span class="str">"2026-03-17T12:00:00Z"</span>
+  }
+}</div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="method-path"><span class="method">WS</span> <span class="path">/api/v1/ws</span></div>
+      <p class="desc">Real-time fee updates via WebSocket. Subscribe to fee changes without polling — your bot gets pushed new data as soon as conditions change. Eliminates the latency and overhead of repeated HTTP requests for high-frequency strategies.</p>
+      <div class="sample">{
+  <span class="key">"type"</span>: <span class="str">"fee_update"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"high"</span>: <span class="num">12.5</span>,
+    <span class="key">"medium"</span>: <span class="num">6.8</span>,
+    <span class="key">"low"</span>: <span class="num">2.1</span>,
+    <span class="key">"congestion"</span>: <span class="str">"low"</span>
+  }
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- Bot Integration Example -->
+<section>
+  <div class="container prose">
+    <h2>Bot Integration Example</h2>
+    <p>Here is a minimal Python bot loop that checks fee conditions every 5 minutes and only executes withdrawals when the API recommends sending. This pattern saves 20-60% on fees compared to bots that send at fixed rates regardless of network conditions.</p>
+
+    <div class="code-block">
+      <pre><span class="comment">import</span> requests, time
+
+API = <span class="str">"https://bitcoinsapi.com/api/v1"</span>
+HEADERS = {<span class="str">"X-API-Key"</span>: <span class="str">"your-key"</span>}
+
+<span class="comment">while</span> True:
+    landscape = requests.get(
+        f<span class="str">"{API}/fees/landscape"</span>, headers=HEADERS
+    ).json()[<span class="str">"data"</span>]
+
+    <span class="comment">if</span> landscape[<span class="str">"recommendation"</span>] == <span class="str">"send"</span>:
+        <span class="comment"># Execute pending withdrawals at optimal fee</span>
+        fee_rate = landscape[<span class="str">"suggested_fee_rate"</span>]
+        execute_withdrawal(fee_rate)
+    <span class="comment">else</span>:
+        <span class="comment"># Wait — fees are high</span>
+        print(f<span class="str">"Waiting. Save {landscape['potential_savings_percent']}%"</span>)
+
+    time.sleep(<span class="num">300</span>)  <span class="comment"># Check every 5 minutes</span></pre>
+    </div>
+
+    <p>The bot checks <code>/fees/landscape</code> on each iteration. When the recommendation is "send", it executes pending withdrawals at the suggested fee rate. When fees are high, it waits and logs the potential savings. Over a month of automated withdrawals, this simple pattern compounds into significant fee savings.</p>
+    <p>For lower latency, replace the polling loop with a WebSocket connection to <code>/api/v1/ws</code> and react to fee changes in real time.</p>
+  </div>
+</section>
+
+<!-- For AI-Powered Bots -->
+<section>
+  <div class="container prose">
+    <h2>For AI-Powered Bots</h2>
+    <p>If your trading bot uses an AI agent (Claude, GPT, or any LLM), the <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">bitcoin-mcp</a> package lets your agent query fees, mempool state, and price data through natural language — no manual API calls needed.</p>
+
+    <div class="code-block">
+      <pre><span class="comment"># Install the MCP server</span>
+<span class="cmd">pip install</span> bitcoin-mcp</pre>
+    </div>
+
+    <p>Once installed, your AI trading agent can have conversations like this:</p>
+
+    <div class="code-block">
+      <pre><span class="comment">User:</span> Should I execute the pending 0.5 BTC withdrawal right now?
+
+<span class="comment">Agent:</span> Let me check current fee conditions.
+
+  Mempool has 8,200 transactions (low congestion).
+  Current fee landscape: "send" recommendation.
+  Suggested fee rate: 3.1 sat/vB.
+  A 2-input, 2-output withdrawal would cost ~701 sats ($0.59).
+
+  <span class="cmd">Recommendation: Execute now.</span> Fees are near the daily low.
+  Waiting would save less than 5% — not worth the delay risk.
+
+<span class="comment">User:</span> Do it.
+
+<span class="comment">Agent:</span> Withdrawal executed at 3.1 sat/vB. TX broadcast successfully.</pre>
+    </div>
+
+    <p>The MCP server connects to Satoshi API automatically — zero configuration required. It falls back to the hosted API when no local node is available, so your agent works out of the box. See the <a href="/bitcoin-api-for-ai-agents">AI agents guide</a> for full setup details.</p>
+  </div>
+</section>
+
+<!-- Rate Limits for Bots -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Rate Limits for Bots</h2>
+    <p class="section-subtitle">Choose the tier that matches your bot's polling frequency and transaction volume.</p>
+
+    <div style="overflow-x: auto;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Requests/Day</th>
+            <th>Price</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Anonymous</td>
+            <td>144</td>
+            <td class="yes">Free</td>
+            <td>Testing and prototyping</td>
+          </tr>
+          <tr>
+            <td class="row-label">Free</td>
+            <td>10,000</td>
+            <td class="yes">$0/mo</td>
+            <td>Low-frequency bots (5-min polling)</td>
+          </tr>
+          <tr>
+            <td class="row-label">Pro</td>
+            <td>100,000</td>
+            <td class="partial">$19/mo</td>
+            <td>Production bots, multiple strategies</td>
+          </tr>
+          <tr>
+            <td class="row-label">Enterprise</td>
+            <td>Custom</td>
+            <td>Contact us</td>
+            <td>High-frequency trading, institutional</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="section-subtitle" style="margin-top: 16px;">A bot polling every 5 minutes uses ~288 requests/day. The Free tier (10,000/day) supports bots polling every 9 seconds. Pro tier handles sub-second polling or multiple concurrent bot instances. Self-hosting removes all rate limits entirely.</p>
+  </div>
+</section>
+
+<!-- Why Not Build Your Own? -->
+<section>
+  <div class="container prose">
+    <h2>Why Not Build Your Own?</h2>
+    <p>You could query your Bitcoin Core node directly via RPC. But to build a production-ready fee intelligence layer for your bot, you would need to implement:</p>
+    <ul>
+      <li><strong>Smart caching</strong> — so your bot does not hammer the node with repeated <code>estimatesmartfee</code> calls every few seconds</li>
+      <li><strong>Rate limiting</strong> — to protect your node from runaway bot loops and third-party abuse</li>
+      <li><strong>Fee analysis logic</strong> — converting raw BTC/kVB to sat/vB, calculating spread, urgency premium, and congestion scoring</li>
+      <li><strong>Send/wait recommendations</strong> — the actual decision engine that tells your bot when conditions are favorable</li>
+      <li><strong>WebSocket support</strong> — pushing fee updates to your bot instead of polling</li>
+      <li><strong>Transaction cost estimation</strong> — calculating exact fees for specific transaction shapes before broadcasting</li>
+      <li><strong>Monitoring and alerting</strong> — knowing when your fee data goes stale or your node falls behind</li>
+    </ul>
+    <p>Satoshi API does all of this out of the box. Self-host it on your own node for free (unlimited requests, full privacy, zero vendor lock-in), or use the hosted version at <a href="https://bitcoinsapi.com">bitcoinsapi.com</a> and start optimizing fees in under a minute.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="container prose">
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>What API do Bitcoin trading bots use for fee data?</h3>
+    <p>Bitcoin trading bots typically use fee estimation APIs to time transactions optimally. Satoshi API provides a <code>/fees/landscape</code> endpoint that returns a send-or-wait recommendation based on current mempool conditions, congestion level, and fee spread. Bots can poll this endpoint or subscribe via WebSocket to decide when to execute withdrawals, rebalances, and consolidations at the lowest possible fee rate.</p>
+
+    <h3>How can a trading bot minimize Bitcoin transaction fees?</h3>
+    <p>A trading bot minimizes fees by checking the fee landscape before every transaction. When the API reports low congestion and a "send" recommendation, the bot executes pending transactions. When fees are high, it queues them for later. Over hundreds of transactions per month, this timing strategy saves 20-60% on total fee spend. The <code>/fees/estimate-tx</code> endpoint also helps by calculating exact costs for a given transaction shape before broadcasting.</p>
+
+    <h3>What rate limits does Satoshi API have for bots?</h3>
+    <p>Satoshi API offers four tiers: Anonymous (144 requests/day, no key needed), Free (10,000 requests/day), Pro (100,000 requests/day at $19/month), and Enterprise (custom limits). The Free tier supports bots polling every 9 seconds. Pro handles sub-second polling or multiple concurrent strategies. You can also self-host for unlimited requests with zero rate limits.</p>
+
+    <h3>Can I self-host the API for my trading bot?</h3>
+    <p>Yes. Satoshi API is open source and installable via <code>pip install satoshi-api</code>. Point it at your own Bitcoin Core node and you get unlimited requests with zero rate limits, full privacy (no third party sees your fee queries), and the lowest possible latency. Self-hosting is ideal for high-frequency trading bots and institutional setups where every millisecond and every data leak matters.</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-box">
+      <h3>Stop overpaying on bot transactions.</h3>
+      <p>Every withdrawal your bot sends at a suboptimal fee rate is money lost. Start optimizing today — the Free tier costs nothing and takes 30 seconds to set up.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
+        <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Get Free API Key</a>
+        <a href="/pricing" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">View Pricing</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Satoshi API is open source under the Apache-2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
+    <p style="margin-top: 8px;">
+      <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
+      <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
+      <a href="/docs">API Docs</a> &middot;
+      <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/">Home</a> &middot;
+      <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
+      <a href="/bitcoin-fee-estimator">Bitcoin Fee Estimator</a> &middot;
+      <a href="/best-time-to-send-bitcoin">Best Time to Send Bitcoin</a> &middot;
+      <a href="/bitcoin-api-for-ai-agents">Bitcoin API for AI Agents</a> &middot;
+      <a href="/pricing">Pricing</a>
+    </p>
+    <p style="margin-top: 8px;">
+      <a href="/terms">Terms of Service</a> &middot;
+      <a href="/privacy">Privacy Policy</a> &middot;
+      <a href="/disclaimer">Disclaimer</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var hasAttribution = keys.some(function(key) { return !!params.get(key); });
+  var referrer = document.referrer || '';
+  var sameOriginReferrer = false;
+  try {
+    sameOriginReferrer = referrer ? new URL(referrer).host === window.location.host : false;
+  } catch (e) {
+    sameOriginReferrer = false;
+  }
+  var candidate = {
+    landing_path: window.location.pathname,
+    landing_query: window.location.search || '',
+    referrer: sameOriginReferrer ? '' : referrer,
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    captured_at: new Date().toISOString()
+  };
+  if (!window.localStorage) return;
+  try {
+    if (!localStorage.getItem('satoshi_first_touch') && (hasAttribution || candidate.referrer)) {
+      localStorage.setItem('satoshi_first_touch', JSON.stringify(candidate));
+    }
+    if (hasAttribution || candidate.referrer) {
+      localStorage.setItem('satoshi_last_touch', JSON.stringify(candidate));
+    }
+  } catch (e) {
+    /* Ignore localStorage failures */
+  }
+})();
+
+/* Sync Warning Banner */
+(function() {
+  fetch('/api/v1/status')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      var d = json.data || json;
+      if (d.syncing) {
+        var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
+        var el = document.getElementById('sync-pct');
+        if (el) el.textContent = pct;
+        var banner = document.getElementById('sync-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    })
+    .catch(function() {});
+})();
+</script>
+
+</body>
+</html>
