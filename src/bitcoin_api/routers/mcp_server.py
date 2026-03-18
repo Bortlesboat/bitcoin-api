@@ -12,7 +12,6 @@ Lets any MCP client connect with just a URL, zero install:
 """
 
 import logging
-import os
 import re
 
 import httpx
@@ -21,6 +20,7 @@ from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 
 from .. import __version__
+from ..config import settings
 
 log = logging.getLogger("bitcoin_api.mcp")
 
@@ -30,7 +30,7 @@ _HEX_RE = re.compile(r"^[a-fA-F0-9]+$")
 
 # Internal API key for loopback calls — avoids anonymous rate limits.
 # Set MCP_INTERNAL_API_KEY in .env to a valid key; without it, anonymous limits apply.
-_INTERNAL_KEY = os.environ.get("MCP_INTERNAL_API_KEY", "")
+_INTERNAL_KEY = settings.mcp_internal_api_key
 
 # Shared httpx client — avoids creating a new TCP connection per request.
 _client: httpx.AsyncClient | None = None
@@ -378,8 +378,12 @@ def create_mcp_app() -> Starlette:
     app = mcp.streamable_http_app()
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[
+            "http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*",
+            "https://bitcoinsapi.com", "https://mcp.bitcoinsapi.com",
+            "https://smithery.ai", "https://*.smithery.ai",
+        ],
         allow_methods=["GET", "POST", "DELETE"],
-        allow_headers=["*"],
+        allow_headers=["Content-Type", "Authorization", "X-API-Key"],
     )
     return app

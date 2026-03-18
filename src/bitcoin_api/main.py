@@ -173,6 +173,16 @@ for flag, router in _FEATURE_ROUTERS.items():
     if settings.feature_flags.get(flag, False):
         app.include_router(router, prefix=PREFIX)
 
+# Fee/tx alert webhooks (always registered — requires API key)
+from .routers.alerts import router as _alerts_router
+app.include_router(_alerts_router, prefix=PREFIX)
+
+# AI endpoints (conditional — requires ENABLE_AI_FEATURES=true + provider config)
+if settings.enable_ai_features:
+    from .routers.ai import router as _ai_router
+    app.include_router(_ai_router, prefix=PREFIX)
+    log.info("AI features enabled (provider will be resolved on first request)")
+
 # History Explorer (conditional — siloed feature)
 if settings.enable_history_explorer:
     from .routers.history import router as _history_router

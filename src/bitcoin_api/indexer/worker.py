@@ -59,42 +59,68 @@ async def _index_block(conn, parsed_block, rpc) -> dict:
 
     address_deltas: dict[str, dict] = {}
 
+    # Collect batch inserts for transactions, outputs, and inputs.
+    # Using executemany() instead of individual execute() calls reduces round-trips
+    # to Postgres significantly during block processing (from O(txs + outputs + inputs)
+    # to O(3) batch calls for inserts).
+    tx_rows = []
+    output_rows = []
+    input_rows = []
+
     for tx in parsed_block.transactions:
-        # Insert transaction
-        await conn.execute(
-            """INSERT INTO transactions (txid, block_height, tx_index, version, size, vsize, weight, locktime, fee, is_coinbase)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-               ON CONFLICT DO NOTHING""",
+        tx_rows.append((
             tx.txid, parsed_block.height, tx.tx_index, tx.version,
             tx.size, tx.vsize, tx.weight, tx.locktime, tx.fee_sat, tx.is_coinbase,
-        )
+        ))
 
         # Track which addresses are involved in this tx
         tx_addresses: set[str] = set()
 
-        # Insert outputs
+        # Collect outputs for batch insert
         for out in tx.outputs:
-            await conn.execute(
-                """INSERT INTO tx_outputs (txid, vout, value, script_type, address)
-                   VALUES ($1, $2, $3, $4, $5)
-                   ON CONFLICT DO NOTHING""",
-                tx.txid, out.vout, out.value_sat, out.script_type, out.address,
-            )
+            output_rows.append((tx.txid, out.vout, out.value_sat, out.script_type, out.address))
             if out.address:
                 tx_addresses.add(out.address)
                 delta = address_deltas.setdefault(out.address, {"received": 0, "sent": 0, "txids": set()})
                 delta["received"] += out.value_sat
                 delta["txids"].add(tx.txid)
 
-        # Insert inputs and mark spent outputs
+        # Collect inputs for batch insert; spent-output marking still needs individual
+        # queries because each UPDATE returns data needed for undo tracking.
         for inp in tx.inputs:
-            await conn.execute(
-                """INSERT INTO tx_inputs (txid, vin, prev_txid, prev_vout)
-                   VALUES ($1, $2, $3, $4)
-                   ON CONFLICT DO NOTHING""",
-                tx.txid, inp.vin, inp.prev_txid, inp.prev_vout,
-            )
-            # Mark the referenced output as spent
+            input_rows.append((tx.txid, inp.vin, inp.prev_txid, inp.prev_vout))
+
+    # Batch insert transactions
+    if tx_rows:
+        await conn.executemany(
+            """INSERT INTO transactions (txid, block_height, tx_index, version, size, vsize, weight, locktime, fee, is_coinbase)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               ON CONFLICT DO NOTHING""",
+            tx_rows,
+        )
+
+    # Batch insert outputs
+    if output_rows:
+        await conn.executemany(
+            """INSERT INTO tx_outputs (txid, vout, value, script_type, address)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT DO NOTHING""",
+            output_rows,
+        )
+
+    # Batch insert inputs
+    if input_rows:
+        await conn.executemany(
+            """INSERT INTO tx_inputs (txid, vin, prev_txid, prev_vout)
+               VALUES ($1, $2, $3, $4)
+               ON CONFLICT DO NOTHING""",
+            input_rows,
+        )
+
+    # Mark spent outputs — must be individual queries because each UPDATE
+    # returns address/value data needed for address_summary and undo tracking.
+    for tx in parsed_block.transactions:
+        for inp in tx.inputs:
             prev_row = await conn.fetchrow(
                 """UPDATE tx_outputs SET spent_txid = $1, spent_vin = $2
                    WHERE txid = $3 AND vout = $4 AND spent_txid IS NULL
@@ -103,7 +129,6 @@ async def _index_block(conn, parsed_block, rpc) -> dict:
             )
             if prev_row and prev_row["address"]:
                 addr = prev_row["address"]
-                tx_addresses.add(addr)
                 delta = address_deltas.setdefault(addr, {"received": 0, "sent": 0, "txids": set()})
                 delta["sent"] += prev_row["value"]
                 delta["txids"].add(tx.txid)

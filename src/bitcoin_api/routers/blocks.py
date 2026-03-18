@@ -6,6 +6,7 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..cache import cached_blockchain_info, cached_block_count, cached_block_analysis, cached_block_by_hash
 from ..dependencies import get_rpc
 from ..models import ApiResponse, BlockAnalysisData, envelope, rpc_envelope
+from ..rpc_async import async_rpc_call
 from ..services.serializers import serialize_block
 from ..validators import validate_block_hash
 
@@ -194,12 +195,13 @@ def get_block(
         }
     },
 )
-def block_stats(
+async def block_stats(
     height: int = Path(description="Block height", ge=0),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Raw block statistics from getblockstats RPC."""
-    stats = rpc.call("getblockstats", height)
+    # async_rpc_call: runs sync RPC in thread pool — see rpc_async.py for migration pattern
+    stats = await async_rpc_call(rpc, "getblockstats", height)
     return rpc_envelope(stats, rpc)
 
 
@@ -252,13 +254,14 @@ def block_header(
         422: {"description": "Invalid block hash format"},
     },
 )
-def block_txids(
+async def block_txids(
     block_hash: str = Path(description="Block hash (64 hex characters)"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """List all transaction IDs in a block."""
     validate_block_hash(block_hash)
-    block = rpc.call("getblock", block_hash, 1)
+    # async_rpc_call: runs sync RPC in thread pool — see rpc_async.py for migration pattern
+    block = await async_rpc_call(rpc, "getblock", block_hash, 1)
     return rpc_envelope(block["tx"], rpc)
 
 

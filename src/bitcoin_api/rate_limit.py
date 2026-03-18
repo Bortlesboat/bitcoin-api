@@ -22,12 +22,20 @@ _daily_date: str = ""
 _daily_lock = threading.Lock()
 
 
+_BUCKET_LOCKS_MAX = 20_000
+
+
 def _get_bucket_lock(bucket_key: str) -> threading.Lock:
     """Get or create a lock for a specific bucket."""
     lock = _bucket_locks.get(bucket_key)
     if lock is not None:
         return lock
     with _bucket_locks_lock:
+        # Prune stale locks that have no corresponding active window
+        if len(_bucket_locks) >= _BUCKET_LOCKS_MAX:
+            stale = [k for k in _bucket_locks if k not in _windows]
+            for k in stale:
+                del _bucket_locks[k]
         # Double-check after acquiring
         if bucket_key not in _bucket_locks:
             _bucket_locks[bucket_key] = threading.Lock()

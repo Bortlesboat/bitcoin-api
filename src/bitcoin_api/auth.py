@@ -11,7 +11,9 @@ from .db import lookup_key
 
 log = logging.getLogger(__name__)
 
-# Cache DB lookups for 60s to avoid per-request queries
+# Cache DB lookups for 60s to avoid per-request queries.
+# NOTE: Key deactivations won't take effect until the TTL expires (up to 60s).
+# Call clear_auth_cache() on key deactivation/mutation for immediate effect.
 _auth_cache: TTLCache = TTLCache(maxsize=256, ttl=60)
 
 
@@ -43,6 +45,25 @@ def require_api_key(request: Request, endpoint_name: str = "this endpoint") -> s
             detail=f"API key required for {endpoint_name}. Register a free key: POST /api/v1/register",
         )
     return tier
+
+
+def require_api_key_hash(request: Request) -> str:
+    """Require API key and return the key hash (for user-scoped data).
+
+    Unlike require_api_key() which returns the tier, this returns the
+    SHA-256 hash of the API key — used for per-user data isolation
+    (alerts, watches, etc.).
+    """
+    tier = getattr(request.state, "tier", "anonymous")
+    if tier == "anonymous":
+        raise HTTPException(
+            status_code=403,
+            detail="API key required. Register a free key: POST /api/v1/register",
+        )
+    key_hash = getattr(request.state, "key_hash", None)
+    if not key_hash:
+        raise HTTPException(status_code=403, detail="Invalid API key.")
+    return key_hash
 
 
 def cap_blocks_param(blocks: int, tier: str) -> int:
@@ -79,7 +100,12 @@ def authenticate(request: Request) -> ApiKeyInfo:
         return ApiKeyInfo(tier="anonymous")
 
     if via_query:
-        log.warning("API key passed via query param (deprecated) from %s", request.client.host if request.client else "unknown")
+        log.warning(
+            "DEPRECATION: API key passed via query parameter from %s. "
+            "Query parameter authentication is deprecated and will be removed on 2026-09-01. "
+            "Use the X-API-Key header instead.",
+            request.client.host if request.client else "unknown",
+        )
 
     key_hash = hash_key(raw_key)
     record = _cached_lookup(key_hash)

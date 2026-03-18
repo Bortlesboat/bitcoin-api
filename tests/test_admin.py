@@ -330,15 +330,19 @@ def test_metrics_endpoint_returns_prometheus_format(client):
         settings.admin_api_key = original
 
 
-def test_metrics_no_rate_limit(client):
-    """Metrics endpoint should not be rate limited."""
+def test_metrics_is_rate_limited(client):
+    """Metrics endpoint should be rate limited (security: prevent admin key brute-force)."""
     from bitcoin_api.config import settings
     original = settings.admin_api_key
     settings.admin_api_key = SecretStr("test-admin-secret")
     try:
+        got_429 = False
         for _ in range(35):
             resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
-            assert resp.status_code == 200
+            if resp.status_code == 429:
+                got_429 = True
+                break
+        assert got_429, "Metrics endpoint should be rate limited"
     finally:
         settings.admin_api_key = original
 

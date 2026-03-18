@@ -82,3 +82,51 @@ def test_guide_no_rate_limit(client):
     for _ in range(35):
         resp = client.get("/api/v1/guide")
         assert resp.status_code == 200
+
+
+# --- New tests: error paths and edge cases ---
+
+
+def test_guide_invalid_use_case_rejected(client):
+    """Invalid use_case value should return 422 validation error."""
+    resp = client.get("/api/v1/guide?use_case=nonexistent_category")
+    assert resp.status_code == 422
+
+
+def test_guide_invalid_lang_rejected(client):
+    """Invalid lang value should return 422 validation error."""
+    resp = client.get("/api/v1/guide?lang=rust")
+    assert resp.status_code == 422
+
+
+def test_guide_use_case_no_match_returns_empty(client):
+    """Filtering by a valid use_case with no matching category returns empty list.
+
+    'prices' is feature-flagged off by default, so filtering for it returns 0 categories.
+    """
+    from bitcoin_api.config import settings
+    if not settings.feature_flags.get("prices_router", False):
+        resp = client.get("/api/v1/guide?use_case=prices")
+        assert resp.status_code == 200
+        cats = resp.json()["data"]["categories"]
+        assert len(cats) == 0
+
+
+def test_guide_links_section_present(client):
+    """Guide should include links section with docs and register URLs."""
+    resp = client.get("/api/v1/guide")
+    links = resp.json()["data"]["links"]
+    assert "docs" in links
+    assert "register" in links
+    assert "github" in links
+
+
+def test_guide_combined_filters(client):
+    """Using both use_case and lang together should work."""
+    resp = client.get("/api/v1/guide?use_case=fees&lang=python")
+    assert resp.status_code == 200
+    cats = resp.json()["data"]["categories"]
+    assert len(cats) == 1
+    for ep in cats[0]["endpoints"]:
+        assert "python" in ep["examples"]
+        assert "curl" not in ep["examples"]

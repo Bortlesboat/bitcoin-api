@@ -96,9 +96,12 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `src/bitcoin_api/routers/billing.py` | Stripe billing: checkout, webhook, status, cancel |
 | `src/bitcoin_api/routers/supply.py` | Supply endpoint: circulating supply, halving, inflation |
 | `src/bitcoin_api/routers/stats.py` | Statistics: UTXO set, SegWit adoption, OP_RETURN stats |
+| `src/bitcoin_api/services/ai.py` | AI provider abstraction (Azure OpenAI, OpenAI, Ollama, Noop) |
 | `src/bitcoin_api/services/analytics.py` | Analytics business logic and query helpers |
-| `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, mining, stats, serializers, analytics, price) |
-| `src/bitcoin_api/services/price.py` | Multi-provider BTC/USD price service (CoinGecko/Coinbase/Kraken fallback) |
+| `src/bitcoin_api/services/` | Business logic (fees, transactions, exchanges, mining, stats, serializers, analytics, price, ai) |
+| `src/bitcoin_api/routers/ai.py` | AI endpoints: explain tx/block, fee advice, Bitcoin chat |
+| `src/bitcoin_api/routers/alerts.py` | Fee alert + tx watch webhook CRUD endpoints |
+| `src/bitcoin_api/services/price.py` | Multi-provider BTC/USD price service (Binance/CoinGecko/Coinbase/Kraken fallback, 10s TTL) |
 | `src/bitcoin_api/services/mining.py` | Pool identification, hashrate calculation |
 | `src/bitcoin_api/services/stats.py` | Output type classification, OP_RETURN parsing |
 | `src/bitcoin_api/migrations/` | SQL migrations + enhanced runner (rollback, status, validation) |
@@ -131,7 +134,9 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_e2e.py` | E2E tests (21) |
 | `tests/test_history.py` | History Explorer tests (45 tests) |
 | `tests/helpers.py` | Isolated router test client factory |
-| | Total: 568 unit + 21 e2e = 589 tests |
+| `tests/test_ai.py` | AI endpoint + provider tests (13 tests) |
+| `tests/test_alerts.py` | Alert webhook endpoint tests (12 tests) |
+| | Total: 595 unit + 21 e2e = 616 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |

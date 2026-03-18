@@ -297,6 +297,7 @@ Errors follow the same structure:
 | **CoinGecko Attribution** | Prices response + footer | Required by CoinGecko ToS; `attribution` field in /prices response |
 | **RFC 7807 Errors** | `type` URI on all error responses | 12 error type URIs at `https://bitcoinsapi.com/errors/*`, default `about:blank` |
 | **Retry-After** | Header on 429 responses | Per-minute: calculated from window reset; daily: 3600s |
+| **Upgrade Path in 429s** | `upgrade` object in rate limit responses | Shows current/next tier, pricing, multiplier, and action URL. Registration exempt from rate limits so upgrade path is always reachable. |
 | **Gzip Compression** | GzipMiddleware | Responses ≥1000 bytes compressed automatically |
 | **HSTS** | Conditional on HTTPS | `max-age=31536000; includeSubDomains` when behind TLS |
 | **CSP** | Strict policy (skipped on docs) | `default-src 'self'`, allowlists for inline styles (landing page), GitHub images. Skipped on `/docs`, `/redoc`, `/openapi.json` so Swagger UI / ReDoc can load CDN assets. |
@@ -323,7 +324,7 @@ Errors follow the same structure:
 | Clickjacking | X-Frame-Options DENY + CSP frame-ancestors 'none' | Very low |
 | Tab-napping via external links | All external links use `rel="noopener noreferrer"` | Very low |
 | Timing attack on auth | `secrets.compare_digest()` on all key comparisons | Very low |
-| Registration abuse | Per-IP rate limit (5/hr) + per-email cap (3 keys) + field length validation | Very low |
+| Registration abuse | Per-IP rate limit (5/hr) + per-email cap (3 keys) + field length validation. Registration exempt from global per-minute/daily rate limits to ensure upgrade path is always available. | Very low |
 | Metrics data exposure | `/metrics` gated behind `X-Admin-Key` admin auth | Very low |
 | Tracking code injection | Pre-commit hook blocks analytics/tracking patterns | Very low |
 
@@ -387,7 +388,7 @@ Errors follow the same structure:
 20. **Address scan can hang** -- Wrapped `scantxoutset` in timeout guard, returns 504 on `ReadTimeout`
 21. **No Cache-Control headers** -- Added middleware: fee/mempool→10s, deep blocks→1hr, health→no-cache, register→no-store
 22. **404 returns HTML on API routes** -- `http_exception_handler` now returns JSON envelope for `/api/*` paths
-23. **Registration not rate-limited** -- Removed `/api/v1/register` from rate limit skip set
+23. **Registration not rate-limited** -- ~~Removed `/api/v1/register` from rate limit skip set~~ (Reverted: registration is now exempt from per-minute and daily rate limits so users can always upgrade. Per-IP registration abuse limit (5/hr) still enforced.)
 24. **Raw mempool fetched repeatedly** -- Added `cached_raw_mempool` with 5s TTL for mempool/recent and fees/mempool-blocks
 25. **Timing attack on API key comparison** -- Auth now uses `secrets.compare_digest()` for constant-time comparison
 26. **Registration email enumeration** -- `/register` no longer reveals whether an email is already registered
@@ -402,6 +403,10 @@ Errors follow the same structure:
 31. **RPC proxy sendrawtransaction anonymous** -- `sendrawtransaction` via `/api/v1/rpc` now requires API key authentication (was accessible anonymously)
 32. **RPC error message leaks allowlist** -- Error messages sanitized; RPC command allowlist hidden from error responses to prevent enumeration
 33. **SSE streams unbounded** -- Added 1-hour max duration and per-stream connection caps (50 block, 50 fee, 20 whale) to prevent resource exhaustion
+
+**Rate Limit UX Fix (Mar 17):**
+34. **Registration blocked by own rate limits** -- `/api/v1/register` was subject to per-minute and daily rate limits, blocking upgrade at the exact moment users needed it. Now exempt from both (per-IP abuse limit still enforced).
+35. **429 responses lack upgrade path** -- Added `upgrade` object to all 429 responses with next tier info, pricing, multiplier, and action URL. Error messages reworded to be actionable.
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 

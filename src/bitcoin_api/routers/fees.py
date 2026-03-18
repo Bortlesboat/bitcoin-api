@@ -9,6 +9,7 @@ from ..cache import cached_fee_estimates, cached_raw_mempool, get_mempool_snapsh
 from ..db import get_fee_history
 from ..dependencies import get_rpc
 from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelope, rpc_envelope
+from ..rpc_async import async_rpc_call
 from ..services.price import get_cached_price
 from ..services.fees import (
     PROFILES,
@@ -264,12 +265,14 @@ def fees_savings(
 
 
 @router.get("/{target}", response_model=ApiResponse[FeeEstimateData], responses=_FEE_TARGET_EXAMPLE)
-def fee_for_target(
+async def fee_for_target(
     target: int = Path(description="Confirmation target in blocks", ge=1, le=1008),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Fee estimate for a specific confirmation target."""
-    result = rpc.call("estimatesmartfee", target)
+    # async_rpc_call: runs sync RPC in thread pool to avoid blocking the event loop.
+    # See rpc_async.py for the migration pattern for remaining sync routes.
+    result = await async_rpc_call(rpc, "estimatesmartfee", target)
 
     fee_rate_btc_kvb = result.get("feerate", 0)
     fee_rate_sat_vb = fee_rate_btc_kvb * 100_000 if fee_rate_btc_kvb else 0

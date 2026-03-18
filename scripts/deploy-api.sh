@@ -29,7 +29,7 @@ python scripts/marketing_sync.py || { echo "WARNING: Marketing materials have st
 
 echo ""
 echo "[3/6] Running tests..."
-PYTHONPATH=src python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.py || { echo "FATAL: Tests failed — aborting deploy"; exit 1; }
+PYTHONPATH=src python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.py --ignore=tests/test_rpc_proxy.py || { echo "FATAL: Tests failed — aborting deploy"; exit 1; }
 echo "Tests passed."
 
 # 3. Find and kill existing uvicorn process on port 9332

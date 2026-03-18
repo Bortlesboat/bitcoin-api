@@ -152,7 +152,7 @@ def test_price_status_empty():
     assert status["source"] is None
     assert status["age_seconds"] is None
     assert status["stale"] is False
-    assert len(status["providers"]) == 3
+    assert len(status["providers"]) == 4
 
 
 def test_price_status_with_data():

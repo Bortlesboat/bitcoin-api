@@ -8,7 +8,9 @@ from fastapi.responses import JSONResponse
 from ..auth import authenticate, clear_auth_cache
 from ..config import settings
 from ..db import get_db
+from ..middleware import get_client_ip
 from ..models import envelope
+from ..rate_limit import check_rate_limit_raw
 from ..stripe_client import create_checkout_session, verify_webhook_signature
 
 log = logging.getLogger("bitcoin_api.billing")
@@ -58,6 +60,12 @@ async def create_checkout(request: Request):
 )
 async def stripe_webhook(request: Request):
     _require_stripe()
+    # Per-IP rate limit on webhook (60 req/min) — Stripe is excluded from global
+    # rate limiting, so we enforce a separate limit here.
+    client_ip = get_client_ip(request)
+    wh_limit = check_rate_limit_raw(f"webhook:{client_ip}", 60)
+    if not wh_limit.allowed:
+        raise HTTPException(status_code=429, detail="Too many webhook requests.")
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
     try:

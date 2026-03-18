@@ -20,7 +20,7 @@ log = logging.getLogger("bitcoin_api.prices")
 _price_cache: dict | None = None
 _price_cache_time: float = 0
 _price_cache_lock = threading.Lock()
-_PRICE_TTL = 60  # seconds
+_PRICE_TTL = 10  # seconds — reduced for 15-min trading strategy freshness
 
 
 def _fetch_price() -> dict:

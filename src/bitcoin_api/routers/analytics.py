@@ -63,6 +63,16 @@ def _require_admin(request: Request):
         raise HTTPException(status_code=403, detail="Invalid admin key")
 
 
+def _mask_email(email: str | None) -> str | None:
+    """Mask email: show first char before @, mask the rest. e.g. a***@example.com."""
+    if not email:
+        return email
+    at = email.find("@")
+    if at <= 0:
+        return email
+    return email[0] + "***" + email[at:]
+
+
 def _pct(part: int | float | None, whole: int | float | None) -> float:
     if not whole:
         return 0.0
@@ -310,7 +320,7 @@ def analytics_founder(
         reason = _signup_test_reason(row["email"], row["label"], source_guess)
         item = {
             "prefix": row["prefix"],
-            "email": row["email"],
+            "email": _mask_email(row["email"]),
             "label": row["label"] or "",
             "created_at": row["created_at"],
             "utm_source": row["utm_source"] or "",
@@ -913,8 +923,10 @@ def analytics_funnel(
 @router.get("/users", dependencies=[Depends(_require_admin)])
 def analytics_users(
     active_only: bool = Query(False),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
 ):
-    """List all registered API key users."""
+    """List all registered API key users (paginated, max 500 per page)."""
     sql = (
         "SELECT prefix, tier, label, email, created_at, active, email_opt_out "
         "FROM api_keys"
@@ -923,9 +935,9 @@ def analytics_users(
     if active_only:
         sql += " WHERE active = 1"
 
-    sql += " ORDER BY created_at DESC"
+    sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
 
-    rows = query_rows(sql)
+    rows = query_rows(sql, (limit, offset))
 
     return {
         "data": [
@@ -933,7 +945,7 @@ def analytics_users(
                 "prefix": r["prefix"],
                 "tier": r["tier"],
                 "label": r["label"],
-                "email": r["email"],
+                "email": _mask_email(r["email"]),
                 "created_at": r["created_at"],
                 "active": bool(r["active"]),
                 "email_opt_out": bool(r["email_opt_out"]),

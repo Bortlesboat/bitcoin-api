@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     # RPC timeout (seconds)
     rpc_timeout: int = 30
 
+    # Request timeout (seconds) — cancels slow requests to prevent queue buildup
+    request_timeout: int = 15
+
     # Rate limits (requests per minute)
     rate_limit_anonymous: int = 30
     rate_limit_free: int = 100
@@ -99,6 +102,36 @@ class Settings(BaseSettings):
 
     # Blockchain indexer (siloed — see indexer/config.py for indexer-specific settings)
     enable_indexer: bool = False
+
+    # AI features (all optional — AI endpoints return 503 if no provider configured)
+    enable_ai_features: bool = False
+    # Azure OpenAI (priority 1)
+    azure_openai_endpoint: str | None = None
+    azure_openai_key: SecretStr | None = None
+    azure_openai_deployment: str = "gpt-4o-mini"
+    azure_openai_api_version: str = "2024-10-21"
+    # OpenAI direct (priority 2)
+    openai_api_key: SecretStr | None = None
+    openai_model: str = "gpt-4o-mini"
+    # Ollama (priority 3 — local fallback)
+    ollama_url: str | None = None  # e.g. http://192.168.1.238:11434
+    ollama_model: str = "qwen2.5:14b"
+    # AI rate limit (requests per minute, separate from API key rate limits)
+    ai_rate_limit: int = 10
+
+    # MCP internal API key for loopback calls (avoids anonymous rate limits)
+    mcp_internal_api_key: str = ""
+
+    # OpenTelemetry (vendor-neutral observability)
+    otel_service_name: str = "satoshi-api"
+    applicationinsights_connection_string: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_db_path(self):
+        db_str = str(self.api_db_path)
+        if ".." in db_str:
+            raise ValueError("api_db_path must not contain '..' (path traversal)")
+        return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

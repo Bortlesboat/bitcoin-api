@@ -7,6 +7,7 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..cache import cached_mempool_analysis, cached_mempool_info, cached_raw_mempool
 from ..dependencies import get_rpc
 from ..models import ApiResponse, MempoolAnalysisData, rpc_envelope
+from ..rpc_async import async_rpc_call
 from ..services.serializers import sanitize_for_json
 from ..validators import validate_txid
 
@@ -132,13 +133,14 @@ def mempool_info(rpc: BitcoinRPC = Depends(get_rpc)):
 
 
 @router.get("/tx/{txid}", response_model=ApiResponse[dict], responses=_MEMPOOL_ENTRY_EXAMPLE)
-def mempool_entry(
+async def mempool_entry(
     txid: str = Path(description="Transaction ID currently in the mempool"),
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Get mempool entry for a specific transaction."""
     validate_txid(txid)
-    entry = rpc.call("getmempoolentry", txid)
+    # async_rpc_call: runs sync RPC in thread pool — see rpc_async.py for migration pattern
+    entry = await async_rpc_call(rpc, "getmempoolentry", txid)
     return rpc_envelope(entry, rpc)
 
 

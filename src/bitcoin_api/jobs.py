@@ -170,6 +170,7 @@ def _market_data_ticker():
 
     # Import price fetcher (same one used by /prices endpoint)
     from .routers.prices import _get_cached_price
+    from .services.price import get_price_status
 
     while not _bg_stop.is_set():
         try:
@@ -193,8 +194,12 @@ def _market_data_ticker():
             except Exception:
                 pass
 
+            # Include price_source for observability (which provider served the price)
+            price_status = get_price_status()
+
             bundle = {
                 "price": price_data,
+                "price_source": price_status.get("source"),
                 "mempool": {
                     "size": mempool.get("size", 0),
                     "bytes": mempool.get("bytes", 0),

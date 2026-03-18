@@ -15,6 +15,7 @@ from ..db import get_db
 from ..exceptions import ERROR_TYPES, _GUIDE_URL
 from ..metrics import API_KEYS_REGISTERED
 from ..models import ErrorResponse, ErrorDetail, envelope
+from ..middleware import get_client_ip
 from ..notifications import send_welcome_email, track_registration, notify_admin_new_registration
 
 router = APIRouter(tags=["Keys"])
@@ -68,8 +69,8 @@ def register(body: RegisterRequest, request: Request, background_tasks: Backgrou
             detail={"message": "You must agree to the Terms of Service.", "agreed_to_terms": "Set agreed_to_terms: true to register. A human operator must review the terms before registering.", "terms_url": "https://bitcoinsapi.com/terms"},
         )
 
-    # Per-IP rate limit on registration
-    client_ip = request.client.host if request.client else "unknown"
+    # Per-IP rate limit on registration (prefer CF-Connecting-IP behind proxy)
+    client_ip = get_client_ip(request)
     if not _check_reg_rate_limit(client_ip):
         request_id = getattr(request.state, "request_id", None)
         resp = JSONResponse(

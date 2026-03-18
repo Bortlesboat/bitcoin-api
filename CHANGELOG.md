@@ -13,6 +13,11 @@
 - Endpoints: 87 → 95 (84 core + 7 history + 4 indexer)
 - Routers: 24 → 25 (22 core + 3 indexer)
 - Unit tests: 407 → 454 (475 total with 21 e2e)
+- 429 rate limit responses now include `upgrade` object with next tier info, pricing, and action URL
+- Rate limit error messages reworded to be friendlier ("Register for free: 10x more requests, takes 10 seconds")
+
+### Fixed
+- **Registration blocked by rate limits** — `/api/v1/register` was subject to per-minute and daily rate limits, so users who hit the anonymous cap couldn't upgrade. Registration endpoint now exempt from both rate limit checks (still has its own per-IP abuse protection).
 
 ## [0.3.3] - 2026-03-08
 

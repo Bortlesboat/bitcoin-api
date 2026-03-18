@@ -1,9 +1,10 @@
 """Network endpoints: /network, /network/forks, /network/difficulty, /validate-address/{address}."""
 
+import re
 import time
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette.requests import Request
 
 from bitcoinlib_rpc import BitcoinRPC
@@ -11,6 +12,10 @@ from bitcoinlib_rpc import BitcoinRPC
 from ..cache import cached_blockchain_info, cached_network_info
 from ..dependencies import get_rpc
 from ..models import ApiResponse, NetworkData, envelope, rpc_envelope
+from ..rpc_async import async_rpc_call
+
+# Basic address format check — reuses same pattern as address.py
+_ADDR_RE = re.compile(r"^[a-zA-Z0-9]{25,90}$")
 
 router = APIRouter(prefix="/network", tags=["Network"])
 
@@ -104,9 +109,10 @@ def network(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
 
 
 @router.get("/forks", response_model=ApiResponse[list[dict]], responses=_FORKS_EXAMPLE)
-def chain_forks(rpc: BitcoinRPC = Depends(get_rpc)):
+async def chain_forks(rpc: BitcoinRPC = Depends(get_rpc)):
     """Chain tips from getchaintips — shows active chain and any forks/orphans."""
-    tips = rpc.call("getchaintips")
+    # async_rpc_call: runs sync RPC in thread pool — see rpc_async.py for migration pattern
+    tips = await async_rpc_call(rpc, "getchaintips")
     return rpc_envelope(tips, rpc)
 
 
@@ -195,5 +201,7 @@ def validate_address(
     rpc: BitcoinRPC = Depends(get_rpc),
 ):
     """Validate a Bitcoin address and return its properties."""
+    if not _ADDR_RE.match(address):
+        raise HTTPException(status_code=400, detail="Invalid address format.")
     result = rpc.call("validateaddress", address)
     return rpc_envelope(result, rpc)

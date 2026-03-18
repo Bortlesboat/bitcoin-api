@@ -69,6 +69,8 @@ async def rpc_proxy(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
     Accepts standard JSON-RPC 2.0 requests. Only whitelisted read-only
     methods are allowed. Used by bitcoin-mcp for zero-config hosted mode.
     """
+    require_api_key(request, "RPC proxy")
+
     try:
         body = await request.json()
     except Exception:
@@ -96,10 +98,6 @@ async def rpc_proxy(request: Request, rpc: BitcoinRPC = Depends(get_rpc)):
             },
             status_code=403,
         )
-
-    # sendrawtransaction requires authentication (matches /broadcast behavior)
-    if method == "sendrawtransaction":
-        require_api_key(request, "sendrawtransaction via RPC proxy")
 
     try:
         # BitcoinRPC uses __getattr__ to proxy any method name
