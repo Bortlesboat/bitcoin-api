@@ -1,0 +1,59 @@
+# Bitcoin Core CI Test Runner
+# Build: docker build -f Dockerfile.bitcoin-core-ci -t bitcoin-core-ci .
+# Run:   docker run --rm bitcoin-core-ci test/functional/feature_fee_estimation.py
+#
+# Designed for:
+# - Azure Container Instances (on-demand PR review testing)
+# - AWS Fargate (cost comparison)
+# - WSL2 (local fallback)
+# - GitHub Actions (CI)
+#
+# Size: ~2-3GB (Ubuntu 24.04 + Bitcoin Core compiled + test framework)
+
+FROM ubuntu:24.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    automake autotools-dev bsdmainutils build-essential ccache \
+    clang cmake curl git libevent-dev libboost-dev \
+    libsqlite3-dev libtool pkg-config python3 python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and build Bitcoin Core (latest release tag)
+WORKDIR /build
+RUN git clone --depth 1 --branch v29.0 https://github.com/bitcoin/bitcoin.git . \
+    && cmake -B build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_TESTING=ON \
+        -DWITH_BDB=OFF \
+        -DWITH_MINIUPNPC=OFF \
+        -DWITH_NATPMP=OFF \
+        -DWITH_ZMQ=OFF \
+    && cmake --build build -j$(nproc)
+
+# --- Runtime stage ---
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libevent-dev libsqlite3-0 python3 python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy built binaries and test framework
+COPY --from=builder /build/build/src/bitcoind /usr/local/bin/
+COPY --from=builder /build/build/src/bitcoin-cli /usr/local/bin/
+COPY --from=builder /build/build/src/bitcoin-tx /usr/local/bin/
+COPY --from=builder /build/build/src/bitcoin-util /usr/local/bin/
+COPY --from=builder /build/build/src/bitcoin-wallet /usr/local/bin/
+COPY --from=builder /build/build/test/ /opt/bitcoin/build/test/
+COPY --from=builder /build/test/ /opt/bitcoin/test/
+COPY --from=builder /build/build/src/test/ /opt/bitcoin/build/src/test/
+
+WORKDIR /opt/bitcoin
+
+# Default: run test_runner.py with passed test file
+ENTRYPOINT ["python3", "build/test/functional/test_runner.py"]
+CMD ["--help"]

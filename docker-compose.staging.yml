@@ -1,0 +1,46 @@
+# Staging compose — mirrors Azure Container Apps + Azure PostgreSQL locally
+# Use for pre-deployment testing: docker compose -f docker-compose.staging.yml up
+services:
+  bitcoin-api:
+    build: .
+    ports:
+      - "9333:9332"  # Different port to avoid conflict with production
+    env_file:
+      - .env.staging
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    depends_on:
+      postgres-indexer:
+        condition: service_healthy
+    environment:
+      - ENABLE_AI_FEATURES=true
+      - ENABLE_INDEXER=true
+      - CORS_ORIGINS=*
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9332/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  postgres-indexer:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: satoshi
+      POSTGRES_PASSWORD: satoshi
+      POSTGRES_DB: satoshi_index
+    ports:
+      - "127.0.0.1:5433:5432"  # Different port
+    volumes:
+      - pgdata-staging:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satoshi -d satoshi_index"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  pgdata-staging:
