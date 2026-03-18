@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin AI Assistant — Satoshi API</title>
+<meta name="description" content="Ask questions about Bitcoin with live blockchain data. Get AI-powered fee advice, transaction explanations, and block analysis.">
+<link rel="canonical" href="https://bitcoinsapi.com/ai">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #21262d; --border-visible: #30363d;
+  --text: #e6edf3; --muted: #8b949e; --dim: #6e7681;
+  --accent: #f7931a; --accent-hover: #FFB347; --accent-muted: #f7931a33;
+  --green: #3fb950; --error: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+/* Header */
+.header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+.header .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
+.header nav { display: flex; gap: 16px; font-size: 14px; }
+.header nav a { color: var(--muted); }
+.header nav a:hover { color: var(--text); }
+
+/* Main */
+.main { flex: 1; max-width: 800px; width: 100%; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; }
+h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+/* Quick actions */
+.quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.quick-btn { background: var(--surface); border: 1px solid var(--border-visible); border-radius: 8px; padding: 8px 14px; color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.quick-btn:hover { border-color: var(--accent); color: var(--text); background: var(--accent-muted); }
+
+/* Chat area */
+.chat-area { flex: 1; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 16px; }
+.msg { padding: 14px 18px; border-radius: 12px; max-width: 90%; line-height: 1.6; font-size: 14px; }
+.msg.user { background: var(--accent-muted); border: 1px solid var(--accent); align-self: flex-end; color: var(--text); }
+.msg.ai { background: var(--surface); border: 1px solid var(--border-visible); align-self: flex-start; }
+.msg .provider { font-size: 11px; color: var(--dim); margin-top: 8px; }
+.msg .fee-data { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-top: 8px; background: var(--bg); padding: 8px 12px; border-radius: 6px; }
+.msg.loading { color: var(--muted); font-style: italic; }
+.msg.error { border-color: var(--error); color: var(--error); }
+
+/* Input */
+.input-area { display: flex; gap: 8px; }
+.input-area input { flex: 1; background: var(--surface); border: 1px solid var(--border-visible); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.input-area input:focus { border-color: var(--accent); }
+.input-area input::placeholder { color: var(--dim); }
+.input-area button { background: var(--accent); color: #000; border: none; border-radius: 10px; padding: 12px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.input-area button:hover { background: var(--accent-hover); }
+.input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+.tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); background: transparent; border: 1px solid transparent; transition: all 0.15s; }
+.tab.active { color: var(--text); background: var(--surface); border-color: var(--border-visible); }
+.tab:hover:not(.active) { color: var(--text); }
+
+/* Fee advice panel */
+.fee-panel { display: none; background: var(--surface); border: 1px solid var(--border-visible); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+.fee-panel.visible { display: block; }
+.fee-panel h3 { font-size: 16px; margin-bottom: 12px; }
+.fee-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.fee-form label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.fee-form select, .fee-form input[type="number"] { background: var(--bg); border: 1px solid var(--border-visible); border-radius: 6px; padding: 8px 10px; color: var(--text); font-size: 13px; font-family: inherit; }
+.fee-form button { background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer; font-size: 13px; align-self: end; }
+
+.api-key-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border-visible); border-radius: 8px; }
+.api-key-bar.saved { border-color: var(--green); }
+
+@media (max-width: 600px) {
+  .main { padding: 16px; }
+  .quick-actions { gap: 6px; }
+  .quick-btn { font-size: 12px; padding: 6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/" class="logo">Satoshi API</a>
+  <nav>
+    <a href="/guide">Guide</a>
+    <a href="/history">History</a>
+    <a href="/docs">API Docs</a>
+    <a href="/ai" style="color:var(--accent)">AI Assistant</a>
+  </nav>
+</div>
+
+<div class="main">
+  <h1>Bitcoin AI Assistant</h1>
+  <p class="subtitle">Ask anything about Bitcoin. Powered by live blockchain data and AI.</p>
+
+  <div class="api-key-bar" id="key-bar">
+    <input type="text" id="api-key" placeholder="Enter your API key (free: POST /api/v1/register)" style="flex:1;background:var(--bg);border:1px solid var(--border-visible);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;">
+    <button onclick="saveKey()" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;">Save Key</button>
+    <span id="key-status" style="font-size:12px;color:var(--dim);margin-left:8px;"></span>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="chat" onclick="switchTab('chat')">Chat</div>
+    <div class="tab" data-tab="fees" onclick="switchTab('fees')">Fee Advisor</div>
+  </div>
+
+  <!-- Fee Advisor Panel -->
+  <div class="fee-panel" id="fee-panel">
+    <h3>Get personalized fee advice</h3>
+    <div class="fee-form">
+      <label>Urgency
+        <select id="urgency">
+          <option value="low">Low — can wait</option>
+          <option value="medium" selected>Medium — today</option>
+          <option value="high">High — ASAP</option>
+        </select>
+      </label>
+      <label>Context
+        <select id="context">
+          <option value="payment">Payment</option>
+          <option value="DCA">DCA purchase</option>
+          <option value="consolidation">UTXO consolidation</option>
+          <option value="exchange">Exchange withdrawal</option>
+        </select>
+      </label>
+      <label>Amount (BTC)
+        <input type="number" id="amount" step="0.001" min="0" placeholder="0.5">
+      </label>
+      <button onclick="getFeeAdvice()">Get Advice</button>
+    </div>
+  </div>
+
+  <div class="quick-actions" id="quick-actions">
+    <button class="quick-btn" onclick="ask('Are fees low right now?')">Are fees low?</button>
+    <button class="quick-btn" onclick="ask('Should I consolidate my UTXOs?')">Consolidate UTXOs?</button>
+    <button class="quick-btn" onclick="ask('What is happening in the mempool?')">Mempool status</button>
+    <button class="quick-btn" onclick="ask('What was notable about block 840000?')">Block 840,000</button>
+    <button class="quick-btn" onclick="ask('How does the Lightning Network relate to on-chain fees?')">Lightning vs on-chain</button>
+  </div>
+
+  <div class="chat-area" id="chat"></div>
+
+  <div class="input-area">
+    <input type="text" id="input" placeholder="Ask about Bitcoin fees, transactions, blocks..."
+           onkeydown="if(event.key==='Enter')sendMsg()">
+    <button id="send-btn" onclick="sendMsg()">Send</button>
+  </div>
+</div>
+
+<script>
+const BASE = '/api/v1/ai';
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+let currentTab = 'chat';
+let apiKey = localStorage.getItem('satoshi_api_key') || '';
+
+// Restore saved key on load
+if (apiKey) {
+  document.getElementById('api-key').value = apiKey;
+  document.getElementById('key-status').textContent = 'Key saved';
+  document.getElementById('key-bar').classList.add('saved');
+}
+
+function saveKey() {
+  apiKey = document.getElementById('api-key').value.trim();
+  if (apiKey) {
+    localStorage.setItem('satoshi_api_key', apiKey);
+    document.getElementById('key-status').textContent = 'Key saved';
+    document.getElementById('key-bar').classList.add('saved');
+  }
+}
+
+function apiFetch(url) {
+  const opts = {};
+  if (apiKey) {
+    opts.headers = { 'X-API-Key': apiKey };
+  }
+  return fetch(url, opts);
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('fee-panel').classList.toggle('visible', tab === 'fees');
+  document.getElementById('quick-actions').style.display = tab === 'chat' ? 'flex' : 'none';
+}
+
+function addMsg(text, type, extra) {
+  const div = document.createElement('div');
+  div.className = `msg ${type}`;
+  div.textContent = text;
+  if (extra) {
+    const p = document.createElement('div');
+    p.className = 'provider';
+    p.textContent = extra;
+    div.appendChild(p);
+  }
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function addFeeData(feeData) {
+  const last = chat.lastElementChild;
+  if (last && feeData) {
+    const d = document.createElement('div');
+    d.className = 'fee-data';
+    d.textContent = `Next block: ${feeData.next_block_sat_vb} sat/vB | 6 blocks: ${feeData['6_blocks_sat_vb']} sat/vB | 1 day: ${feeData['1_day_sat_vb']} sat/vB`;
+    last.appendChild(d);
+  }
+}
+
+async function ask(question) {
+  input.value = question;
+  await sendMsg();
+}
+
+async function sendMsg() {
+  const q = input.value.trim();
+  if (!q || q.length < 3) return;
+  input.value = '';
+  addMsg(q, 'user');
+  const loading = addMsg('Thinking...', 'ai loading');
+  sendBtn.disabled = true;
+
+  try {
+    const resp = await apiFetch(`${BASE}/chat?q=${encodeURIComponent(q)}`);
+    const data = await resp.json();
+    chat.removeChild(loading);
+    if (data.error) {
+      addMsg(data.error.detail, 'ai error');
+    } else {
+      addMsg(data.data.answer, 'ai', `via ${data.data.provider} | block ${data.meta?.node_height || '?'}`);
+    }
+  } catch (e) {
+    chat.removeChild(loading);
+    addMsg('Connection error. Try again.', 'ai error');
+  }
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+async function getFeeAdvice() {
+  const urgency = document.getElementById('urgency').value;
+  const ctx = document.getElementById('context').value;
+  const amt = document.getElementById('amount').value;
+
+  let url = `${BASE}/fees/advice?urgency=${urgency}&context=${ctx}`;
+  if (amt) url += `&amount_btc=${amt}`;
+
+  addMsg(`Fee advice: ${urgency} urgency, ${ctx}${amt ? ', ' + amt + ' BTC' : ''}`, 'user');
+  const loading = addMsg('Analyzing fees...', 'ai loading');
+
+  try {
+    const resp = await apiFetch(url);
+    const data = await resp.json();
+    chat.removeChild(loading);
+    if (data.error) {
+      addMsg(data.error.detail, 'ai error');
+    } else {
+      addMsg(data.data.advice, 'ai', `via ${data.data.provider}`);
+      addFeeData(data.data.fee_data);
+    }
+  } catch (e) {
+    chat.removeChild(loading);
+    addMsg('Connection error. Try again.', 'ai error');
+  }
+}
+</script>
+</body>
+</html>
