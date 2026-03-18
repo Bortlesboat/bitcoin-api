@@ -10,11 +10,12 @@
 |--------|------------|-------------|--------|-------|
 | **Tests** | 725 (704 unit + 21 e2e) | 116 | 61 | **902** |
 | **Endpoints / Tools** | 108 endpoints, 27 routers | 49 tools, 6 prompts, 7 resources | 4 operations | — |
-| **Commits** | 142 | 33 | 4 | **179** |
+| **Commits** | 146 | 35 | 7 | **188** |
 | **Lines of Code** | ~12,000+ | ~3,000+ | ~1,000+ | **16,000+** |
 | **CI/CD** | GitHub Actions (test + publish) | GitHub Actions (test, 3 Python versions) | GitHub Actions (test, 3 Python versions) | All green |
 | **License** | Apache 2.0 | MIT | MIT | OSI-approved |
 | **PyPI Published** | Yes (satoshi-api) | Yes (bitcoin-mcp) | No (SDK only) | 2 packages |
+| **PyPI Downloads** | 483/month, 42/week | 900/month, 353/week | — | **1,383/month** |
 
 ## Production Readiness
 
