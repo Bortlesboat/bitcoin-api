@@ -118,6 +118,24 @@ The indexer starts automatically when the API boots with `ENABLE_INDEXER=true`. 
 - `GET /api/v1/indexed/tx/{txid}` — enriched tx with resolved inputs + spent status
 - `GET /api/v1/indexed/status` — sync progress, ETA, blocks/sec
 
+### Fee Observatory (optional)
+
+The observatory reads the Fee Observatory's SQLite DB (read-only) to expose multi-source fee estimator comparison data.
+
+```ini
+ENABLE_OBSERVATORY=true                                    # default: true
+OBSERVATORY_DB=~/.bitcoin-fee-observatory/observatory.db   # default path
+```
+
+Requires the Fee Observatory to be collecting data (`bitcoin-fee-observatory` repo). Endpoints return 503 if the DB doesn't exist.
+
+**Endpoints (3):**
+- `GET /api/v1/fees/observatory/scoreboard` — per-source accuracy ranking
+- `GET /api/v1/fees/observatory/block-stats` — per-block fee percentiles
+- `GET /api/v1/fees/observatory/estimates` — multi-source fee estimate time series
+
+**Dashboard:** `GET /fee-observatory` — branded page with iframe to Streamlit dashboard (port 8505).
+
 ### Stripe Billing (optional)
 ```ini
 STRIPE_SECRET_KEY=sk_live_...       # Stripe API secret key
