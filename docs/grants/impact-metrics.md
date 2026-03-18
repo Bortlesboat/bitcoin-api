@@ -9,7 +9,7 @@
 | Metric | Satoshi API | bitcoin-mcp | BAIP-1 | Total |
 |--------|------------|-------------|--------|-------|
 | **Tests** | 725 (704 unit + 21 e2e) | 116 | 61 | **902** |
-| **Endpoints / Tools** | 108 endpoints, 27 routers | 49 tools, 6 prompts, 7 resources | 4 operations | — |
+| **Endpoints / Tools** | ~115 endpoints, 28 routers | 49 tools, 6 prompts, 7 resources | 4 operations | — |
 | **Commits** | 146 | 35 | 7 | **188** |
 | **Lines of Code** | ~12,000+ | ~3,000+ | ~1,000+ | **16,000+** |
 | **CI/CD** | GitHub Actions (test + publish) | GitHub Actions (test, 3 Python versions) | GitHub Actions (test, 3 Python versions) | All green |

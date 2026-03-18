@@ -16,7 +16,7 @@
 ### igorbarinov/awesome-bitcoin (1.3K stars) — TODO
 - **Format:** Markdown lists by category (Utilities, APIs, Libraries)
 - **Category:** APIs
-- **Entry:** `- [Satoshi API](https://github.com/Bortlesboat/bitcoin-api) - Bitcoin fee intelligence REST API. 108 endpoints, self-hostable, Apache 2.0.`
+- **Entry:** `- [Satoshi API](https://github.com/Bortlesboat/bitcoin-api) - Bitcoin fee intelligence REST API. ~115 endpoints, self-hostable, Apache 2.0.`
 - AND: `- [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) - Bitcoin MCP server for AI agents. 49 tools, zero-config, MIT.`
 
 ### tonysurfly/awesome-claude (1.2K stars) — TODO

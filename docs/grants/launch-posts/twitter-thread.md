@@ -10,7 +10,7 @@ I built an open-source Bitcoin API that tells you when to send and how much to p
 
 Not "4 sat/vB" — but "Fees are low. Good time to send."
 
-108 endpoints. 725 tests. Free. Self-hostable.
+~115 endpoints. 725 tests. Free. Self-hostable.
 
 https://github.com/Bortlesboat/bitcoin-api
 

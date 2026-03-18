@@ -1,6 +1,6 @@
 # Show HN Post
 
-**Title:** Show HN: Satoshi API – Open-source Bitcoin fee intelligence API (108 endpoints, self-hostable)
+**Title:** Show HN: Satoshi API – Open-source Bitcoin fee intelligence API (~115 endpoints, self-hostable)
 
 ---
 
@@ -27,7 +27,7 @@ Or use the hosted version free: https://bitcoinsapi.com/docs
 
 **Tech stack:** Python, FastAPI, SQLite (WAL), Bitcoin Core RPC. Optional: Redis, Stripe, Resend. Circuit breaker for RPC failover, per-cache locking, sliding window rate limiting.
 
-**Numbers:** 108 endpoints, 27 routers, 725 tests, 900+ PyPI downloads/month across both packages. Live at bitcoinsapi.com.
+**Numbers:** ~115 endpoints, 28 routers, 725 tests, 900+ PyPI downloads/month across both packages. Live at bitcoinsapi.com.
 
 I'm a Bitcoin Core reviewer (19+ reviews) and FP&A analyst by day. Built this evenings/weekends. Applying for an OpenSats grant to go deeper — indexer expansion, fee prediction, more SDKs.
 

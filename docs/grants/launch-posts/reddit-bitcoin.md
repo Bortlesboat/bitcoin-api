@@ -13,7 +13,7 @@ I've been building Satoshi API — an open-source Bitcoin API focused on fee int
 **What it does:**
 
 - Fee recommendations that combine multiple estimatesmartfee targets with real-time mempool analysis
-- 108 endpoints covering blocks, transactions, mempool, mining, network, and more
+- ~115 endpoints covering blocks, transactions, mempool, mining, network, and more
 - Real-time SSE streams for new blocks and fee changes
 - PSBT security analysis (catches common ordinals listing scams)
 - Address balance and UTXO queries via built-in indexer
@@ -39,7 +39,7 @@ pip install bitcoin-mcp
 **The numbers:**
 
 - 725 tests (704 unit + 21 e2e)
-- 108 endpoints across 27 routers
+- ~115 endpoints across 28 routers
 - Apache 2.0 licensed, self-hostable, connects to your own node
 - Live production service at bitcoinsapi.com
 - I also review Bitcoin Core PRs (19+ reviews)

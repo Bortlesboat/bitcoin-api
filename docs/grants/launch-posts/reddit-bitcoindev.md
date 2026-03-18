@@ -14,7 +14,7 @@ I've been building two complementary tools and would appreciate feedback from ot
 
 - Wraps Bitcoin Core RPC with a clean REST interface
 - Fee recommendations that combine multiple `estimatesmartfee` targets with mempool depth analysis
-- 108 endpoints: blocks, transactions, fees, mempool, mining, network, streams (SSE), address lookups, PSBT analysis
+- ~115 endpoints: blocks, transactions, fees, mempool, mining, network, streams (SSE), address lookups, PSBT analysis
 - Built with FastAPI, SQLite (WAL), per-cache locking, circuit breaker for RPC failover
 - 725 tests, CI/CD, Apache 2.0
 - Self-hostable: `pip install satoshi-api && satoshi-api`

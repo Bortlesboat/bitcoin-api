@@ -32,7 +32,7 @@ The Satoshi API ecosystem solves both problems:
 
 Instead of raw fee estimates, Satoshi API tells you *when* to send, *what* to pay, and *whether to wait*. It combines multiple `estimatesmartfee` targets with real-time mempool analysis to produce actionable recommendations like "Fees are low. Good time to send."
 
-- **108 endpoints** across blocks, transactions, fees, mempool, mining, network, and more
+- **~115 endpoints** across blocks, transactions, fees, mempool, mining, network, and more
 - **725 tests** (704 unit + 21 e2e) with continuous integration
 - **Self-hostable** — `pip install satoshi-api` connects to your own Bitcoin Core node
 - **Live production service** at bitcoinsapi.com with free tier
@@ -91,7 +91,7 @@ All repositories include CONTRIBUTING.md, CODE_OF_CONDUCT.md, and SECURITY.md. T
 ### Bitcoin Contributions
 - **19+ code reviews** on bitcoin/bitcoin targeting established maintainers (achow101, stickies-v, theStack)
 - **~165 PRs across 30 repositories**, 33 merged — including bitcoincore.org, bitcoin-book, and major open-source projects
-- **Built and shipped** Satoshi API (108 endpoints, live production), bitcoin-mcp (49 tools, Anthropic MCP Registry), BAIP-1 (novel protocol spec), Fee Observatory
+- **Built and shipped** Satoshi API (~115 endpoints, live production), bitcoin-mcp (49 tools, Anthropic MCP Registry), BAIP-1 (novel protocol spec), Fee Observatory
 - **902 tests total** across the ecosystem — demonstrating engineering rigor
 
 ### Technical Skills
@@ -151,7 +151,7 @@ All repositories include CONTRIBUTING.md, CODE_OF_CONDUCT.md, and SECURITY.md. T
 
 ### What Has Already Been Built (Without Funding)
 
-All existing code — 902 tests, 108 endpoints, 49 MCP tools, BAIP-1 spec, live production service — was built without any external funding. Grant support would enable:
+All existing code — 902 tests, ~115 endpoints, 49 MCP tools, BAIP-1 spec, live production service — was built without any external funding. Grant support would enable:
 
 1. **Dedicated development time** — Currently built in evenings/weekends alongside full-time employment
 2. **Faster iteration** — Roadmap items that would take 12 months could be completed in 6

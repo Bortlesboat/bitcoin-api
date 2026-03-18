@@ -22,7 +22,7 @@
 
 <div align="center">
 
-**725 tests** · **108 endpoints** · **27 routers** · **Live at [bitcoinsapi.com](https://bitcoinsapi.com)** · **Apache 2.0**
+**725 tests** · **~115 endpoints** · **28 routers** · **Live at [bitcoinsapi.com](https://bitcoinsapi.com)** · **Apache 2.0**
 
 </div>
 
