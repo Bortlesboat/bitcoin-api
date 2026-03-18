@@ -19,6 +19,14 @@
 
 ---
 
+<div align="center">
+
+**725 tests** · **108 endpoints** · **27 routers** · **Live at [bitcoinsapi.com](https://bitcoinsapi.com)** · **Apache 2.0**
+
+</div>
+
+---
+
 Bad fee timing burns sats on every Bitcoin transaction. Satoshi API tells you when to send, what to pay, and whether to wait — combining multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." One `pip install`, self-hostable, open source.
 
 ## Install & Run
@@ -102,6 +110,14 @@ pip install -e ".[dev]"
 pytest
 ```
 
+## Roadmap
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the 12-month development plan — indexer expansion, multi-network support, fee prediction, SDKs, and more.
+
+## Support This Project
+
+Satoshi API is free, open-source Bitcoin infrastructure. If you find it useful, consider supporting development through [OpenSats](https://opensats.org).
+
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
@@ -110,8 +126,8 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 <div align="center">
 
-**[Live API](https://bitcoinsapi.com/docs)** &middot; **[Website](https://bitcoinsapi.com)** &middot; **[PyPI](https://pypi.org/project/satoshi-api/)** &middot; **[MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)**
+**[Live API](https://bitcoinsapi.com/docs)** &middot; **[Website](https://bitcoinsapi.com)** &middot; **[PyPI](https://pypi.org/project/satoshi-api/)** &middot; **[MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)** &middot; **[Roadmap](docs/ROADMAP.md)**
 
-Built by a [Bitcoin Core contributor](https://github.com/Bortlesboat).
+Built by a [Bitcoin Core contributor](https://github.com/Bortlesboat). **902 tests** across the ecosystem.
 
 </div>
