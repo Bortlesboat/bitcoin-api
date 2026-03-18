@@ -100,6 +100,10 @@ class Settings(BaseSettings):
     # PSBT security analysis (siloed — no node required, pure parsing)
     enable_psbt_router: bool = False
 
+    # Fee Observatory (siloed — reads observatory.db read-only)
+    enable_observatory: bool = True
+    observatory_db_path: str = "~/.bitcoin-fee-observatory/observatory.db"
+
     # Blockchain indexer (siloed — see indexer/config.py for indexer-specific settings)
     enable_indexer: bool = False
 

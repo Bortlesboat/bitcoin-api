@@ -76,7 +76,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~117 total: 84 core + 4 AI + 6 alerts + 7 history API + 12 content pages + 4 indexer)
+### 3.1 Endpoints (~121 total: 84 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 13 content pages + 4 indexer)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -111,6 +111,9 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/fees/plan` | GET | No |
 | | `/api/v1/fees/savings` | GET | No |
 | | `/api/v1/fees/{target}` | GET | No |
+| **Fee Observatory** | `/api/v1/fees/observatory/scoreboard` | GET | No |
+| | `/api/v1/fees/observatory/block-stats` | GET | No |
+| | `/api/v1/fees/observatory/estimates` | GET | No |
 | **Mempool** | `/api/v1/mempool` | GET | No |
 | | `/api/v1/mempool/info` | GET | No |
 | | `/api/v1/mempool/tx/{txid}` | GET | No |
@@ -461,7 +464,8 @@ Errors follow the same structure:
 | 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 45 |
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
-| **Total** | **~108 endpoints (85 core + 7 history API + 12 content pages + 4 indexer), 24 core routers (+ 3 indexer = 27 when enabled)** | **570 unit + 21 e2e** |
+| 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
+| **Total** | **~111 endpoints (88 core + 7 history API + 13 content pages + 4 indexer), 25 core routers (+ 3 indexer = 28 when enabled)** | **583 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -469,7 +473,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
 - `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (Binance/CoinGecko/Coinbase/Kraken fallback, 10s TTL)
-- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
+- `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, observatory, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql, 009_add_registration_source.sql, 010_add_signup_attribution.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
 - `src/bitcoin_api/indexer/services/` -- address, transaction
@@ -501,6 +505,7 @@ Errors follow the same structure:
 - `tests/test_indexer_worker.py` -- 19 tests (RPC retry, sync_blocks, _index_block, version check)
 - `tests/test_indexer_services.py` -- 12 tests (address balance/history, transaction detail)
 - `tests/test_price_service.py` -- 13 tests (price service provider fallback, caching, error handling)
+- `tests/test_observatory.py` -- 13 tests (Fee Observatory endpoints: scoreboard, block-stats, estimates, 503 fallback, static page)
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
@@ -573,6 +578,7 @@ Errors follow the same structure:
 - `static/sitemap.xml` -- XML sitemap for search engines (16+ URLs, includes /history, /guide, /mcp-setup, /api-docs)
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 - `static/visualizer.html` -- ECharts live visualization dashboard
+- `static/fee-observatory.html` -- Fee Observatory dashboard (iframe embed of Streamlit at port 8505)
 
 ---
 

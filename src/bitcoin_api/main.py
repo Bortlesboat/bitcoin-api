@@ -183,6 +183,12 @@ if settings.enable_ai_features:
     app.include_router(_ai_router, prefix=PREFIX)
     log.info("AI features enabled (provider will be resolved on first request)")
 
+# Fee Observatory (conditional — reads observatory.db read-only)
+if settings.enable_observatory:
+    from .routers.observatory import router as _observatory_router
+    app.include_router(_observatory_router, prefix=PREFIX)
+    log.info("Fee Observatory endpoints enabled")
+
 # History Explorer (conditional — siloed feature)
 if settings.enable_history_explorer:
     from .routers.history import router as _history_router

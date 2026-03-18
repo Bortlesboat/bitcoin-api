@@ -136,7 +136,9 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/helpers.py` | Isolated router test client factory |
 | `tests/test_ai.py` | AI endpoint + provider tests (13 tests) |
 | `tests/test_alerts.py` | Alert webhook endpoint tests (12 tests) |
-| | Total: 595 unit + 21 e2e = 616 tests |
+| `src/bitcoin_api/routers/observatory.py` | Fee Observatory endpoints (3 endpoints: scoreboard, block-stats, estimates) |
+| `tests/test_observatory.py` | Fee Observatory tests (13 tests) |
+| | Total: 608 unit + 21 e2e = 629 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |

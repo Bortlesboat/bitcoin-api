@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Fee Observatory — Compare Fee Estimators | Satoshi API</title>
+<meta name="description" content="Compare Bitcoin fee estimators side-by-side. See which sources are most accurate, which overpay, and make smarter fee decisions. Powered by Satoshi API.">
+<meta property="og:title" content="Bitcoin Fee Observatory — Compare Fee Estimators">
+<meta property="og:description" content="Live accuracy rankings for Bitcoin fee estimators. Stop overpaying for transactions.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bitcoinsapi.com/fee-observatory">
+<link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="canonical" href="https://bitcoinsapi.com/fee-observatory">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0D1117; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+  .header { text-align: center; padding: 24px 16px 8px; }
+  .header h1 { color: #f7931a; font-size: 1.6rem; margin-bottom: 4px; }
+  .header p { color: #888; font-size: 0.85rem; }
+  .nav { text-align: center; padding: 12px; }
+  .nav a { color: #f7931a; text-decoration: none; font-size: 0.85rem; margin: 0 12px; }
+  .nav a:hover { text-decoration: underline; }
+  .iframe-wrap {
+    width: 100%; max-width: 1400px; margin: 16px auto; padding: 0 16px;
+  }
+  .iframe-wrap iframe {
+    width: 100%; height: calc(100vh - 140px); min-height: 600px;
+    border: 1px solid #222; border-radius: 8px; background: #0D1117;
+  }
+  .fallback {
+    display: none; text-align: center; padding: 48px 16px;
+    color: #888; font-size: 0.9rem;
+  }
+  .fallback code { color: #f7931a; background: #141414; padding: 2px 6px; border-radius: 4px; }
+  .api-links {
+    max-width: 1400px; margin: 0 auto; padding: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;
+  }
+  .api-card {
+    background: #141414; border: 1px solid #222; border-radius: 8px; padding: 16px;
+  }
+  .api-card h3 { color: #f7931a; font-size: 0.9rem; margin-bottom: 4px; }
+  .api-card p { color: #888; font-size: 0.8rem; margin-bottom: 8px; }
+  .api-card code { color: #e0e0e0; font-size: 0.8rem; background: #0D1117; padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/">&larr; Home</a>
+  <a href="/visualizer">Visualizer</a>
+  <a href="/api-docs">API Docs</a>
+  <a href="/guide">Protocol Guide</a>
+</div>
+
+<div class="header">
+  <h1>Bitcoin Fee Observatory</h1>
+  <p>Live comparison of fee estimators — see who's accurate and who's overpaying</p>
+</div>
+
+<div class="iframe-wrap">
+  <iframe id="obs-frame" src="http://localhost:8505" frameborder="0" allowfullscreen loading="lazy"></iframe>
+</div>
+
+<div class="fallback" id="fallback">
+  <p>The Fee Observatory dashboard is not currently running.</p>
+  <p style="margin-top:8px;">Start it with: <code>cd bitcoin-fee-observatory && streamlit run app.py --server.port 8505</code></p>
+  <p style="margin-top:16px;">In the meantime, use the API endpoints below:</p>
+</div>
+
+<div class="api-links">
+  <div class="api-card">
+    <h3>Scoreboard</h3>
+    <p>Per-source accuracy ranking and overpayment stats</p>
+    <code>GET /api/v1/fees/observatory/scoreboard</code>
+  </div>
+  <div class="api-card">
+    <h3>Block Stats</h3>
+    <p>Per-block fee percentiles and min/max feerate</p>
+    <code>GET /api/v1/fees/observatory/block-stats</code>
+  </div>
+  <div class="api-card">
+    <h3>Estimates</h3>
+    <p>Multi-source fee estimate time series</p>
+    <code>GET /api/v1/fees/observatory/estimates</code>
+  </div>
+</div>
+
+<script>
+  const frame = document.getElementById('obs-frame');
+  const fallback = document.getElementById('fallback');
+  let loaded = false;
+  frame.addEventListener('load', () => { loaded = true; });
+  // If iframe fails to load (Streamlit not running), show fallback after 5s
+  setTimeout(() => {
+    if (!loaded) {
+      try {
+        // Cross-origin will throw — that means Streamlit IS running
+        const _ = frame.contentDocument;
+        // If we get here, it's same-origin empty page = not running
+        frame.style.display = 'none';
+        fallback.style.display = 'block';
+      } catch (e) {
+        // Cross-origin error = Streamlit is running, iframe is fine
+      }
+    }
+  }, 5000);
+</script>
+
+</body>
+</html>
