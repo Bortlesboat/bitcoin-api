@@ -194,4 +194,4 @@ The goal is for Pro tier revenue to cover infrastructure costs within 12 months,
 - **PyPI (Satoshi API):** https://pypi.org/project/satoshi-api/
 - **PyPI (bitcoin-mcp):** https://pypi.org/project/bitcoin-mcp/
 - **MCP Registry:** https://registry.modelcontextprotocol.io (search "bitcoin")
-- **Roadmap:** https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/ROADMAP.md
+- **Roadmap:** https://github.com/Bortlesboat/bitcoin-api/blob/master/docs/ROADMAP.md
