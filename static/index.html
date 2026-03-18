@@ -195,22 +195,22 @@
   nav { transition: background 0.3s var(--ease-out), border-color 0.3s var(--ease-out); }
   nav.nav-scrolled { background: rgba(0,0,0,0.92); border-bottom-color: rgba(255,255,255,0.1); }
 
-  /* Scroll reveal animations */
-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
+  /* Scroll reveal animations — JS adds .reveal-init to activate, so content is visible by default if JS fails */
+  .reveal-init .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
+  .reveal-init .reveal.visible { opacity: 1; transform: translateY(0); }
 
-  /* Staggered card reveals — only animate cards that are inside not-yet-visible reveals */
-  .reveal:not(.visible) .feature, .reveal:not(.visible) .use-case, .reveal:not(.visible) .price-card { opacity: 0; transform: translateY(16px); }
-  .reveal.visible .feature, .reveal.visible .use-case, .reveal.visible .price-card { animation: cardFadeUp 0.5s var(--ease-out) both; }
-  .reveal.visible .feature:nth-child(2), .reveal.visible .use-case:nth-child(2), .reveal.visible .price-card:nth-child(2) { animation-delay: 100ms; }
-  .reveal.visible .feature:nth-child(3), .reveal.visible .use-case:nth-child(3), .reveal.visible .price-card:nth-child(3) { animation-delay: 200ms; }
-  .reveal.visible .feature:nth-child(4), .reveal.visible .use-case:nth-child(4) { animation-delay: 300ms; }
-  .reveal.visible .feature:nth-child(5), .reveal.visible .use-case:nth-child(5) { animation-delay: 400ms; }
+  /* Staggered card reveals */
+  .reveal-init .reveal:not(.visible) .feature, .reveal-init .reveal:not(.visible) .use-case, .reveal-init .reveal:not(.visible) .price-card { opacity: 0; transform: translateY(16px); }
+  .reveal-init .reveal.visible .feature, .reveal-init .reveal.visible .use-case, .reveal-init .reveal.visible .price-card { animation: cardFadeUp 0.5s var(--ease-out) both; }
+  .reveal-init .reveal.visible .feature:nth-child(2), .reveal-init .reveal.visible .use-case:nth-child(2), .reveal-init .reveal.visible .price-card:nth-child(2) { animation-delay: 100ms; }
+  .reveal-init .reveal.visible .feature:nth-child(3), .reveal-init .reveal.visible .use-case:nth-child(3), .reveal-init .reveal.visible .price-card:nth-child(3) { animation-delay: 200ms; }
+  .reveal-init .reveal.visible .feature:nth-child(4), .reveal-init .reveal.visible .use-case:nth-child(4) { animation-delay: 300ms; }
+  .reveal-init .reveal.visible .feature:nth-child(5), .reveal-init .reveal.visible .use-case:nth-child(5) { animation-delay: 400ms; }
   @keyframes cardFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
   @media (prefers-reduced-motion: reduce) {
-    .reveal, .reveal:not(.visible) .feature, .reveal:not(.visible) .use-case, .reveal:not(.visible) .price-card { opacity: 1; transform: none; transition: none; }
-    .reveal.visible .feature, .reveal.visible .use-case, .reveal.visible .price-card { opacity: 1; animation: none; }
+    .reveal-init .reveal, .reveal-init .reveal:not(.visible) .feature, .reveal-init .reveal:not(.visible) .use-case, .reveal-init .reveal:not(.visible) .price-card { opacity: 1; transform: none; transition: none; }
+    .reveal-init .reveal.visible .feature, .reveal-init .reveal.visible .use-case, .reveal-init .reveal.visible .price-card { opacity: 1; animation: none; }
     .feature, .use-case, .price-card, .stack-layer, .btn-primary, .btn-secondary { transition: none; }
     .feature:hover, .use-case:hover, .price-card:hover, .btn-primary:hover, .btn-secondary:hover { transform: none; }
     .hero::before { display: none; }
@@ -1222,6 +1222,8 @@ function copyPrompt(el) {
     reveals.forEach(function(el) { el.classList.add('visible'); });
     return;
   }
+  /* Activate reveal CSS only after JS is ready — content stays visible if JS fails */
+  document.body.classList.add('reveal-init');
   var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
       if (entry.isIntersecting) {
@@ -1229,7 +1231,7 @@ function copyPrompt(el) {
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
   reveals.forEach(function(el) { observer.observe(el); });
 })();
 
