@@ -51,7 +51,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `middleware.py` | Security headers, CORS, auth + rate limiting middleware, gzip compression | Middleware chain |
 | `exceptions.py` | RPC, validation, HTTP, and generic exception handlers; RFC 7807 `type` URIs | Exception handler registry |
 | `jobs.py` | Background fee collector thread lifecycle | Background worker |
-| `static_routes.py` | Landing page, robots.txt, sitemap, decision pages | Static file serving |
+| `static_routes.py` | Landing page, robots.txt, sitemap, LLM discovery redirects, decision pages | Static file serving |
 | `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
 | `migrations/` | SQL migration files + runner, tracked in `schema_migrations` | Sequential migrations |
 | `auth.py` | API key validation, tier resolution | Strategy (tier-based) |
@@ -77,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~127 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 4 indexer + 3 x402)
+### 3.1 Endpoints (~128 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 1 discovery redirect + 4 indexer + 3 x402)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -192,6 +192,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/guide` | GET | No |
 | | `/mcp-setup` | GET | No |
 | | `/api-docs` | GET | No |
+| **Discovery Redirects** | `/.well-known/llms.txt` | GET/HEAD | No; 301 to `/llms.txt` |
 | **AI** | `/api/v1/ai/explain/transaction/{txid}` | GET | No |
 | | `/api/v1/ai/explain/block/{hash_or_height}` | GET | No |
 | | `/api/v1/ai/fees/advice` | GET | No |
@@ -477,7 +478,7 @@ Errors follow the same structure:
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=true` in production. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
 | 29 | RPC proxy endpoint: `/api/v1/rpc` JSON-RPC proxy for bitcoin-mcp zero-config fallback. 30+ whitelisted read-only methods, wallet/admin methods blocked. Enables bitcoin-mcp to work without a local node. | 7 |
-| 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 45 |
+| 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks and `/.well-known/llms.txt` redirect. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 46 |
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |

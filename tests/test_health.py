@@ -75,8 +75,14 @@ def test_docs_accessible(client):
 
 def test_api_docs_redirects_to_live_docs(client):
     resp = client.get("/api-docs", follow_redirects=False)
-    assert resp.status_code == 307
+    assert resp.status_code == 308
     assert resp.headers["location"] == "/docs"
+
+
+def test_well_known_llms_txt_redirects_to_llms_txt(client):
+    resp = client.get("/.well-known/llms.txt", follow_redirects=False)
+    assert resp.status_code == 301
+    assert resp.headers["location"] == "/llms.txt"
 
 
 def test_envelope_format(client):
@@ -127,8 +133,13 @@ def test_root_csp_allows_configured_analytics_scripts(client):
 
 def test_health_deep(authed_client):
     """GET /health/deep should return health check data for authenticated users."""
-    with patch("bitcoin_api.routers.health_deep.get_job_health", return_value={"fee_collector": "ok"}), \
-         patch("bitcoin_api.routers.health_deep.usage_buffer") as mock_buf:
+    with (
+        patch(
+            "bitcoin_api.routers.health_deep.get_job_health",
+            return_value={"fee_collector": "ok"},
+        ),
+        patch("bitcoin_api.routers.health_deep.usage_buffer") as mock_buf,
+    ):
         mock_buf.pending_count = 0
         resp = authed_client.get("/api/v1/health/deep")
     assert resp.status_code == 200

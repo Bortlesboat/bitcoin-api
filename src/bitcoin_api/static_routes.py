@@ -7,8 +7,6 @@ from pathlib import Path
 from fastapi import Cookie, FastAPI, Header, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from . import __version__
-
 _STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 _LANDING_PAGE = _STATIC_DIR / "index.html"
 _404_PAGE = _STATIC_DIR / "404.html"
@@ -24,13 +22,22 @@ def _render_html(path: Path) -> HTMLResponse | None:
     from .config import settings
 
     html = path.read_text(encoding="utf-8")
-    ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
+    ph_key = (
+        settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
+    )
     html = html.replace("__POSTHOG_API_KEY__", ph_key)
-    if '/static/js/site-helpers.js' not in html:
+    if "/static/js/site-helpers.js" not in html:
         helper_tag = '<script src="/static/js/site-helpers.js"></script>'
-        html = re.sub(r"</body>", helper_tag + "\n</body>", html, count=1, flags=re.IGNORECASE)
+        html = re.sub(
+            r"</body>", helper_tag + "\n</body>", html, count=1, flags=re.IGNORECASE
+        )
     nonce = secrets.token_urlsafe(16)
-    html = re.sub(r"<script(?![^>]*\bnonce=)", f'<script nonce="{nonce}"', html, flags=re.IGNORECASE)
+    html = re.sub(
+        r"<script(?![^>]*\bnonce=)",
+        f'<script nonce="{nonce}"',
+        html,
+        flags=re.IGNORECASE,
+    )
 
     # Keep public navigation safe when the History Explorer is disabled.
     if not settings.enable_history_explorer:
@@ -54,6 +61,7 @@ def register_static_routes(app: FastAPI):
     """Register landing page, robots.txt, sitemap, healthz, and static decision pages."""
 
     from starlette.staticfiles import StaticFiles
+
     _js_dir = _STATIC_DIR / "js"
     if _js_dir.is_dir():
         app.mount("/static/js", StaticFiles(directory=str(_js_dir)), name="static-js")
@@ -69,17 +77,27 @@ def register_static_routes(app: FastAPI):
         """Avoid maintaining a second docs surface; send users to live Swagger docs."""
         return RedirectResponse(url="/docs", status_code=308)
 
-    @app.api_route("/.well-known/mcp/server-card.json", methods=_PUBLIC_METHODS, include_in_schema=False)
+    @app.api_route(
+        "/.well-known/mcp/server-card.json",
+        methods=_PUBLIC_METHODS,
+        include_in_schema=False,
+    )
     def mcp_server_card():
         """MCP server card for Smithery discovery."""
         p = _STATIC_DIR / ".well-known" / "mcp" / "server-card.json"
         if p.exists():
-            import json
             return Response(
                 p.read_text(encoding="utf-8"),
                 media_type="application/json",
             )
         return Response(status_code=404)
+
+    @app.api_route(
+        "/.well-known/llms.txt", methods=_PUBLIC_METHODS, include_in_schema=False
+    )
+    def well_known_llms_txt():
+        """Standard .well-known path for LLM discovery redirects to /llms.txt."""
+        return RedirectResponse(url="/llms.txt", status_code=301)
 
     @app.api_route("/favicon.ico", methods=_PUBLIC_METHODS, include_in_schema=False)
     def favicon():
@@ -116,9 +134,16 @@ def register_static_routes(app: FastAPI):
             return Response(p.read_text(encoding="utf-8"), media_type="application/xml")
         return _serve_404()
 
-    _IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp"}
+    _IMAGE_TYPES = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+    }
 
-    @app.api_route("/{filename}.{ext}", methods=_PUBLIC_METHODS, include_in_schema=False)
+    @app.api_route(
+        "/{filename}.{ext}", methods=_PUBLIC_METHODS, include_in_schema=False
+    )
     def static_asset(filename: str, ext: str):
         """Serve static assets (images + IndexNow verification key) from the static directory."""
         # Prevent path traversal
@@ -154,16 +179,26 @@ def register_static_routes(app: FastAPI):
     ):
         """Admin analytics dashboard — accepts X-Admin-Key header, admin_token cookie, or ?key= query param."""
         from .config import settings
+
         if not settings.admin_api_key:
             raise HTTPException(status_code=403, detail="Admin not configured")
         resolved_key = _check_admin_key(key, x_admin_key, admin_token)
-        if not resolved_key or not secrets.compare_digest(resolved_key, settings.admin_api_key.get_secret_value()):
+        if not resolved_key or not secrets.compare_digest(
+            resolved_key, settings.admin_api_key.get_secret_value()
+        ):
             raise HTTPException(status_code=403, detail="Invalid admin key")
         p = _STATIC_DIR / "admin-dashboard.html"
         response = _render_html(p) or _serve_404()
         # Set cookie so subsequent page loads don't need the key in the URL
         if isinstance(response, HTMLResponse) and not admin_token:
-            response.set_cookie("admin_token", resolved_key, httponly=True, secure=True, samesite="strict", max_age=86400)
+            response.set_cookie(
+                "admin_token",
+                resolved_key,
+                httponly=True,
+                secure=True,
+                samesite="strict",
+                max_age=86400,
+            )
         return response
 
     @app.get("/admin/founder", include_in_schema=False)
@@ -174,15 +209,25 @@ def register_static_routes(app: FastAPI):
     ):
         """Founder analytics dashboard — accepts X-Admin-Key header, admin_token cookie, or ?key= query param."""
         from .config import settings
+
         if not settings.admin_api_key:
             raise HTTPException(status_code=403, detail="Admin not configured")
         resolved_key = _check_admin_key(key, x_admin_key, admin_token)
-        if not resolved_key or not secrets.compare_digest(resolved_key, settings.admin_api_key.get_secret_value()):
+        if not resolved_key or not secrets.compare_digest(
+            resolved_key, settings.admin_api_key.get_secret_value()
+        ):
             raise HTTPException(status_code=403, detail="Invalid admin key")
         p = _STATIC_DIR / "founder-dashboard.html"
         response = _render_html(p) or _serve_404()
         if isinstance(response, HTMLResponse) and not admin_token:
-            response.set_cookie("admin_token", resolved_key, httponly=True, secure=True, samesite="strict", max_age=86400)
+            response.set_cookie(
+                "admin_token",
+                resolved_key,
+                httponly=True,
+                secure=True,
+                samesite="strict",
+                max_age=86400,
+            )
         return response
 
     @app.get("/healthz", include_in_schema=False)
@@ -194,6 +239,7 @@ def register_static_routes(app: FastAPI):
     def history_index():
         """Serve the History Explorer index page (feature-flag gated)."""
         from .config import settings
+
         if not settings.enable_history_explorer:
             return _serve_404()
         p = _HISTORY_DIR / "index.html"
@@ -203,6 +249,7 @@ def register_static_routes(app: FastAPI):
     def history_page(page: str):
         """Serve History Explorer sub-pages and static assets."""
         from .config import settings
+
         if not settings.enable_history_explorer:
             return _serve_404()
         # Known HTML pages
@@ -216,8 +263,15 @@ def register_static_routes(app: FastAPI):
         if not str(resolved).startswith(str(_HISTORY_DIR.resolve())):
             return _serve_404()
         if resolved.exists() and resolved.suffix in (".json", ".css", ".js"):
-            media_types = {".json": "application/json", ".css": "text/css", ".js": "application/javascript"}
-            return Response(resolved.read_text(encoding="utf-8"), media_type=media_types[resolved.suffix])
+            media_types = {
+                ".json": "application/json",
+                ".css": "text/css",
+                ".js": "application/javascript",
+            }
+            return Response(
+                resolved.read_text(encoding="utf-8"),
+                media_type=media_types[resolved.suffix],
+            )
         return _serve_404()
 
     @app.api_route("/{page}", methods=_PUBLIC_METHODS, include_in_schema=False)
@@ -228,15 +282,31 @@ def register_static_routes(app: FastAPI):
         if page == "mcp":
             return RedirectResponse(url="/mcp-setup", status_code=302)
         allowed = {
-            "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
-            "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
-            "bitcoin-fee-api", "bitcoin-mempool-api", "bitcoin-mcp-setup-guide",
-            "bitcoin-transaction-fee-calculator", "best-time-to-send-bitcoin",
-            "bitcoin-fee-estimator", "bitcoin-api-for-trading-bots",
+            "vs-mempool",
+            "vs-blockcypher",
+            "best-bitcoin-api-for-developers",
+            "bitcoin-api-for-ai-agents",
+            "self-hosted-bitcoin-api",
+            "bitcoin-fee-api",
+            "bitcoin-mempool-api",
+            "bitcoin-mcp-setup-guide",
+            "bitcoin-transaction-fee-calculator",
+            "best-time-to-send-bitcoin",
+            "bitcoin-fee-estimator",
+            "bitcoin-api-for-trading-bots",
             "how-to-reduce-bitcoin-transaction-fees",
             "bitcoin-api-for-aml-compliance",
-            "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
-            "mcp-setup", "ai", "fees", "x402",
+            "terms",
+            "privacy",
+            "disclaimer",
+            "visualizer",
+            "pricing",
+            "about",
+            "guide",
+            "mcp-setup",
+            "ai",
+            "fees",
+            "x402",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"
