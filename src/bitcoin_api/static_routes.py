@@ -71,6 +71,11 @@ def register_static_routes(app: FastAPI):
             )
         return Response(status_code=404)
 
+    @app.get("/.well-known/llms.txt", include_in_schema=False)
+    def well_known_llms_txt():
+        """Standard .well-known path for LLM discovery — redirects to /llms.txt."""
+        return RedirectResponse(url="/llms.txt", status_code=301)
+
     @app.get("/favicon.ico", include_in_schema=False)
     def favicon():
         p = _STATIC_DIR / "favicon.ico"
