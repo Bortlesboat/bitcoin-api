@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents</title>
-<meta name="description" content="Know when to send Bitcoin and when to wait. Satoshi API gives apps and AI agents live fee recommendations, mempool context, and transaction cost estimates. Free, open source, self-hostable.">
+<meta name="description" content="Know when to send Bitcoin and when to wait. Satoshi API gives apps and AI agents live fee recommendations, mempool context, and cost estimates. Free, open source.">
 <meta name="google-site-verification" content="AD9lQsKgOGRhHn2Lb6LvPs2caMbkUE9igca5A3A726U" />
 <meta name="keywords" content="bitcoin api, bitcoin rest api, free bitcoin api, bitcoin node api, open source bitcoin api, bitcoin api for developers, bitcoin mcp, bitcoin api python, bitcoin fee api, mempool api, bitcoin core api">
-<link rel="canonical" href="https://bitcoinsapi.com">
+<link rel="canonical" href="https://bitcoinsapi.com/">
 <meta property="og:title" content="Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents">
 <meta property="og:description" content="Know when to send Bitcoin and when to wait. Live fee recommendations, mempool context, and transaction cost estimates for apps and AI agents.">
 <meta property="og:url" content="https://bitcoinsapi.com">
@@ -217,6 +217,16 @@
     body::after { display: none; }
   }
 
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 3em; }
+    section { padding: 120px 0; }
+    .section-title { font-size: 2em; }
+    /* Collapse 2-column prompt grid on tablets */
+    #try-these [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+    /* See It Work code examples */
+    #features + hr + section [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  }
+
   @media (max-width: 600px) {
     .hero h1 { font-size: 2.4em; letter-spacing: -0.03em; }
     .hero .subtitle { font-size: 1em; }
@@ -296,7 +306,8 @@
         "https://github.com/Bortlesboat/bitcoin-api",
         "https://pypi.org/project/satoshi-api/",
         "https://github.com/Bortlesboat/satoshi-discord-bot",
-        "https://discord.gg/EB6Jd66EsF"
+        "https://discord.gg/EB6Jd66EsF",
+        "https://x.com/BTCOrangeCoin"
       ]
     },
     {
@@ -324,15 +335,17 @@
           "name": "Self-Hosted",
           "price": "0",
           "priceCurrency": "USD",
-          "description": "Run on your own Bitcoin node. Full API access, unlimited requests, complete source code."
+          "description": "Run on your own Bitcoin node. Full API access, unlimited requests, complete source code.",
+          "availability": "https://schema.org/InStock"
         },
         {
           "@type": "Offer",
           "name": "Hosted Free Tier",
           "price": "0",
           "priceCurrency": "USD",
-          "description": "No node required. 1,000 requests/day, all GET endpoints, no signup needed."
-        },
+          "description": "No node required. 1,000 requests/day, all GET endpoints, no signup needed.",
+          "availability": "https://schema.org/InStock"
+        }
       ],
       "featureList": [
         "AI agent support via MCP",
@@ -368,29 +381,17 @@
       ]
     },
     {
-      "@type": "HowTo",
-      "name": "How to Install Satoshi API",
-      "description": "Install the Bitcoin fee intelligence API in 60 seconds",
-      "step": [
-        {
-          "@type": "HowToStep",
-          "position": 1,
-          "name": "Install via pip",
-          "text": "Run: pip install satoshi-api"
-        },
-        {
-          "@type": "HowToStep",
-          "position": 2,
-          "name": "Start the API",
-          "text": "Run: satoshi-api"
-        },
-        {
-          "@type": "HowToStep",
-          "position": 3,
-          "name": "Make your first request",
-          "text": "curl http://localhost:9332/api/v1/fees/recommended"
-        }
-      ]
+      "@type": "WebPage",
+      "@id": "https://bitcoinsapi.com/#webpage",
+      "name": "Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents",
+      "url": "https://bitcoinsapi.com/",
+      "description": "Know when to send Bitcoin and when to wait. Live fee recommendations, mempool context, and cost estimates for apps and AI agents.",
+      "isPartOf": {"@id": "https://bitcoinsapi.com/#website"},
+      "about": {"@id": "https://bitcoinsapi.com/#organization"},
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [".hero h1", ".hero .subtitle", ".section-title"]
+      }
     },
     {
       "@type": "FAQPage",
@@ -459,7 +460,7 @@
 <body>
 
 <nav>
-  <div class="logo"><img src="/logo-128.png" alt="Satoshi API" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</div>
+  <div class="logo"><img src="/logo-128.png" alt="Satoshi API" width="24" height="24" style="height:24px;vertical-align:middle;margin-right:8px;">SATOSHI API</div>
   <button class="nav-toggle" onclick="document.querySelector('.links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="links">
     <a href="#why-satoshi">Why Satoshi API</a>
@@ -506,10 +507,11 @@
 </section>
 
 <!-- Live Stats -->
-<div class="stats-bar" id="stats-bar" style="display:none;">
-  <div class="stat"><div class="stat-value" id="stat-keys">--</div><div class="stat-label">API Keys Registered</div></div>
-  <div class="stat"><div class="stat-value" id="stat-requests">--</div><div class="stat-label">Requests Served</div></div>
-  <div class="stat"><div class="stat-value" id="stat-uptime">--</div><div class="stat-label">Days Running</div></div>
+<div class="stats-bar" id="stats-bar">
+  <div class="stat"><div class="stat-value">49</div><div class="stat-label">MCP Tools</div></div>
+  <div class="stat"><div class="stat-value">115+</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-value">7</div><div class="stat-label">Fee Endpoints</div></div>
+  <div class="stat"><div class="stat-value">116</div><div class="stat-label">Tests Passing</div></div>
 </div>
 
 <!-- Trust Badges -->
@@ -864,6 +866,18 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
         </ul>
         <a href="https://github.com/Bortlesboat/bitcoin-api" class="btn-primary" style="display: block; padding: 12px; border-radius: var(--radius-sm); margin-top: 20px;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('pricing_viewed', {tier:'self_hosted'})">View on GitHub</a>
       </div>
+      <div class="price-card">
+        <h3>Pay-per-call <span style="font-size: 0.7em; background: var(--accent); color: var(--bg); padding: 2px 8px; border-radius: 4px; vertical-align: middle;">x402</span></h3>
+        <div class="price">$0.01<span>/call</span></div>
+        <ul>
+          <li>No API key needed</li>
+          <li>Pay with USDC on Base</li>
+          <li>AI analysis, tx broadcast</li>
+          <li>Built for AI agents</li>
+          <li>Standard HTTP 402 protocol</li>
+        </ul>
+        <a href="https://x402.org" class="btn-primary" style="display: block; padding: 12px; border-radius: var(--radius-sm); margin-top: 20px;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('pricing_viewed', {tier:'x402'})">Learn about x402</a>
+      </div>
     </div>
     <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">Need higher hosted limits or a specific integration path? Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
   </div>
@@ -1163,25 +1177,7 @@ function handleRegister(e) {
     .catch(function() { /* silently ignore */ });
 })();
 
-/* Live Stats */
-(function() {
-  function fmt(n) {
-    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-    return String(n);
-  }
-  fetch('/api/v1/analytics/public')
-    .then(function(r) { return r.json(); })
-    .then(function(json) {
-      var d = json.data;
-      if (!d) return;
-      document.getElementById('stat-keys').textContent = fmt(d.total_keys);
-      document.getElementById('stat-requests').textContent = fmt(d.total_requests);
-      document.getElementById('stat-uptime').textContent = String(d.uptime_days);
-      document.getElementById('stats-bar').style.display = 'flex';
-    })
-    .catch(function() { /* silently hide stats bar on error */ });
-})();
+/* Stats bar now shows static capability metrics — no API fetch needed */
 
 function copyKey() {
   var val = document.getElementById('api-key-value');
@@ -1252,44 +1248,7 @@ function copyPrompt(el) {
   window.addEventListener('scroll', onScroll, { passive: true });
 })();
 
-/* Animated counters for stats bar */
-(function() {
-  function animateValue(el, end, duration) {
-    var suffix = '';
-    var endStr = String(end);
-    if (endStr.match(/[KM]$/)) {
-      suffix = endStr.slice(-1);
-      end = parseFloat(endStr);
-    }
-    var isFloat = endStr.indexOf('.') !== -1;
-    var start = 0;
-    var startTime = null;
-    function step(ts) {
-      if (!startTime) startTime = ts;
-      var progress = Math.min((ts - startTime) / duration, 1);
-      var eased = 1 - Math.pow(1 - progress, 3);
-      var current = start + (end - start) * eased;
-      el.textContent = (isFloat ? current.toFixed(1) : Math.floor(current)) + suffix;
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-  var statsBar = document.getElementById('stats-bar');
-  if (!statsBar) return;
-  var observed = false;
-  var observer = new IntersectionObserver(function(entries) {
-    if (entries[0].isIntersecting && !observed) {
-      observed = true;
-      var els = statsBar.querySelectorAll('.stat-value');
-      els.forEach(function(el) {
-        var val = el.textContent;
-        if (val && val !== '--') animateValue(el, val, 1200);
-      });
-      observer.disconnect();
-    }
-  }, { threshold: 0.5 });
-  observer.observe(statsBar);
-})();
+/* Stats bar uses static capability metrics — no animation needed */
 
 /* Card glow effect following cursor */
 (function() {

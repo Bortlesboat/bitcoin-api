@@ -65,6 +65,16 @@ class Settings(BaseSettings):
     rate_limit_pro: int = 500
     rate_limit_enterprise: int = 2000
 
+    # Rate-limit exempt keys (comma-separated key hashes that bypass all rate limits)
+    rate_limit_exempt_keys: str = ""
+
+    @property
+    def exempt_key_set(self) -> frozenset[str]:
+        """Parse RATE_LIMIT_EXEMPT_KEYS into a frozenset for O(1) lookup."""
+        if not self.rate_limit_exempt_keys:
+            return frozenset()
+        return frozenset(k.strip() for k in self.rate_limit_exempt_keys.split(",") if k.strip())
+
     # Admin API key for analytics endpoints
     admin_api_key: SecretStr | None = None
 
@@ -106,6 +116,10 @@ class Settings(BaseSettings):
 
     # Blockchain indexer (siloed — see indexer/config.py for indexer-specific settings)
     enable_indexer: bool = False
+
+    # x402 stablecoin micropayments (requires bitcoin-api-x402 package)
+    enable_x402: bool = False
+    x402_pay_to_address: str = ""  # EVM wallet address for USDC receipts
 
     # AI features (all optional — AI endpoints return 503 if no provider configured)
     enable_ai_features: bool = False

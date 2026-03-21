@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -131,6 +132,15 @@ app = FastAPI(
 
 register_middleware(app)
 register_exception_handlers(app)
+
+# --- x402 stablecoin micropayments (optional extension, off by default) ---
+if settings.enable_x402:
+    try:
+        from bitcoin_api_x402 import enable_x402
+        enable_x402(app, pay_to=settings.x402_pay_to_address)
+        log.info("x402 stablecoin payments enabled (pay_to=%s)", settings.x402_pay_to_address[:10] + "..." if settings.x402_pay_to_address else "NOT SET")
+    except ImportError:
+        log.warning("ENABLE_X402=true but bitcoin-api-x402 not installed — run: pip install -e ../bitcoin-api-x402")
 
 # --- Routers ---
 PREFIX = "/api/v1"
