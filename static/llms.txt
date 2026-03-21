@@ -90,6 +90,7 @@ https://bitcoinsapi.com
 - Best time to send Bitcoin: https://bitcoinsapi.com/best-time-to-send-bitcoin
 - Bitcoin fee estimator: https://bitcoinsapi.com/bitcoin-fee-estimator
 - Bitcoin API for trading bots: https://bitcoinsapi.com/bitcoin-api-for-trading-bots
+- x402 payment dashboard: https://bitcoinsapi.com/x402
 - How to reduce Bitcoin transaction fees: https://bitcoinsapi.com/how-to-reduce-bitcoin-transaction-fees
 
 ## Free Endpoints (no payment needed)
@@ -97,7 +98,6 @@ https://bitcoinsapi.com
 - /api/v1/health - Node health check
 - /api/v1/fees - Fee estimates and recommendations
 - /api/v1/fees/recommended - Smart fee recommendation
-- /api/v1/fees/landscape - Full fee landscape with percentiles
 - /api/v1/fees/history - Historical fee data
 - /api/v1/fees/plan - Optimal send timing
 - /api/v1/fees/savings - Savings from waiting
@@ -132,6 +132,10 @@ Uses the x402 protocol (https://x402.org). Flow:
 
 Payment info: https://bitcoinsapi.com/api/v1/x402-info
 Demo endpoint: https://bitcoinsapi.com/api/v1/x402-demo (free, shows 402 format)
+
+Priority: API-key authentication is checked first. If you have a valid
+API key, paid endpoints are included in your tier's rate limit (no x402
+payment needed for Pro/Enterprise). x402 is for keyless pay-per-call access.
 
 ## Rate limits
 

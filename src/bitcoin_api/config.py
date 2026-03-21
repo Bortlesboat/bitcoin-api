@@ -48,6 +48,7 @@ class Settings(BaseSettings):
             "supply_router": self.enable_supply_router,
             "stats_router": self.enable_stats_router,
             "psbt_router": self.enable_psbt_router,
+            "x402": self.enable_x402,
         }
 
     # Logging format ("text" or "json")

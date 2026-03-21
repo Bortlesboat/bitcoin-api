@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .config import settings
-from .db import get_db, close_db, prune_old_logs, prune_fee_history, log_x402_payment
+from .db import get_db, close_db, prune_old_logs, prune_fee_history, prune_x402_payments, log_x402_payment
 from .exceptions import register_exception_handlers
 from .jobs import start_background_jobs, stop_background_jobs
 from .middleware import register_middleware
@@ -34,6 +34,7 @@ async def lifespan(app: FastAPI):
     get_db()
     prune_old_logs()
     prune_fee_history()
+    prune_x402_payments()
     _init_api_key_gauge()
     init_redis()
     init_notifications()

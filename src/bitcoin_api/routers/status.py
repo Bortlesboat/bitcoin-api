@@ -105,7 +105,8 @@ def x402_info():
                 "2": "Sign a USDC payment on Base and resend with X-PAYMENT header",
                 "3": "Payment is verified and you get the response",
             },
-            "tryIt": "curl https://bitcoinsapi.com/api/v1/ai/explain-tx/test123",
+            "tryIt": "curl https://bitcoinsapi.com/api/v1/x402-demo",
+            "demo": "https://bitcoinsapi.com/api/v1/x402-demo",
             "docs": "https://x402.org/docs",
             "sdk": "https://github.com/coinbase/x402",
         }

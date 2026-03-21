@@ -11,7 +11,7 @@ TIMEOUT=10
 QUIET=false
 PASS_COUNT=0
 FAIL_COUNT=0
-TOTAL=5
+TOTAL=7
 
 [[ "${1:-}" == "--quiet" ]] && QUIET=true
 
@@ -31,9 +31,10 @@ check() {
     http_code=$(echo "$body" | tail -1)
     body=$(echo "$body" | sed '$d')
 
-    if [[ "$http_code" != "200" ]]; then
+    local expected="${5:-200}"
+    if [[ "$http_code" != "$expected" ]]; then
         FAIL_COUNT=$((FAIL_COUNT + 1))
-        echo "FAIL  $name — HTTP $http_code (expected 200)"
+        echo "FAIL  $name — HTTP $http_code (expected $expected)"
         return
     fi
 
@@ -57,6 +58,8 @@ check "fees"           "$BASE_URL/api/v1/fees/recommended"  '"recommendation"'
 check "docs"           "$BASE_URL/docs"                     "swagger"          true
 check "openapi.json"   "$BASE_URL/openapi.json"             '"openapi"'
 check "redoc"          "$BASE_URL/redoc"
+check "x402-demo"      "$BASE_URL/api/v1/x402-demo"   '"Payment Required"' false 402
+check "x402-info"      "$BASE_URL/api/v1/x402-info"    '"x402"'
 
 # Summary
 if [[ "$QUIET" == "false" ]] || [[ "$FAIL_COUNT" -gt 0 ]]; then

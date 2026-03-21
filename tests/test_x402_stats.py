@@ -10,6 +10,9 @@ def test_x402_stats_empty(client):
     assert data["total_paid"] == 0
     assert data["total_failed"] == 0
     assert data["total_revenue_usd"] == "0.00"
+    assert data["conversion_rate"] == 0.0
+    assert data["unique_payers"] == 0
+    assert data["daily_revenue"] == []
     assert data["top_endpoints"] == []
     assert data["recent_payments"] == []
 
@@ -30,6 +33,9 @@ def test_x402_log_and_stats():
     assert stats["total_paid"] == 1
     assert stats["total_failed"] == 1
     assert float(stats["total_revenue_usd"]) == 0.01
+    assert stats["conversion_rate"] == 33.3  # 1 paid / 3 challenged
+    assert stats["unique_payers"] == 1
+    assert len(stats["daily_revenue"]) >= 1
 
     # Top endpoints — explain-tx has more challenges so it should be first
     assert len(stats["top_endpoints"]) >= 1

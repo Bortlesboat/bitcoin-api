@@ -167,6 +167,17 @@ def _hash_ip(ip: str) -> str:
     return hashlib.sha256(ip.encode()).hexdigest()[:16]
 
 
+def prune_x402_payments(days: int = 180) -> int:
+    """Delete x402 payment records older than *days*."""
+    conn = get_db()
+    cursor = conn.execute(
+        "DELETE FROM x402_payments WHERE timestamp < datetime('now', ?)",
+        (f"-{days} days",),
+    )
+    conn.commit()
+    return cursor.rowcount
+
+
 def log_x402_payment(
     endpoint: str,
     price_usd: str,
@@ -230,11 +241,37 @@ def get_x402_stats() -> dict:
         "GROUP BY hour, payment_status ORDER BY hour"
     ).fetchall()
 
+    # Conversion rate (paid / challenged, handle div by zero)
+    total_challenges = totals.get("challenged", 0)
+    total_paid = totals.get("paid", 0)
+    conversion_rate = (total_paid / total_challenges * 100) if total_challenges > 0 else 0.0
+
+    # Daily revenue breakdown
+    daily_revenue_rows = conn.execute(
+        "SELECT date(timestamp) as day, "
+        "COALESCE(SUM(CAST(REPLACE(price_usd, '$', '') AS REAL)), 0) as revenue "
+        "FROM x402_payments WHERE payment_status = 'paid' "
+        "GROUP BY day ORDER BY day"
+    ).fetchall()
+
+    # Unique payers (distinct client_ip_hash where paid)
+    unique_row = conn.execute(
+        "SELECT COUNT(DISTINCT client_ip_hash) as cnt "
+        "FROM x402_payments WHERE payment_status = 'paid' AND client_ip_hash != ''"
+    ).fetchone()
+    unique_payers = unique_row["cnt"] if unique_row else 0
+
     return {
-        "total_challenges": totals.get("challenged", 0),
-        "total_paid": totals.get("paid", 0),
+        "total_challenges": total_challenges,
+        "total_paid": total_paid,
         "total_failed": totals.get("failed", 0),
         "total_revenue_usd": f"{total_revenue:.2f}",
+        "conversion_rate": round(conversion_rate, 1),
+        "unique_payers": unique_payers,
+        "daily_revenue": [
+            {"date": r["day"], "revenue_usd": f"{r['revenue']:.2f}"}
+            for r in daily_revenue_rows
+        ],
         "top_endpoints": [
             {"endpoint": r["endpoint"], "challenges": r["challenges"], "paid": r["paid"]}
             for r in top_endpoints

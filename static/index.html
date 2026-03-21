@@ -875,8 +875,9 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
           <li>AI analysis, tx broadcast</li>
           <li>Built for AI agents</li>
           <li>Standard HTTP 402 protocol</li>
+          <li>100+ endpoints remain free</li>
         </ul>
-        <a href="https://x402.org" class="btn-primary" style="display: block; padding: 12px; border-radius: var(--radius-sm); margin-top: 20px;" target="_blank" rel="noopener noreferrer" onclick="posthog.capture('pricing_viewed', {tier:'x402'})">Learn about x402</a>
+        <a href="/api/v1/x402-demo" class="btn-primary" style="display: block; padding: 12px; border-radius: var(--radius-sm); margin-top: 20px;" onclick="posthog.capture('pricing_viewed', {tier:'x402'})">Try the Demo</a>
       </div>
     </div>
     <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">Need higher hosted limits or a specific integration path? Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
@@ -893,8 +894,10 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
         <span style="color: var(--accent); font-weight: 600;">3.</span>
         <span>The payment is verified by a <a href="https://docs.cdp.coinbase.com/x402/welcome" target="_blank" rel="noopener noreferrer">facilitator</a> and you get the data</span>
       </div>
-      <pre style="margin-top: 20px; font-size: 0.85em; overflow-x: auto;"><code># Try it — this returns a 402 with payment requirements
-curl https://bitcoinsapi.com/api/v1/ai/explain-tx/test123</code></pre>
+      <pre style="margin-top: 20px; font-size: 0.85em; overflow-x: auto;"><code># Step 1: See the 402 challenge
+curl https://bitcoinsapi.com/api/v1/x402-demo
+# Step 2: Complete the flow
+curl -H 'X-PAYMENT: demo' https://bitcoinsapi.com/api/v1/x402-demo</code></pre>
       <p style="color: var(--muted); margin-top: 12px; font-size: 0.85em;">Payments settle on <a href="https://base.org" target="_blank" rel="noopener noreferrer">Base</a> (Coinbase L2). Compatible with any x402 client including <a href="https://github.com/coinbase/x402" target="_blank" rel="noopener noreferrer">the official SDK</a>.</p>
     </div>
   </div>

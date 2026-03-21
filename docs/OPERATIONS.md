@@ -77,10 +77,13 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 
 ### Available settings (from `.env.example`)
 - `BITCOIN_RPC_USER` / `BITCOIN_RPC_PASSWORD` -- RPC auth (alternative to cookie auth)
+- `RPC_TIMEOUT=10` -- RPC call timeout in seconds (fails fast into stale cache)
 - `RATE_LIMIT_ANONYMOUS=30` -- requests/min for anonymous users
 - `RATE_LIMIT_FREE=100` -- requests/min for free API key users
 - `RATE_LIMIT_PRO=500` -- requests/min for pro users
+- `RATE_LIMIT_EXEMPT_KEYS` -- comma-separated key hashes that bypass all rate limits (e.g. internal bots)
 - `ADMIN_API_KEY` -- key for admin analytics endpoints
+- `ADMIN_NOTIFICATION_EMAIL` -- receives alerts on new API key registrations
 - `ENABLE_PRICES_ROUTER=true` -- toggle CoinGecko price endpoint
 - `ENABLE_ADDRESS_ROUTER=true` -- toggle address lookup endpoints
 - `ENABLE_EXCHANGE_COMPARE=true` -- toggle exchange comparison endpoint
@@ -135,6 +138,29 @@ Requires the Fee Observatory to be collecting data (`bitcoin-fee-observatory` re
 - `GET /api/v1/fees/observatory/estimates` — multi-source fee estimate time series
 
 **Dashboard:** `GET /fee-observatory` — branded page with iframe to Streamlit dashboard (port 8505).
+
+### x402 Stablecoin Micropayments (optional)
+
+Enables pay-per-call via the x402 protocol (USDC on Base). Requires the `bitcoin-api-x402` package.
+
+```ini
+ENABLE_X402=true                          # default: false
+X402_PAY_TO_ADDRESS=0xYourEVMWallet...    # EVM wallet address for USDC receipts
+```
+
+**Enable:** Set both env vars in `.env` and restart. Install the extension: `pip install -e ../bitcoin-api-x402`.
+
+**Disable:** Set `ENABLE_X402=false` (or remove it) and restart. All paid endpoints revert to free.
+
+**Dashboard:** Visit `/x402` for live payment analytics (challenges, payments, revenue, conversion rate).
+
+**Endpoints:**
+- `GET /api/v1/x402-info` -- payment info and paid endpoint listing
+- `GET /api/v1/x402-demo` -- sandbox endpoint to test the 402 flow (no real payment)
+- `GET /api/v1/x402-stats` -- aggregated payment analytics (JSON)
+- `GET /x402` -- visual analytics dashboard
+
+**Data retention:** x402 payment records auto-pruned after 180 days at startup.
 
 ### Stripe Billing (optional)
 ```ini

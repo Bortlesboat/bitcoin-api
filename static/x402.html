@@ -6,10 +6,7 @@
 <title>x402 Payment Analytics - Satoshi API</title>
 <meta name="description" content="Live x402 stablecoin micropayment analytics for Satoshi API.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="/static/js/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #000000;
@@ -34,10 +31,10 @@
     --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; -webkit-font-smoothing: antialiased; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; -webkit-font-smoothing: antialiased; }
   a { color: var(--accent); text-decoration: none; transition: color 0.2s var(--ease-out); }
   a:hover { color: var(--accent-hover); }
-  code { font-family: 'JetBrains Mono', monospace; background: var(--surface); padding: 2px 8px; border-radius: 6px; font-size: 0.875em; }
+  code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; background: var(--surface); padding: 2px 8px; border-radius: 6px; font-size: 0.875em; }
 
   nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(0,0,0,0.72); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); z-index: 10; }
   nav .logo { font-weight: 800; font-size: 0.85em; color: var(--text); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -123,6 +120,9 @@
   </noscript>
 
   <div id="dashboard" style="display:none;">
+    <div id="empty-state-note" style="display:none; text-align:center; padding:24px; margin-bottom:24px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--muted);">
+      <p style="margin-bottom:8px;">x402 payments just launched. Try the <a href="/api/v1/x402-demo">demo endpoint</a> to see the flow.</p>
+    </div>
     <div class="stats-grid">
       <div class="stat-card">
         <div class="label">Total Challenges</div>
@@ -211,6 +211,8 @@
 (function() {
   let chart = null;
 
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
   function formatTime(ts) {
     if (!ts) return '--';
     const d = new Date(ts + (ts.endsWith('Z') ? '' : 'Z'));
@@ -219,7 +221,7 @@
 
   function badgeFor(status) {
     const cls = { challenged: 'badge-challenged', paid: 'badge-paid', failed: 'badge-failed' };
-    return '<span class="badge ' + (cls[status] || '') + '">' + status + '</span>';
+    return '<span class="badge ' + (cls[status] || '') + '">' + esc(status) + '</span>';
   }
 
   function convRate(challenges, paid) {
@@ -229,6 +231,15 @@
 
   function updateDashboard(data) {
     document.getElementById('dashboard').style.display = '';
+
+    // Empty-state context
+    if (data.total_challenges === 0 && data.total_paid === 0 && data.total_failed === 0) {
+      var emptyNote = document.getElementById('empty-state-note');
+      if (emptyNote) emptyNote.style.display = '';
+    } else {
+      var emptyNote = document.getElementById('empty-state-note');
+      if (emptyNote) emptyNote.style.display = 'none';
+    }
 
     // Summary
     document.getElementById('total-challenges').textContent = data.total_challenges.toLocaleString();
@@ -248,7 +259,7 @@
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--dim);">No data yet</td></tr>';
     } else {
       tbody.innerHTML = data.top_endpoints.map(function(e) {
-        return '<tr><td><code>' + e.endpoint + '</code></td><td>' + e.challenges + '</td><td>' + e.paid + '</td><td>' + convRate(e.challenges, e.paid) + '</td></tr>';
+        return '<tr><td><code>' + esc(e.endpoint) + '</code></td><td>' + e.challenges + '</td><td>' + e.paid + '</td><td>' + convRate(e.challenges, e.paid) + '</td></tr>';
       }).join('');
     }
 
@@ -258,7 +269,7 @@
       recent.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--dim);">No payments yet</td></tr>';
     } else {
       recent.innerHTML = data.recent_payments.map(function(p) {
-        return '<tr><td>' + formatTime(p.timestamp) + '</td><td><code>' + p.endpoint + '</code></td><td>' + badgeFor(p.status) + '</td><td>' + p.price + '</td></tr>';
+        return '<tr><td>' + esc(formatTime(p.timestamp)) + '</td><td><code>' + esc(p.endpoint) + '</code></td><td>' + badgeFor(p.status) + '</td><td>' + esc(p.price) + '</td></tr>';
       }).join('');
     }
 

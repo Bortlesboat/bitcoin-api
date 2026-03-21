@@ -48,7 +48,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 }
 </style>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Privacy Policy","item":"https://bitcoinsapi.com/privacy"}]},{"@type":"WebPage","@id":"https://bitcoinsapi.com/privacy","name":"Privacy Policy — Satoshi API","description":"Privacy Policy for the Satoshi API hosted service at bitcoinsapi.com.","url":"https://bitcoinsapi.com/privacy","isPartOf":{"@id":"https://bitcoinsapi.com/#website"},"about":{"@id":"https://bitcoinsapi.com/#organization"},"dateModified":"2026-03-08"}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Privacy Policy","item":"https://bitcoinsapi.com/privacy"}]},{"@type":"WebPage","@id":"https://bitcoinsapi.com/privacy","name":"Privacy Policy — Satoshi API","description":"Privacy Policy for the Satoshi API hosted service at bitcoinsapi.com.","url":"https://bitcoinsapi.com/privacy","isPartOf":{"@id":"https://bitcoinsapi.com/#website"},"about":{"@id":"https://bitcoinsapi.com/#organization"},"dateModified":"2026-03-21"}]}
 </script>
 <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording stopSessionRecording sessionRecordingStarted loadToolbar get_property getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSurvey getSurveyResponse overrideFeatureFlag".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -78,7 +78,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 </nav>
 <div class="container">
 <h1>Privacy Policy</h1>
-<p class="meta">Last updated: March 14, 2026</p>
+<p class="meta">Last updated: March 21, 2026</p>
 
 <p>This Privacy Policy describes how the Satoshi API hosted service at bitcoinsapi.com ("Service") collects, uses, and protects your information. The Service is operated by Satoshi API ("Operator", "we", "us").</p>
 
@@ -105,6 +105,7 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <tr><td>UTM attribution (server-side)</td><td>API key registration</td><td>utm_source, utm_medium, utm_campaign, utm_term, utm_content, first_referrer — captured from browser at registration, stored permanently in your account record for marketing attribution</td><td>Until key deletion</td></tr>
 <tr><td>UTM attribution (localStorage)</td><td>Landing page visit</td><td>First-touch and last-touch marketing attribution temporarily stored in your browser's localStorage; read and sent to our servers at registration</td><td>Until browser storage is cleared (browser-side)</td></tr>
 <tr><td>API key (localStorage)</td><td>History Explorer pages</td><td>Stored in your browser's localStorage for convenience; never sent to our servers automatically</td><td>Until browser storage is cleared</td></tr>
+<tr><td>x402 payment data</td><td>Pay-per-call requests to premium endpoints</td><td>Endpoint path, payment amount (USD), payment status (challenged/paid/failed), hashed IP address (SHA-256, truncated), payment identifier (truncated hash), user agent string (truncated to 256 chars) — used for payment verification, analytics, and fraud prevention</td><td>180 days, then automatically deleted</td></tr>
 </tbody>
 </table>
 
@@ -116,6 +117,8 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <li>We do not collect personal information beyond email (for key registration) and IP addresses (for rate limiting).</li>
 <li>We do not store your API key in plaintext. Only the SHA-256 hash is stored.</li>
 <li>We do not log the content of your API requests or responses (e.g., transaction hex data you broadcast is not stored).</li>
+<li>For x402 payments, raw IP addresses are never stored — only a one-way SHA-256 hash (truncated) is retained for analytics and fraud prevention.</li>
+<li>Payment identifiers stored for x402 transactions are derived hashes, not the actual on-chain transaction data or wallet addresses.</li>
 <li>We do not sell, rent, or share your data with third parties, except as necessary for payment processing (see Section 3).</li>
 </ul>
 
@@ -127,6 +130,8 @@ footer { border-top: 1px solid var(--border); padding: 24px; text-align: center;
 <li><strong>Coinbase:</strong> Fallback price data source (api.coinbase.com). Used server-side when the primary provider is unavailable. No user data is sent to Coinbase.</li>
 <li><strong>Kraken:</strong> Fallback price data source (api.kraken.com). Used server-side when other providers are unavailable. No user data is sent to Kraken.</li>
 <li><strong>Stripe, Inc.:</strong> Payment processing for Pro tier subscriptions. When you subscribe to a paid plan, we share your email address, payment method details, and billing address with Stripe to process payments. We do not store your full payment card number. Stripe's handling of your data is governed by the <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>.</li>
+<li><strong>Coinbase (x402 facilitator):</strong> Verifies pay-per-call USDC payments on the Base network. Payment verification requests include the payment payload and endpoint details. No user email or API key is shared with Coinbase for x402 transactions. See <a href="https://www.coinbase.com/legal/privacy" target="_blank" rel="noopener noreferrer">Coinbase's privacy policy</a>.</li>
+<li><strong>Base network:</strong> An Ethereum Layer 2 network used for on-chain USDC payment settlement. Transactions on Base are public and immutable. We do not control the Base network or its data retention.</li>
 <li><strong>Resend:</strong> Processes email addresses to deliver transactional emails (welcome email with API key, usage alerts). Data retained per <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Resend's privacy policy</a>.</li>
 <li><strong>Upstash:</strong> Processes IP addresses as ephemeral rate limit keys. Data automatically expires within 60 seconds via TTL. See <a href="https://upstash.com/trust/privacy.html" target="_blank" rel="noopener noreferrer">Upstash's privacy policy</a>.</li>
 <li><strong>PostHog:</strong> Receives anonymous page view events and CTA click events from our landing page. IP anonymization is enabled. No autocapture, no session recording. Registration events use hashed email (not raw PII). See <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">PostHog's privacy policy</a>.</li>
