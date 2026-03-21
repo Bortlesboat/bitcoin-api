@@ -158,12 +158,21 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | GET | /guide | API guide with categories and use cases |
 | GET | /guide/categories | All endpoint categories |
 
+### Fee Observatory (x402 paid - $0.005)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /fees/observatory/scoreboard | Per-source accuracy ranking |
+| GET | /fees/observatory/block-stats | Per-block fee statistics |
+| GET | /fees/observatory/estimates | Multi-source fee estimate time series |
+
 ### Status
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /health | API health check |
 | GET | /health/deep | Deep health check (node + DB) |
 | GET | /status | Service status and version |
+| GET | /x402-info | x402 payment information and pricing |
+| GET | /x402-demo | x402 demo (returns sample 402 format) |
 
 ### JSON-RPC Proxy
 | Method | Path | Description |
@@ -310,7 +319,31 @@ Response:
 3. When congestion drops from "high" to "moderate", alert the user
 4. `GET /fees/recommended` — provide updated fee recommendation
 
-## Pricing
+## Paid Endpoints (x402 micropayments)
+
+Most endpoints are free. A few premium endpoints use the x402 protocol
+for per-request micropayments in USDC on Base:
+
+| Endpoint | Price | Why paid |
+|----------|-------|----------|
+| /api/v1/ai/* | $0.01 | LLM inference costs |
+| /api/v1/broadcast | $0.01 | Transaction relay resources |
+| /api/v1/mining/nextblock | $0.01 | Heavy computation |
+| /api/v1/fees/observatory/* | $0.005 | Multi-source analytics DB |
+| /api/v1/fees/landscape | $0.005 | Rich mempool computation |
+
+### How x402 works
+1. Request a paid endpoint without payment -> get HTTP 402 with `paymentRequirements`
+2. Sign a USDC payment on Base using the details in the 402 response
+3. Resend the request with the `X-PAYMENT` header containing the signed payment
+4. Payment is verified by the x402 facilitator and you get the response
+
+**Payment info endpoint:** GET /api/v1/x402-info
+**Demo/sandbox:** GET /api/v1/x402-demo (free — returns a sample 402 so you can test your client)
+**Protocol spec:** https://x402.org
+**SDK:** https://github.com/coinbase/x402
+
+## Pricing (subscription tiers)
 
 - **Free:** 0/mo — 100 req/min, 10K/day, all endpoints
 - **Pro:** $19/mo — 500 req/min, 100K/day, extended block history

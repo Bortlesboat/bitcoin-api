@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .config import settings
-from .db import get_db, close_db, prune_old_logs, prune_fee_history
+from .db import get_db, close_db, prune_old_logs, prune_fee_history, log_x402_payment
 from .exceptions import register_exception_handlers
 from .jobs import start_background_jobs, stop_background_jobs
 from .middleware import register_middleware
@@ -136,8 +136,9 @@ register_exception_handlers(app)
 # --- x402 stablecoin micropayments (optional extension, off by default) ---
 if settings.enable_x402:
     try:
-        from bitcoin_api_x402 import enable_x402
+        from bitcoin_api_x402 import enable_x402, set_payment_logger
         enable_x402(app, pay_to=settings.x402_pay_to_address)
+        set_payment_logger(log_x402_payment)
         log.info("x402 stablecoin payments enabled (pay_to=%s)", settings.x402_pay_to_address[:10] + "..." if settings.x402_pay_to_address else "NOT SET")
     except ImportError:
         log.warning("ENABLE_X402=true but bitcoin-api-x402 not installed — run: pip install -e ../bitcoin-api-x402")
@@ -160,6 +161,9 @@ app.include_router(rpc_proxy.router, prefix=PREFIX)
 
 from .routers.analytics import router as _analytics_router  # noqa: E402
 app.include_router(_analytics_router, prefix=PREFIX)
+
+from .routers.x402_stats import router as _x402_stats_router  # noqa: E402
+app.include_router(_x402_stats_router, prefix=PREFIX)
 
 # Prometheus metrics (no prefix — served at /metrics)
 app.include_router(metrics_router.router)

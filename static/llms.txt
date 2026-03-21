@@ -92,13 +92,46 @@ https://bitcoinsapi.com
 - Bitcoin API for trading bots: https://bitcoinsapi.com/bitcoin-api-for-trading-bots
 - How to reduce Bitcoin transaction fees: https://bitcoinsapi.com/how-to-reduce-bitcoin-transaction-fees
 
-## Available endpoints
+## Free Endpoints (no payment needed)
 
-Fee intelligence (recommendations, landscape, history, alerts),
-mempool analysis (congestion, fee buckets), blocks, transactions,
-mining stats, UTXO lookups, network info, supply tracking,
-address lookups, real-time streaming (SSE + WebSocket),
-self-serve key registration.
+- /api/v1/health - Node health check
+- /api/v1/fees - Fee estimates and recommendations
+- /api/v1/fees/recommended - Smart fee recommendation
+- /api/v1/fees/landscape - Full fee landscape with percentiles
+- /api/v1/fees/history - Historical fee data
+- /api/v1/fees/plan - Optimal send timing
+- /api/v1/fees/savings - Savings from waiting
+- /api/v1/blocks/latest - Latest block info
+- /api/v1/blocks/{height_or_hash} - Block by height or hash
+- /api/v1/tx/{txid} - Transaction details
+- /api/v1/mempool - Mempool analysis
+- /api/v1/mining - Mining summary
+- /api/v1/mining/pools - Mining pool distribution
+- /api/v1/network - Network info
+- /api/v1/supply - Circulating supply and halving info
+- /api/v1/prices - BTC/USD price
+- /api/v1/stream/blocks - Real-time block notifications (SSE)
+- /api/v1/stream/fees - Real-time fee changes (SSE)
+- ... and 100+ more (see /llms-full.txt for complete list)
+
+## Paid Endpoints (x402 - USDC on Base)
+
+- /api/v1/ai/* - AI-powered analysis ($0.01)
+- /api/v1/broadcast - Transaction broadcast ($0.01)
+- /api/v1/mining/nextblock - Next block prediction ($0.01)
+- /api/v1/fees/observatory/* - Fee observatory analytics ($0.005)
+- /api/v1/fees/landscape - Full fee landscape ($0.005)
+
+## Payment (x402 protocol)
+
+Uses the x402 protocol (https://x402.org). Flow:
+1. Request a paid endpoint without payment
+2. Get a 402 response with payment requirements
+3. Sign a USDC payment on Base and resend with X-PAYMENT header
+4. Payment is verified and you get the response
+
+Payment info: https://bitcoinsapi.com/api/v1/x402-info
+Demo endpoint: https://bitcoinsapi.com/api/v1/x402-demo (free, shows 402 format)
 
 ## Rate limits
 

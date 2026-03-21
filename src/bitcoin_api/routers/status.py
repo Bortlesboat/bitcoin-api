@@ -1,6 +1,7 @@
-"""Status endpoints: /health, /status, /network."""
+"""Status endpoints: /health, /status, /network, /x402-demo."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header, Request
+from fastapi.responses import JSONResponse
 
 from bitcoinlib_rpc import BitcoinRPC
 
@@ -115,3 +116,70 @@ def x402_info():
         }
 
 
+@router.get("/x402-demo")
+def x402_demo(x_payment: str | None = Header(None)):
+    """x402 demo/sandbox endpoint. Returns a sample 402 response so developers can test their x402 client integration.
+
+    - Without X-PAYMENT header: returns 402 with sample payment requirements
+    - With X-PAYMENT header (any value): returns 200 with success message
+
+    This is NOT a real payment — no funds are transferred. Use this to
+    understand the x402 flow before hitting real paid endpoints.
+    """
+    if x_payment:
+        # Simulate successful payment flow
+        return {
+            "data": {
+                "message": "x402 demo: payment accepted!",
+                "flow": "complete",
+                "explanation": (
+                    "In a real request, this is where you'd get the actual endpoint response. "
+                    "Your X-PAYMENT header was received and would be verified by the x402 facilitator. "
+                    "You're ready to call real paid endpoints like /api/v1/ai/explain-tx/{txid}."
+                ),
+                "next_steps": [
+                    "Try a real paid endpoint: GET /api/v1/mining/nextblock",
+                    "See all paid endpoints: GET /api/v1/x402-info",
+                    "Read the spec: https://x402.org",
+                ],
+            },
+            "meta": {"demo": True, "x402_flow": "payment_accepted"},
+        }
+
+    # No payment header — return 402 with sample requirements
+    return JSONResponse(
+        status_code=402,
+        content={
+            "error": "Payment Required",
+            "x402_demo": True,
+            "message": (
+                "This is a DEMO 402 response. In production, paid endpoints return this format. "
+                "To complete the demo flow, resend this request with any value in the X-PAYMENT header."
+            ),
+            "paymentRequirements": {
+                "scheme": "exact",
+                "network": "eip155:8453",
+                "maxAmountRequired": "0",
+                "resource": "https://bitcoinsapi.com/api/v1/x402-demo",
+                "description": "x402 demo — no real payment needed",
+                "mimeType": "application/json",
+                "payTo": "0x0000000000000000000000000000000000000000",
+                "maxTimeoutSeconds": 300,
+                "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "extra": {
+                    "name": "USDC",
+                    "chain": "Base",
+                    "note": "This is a demo. No real payment is required.",
+                },
+            },
+            "how_to_pay": {
+                "1": "Parse the paymentRequirements from this 402 response",
+                "2": "Sign a USDC payment on Base for the maxAmountRequired",
+                "3": "Resend the original request with the X-PAYMENT header containing the signed payment",
+                "4": "The facilitator verifies the payment and proxies your request",
+            },
+            "try_it": "curl -H 'X-PAYMENT: demo-token' https://bitcoinsapi.com/api/v1/x402-demo",
+            "docs": "https://x402.org/docs",
+            "sdk": "https://github.com/coinbase/x402",
+        },
+    )

@@ -1,5 +1,6 @@
 """SQLite database for API keys and usage tracking."""
 
+import hashlib
 import sqlite3
 import threading
 from pathlib import Path
@@ -157,5 +158,106 @@ def lookup_key(key_hash: str) -> dict | None:
     if row is None:
         return None
     return dict(row)
+
+
+def _hash_ip(ip: str) -> str:
+    """Hash an IP address for privacy-safe storage."""
+    if not ip:
+        return ""
+    return hashlib.sha256(ip.encode()).hexdigest()[:16]
+
+
+def log_x402_payment(
+    endpoint: str,
+    price_usd: str,
+    status: str,
+    client_ip: str = "",
+    payment_id: str = "",
+    user_agent: str = "",
+) -> None:
+    """Log an x402 payment event to the database."""
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO x402_payments (endpoint, price_usd, payment_status, client_ip_hash, payment_id, user_agent) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        (endpoint, price_usd, status, _hash_ip(client_ip), payment_id, (user_agent or "")[:256]),
+    )
+    conn.commit()
+
+
+def get_x402_stats() -> dict:
+    """Return aggregated x402 payment statistics."""
+    conn = get_db()
+
+    # Totals by status
+    rows = conn.execute(
+        "SELECT payment_status, COUNT(*) as cnt FROM x402_payments GROUP BY payment_status"
+    ).fetchall()
+    totals = {row["payment_status"]: row["cnt"] for row in rows}
+
+    # Total revenue (sum of price_usd for paid transactions)
+    rev_row = conn.execute(
+        "SELECT COALESCE(SUM(CAST(REPLACE(price_usd, '$', '') AS REAL)), 0) as total "
+        "FROM x402_payments WHERE payment_status = 'paid'"
+    ).fetchone()
+    total_revenue = rev_row["total"] if rev_row else 0.0
+
+    # Top endpoints
+    top_endpoints = conn.execute(
+        "SELECT endpoint, "
+        "SUM(CASE WHEN payment_status = 'challenged' THEN 1 ELSE 0 END) as challenges, "
+        "SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid "
+        "FROM x402_payments GROUP BY endpoint ORDER BY challenges DESC LIMIT 10"
+    ).fetchall()
+
+    # Recent payments (last 20, no client IP)
+    recent = conn.execute(
+        "SELECT timestamp, endpoint, payment_status, price_usd, payment_id "
+        "FROM x402_payments ORDER BY timestamp DESC LIMIT 20"
+    ).fetchall()
+
+    # Last 24 hours
+    last_24h_rows = conn.execute(
+        "SELECT payment_status, COUNT(*) as cnt FROM x402_payments "
+        "WHERE timestamp >= datetime('now', '-1 day') GROUP BY payment_status"
+    ).fetchall()
+    last_24h = {row["payment_status"]: row["cnt"] for row in last_24h_rows}
+
+    # Hourly breakdown for charting (last 7 days)
+    hourly = conn.execute(
+        "SELECT strftime('%Y-%m-%dT%H:00:00Z', timestamp) as hour, payment_status, COUNT(*) as cnt "
+        "FROM x402_payments WHERE timestamp >= datetime('now', '-7 days') "
+        "GROUP BY hour, payment_status ORDER BY hour"
+    ).fetchall()
+
+    return {
+        "total_challenges": totals.get("challenged", 0),
+        "total_paid": totals.get("paid", 0),
+        "total_failed": totals.get("failed", 0),
+        "total_revenue_usd": f"{total_revenue:.2f}",
+        "top_endpoints": [
+            {"endpoint": r["endpoint"], "challenges": r["challenges"], "paid": r["paid"]}
+            for r in top_endpoints
+        ],
+        "recent_payments": [
+            {
+                "timestamp": r["timestamp"],
+                "endpoint": r["endpoint"],
+                "status": r["payment_status"],
+                "price": r["price_usd"],
+                "payment_id": r["payment_id"] or "",
+            }
+            for r in recent
+        ],
+        "last_24h": {
+            "challenges": last_24h.get("challenged", 0),
+            "paid": last_24h.get("paid", 0),
+            "failed": last_24h.get("failed", 0),
+        },
+        "hourly": [
+            {"hour": r["hour"], "status": r["payment_status"], "count": r["cnt"]}
+            for r in hourly
+        ],
+    }
 
 
