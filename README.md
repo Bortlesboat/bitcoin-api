@@ -119,6 +119,12 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for the 12-month development plan — ind
 
 Satoshi API is free, open-source Bitcoin infrastructure. If you find it useful, consider supporting development through [OpenSats](https://opensats.org).
 
+## Related Projects
+
+- [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) — MCP server with 49 Bitcoin tools for AI agents
+- [ChainPulse](https://github.com/Bortlesboat/chainpulse) — AI-powered Bitcoin network intelligence CLI
+- [BAIP-1](https://github.com/Bortlesboat/baip-python) — Bitcoin Agent Identity Protocol
+
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
