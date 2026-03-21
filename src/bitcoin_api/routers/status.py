@@ -75,3 +75,44 @@ def status(rpc: BitcoinRPC = Depends(get_rpc)):
     return rpc_envelope(node.model_dump(), rpc)
 
 
+@router.get("/x402-info")
+def x402_info():
+    """x402 payment information. Shows which endpoints accept micropayments and how to pay."""
+    try:
+        from bitcoin_api_x402.pricing import ENDPOINT_PRICES
+        from bitcoin_api_x402.config import load_config
+        cfg = load_config()
+        endpoints = [
+            {
+                "pattern": ep.pattern,
+                "price_usd": ep.price_usd,
+                "description": ep.description,
+            }
+            for ep in ENDPOINT_PRICES
+        ]
+        return {
+            "x402": True,
+            "protocol": "https://x402.org",
+            "version": 1,
+            "scheme": cfg.scheme,
+            "network": cfg.network,
+            "payTo": cfg.pay_to_address,
+            "facilitatorUrl": cfg.facilitator_url,
+            "paidEndpoints": endpoints,
+            "freeEndpoints": "All endpoints not listed above are free -- no payment required.",
+            "howItWorks": {
+                "1": "Request a paid endpoint without payment -> get 402 with paymentRequirements",
+                "2": "Sign a USDC payment on Base and resend with X-PAYMENT header",
+                "3": "Payment is verified and you get the response",
+            },
+            "tryIt": "curl https://bitcoinsapi.com/api/v1/ai/explain-tx/test123",
+            "docs": "https://x402.org/docs",
+            "sdk": "https://github.com/coinbase/x402",
+        }
+    except ImportError:
+        return {
+            "x402": False,
+            "message": "x402 payments are not enabled on this instance.",
+        }
+
+
