@@ -880,6 +880,23 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
       </div>
     </div>
     <p style="color: var(--muted); text-align: center; margin-top: 24px; font-size: 0.9em;">Need higher hosted limits or a specific integration path? Contact <a href="mailto:api@bitcoinsapi.com">api@bitcoinsapi.com</a>.</p>
+
+    <!-- x402 explainer -->
+    <div style="margin-top: 48px; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; background: rgba(0,0,0,0.3);">
+      <h3 style="margin-bottom: 16px;">How x402 pay-per-call works</h3>
+      <p style="color: var(--muted); margin-bottom: 20px;"><a href="https://x402.org" target="_blank" rel="noopener noreferrer">x402</a> is an open payment standard built on HTTP 402 by Coinbase and Cloudflare. It lets any client &mdash; human or AI agent &mdash; pay for an API call with stablecoins, no account required.</p>
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px 16px; align-items: start; font-size: 0.95em;">
+        <span style="color: var(--accent); font-weight: 600;">1.</span>
+        <span>Request a premium endpoint &mdash; you get back <code>402 Payment Required</code> with the price and wallet address</span>
+        <span style="color: var(--accent); font-weight: 600;">2.</span>
+        <span>Your client signs a USDC payment on Base and resends the request with an <code>X-PAYMENT</code> header</span>
+        <span style="color: var(--accent); font-weight: 600;">3.</span>
+        <span>The payment is verified by a <a href="https://docs.cdp.coinbase.com/x402/welcome" target="_blank" rel="noopener noreferrer">facilitator</a> and you get the data</span>
+      </div>
+      <pre style="margin-top: 20px; font-size: 0.85em; overflow-x: auto;"><code># Try it — this returns a 402 with payment requirements
+curl https://bitcoinsapi.com/api/v1/ai/explain-tx/test123</code></pre>
+      <p style="color: var(--muted); margin-top: 12px; font-size: 0.85em;">Payments settle on <a href="https://base.org" target="_blank" rel="noopener noreferrer">Base</a> (Coinbase L2). Compatible with any x402 client including <a href="https://github.com/coinbase/x402" target="_blank" rel="noopener noreferrer">the official SDK</a>.</p>
+    </div>
   </div>
 </section>
 
@@ -898,6 +915,7 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
         <tr><td>Setup time</td><td style="color: var(--green);">Minutes, not hours</td><td>Already there</td><td>Sign up + API key</td></tr>
         <tr><td>Self-hosted</td><td style="color: var(--green);">Yes</td><td>Yes</td><td>No</td></tr>
         <tr><td>Privacy</td><td style="color: var(--green);">Your node, your data</td><td style="color: var(--green);">Your node</td><td>They see your queries</td></tr>
+        <tr><td>Pay-per-call (x402)</td><td style="color: var(--green);">Yes, USDC on Base</td><td>No</td><td>No</td></tr>
         <tr><td>Caching</td><td style="color: var(--green);">Reorg-aware TTL</td><td>None</td><td>Varies</td></tr>
         <tr><td>Rate limiting</td><td style="color: var(--green);">Built-in, tiered</td><td>None</td><td>Yes (their limits)</td></tr>
         <tr><td>Input validation</td><td style="color: var(--green);">Before RPC call</td><td>None</td><td>Yes</td></tr>
