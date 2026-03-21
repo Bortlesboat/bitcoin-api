@@ -45,6 +45,11 @@ def _serve_404():
 def register_static_routes(app: FastAPI):
     """Register landing page, robots.txt, sitemap, healthz, and static decision pages."""
 
+    from starlette.staticfiles import StaticFiles
+    _js_dir = _STATIC_DIR / "js"
+    if _js_dir.is_dir():
+        app.mount("/static/js", StaticFiles(directory=str(_js_dir)), name="static-js")
+
     @app.get("/", include_in_schema=False)
     def root():
         return _render_html(_LANDING_PAGE) or _serve_404()
