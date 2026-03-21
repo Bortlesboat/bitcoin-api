@@ -80,8 +80,7 @@ def x402_info():
     """x402 payment information. Shows which endpoints accept micropayments and how to pay."""
     try:
         from bitcoin_api_x402.pricing import ENDPOINT_PRICES
-        from bitcoin_api_x402.config import load_config
-        cfg = load_config()
+        from ..config import settings as _settings
         endpoints = [
             {
                 "pattern": ep.pattern,
@@ -91,13 +90,13 @@ def x402_info():
             for ep in ENDPOINT_PRICES
         ]
         return {
-            "x402": True,
+            "x402": _settings.enable_x402,
             "protocol": "https://x402.org",
             "version": 1,
-            "scheme": cfg.scheme,
-            "network": cfg.network,
-            "payTo": cfg.pay_to_address,
-            "facilitatorUrl": cfg.facilitator_url,
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "payTo": _settings.x402_pay_to_address,
+            "facilitatorUrl": "https://x402.org/facilitator",
             "paidEndpoints": endpoints,
             "freeEndpoints": "All endpoints not listed above are free -- no payment required.",
             "howItWorks": {
