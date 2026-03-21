@@ -653,6 +653,7 @@ bash scripts/backup-db.sh
 |------|-----------|-----------|
 | Usage logs | 90 days | Auto-pruned by background job |
 | Fee history | 30 days | Auto-pruned by background job |
+| x402 payment records | 180 days | Auto-pruned at startup |
 | DB backups | Last 7 | Auto-pruned by backup script |
 | Watchdog log | ~5,000 lines | Auto-trimmed by watchdog |
 | API log | ~25,000 lines | Auto-trimmed by watchdog |

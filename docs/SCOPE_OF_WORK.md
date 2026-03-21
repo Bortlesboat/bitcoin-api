@@ -13,7 +13,7 @@
 
 **Target users:** Anyone sending Bitcoin who wants to stop overpaying fees. Developers building wallets/payment apps. AI agents that need to check fees and verify payments autonomously.
 
-**Value proposition:** Fee intelligence that saves money (send now vs wait), payment monitoring that saves time (stop watching block explorers), and AI agent integration that saves developer effort (MCP support on Anthropic Registry). One `pip install`, self-hostable, open source.
+**Value proposition:** Fee intelligence that saves money (send now vs wait), payment monitoring that saves time (stop watching block explorers), and AI agent integration that saves developer effort (MCP support on Anthropic Registry). Pay-per-call via x402 protocol (USDC on Base) available for premium endpoints. One `pip install`, self-hostable, open source.
 
 ---
 
@@ -34,6 +34,7 @@ Satoshi API (FastAPI, port 9332)
     |-- Optional: Upstash Redis (persistent rate limit state)
     |-- Optional: Resend (transactional email on registration)
     |-- Optional: PostHog (landing page + registration analytics)
+    |-- Optional: x402 middleware (USDC micropayments via bitcoin-api-x402)
     |-- TTL cache (reorg-safe, per-cache locks)
     |-- Structured access logging
     |
@@ -62,7 +63,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
 | `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
-| `routers/` | 23 thin HTTP routers — parameter validation, auth, response envelope | RESTful resource routing |
+| `routers/` | 28 thin HTTP routers (25 core + 3 indexer) — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
 
@@ -76,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~121 total: 84 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 13 content pages + 4 indexer)
+### 3.1 Endpoints (~124 total: 84 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 13 content pages + 4 indexer + 3 x402)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -199,6 +200,11 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/alerts/tx/watch/{txid}` | POST | Yes (free+) |
 | | `/api/v1/alerts/tx` | GET | Yes (free+) |
 | | `/api/v1/alerts/tx/{watch_id}` | DELETE | Yes (free+) |
+| **x402** | `/api/v1/x402-info` | GET | No |
+| | `/api/v1/x402-demo` | GET | No |
+| | `/api/v1/x402-stats` | GET | No |
+
+> **x402 pay-per-call:** 5 endpoints are gated behind x402 micropayments (USDC on Base) when `ENABLE_X402=true`: `/api/v1/ai/*` ($0.01), `/api/v1/broadcast` ($0.01), `/api/v1/mining/nextblock` ($0.01), `/api/v1/fees/observatory/*` ($0.005), `/api/v1/fees/landscape` ($0.005). API-key holders on Pro/Enterprise tiers bypass x402 payment. See the `bitcoin-api-x402` extension package.
 
 ### 3.2 Endpoint Tiers
 
@@ -216,6 +222,7 @@ Endpoints are grouped into Core (always on) and Extended (toggleable via feature
 | **Alerts** | alerts (fee alerts, tx watches) | Always enabled (requires API key) |
 | **Indexer** | indexed address, indexed tx, indexer status | `ENABLE_INDEXER` (default: false) |
 | **Content** | history | `enable_history_explorer` (default: true) |
+| **x402** | x402_stats, x402-info, x402-demo | `ENABLE_X402` (default: false) |
 
 All flags default to `true` so tests pass unchanged and Swagger `/docs` shows everything. Production `.env` controls what's actually exposed.
 
@@ -465,7 +472,8 @@ Errors follow the same structure:
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
-| **Total** | **~111 endpoints (88 core + 7 history API + 13 content pages + 4 indexer), 25 core routers (+ 3 indexer = 28 when enabled)** | **583 unit + 21 e2e** |
+| 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning. | 6 |
+| **Total** | **~114 endpoints (88 core + 3 x402 + 7 history API + 13 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **589 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -474,7 +482,8 @@ Errors follow the same structure:
 - `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
 - `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (Binance/CoinGecko/Coinbase/Kraken fallback, 10s TTL)
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, observatory, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
-- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql, 009_add_registration_source.sql, 010_add_signup_attribution.sql
+- `src/bitcoin_api/routers/x402_stats.py` -- x402 payment analytics endpoint
+- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql, 009_add_registration_source.sql, 010_add_signup_attribution.sql, 011_add_x402_payments.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
 - `src/bitcoin_api/indexer/services/` -- address, transaction
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
@@ -506,6 +515,7 @@ Errors follow the same structure:
 - `tests/test_indexer_services.py` -- 12 tests (address balance/history, transaction detail)
 - `tests/test_price_service.py` -- 13 tests (price service provider fallback, caching, error handling)
 - `tests/test_observatory.py` -- 13 tests (Fee Observatory endpoints: scoreboard, block-stats, estimates, 503 fallback, static page)
+- `tests/test_x402_stats.py` -- 6 tests (x402 payment analytics)
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
 - `tests/helpers.py` -- Isolated router test client factory
@@ -579,6 +589,7 @@ Errors follow the same structure:
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 - `static/visualizer.html` -- ECharts live visualization dashboard
 - `static/fee-observatory.html` -- Fee Observatory dashboard (iframe embed of Streamlit at port 8505)
+- `static/x402.html` -- x402 payment analytics dashboard
 
 ---
 
@@ -602,7 +613,9 @@ Errors follow the same structure:
 | **Resend** | Welcome email with API key on registration, usage alerts | Free tier (100 emails/day) | Key shown once in registration response only |
 | **PostHog** | Landing page analytics, CTA tracking, registration funnel | Free tier (1M events/mo) | No landing page visitor visibility (API metrics unaffected) |
 
-All three default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTHOG_ENABLED`, `RATE_LIMIT_BACKEND=redis`). The API functions fully without any of them.
+| **bitcoin-api-x402** | x402 stablecoin micropayments (USDC on Base) for pay-per-call endpoints | Free (extension package) | All paid endpoints revert to free access |
+
+All four default to disabled. Enable via `.env` flags (`RESEND_ENABLED`, `POSTHOG_ENABLED`, `RATE_LIMIT_BACKEND=redis`, `ENABLE_X402=true`). The API functions fully without any of them.
 
 ### 7.3 Deployment Steps
 
@@ -663,7 +676,7 @@ A hosted API is a secondary revenue opportunity, not the primary business.
 | **Developer (Hosted)** | Free (with key) | 100/min | 10,000/day | Yes | Build & ship |
 | **Pro** | $19/mo | 500/min | 100,000/day | Yes | Production apps |
 
-**Launch strategy:** Free tiers at launch, Pro tier via Stripe when demand materializes. L402 Lightning payments available as optional extension (feature, not primary monetization). API keys are free — request via api@bitcoinsapi.com or self-serve `/api/v1/register` endpoint.
+**Launch strategy:** Free tiers at launch, Pro tier via Stripe when demand materializes. x402 stablecoin micropayments (USDC on Base) and L402 Lightning payments available as optional extensions (features, not primary monetization). API keys are free — request via api@bitcoinsapi.com or self-serve `/api/v1/register` endpoint.
 
 ### 8.4 Infrastructure Cost
 
@@ -806,6 +819,14 @@ twine upload dist/*
 - Layers on via `enable_l402(app, ...)` — no code in core API
 - Includes: macaroon minting/verification, Lightning client (Alby Hub + mock), endpoint pricing, FastAPI middleware
 - Repository: github.com/Bortlesboat/bitcoin-api-l402
+
+### x402 Stablecoin Micropayments (Extension Package)
+- Separated into `bitcoin-api-x402` package for clean base product
+- Layers on via `enable_x402(app, ...)` — no code in core API
+- Uses Coinbase x402 SDK for USDC payment verification on Base
+- 5 gated endpoints: ai/*, broadcast, mining/nextblock, fees/observatory/*, fees/landscape
+- Dashboard at `/x402`, analytics at `/api/v1/x402-stats`
+- Repository: github.com/Bortlesboat/bitcoin-api-x402
 
 ### v0.5 (Address Lookups — PARTIAL)
 - [x] `GET /address/{address}` — address balance and UTXO summary via `scantxoutset` (no Electrs needed)
