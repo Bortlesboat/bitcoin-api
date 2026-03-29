@@ -306,10 +306,11 @@ Response:
 ## Common Agent Workflows
 
 ### 1. Fee optimization: Should I send now or wait?
-1. `GET /fees/recommended` — get current fee tiers and congestion level
-2. `GET /fees/savings` — see how much waiting would save
-3. `GET /fees/plan` — get optimal timing recommendation
-4. Decision: if congestion is "low", send now at the slow rate. If "high", wait.
+1. `GET /fees/plan?profile=merchant_payout_batch&currency=usd` — get the live send-now-or-wait verdict for the canonical merchant payout demo
+2. `GET /fees/scenarios/merchant-payout-batch-march-2026` — show the fixed March 19-20, 2026 proof case that saved 76.3%
+3. `GET /fees/savings` — quantify how much waiting tends to save over recent history
+4. Optional: `GET /fees/landscape` — use x402 or a paid tier for deeper premium context
+5. Decision: if the planner says "send", ship the batch. If it says "wait", queue it for the next fee window.
 
 ### 2. Transaction monitoring
 1. `POST /transactions/broadcast` — broadcast a signed transaction
@@ -349,8 +350,8 @@ for per-request micropayments in USDC on Base:
 
 ## Pricing (subscription tiers)
 
-- **Free:** 0/mo — 500 req/min, 25K/day, all endpoints
-- **Pro:** $19/mo — 2,000 req/min, 250K/day, extended block history
+- **Free:** 0/mo — 500 req/min, 25K/day, standard free and API-key endpoints after registration
+- **Pro:** $19/mo — 2,000 req/min, 250K/day, premium endpoints included without per-call x402 plus extended block history
 - **Enterprise:** Custom — 5K req/min, dedicated support
 
 ## MCP Setup (for AI agents)

@@ -238,6 +238,16 @@ def test_llms_docs_explain_keyed_and_premium_access(client):
     assert "/fees/scenarios | Curated frozen send-or-wait proof cases for demos |" in llms_full.text
     assert "Direct access to `/api/v1/rpc` requires an API key." in llms_full.text
     assert "An API key is not required but recommended for higher limits." not in llms_full.text
+    assert "/fees/plan?profile=merchant_payout_batch&currency=usd" in llms_full.text
+    assert "saved 76.3%" in llms_full.text
+    assert "**Free:** 0/mo — 500 req/min, 25K/day, all endpoints" not in llms_full.text
+
+
+def test_mcp_setup_leads_with_hosted_planner_curl(client):
+    resp = client.get("/mcp-setup")
+    assert resp.status_code == 200
+    assert 'curl "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd"' in resp.text
+    assert "curl https://bitcoinsapi.com/api/v1/fees/recommended" not in resp.text
 
 
 def test_mcp_server_card_description_matches_fee_intelligence_positioning(client):

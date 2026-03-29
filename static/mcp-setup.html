@@ -414,9 +414,9 @@ satoshi-api</code></pre>
     <p class="section-desc">Don't need MCP? All the same data is available as standard HTTP endpoints. The Satoshi API also exposes a JSON-RPC proxy at <code>/api/v1/rpc</code> for direct Bitcoin Core method calls.</p>
 
     <div class="code-block">
-      <span class="code-label">Fee estimates</span>
+      <span class="code-label">Send-now-or-wait planner</span>
       <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-      <pre><code>curl https://bitcoinsapi.com/api/v1/fees/recommended</code></pre>
+      <pre><code>curl "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd"</code></pre>
     </div>
 
     <div class="code-block">
