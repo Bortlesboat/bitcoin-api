@@ -74,6 +74,13 @@ POST https://bitcoinsapi.com/api/v1/register
 Body: {"email": "agent@example.com", "agreed_to_terms": true}
 Returns API key instantly. No approval wait. Free tier: 500 req/min, 25K/day.
 
+## Best starting points
+
+- For "should I send now or wait?": https://bitcoinsapi.com/best-time-to-send-bitcoin
+- For the live verdict and fee tracker UI: https://bitcoinsapi.com/fees
+- For agent setup: https://bitcoinsapi.com/mcp-setup
+- For full API docs: https://bitcoinsapi.com/docs
+
 ## Base URL
 
 https://bitcoinsapi.com

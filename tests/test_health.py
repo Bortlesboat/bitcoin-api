@@ -11,6 +11,7 @@ def test_root(client):
     resp = client.get("/")
     assert resp.status_code == 200
     assert "Satoshi API" in resp.text
+    assert 'href="/fees"' in resp.text
 
 
 def test_root_returns_404_when_landing_page_is_missing(client, monkeypatch):
@@ -219,6 +220,8 @@ def test_public_discovery_and_web_paths_do_not_emit_rate_limit_headers(client):
 def test_llms_docs_explain_keyed_and_premium_access(client):
     llms = client.get("/llms.txt")
     assert llms.status_code == 200
+    assert "Best starting points" in llms.text
+    assert "https://bitcoinsapi.com/best-time-to-send-bitcoin" in llms.text
     assert "API-Key Endpoints" in llms.text
     assert "Paid Endpoints (x402 or Pro/Enterprise tier)" in llms.text
     assert "/api/v1/mining/pools - Mining pool distribution" in llms.text
@@ -238,6 +241,14 @@ def test_mcp_server_card_description_matches_fee_intelligence_positioning(client
     description = body["serverInfo"]["description"].lower()
     assert "fee-intelligence" in description
     assert "x402" in description
+
+
+def test_best_time_to_send_page_is_positioned_as_send_or_wait_wedge(client):
+    resp = client.get("/best-time-to-send-bitcoin")
+    assert resp.status_code == 200
+    assert "Should You Send Bitcoin" in resp.text
+    assert "See Live Verdict" in resp.text
+    assert "5,000 requests/day anonymously" in resp.text
 
 
 def test_root_supports_head(client):
