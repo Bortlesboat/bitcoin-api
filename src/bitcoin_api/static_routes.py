@@ -1,5 +1,6 @@
 """Static file routes: landing page, robots.txt, sitemap, decision pages, admin dashboard."""
 
+import re
 import secrets
 from pathlib import Path
 
@@ -25,12 +26,19 @@ def _render_html(path: Path) -> HTMLResponse | None:
     html = path.read_text(encoding="utf-8")
     ph_key = settings.posthog_api_key.get_secret_value() if settings.posthog_api_key else ""
     html = html.replace("__POSTHOG_API_KEY__", ph_key)
+    if '/static/js/site-helpers.js' not in html:
+        helper_tag = '<script src="/static/js/site-helpers.js"></script>'
+        html = re.sub(r"</body>", helper_tag + "\n</body>", html, count=1, flags=re.IGNORECASE)
+    nonce = secrets.token_urlsafe(16)
+    html = re.sub(r"<script(?![^>]*\bnonce=)", f'<script nonce="{nonce}"', html, flags=re.IGNORECASE)
 
     # Keep public navigation safe when the History Explorer is disabled.
     if not settings.enable_history_explorer:
         html = html.replace('href="/history"', 'href="/guide"')
 
-    return HTMLResponse(html)
+    response = HTMLResponse(html)
+    response.headers["X-CSP-Nonce"] = nonce
+    return response
 
 
 def _serve_404():
@@ -50,16 +58,18 @@ def register_static_routes(app: FastAPI):
     if _js_dir.is_dir():
         app.mount("/static/js", StaticFiles(directory=str(_js_dir)), name="static-js")
 
-    @app.get("/", include_in_schema=False)
+    _PUBLIC_METHODS = ["GET", "HEAD"]
+
+    @app.api_route("/", methods=_PUBLIC_METHODS, include_in_schema=False)
     def root():
         return _render_html(_LANDING_PAGE) or _serve_404()
 
-    @app.get("/api-docs", include_in_schema=False)
+    @app.api_route("/api-docs", methods=_PUBLIC_METHODS, include_in_schema=False)
     def api_docs_redirect():
         """Avoid maintaining a second docs surface; send users to live Swagger docs."""
-        return RedirectResponse(url="/docs", status_code=307)
+        return RedirectResponse(url="/docs", status_code=308)
 
-    @app.get("/.well-known/mcp/server-card.json", include_in_schema=False)
+    @app.api_route("/.well-known/mcp/server-card.json", methods=_PUBLIC_METHODS, include_in_schema=False)
     def mcp_server_card():
         """MCP server card for Smithery discovery."""
         p = _STATIC_DIR / ".well-known" / "mcp" / "server-card.json"
@@ -71,35 +81,35 @@ def register_static_routes(app: FastAPI):
             )
         return Response(status_code=404)
 
-    @app.get("/favicon.ico", include_in_schema=False)
+    @app.api_route("/favicon.ico", methods=_PUBLIC_METHODS, include_in_schema=False)
     def favicon():
         p = _STATIC_DIR / "favicon.ico"
         if p.exists():
             return Response(p.read_bytes(), media_type="image/x-icon")
         return Response(status_code=204)
 
-    @app.get("/robots.txt", include_in_schema=False)
+    @app.api_route("/robots.txt", methods=_PUBLIC_METHODS, include_in_schema=False)
     def robots_txt():
         p = _STATIC_DIR / "robots.txt"
         if p.exists():
             return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
         return Response("User-agent: *\nAllow: /\n", media_type="text/plain")
 
-    @app.get("/llms.txt", include_in_schema=False)
+    @app.api_route("/llms.txt", methods=_PUBLIC_METHODS, include_in_schema=False)
     def llms_txt():
         p = _STATIC_DIR / "llms.txt"
         if p.exists():
             return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
         return _serve_404()
 
-    @app.get("/llms-full.txt", include_in_schema=False)
+    @app.api_route("/llms-full.txt", methods=_PUBLIC_METHODS, include_in_schema=False)
     def llms_full_txt():
         p = _STATIC_DIR / "llms-full.txt"
         if p.exists():
             return Response(p.read_text(encoding="utf-8"), media_type="text/plain")
         return _serve_404()
 
-    @app.get("/sitemap.xml", include_in_schema=False)
+    @app.api_route("/sitemap.xml", methods=_PUBLIC_METHODS, include_in_schema=False)
     def sitemap_xml():
         p = _STATIC_DIR / "sitemap.xml"
         if p.exists():
@@ -108,7 +118,7 @@ def register_static_routes(app: FastAPI):
 
     _IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp"}
 
-    @app.get("/{filename}.{ext}", include_in_schema=False)
+    @app.api_route("/{filename}.{ext}", methods=_PUBLIC_METHODS, include_in_schema=False)
     def static_asset(filename: str, ext: str):
         """Serve static assets (images + IndexNow verification key) from the static directory."""
         # Prevent path traversal
@@ -180,7 +190,7 @@ def register_static_routes(app: FastAPI):
         """Process-alive check (no RPC call). Use for container healthchecks."""
         return {"status": "ok"}
 
-    @app.get("/history", include_in_schema=False)
+    @app.api_route("/history", methods=_PUBLIC_METHODS, include_in_schema=False)
     def history_index():
         """Serve the History Explorer index page (feature-flag gated)."""
         from .config import settings
@@ -189,7 +199,7 @@ def register_static_routes(app: FastAPI):
         p = _HISTORY_DIR / "index.html"
         return _render_html(p) or _serve_404()
 
-    @app.get("/history/{page}", include_in_schema=False)
+    @app.api_route("/history/{page}", methods=_PUBLIC_METHODS, include_in_schema=False)
     def history_page(page: str):
         """Serve History Explorer sub-pages and static assets."""
         from .config import settings
@@ -210,9 +220,11 @@ def register_static_routes(app: FastAPI):
             return Response(resolved.read_text(encoding="utf-8"), media_type=media_types[resolved.suffix])
         return _serve_404()
 
-    @app.get("/{page}", include_in_schema=False)
+    @app.api_route("/{page}", methods=_PUBLIC_METHODS, include_in_schema=False)
     def static_page(page: str):
         """Serve decision/comparison pages and IndexNow key from static directory."""
+        if page == "fee-observatory":
+            return RedirectResponse(url="/fees", status_code=308)
         allowed = {
             "vs-mempool", "vs-blockcypher", "best-bitcoin-api-for-developers",
             "bitcoin-api-for-ai-agents", "self-hosted-bitcoin-api",
@@ -221,7 +233,7 @@ def register_static_routes(app: FastAPI):
             "bitcoin-fee-estimator", "bitcoin-api-for-trading-bots",
             "how-to-reduce-bitcoin-transaction-fees",
             "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
-            "mcp-setup", "ai", "fees", "fee-observatory", "x402",
+            "mcp-setup", "ai", "fees", "x402",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"

@@ -211,7 +211,7 @@ def test_503_when_db_missing(client):
 # --- Static page ---
 
 def test_fee_observatory_page(client):
-    """The /fee-observatory static page should serve."""
-    resp = client.get("/fee-observatory")
-    assert resp.status_code == 200
-    assert "Fee Observatory" in resp.text
+    """The legacy /fee-observatory route should redirect to the main fee tracker."""
+    resp = client.get("/fee-observatory", follow_redirects=False)
+    assert resp.status_code == 308
+    assert resp.headers["location"] == "/fees"
