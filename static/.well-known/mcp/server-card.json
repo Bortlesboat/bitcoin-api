@@ -2,7 +2,7 @@
   "serverInfo": {
     "name": "bitcoin",
     "version": "0.5.0",
-    "description": "MCP server for Bitcoin — 49 tools for AI agents to save money on fees. Zero config, works out of the box."
+    "description": "Bitcoin fee-intelligence MCP server for AI agents - 49 tools for send-or-wait decisions, mempool analysis, and premium x402 calls. Zero config, works out of the box."
   },
   "capabilities": {
     "tools": { "listChanged": false },

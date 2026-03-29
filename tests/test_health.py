@@ -216,6 +216,30 @@ def test_public_discovery_and_web_paths_do_not_emit_rate_limit_headers(client):
         assert "X-RateLimit-Limit" not in resp.headers
 
 
+def test_llms_docs_explain_keyed_and_premium_access(client):
+    llms = client.get("/llms.txt")
+    assert llms.status_code == 200
+    assert "API-Key Endpoints" in llms.text
+    assert "Paid Endpoints (x402 or Pro/Enterprise tier)" in llms.text
+    assert "/api/v1/mining/pools - Mining pool distribution" in llms.text
+    assert "/api/v1/rpc - Hosted Bitcoin Core JSON-RPC proxy" in llms.text
+
+    llms_full = client.get("/llms-full.txt")
+    assert llms_full.status_code == 200
+    assert "/mining/pools | Mining pool distribution (API key required)" in llms_full.text
+    assert "/stats/utxo-set | UTXO set statistics (API key required)" in llms_full.text
+    assert "Direct access to `/api/v1/rpc` requires an API key." in llms_full.text
+
+
+def test_mcp_server_card_description_matches_fee_intelligence_positioning(client):
+    resp = client.get("/.well-known/mcp/server-card.json")
+    assert resp.status_code == 200
+    body = resp.json()
+    description = body["serverInfo"]["description"].lower()
+    assert "fee-intelligence" in description
+    assert "x402" in description
+
+
 def test_root_supports_head(client):
     resp = client.head("/")
     assert resp.status_code == 200

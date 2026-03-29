@@ -106,15 +106,26 @@ https://bitcoinsapi.com
 - /api/v1/tx/{txid} - Transaction details
 - /api/v1/mempool - Mempool analysis
 - /api/v1/mining - Mining summary
-- /api/v1/mining/pools - Mining pool distribution
 - /api/v1/network - Network info
+- /api/v1/network/difficulty - Difficulty adjustment progress
 - /api/v1/supply - Circulating supply and halving info
 - /api/v1/prices - BTC/USD price
+- /api/v1/x402-info - Premium endpoint pricing and payment metadata
 - /api/v1/stream/blocks - Real-time block notifications (SSE)
 - /api/v1/stream/fees - Real-time fee changes (SSE)
 - ... and 100+ more (see /llms-full.txt for complete list)
 
-## Paid Endpoints (x402 - USDC on Base)
+## API-Key Endpoints (free after registration)
+
+- /api/v1/health/deep - Deep health and dependency checks
+- /api/v1/mining/pools - Mining pool distribution
+- /api/v1/mining/hashrate/history - Historical hashrate data
+- /api/v1/mining/revenue - Mining revenue breakdown
+- /api/v1/address/{address} - Address balance and transaction summary
+- /api/v1/stats/utxo-set - UTXO set statistics
+- /api/v1/rpc - Hosted Bitcoin Core JSON-RPC proxy
+
+## Paid Endpoints (x402 or Pro/Enterprise tier)
 
 - /api/v1/ai/* - AI-powered analysis ($0.01)
 - /api/v1/broadcast - Transaction broadcast ($0.01)

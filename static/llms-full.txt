@@ -41,7 +41,7 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 |--------|------|-------------|
 | GET | /fees | All fee estimates (multiple confirmation targets) |
 | GET | /fees/recommended | Smart recommendation: send now or wait? |
-| GET | /fees/landscape | Full fee landscape with percentiles |
+| GET | /fees/landscape | Full fee landscape with percentiles (x402 or Pro/Enterprise tier) |
 | GET | /fees/mempool-blocks | Projected mempool blocks with fee ranges |
 | GET | /fees/estimate-tx | Estimate fee for a specific transaction size |
 | GET | /fees/history | Historical fee data |
@@ -88,12 +88,12 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /mining | Mining summary: hashrate, difficulty, pools |
-| GET | /mining/nextblock | Next block prediction |
-| GET | /mining/hashrate/history | Historical hashrate data |
-| GET | /mining/revenue | Current mining revenue |
-| GET | /mining/pools | Mining pool distribution |
+| GET | /mining/nextblock | Next block prediction (x402 or Pro/Enterprise tier) |
+| GET | /mining/hashrate/history | Historical hashrate data (API key required) |
+| GET | /mining/revenue | Current mining revenue (API key required) |
+| GET | /mining/pools | Mining pool distribution (API key required) |
 | GET | /mining/difficulty/history | Historical difficulty adjustments |
-| GET | /mining/revenue/history | Historical mining revenue |
+| GET | /mining/revenue/history | Historical mining revenue (API key required) |
 
 ### Network
 | Method | Path | Description |
@@ -107,9 +107,9 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /supply | Circulating supply, halving info, inflation rate |
-| GET | /stats/utxo-set | UTXO set statistics |
-| GET | /stats/segwit-adoption | SegWit adoption metrics |
-| GET | /stats/op-returns | OP_RETURN usage statistics |
+| GET | /stats/utxo-set | UTXO set statistics (API key required) |
+| GET | /stats/segwit-adoption | SegWit adoption metrics (API key required) |
+| GET | /stats/op-returns | OP_RETURN usage statistics (API key required) |
 
 ### Prices & Tools
 | Method | Path | Description |
@@ -117,11 +117,11 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | GET | /prices | BTC/USD price (multi-provider fallback) |
 | GET | /tools/exchange-compare | Compare exchange prices and fees |
 
-### Address (requires indexer)
+### Address (requires API key + indexer)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /address/{address} | Address balance and transaction history |
-| GET | /address/{address}/utxos | UTXOs for an address |
+| GET | /address/{address} | Address balance and transaction history (API key required) |
+| GET | /address/{address}/utxos | UTXOs for an address (API key required) |
 
 ### Real-Time Streams (SSE)
 | Method | Path | Description |
@@ -158,7 +158,7 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | GET | /guide | API guide with categories and use cases |
 | GET | /guide/categories | All endpoint categories |
 
-### Fee Observatory (x402 paid - $0.005)
+### Fee Observatory (x402 or Pro/Enterprise tier - $0.005)
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /fees/observatory/scoreboard | Per-source accuracy ranking |
@@ -178,6 +178,8 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | /rpc | Proxy JSON-RPC calls to the Bitcoin Core node |
+
+Direct access note: `/api/v1/rpc` requires an API key. `bitcoin-mcp` can still use hosted mode when configured for a remote API.
 
 The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to the underlying Bitcoin Core node. This is used by [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) for zero-config mode — when no local node is available, bitcoin-mcp routes all tool calls through this endpoint automatically.
 
@@ -203,6 +205,8 @@ The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to th
 Only read-only methods are whitelisted (plus `sendrawtransaction` for broadcasting). Wallet and admin methods are blocked. Allowed methods include: `getblockchaininfo`, `getblockcount`, `getbestblockhash`, `getblockhash`, `getblock`, `getblockheader`, `getblockstats`, `getchaintips`, `getchaintxstats`, `getdifficulty`, `getmempoolinfo`, `getrawmempool`, `getmempoolentry`, `getrawtransaction`, `decoderawtransaction`, `decodescript`, `gettxout`, `estimatesmartfee`, `getmininginfo`, `getnetworkhashps`, `getnetworkinfo`, `getpeerinfo`, `gettxoutsetinfo`, `validateaddress`, `sendrawtransaction`, and others.
 
 Standard rate limits apply per your API tier (anonymous: 30 req/min, free: 100 req/min, pro: 500 req/min, enterprise: 2,000 req/min). An API key is not required but recommended for higher limits.
+
+Direct access to `/api/v1/rpc` requires an API key.
 
 ## Response Format
 
