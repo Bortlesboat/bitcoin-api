@@ -147,8 +147,8 @@ def test_shared_site_helper_asset_is_served(client):
     assert "processTree(document);" in resp.text
 
 
-def test_root_and_fee_tracker_drop_google_font_chain(client):
-    for path in ["/", "/fees"]:
+def test_key_agent_pages_drop_google_font_chain(client):
+    for path in ["/", "/fees", "/mcp-setup", "/bitcoin-api-for-ai-agents"]:
         resp = client.get(path)
         assert resp.status_code == 200
         assert "fonts.googleapis.com" not in resp.text
@@ -173,8 +173,14 @@ def test_visualizer_page_is_noindex(client):
     assert resp.headers["X-Robots-Tag"] == "noindex, follow"
 
 
-def test_x402_page_is_noindex(client):
+def test_x402_page_is_indexable(client):
     resp = client.get("/x402")
+    assert resp.status_code == 200
+    assert "X-Robots-Tag" not in resp.headers
+
+
+def test_ai_playground_is_noindex(client):
+    resp = client.get("/ai")
     assert resp.status_code == 200
     assert resp.headers["X-Robots-Tag"] == "noindex, follow"
 
@@ -190,6 +196,24 @@ def test_history_detail_pages_are_noindex(client):
         resp = client.get(path)
         assert resp.status_code == 200
         assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_robots_txt_explicitly_allows_major_ai_crawlers(client):
+    resp = client.get("/robots.txt")
+    assert resp.status_code == 200
+    body = resp.text
+    assert "GPTBot" in body
+    assert "ChatGPT-User" in body
+    assert "OAI-SearchBot" in body
+    assert "ClaudeBot" in body
+    assert "anthropic-ai" in body
+
+
+def test_public_discovery_and_web_paths_do_not_emit_rate_limit_headers(client):
+    for path in ["/fees", "/mcp-setup", "/x402", "/llms.txt", "/llms-full.txt", "/.well-known/mcp/server-card.json"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert "X-RateLimit-Limit" not in resp.headers
 
 
 def test_root_supports_head(client):

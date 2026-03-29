@@ -90,7 +90,7 @@ https://bitcoinsapi.com
 - Best time to send Bitcoin: https://bitcoinsapi.com/best-time-to-send-bitcoin
 - Bitcoin fee estimator: https://bitcoinsapi.com/bitcoin-fee-estimator
 - Bitcoin API for trading bots: https://bitcoinsapi.com/bitcoin-api-for-trading-bots
-- x402 payment dashboard: https://bitcoinsapi.com/x402
+- x402 pay-per-call guide and live activity: https://bitcoinsapi.com/x402
 - How to reduce Bitcoin transaction fees: https://bitcoinsapi.com/how-to-reduce-bitcoin-transaction-fees
 
 ## Free Endpoints (no payment needed)
