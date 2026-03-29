@@ -118,6 +118,7 @@ def test_guide_links_section_present(client):
     links = resp.json()["data"]["links"]
     assert "docs" in links
     assert "register" in links
+    assert "x402" in links
     assert "github" in links
 
 
@@ -130,3 +131,21 @@ def test_guide_combined_filters(client):
     for ep in cats[0]["endpoints"]:
         assert "python" in ep["examples"]
         assert "curl" not in ep["examples"]
+
+
+def test_guide_marks_keyed_and_premium_routes_correctly(client):
+    cats = client.get("/api/v1/guide?lang=curl").json()["data"]["categories"]
+    endpoints = {
+        ep["path"]: ep
+        for cat in cats
+        for ep in cat["endpoints"]
+    }
+
+    assert endpoints["/api/v1/mining/pools"]["auth_required"] is True
+    assert endpoints["/api/v1/mining/revenue"]["auth_required"] is True
+    assert endpoints["/api/v1/address/{addr}"]["auth_required"] is True
+    assert endpoints["/api/v1/stats/utxo-set"]["auth_required"] is True
+    assert "x402" in endpoints["/api/v1/fees/landscape"]["description"].lower()
+    assert "x402" in endpoints["/api/v1/mining/nextblock"]["description"].lower()
+    assert endpoints["/api/v1/x402-info"]["auth_required"] is False
+    assert endpoints["/api/v1/x402-demo"]["auth_required"] is False

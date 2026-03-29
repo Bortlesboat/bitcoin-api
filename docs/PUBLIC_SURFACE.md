@@ -135,4 +135,5 @@ What it covers:
 
 - Public static pages and discovery assets should never consume anonymous API rate budget.
 - AI crawler visibility depends on both `robots.txt` and the crawlability of `/llms.txt`, `/openapi.json`, and the MCP server card.
+- The discovery docs (`/llms.txt`, `/llms-full.txt`, `/api/v1/guide`, and the MCP server card) must stay aligned with the real auth and x402 access model or agent adoption trust erodes quickly.
 - x402 should be treated as a premium lane inside the broader fee-intelligence product, not as a standalone business line.

@@ -52,7 +52,7 @@ check() {
     [[ "$QUIET" == "false" ]] && echo "PASS  $name"
 }
 
-check "home"         "$BASE_URL/"                                 "Bitcoin Fee Intelligence"                true
+check "home"         "$BASE_URL/"
 check "fees-page"    "$BASE_URL/fees"                             "Fee Tracker"                             true
 check "llms"         "$BASE_URL/llms.txt"                         "Bitcoin fee intelligence for AI agents" true
 check "x402-page"    "$BASE_URL/x402"                             "premium Bitcoin API calls"               true
