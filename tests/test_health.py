@@ -241,6 +241,7 @@ def test_llms_docs_explain_keyed_and_premium_access(client):
     assert "/fees/plan?profile=merchant_payout_batch&currency=usd" in llms_full.text
     assert "saved 76.3%" in llms_full.text
     assert "**Free:** 0/mo — 500 req/min, 25K/day, all endpoints" not in llms_full.text
+    assert "| Free       | 500     | 25,000  | 144       | All endpoints      |" not in llms_full.text
 
 
 def test_mcp_setup_leads_with_hosted_planner_curl(client):

@@ -21,8 +21,8 @@ Tiers: anonymous (no key), free (registered), pro ($19/mo), enterprise (custom).
 | Tier       | Req/min | Daily    | Block cap | Notes              |
 |------------|---------|----------|-----------|--------------------|
 | Anonymous  | 200     | 5,000   | 144       | GET only           |
-| Free       | 500     | 25,000  | 144       | All endpoints      |
-| Pro        | 2,000   | 250,000 | 1,008     | $19/mo via Stripe  |
+| Free       | 500     | 25,000  | 144       | Standard free + keyed endpoints |
+| Pro        | 2,000   | 250,000 | 1,008     | Premium endpoints included |
 | Enterprise | 5,000   | Custom  | 2,016     | Contact us         |
 
 Response headers for self-throttling:
