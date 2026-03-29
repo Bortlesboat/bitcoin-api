@@ -132,7 +132,26 @@ def _emit_access_log(client_ip: str, method: str, path: str, status: int,
 # Client classification
 # ---------------------------------------------------------------------------
 
-_AI_AGENT_PATTERNS = ("claude", "openai", "anthropic", "langchain", "autogpt")
+_AI_AGENT_PATTERNS = (
+    "claude",
+    "claudebot",
+    "anthropic",
+    "anthropic-ai",
+    "openai",
+    "chatgpt",
+    "chatgpt-user",
+    "gptbot",
+    "oai-searchbot",
+    "perplexity",
+    "google-extended",
+    "googleother",
+    "gemini",
+    "bingbot",
+    "copilot",
+    "meta-externalagent",
+    "langchain",
+    "autogpt",
+)
 _SDK_PATTERNS = ("python-requests", "httpx", "axios", "node-fetch", "curl")
 _BROWSER_PATTERNS = ("mozilla", "chrome", "safari", "firefox")
 
@@ -151,29 +170,74 @@ def classify_client(user_agent: str) -> str:
     return "unknown"
 
 _DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/admin/founder", "/visualizer"}
-_NOINDEX_PATHS = {"/docs", "/redoc", "/openapi.json", "/visualizer", "/x402"}
+_NOINDEX_PATHS = {"/docs", "/redoc", "/openapi.json", "/visualizer", "/ai"}
 _NOINDEX_PREFIXES = ("/history/block", "/history/tx", "/history/address")
 
-_PAGEVIEW_LOG_PATHS = {
-    "/", "/docs", "/redoc", "/admin/dashboard", "/admin/founder",
-    "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
-    "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
-    "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
-    "/terms", "/privacy", "/disclaimer", "/about", "/pricing", "/mcp-setup", "/guide",
+_PUBLIC_WEB_PATHS = {
+    "/",
+    "/api-docs",
+    "/fee-observatory",
+    "/about",
+    "/ai",
+    "/best-bitcoin-api-for-developers",
+    "/best-time-to-send-bitcoin",
+    "/bitcoin-api-for-ai-agents",
+    "/bitcoin-api-for-trading-bots",
+    "/bitcoin-fee-api",
+    "/bitcoin-fee-estimator",
+    "/bitcoin-mcp-setup-guide",
+    "/bitcoin-mempool-api",
+    "/bitcoin-transaction-fee-calculator",
+    "/disclaimer",
+    "/fees",
+    "/guide",
     "/history",
+    "/how-to-reduce-bitcoin-transaction-fees",
+    "/mcp-setup",
+    "/pricing",
+    "/privacy",
+    "/self-hosted-bitcoin-api",
+    "/terms",
+    "/visualizer",
+    "/vs-blockcypher",
+    "/vs-mempool",
+    "/x402",
 }
 
-_RATE_LIMIT_SKIP = {
-    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
-    "/api/v1/stream/blocks", "/api/v1/stream/fees",
-    "/robots.txt", "/sitemap.xml", "/favicon.ico",
-    "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
-    "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
-    "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
-    "/terms", "/privacy", "/disclaimer", "/about", "/pricing",
-    "/admin/dashboard", "/admin/founder",
-    "/api/v1/ws",
+_DISCOVERY_PATHS = {
+    "/.well-known/mcp/server-card.json",
+    "/docs",
+    "/docs/oauth2-redirect",
+    "/favicon.ico",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/redoc",
+    "/robots.txt",
+    "/sitemap.xml",
+}
+
+_PAGEVIEW_LOG_PATHS = _PUBLIC_WEB_PATHS | {
+    "/.well-known/mcp/server-card.json",
+    "/admin/dashboard",
+    "/admin/founder",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/robots.txt",
+    "/sitemap.xml",
+}
+
+_RATE_LIMIT_SKIP = _PUBLIC_WEB_PATHS | _DISCOVERY_PATHS | {
+    "/admin/dashboard",
+    "/admin/founder",
     "/api/v1/billing/webhook",
+    "/api/v1/guide",
+    "/api/v1/health",
+    "/api/v1/stream/blocks",
+    "/api/v1/stream/fees",
+    "/api/v1/ws",
+    "/healthz",
 }
 
 

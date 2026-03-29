@@ -20,9 +20,6 @@
 <meta name="twitter:title" content="MCP Setup — Connect AI Agents to Bitcoin | Satoshi API">
 <meta name="twitter:description" content="Connect Claude, Cursor, or any AI agent to Bitcoin in under 60 seconds. Zero-config setup with 49+ tools.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -76,10 +73,10 @@
   --green: #3fb950; --blue: #58a6ff; --purple: #bc8cff;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
 a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
 a:hover { color: var(--accent-hover); text-decoration: underline; }
-code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.875em; }
+code { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.875em; }
 .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
 
 /* Nav */
@@ -113,11 +110,11 @@ nav .logo:hover { text-decoration: none; }
 
 /* Code blocks */
 .code-block { position: relative; background: var(--surface); border: 1px solid var(--border-visible); border-radius: 8px; padding: 20px; margin: 16px 0; overflow-x: auto; }
-.code-block pre { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; line-height: 1.7; color: var(--text); white-space: pre; margin: 0; }
+.code-block pre { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-size: 0.85em; line-height: 1.7; color: var(--text); white-space: pre; margin: 0; }
 .code-block pre code { background: none; padding: 0; font-size: inherit; }
-.code-block .copy-btn { position: absolute; top: 10px; right: 10px; padding: 4px 12px; background: var(--bg); border: 1px solid var(--border-visible); border-radius: 4px; color: var(--muted); font-size: 0.78em; cursor: pointer; font-family: 'JetBrains Mono', monospace; transition: all 0.15s; }
+.code-block .copy-btn { position: absolute; top: 10px; right: 10px; padding: 4px 12px; background: var(--bg); border: 1px solid var(--border-visible); border-radius: 4px; color: var(--muted); font-size: 0.78em; cursor: pointer; font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; transition: all 0.15s; }
 .code-block .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-.code-block .code-label { position: absolute; top: 10px; left: 16px; font-size: 0.7em; color: var(--dim); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+.code-block .code-label { position: absolute; top: 10px; left: 16px; font-size: 0.7em; color: var(--dim); font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; text-transform: uppercase; letter-spacing: 0.05em; }
 
 /* Feature cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; transition: border-color 0.2s; }
@@ -127,9 +124,9 @@ nav .logo:hover { text-decoration: none; }
 
 /* Tools grid */
 .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
-.tool-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.8em; color: var(--text); transition: border-color 0.15s; }
+.tool-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-size: 0.8em; color: var(--text); transition: border-color 0.15s; }
 .tool-item:hover { border-color: var(--accent); }
-.tool-item .tool-desc { font-family: 'Inter', sans-serif; color: var(--muted); font-size: 0.9em; margin-top: 4px; }
+.tool-item .tool-desc { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: var(--muted); font-size: 0.9em; margin-top: 4px; }
 
 /* Highlight box */
 .highlight-box { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 24px; margin: 24px 0; }
@@ -443,6 +440,7 @@ satoshi-api</code></pre>
   <section class="section" id="try-it" style="text-align: center; padding: 64px 0;">
     <h2>Try It <span>Now</span></h2>
     <p class="section-desc" style="margin: 8px auto 28px;">Explore Bitcoin data right in your browser, or install bitcoin-mcp and start asking questions.</p>
+    <p style="color: var(--muted); font-size: 0.92em; margin: -8px auto 20px; max-width: 720px;">If your agent needs premium calls without a signup step, Satoshi API also supports <a href="/x402">x402 pay-per-call flows</a> for AI analysis and other paid endpoints.</p>
     <div class="hero-cta">
       <a href="/history" class="btn-primary">Explore History</a>
       <a href="/visualizer" class="btn-secondary">Live Visualizer</a>
@@ -468,6 +466,7 @@ satoshi-api</code></pre>
     <a href="/docs">API Docs</a> &middot;
     <a href="/history">History</a> &middot;
     <a href="/mcp-setup">MCP Setup</a> &middot;
+    <a href="/x402">x402</a> &middot;
     <a href="/pricing">Pricing</a> &middot;
     <a href="/about">About</a> &middot;
     <a href="/terms">Terms</a> &middot;
