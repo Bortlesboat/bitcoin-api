@@ -687,7 +687,7 @@
       <div class="use-case">
         <h3>Wallet and App Developers</h3>
         <p>Building a wallet, payment processor, or Bitcoin app? Start with fee recommendations, transaction cost estimates, and mempool context before you wire in more advanced flows.</p>
-<pre><code>curl https://bitcoinsapi.com/api/v1/fees/landscape</code></pre>
+<pre><code>curl "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"</code></pre>
       </div>
       <div class="use-case">
         <h3>AI Agent Builders</h3>
@@ -748,7 +748,8 @@
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees</code></td><td>Fee estimates (all targets)</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/recommended</code></td><td>Human-readable fee recommendation</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/{target}</code></td><td>Fee for specific confirmation target</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/landscape</code></td><td>Should I send now or wait? Decision engine</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/plan</code></td><td>Hosted send-now-or-wait planner for your transaction shape</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/fees/scenarios/{slug}</code></td><td>Frozen proof cases for demos and onboarding</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/estimate-tx</code></td><td>Transaction size and fee cost estimator</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/history</code></td><td>Historical fee rates and cheapest hour</td></tr>
         <tr><td><span class="method method-get">GET</span></td><td><code>/fees/mempool-blocks</code></td><td>Fee distribution by projected blocks</td></tr>
@@ -786,9 +787,9 @@
     <h2 class="section-title">From zero to a better fee decision in 60 seconds.</h2>
 
     <h3 style="margin-top: 40px; margin-bottom: 12px;">Option 1: Use the hosted API (no setup)</h3>
-    <p style="color: var(--muted); margin-bottom: 12px;">No node, no install, no signup. Start with the fee endpoints that answer &quot;send now or wait?&quot;:</p>
-<pre><code><span style="color: var(--muted)"># Get current fee recommendations</span>
-curl https://bitcoinsapi.com/api/v1/fees/recommended
+    <p style="color: var(--muted); margin-bottom: 12px;">No node or install required. Start with the free hosted planner path, then branch into the rest of the API surface:</p>
+<pre><code><span style="color: var(--muted)"># Hosted send-now-or-wait planner for a merchant payout batch</span>
+curl "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"
 
 <span style="color: var(--muted)"># Latest block analysis</span>
 curl https://bitcoinsapi.com/api/v1/blocks/latest
@@ -798,7 +799,7 @@ curl https://bitcoinsapi.com/api/v1/mempool
 
 <span style="color: var(--muted)"># Mining stats</span>
 curl https://bitcoinsapi.com/api/v1/mining</code></pre>
-    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">No API key needed for GET requests. <a href="/docs">Try the interactive API playground</a>.</p>
+    <p style="color: var(--muted); margin-top: 12px; font-size: 0.9em;">The planner and core discovery endpoints are free to try anonymously. Premium paths such as <code>/fees/landscape</code> use x402 or a paid tier. <a href="/docs">Try the interactive API playground</a>.</p>
 
     <h3 id="get-api-key" style="margin-top: 48px; margin-bottom: 12px;">Option 2: Get a free API key (5x higher limits)</h3>
     <p style="color: var(--muted); margin-bottom: 16px;">Unlock 25,000 requests/day, 500 req/min, and POST access. Takes 5 seconds:</p>

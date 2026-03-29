@@ -88,10 +88,10 @@ def _build_quickstart() -> list[dict]:
         },
         {
             "step": 3,
-            "action": "Get current fee estimates",
+            "action": "Get a live send-now-or-wait plan",
             "method": "GET",
-            "path": "/api/v1/fees/recommended",
-            "examples": _ex("/api/v1/fees/recommended"),
+            "path": "/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd",
+            "examples": _ex("/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd"),
         },
     ]
 
@@ -116,7 +116,10 @@ def _build_categories() -> list[dict]:
             "endpoints": [
                 _ep("GET", "/api/v1/fees", "Fee estimates for 1, 3, 6, 25, 144 block targets"),
                 _ep("GET", "/api/v1/fees/recommended", "Smart fee recommendation with context"),
-                _ep("GET", "/api/v1/fees/plan", "Transaction cost planner — estimate costs across urgency tiers (immediate/standard/patient/opportunistic). Supports profiles (simple_send, batch_payout, consolidation), address types, and USD currency."),
+                _ep("GET", "/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd", "Canonical hosted send-now-or-wait demo for a merchant payout batch. Returns a recommendation, cost tiers, delay savings, and USD values."),
+                _ep("GET", "/api/v1/fees/plan", "Transaction cost planner - estimate costs across urgency tiers (immediate/standard/patient/opportunistic). Supports profiles (simple_send, batch_payout, merchant_payout_batch, consolidation), address types, and USD currency."),
+                _ep("GET", "/api/v1/fees/scenarios", "Frozen demo scenarios used by the hosted proof story and sales demo assets."),
+                _ep("GET", "/api/v1/fees/scenarios/merchant-payout-batch-march-2026", "Frozen March 19-20, 2026 merchant payout scenario showing a 76.3% savings by waiting for the next fee window."),
                 _ep("GET", "/api/v1/fees/savings", "Fee savings simulation — compare always-send-now vs optimal timing over the last 7 days. Shows savings per tx and monthly projection."),
                 _ep("GET", "/api/v1/fees/3", "Fee estimate for a specific block target"),
                 _ep("GET", "/api/v1/fees/landscape", "Full fee landscape across all targets (premium on hosted API: x402 or paid tier)"),

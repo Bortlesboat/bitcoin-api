@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCP Setup — Connect AI Agents to Bitcoin | Satoshi API</title>
-<meta name="description" content="Connect Claude, Cursor, or any AI agent to Bitcoin in under 60 seconds. Zero-config setup with bitcoin-mcp — 49+ tools for fees, blocks, mempool, and more.">
+<title>MCP Setup â€” Connect AI Agents to Bitcoin | Satoshi API</title>
+<meta name="description" content="Connect Claude, Cursor, or any AI agent to Bitcoin in under 60 seconds. Zero-config setup with bitcoin-mcp â€” 49+ tools for fees, blocks, mempool, and more.">
 <meta name="keywords" content="bitcoin mcp setup, bitcoin mcp server, claude bitcoin, ai bitcoin tools, model context protocol bitcoin, bitcoin-mcp, satoshi api mcp">
 <link rel="canonical" href="https://bitcoinsapi.com/mcp-setup">
-<meta property="og:title" content="MCP Setup — Connect AI Agents to Bitcoin | Satoshi API">
+<meta property="og:title" content="MCP Setup â€” Connect AI Agents to Bitcoin | Satoshi API">
 <meta property="og:description" content="Connect Claude, Cursor, or any AI agent to Bitcoin in under 60 seconds. Zero-config setup with 49+ tools.">
 <meta property="og:url" content="https://bitcoinsapi.com/mcp-setup">
 <meta property="og:type" content="website">
@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@BTCOrangeCoin">
 <meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
-<meta name="twitter:title" content="MCP Setup — Connect AI Agents to Bitcoin | Satoshi API">
+<meta name="twitter:title" content="MCP Setup â€” Connect AI Agents to Bitcoin | Satoshi API">
 <meta name="twitter:description" content="Connect Claude, Cursor, or any AI agent to Bitcoin in under 60 seconds. Zero-config setup with 49+ tools.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <script type="application/ld+json">
@@ -34,7 +34,7 @@
     {
       "@type": "WebPage",
       "@id": "https://bitcoinsapi.com/mcp-setup",
-      "name": "MCP Setup — Connect AI Agents to Bitcoin",
+      "name": "MCP Setup â€” Connect AI Agents to Bitcoin",
       "description": "Connect Claude, Cursor, or any AI agent to Bitcoin in under 60 seconds with bitcoin-mcp. 49+ tools for fees, blocks, mempool, transactions, and mining data.",
       "url": "https://bitcoinsapi.com/mcp-setup",
       "isPartOf": { "@id": "https://bitcoinsapi.com/#website" },
@@ -196,7 +196,7 @@ footer .footer-links a { margin: 0 8px; }
       </div>
       <div class="card">
         <h3>With MCP</h3>
-        <p>You ask "Should I send Bitcoin now or wait?" and your agent automatically queries live fee data, analyzes mempool congestion, and gives you an answer with real numbers.</p>
+        <p>You ask "Should I send Bitcoin now or wait?" and your agent automatically runs the hosted planner, checks the fee environment, and gives you an answer with real numbers.</p>
       </div>
     </div>
   </section>
@@ -232,20 +232,20 @@ footer .footer-links a { margin: 0 8px; }
 
     <h3 style="margin-top: 28px; margin-bottom: 12px; font-size: 1.1em;">3. Start asking questions</h3>
     <div class="code-block">
-      <pre><code><span style="color: var(--green)">You:</span>  What are current Bitcoin fees? Should I send now or wait?
+      <pre><code><span style="color: var(--green)">You:</span>  We batch merchant payouts. Should we send now or wait?
 
 <span style="color: var(--blue)">Agent:</span> Let me check the fee environment.
-<span style="color: var(--dim)">[Calling get_recommended_fees...]</span>
-<span style="color: var(--dim)">[Calling get_fee_landscape...]</span>
+<span style="color: var(--dim)">[Calling plan_transaction(profile="merchant_payout_batch")]</span>
 
-Current fees are 12 sat/vB for high priority. The mempool is
-clearing steadily — good time to send at medium priority (8 sat/vB)
-for confirmation within ~30 minutes.</code></pre>
+This merchant payout batch should wait. In the fixed March 19, 2026
+example, sending at 4.22 sat/vB would have cost 14,563 sats.
+Waiting for the next morning fee window would have cut that to
+3,451 sats and saved about 76.3%.</code></pre>
     </div>
 
     <div class="highlight-box">
-      <h3>That's it. No API key, no node, no configuration files to edit.</h3>
-      <p>bitcoin-mcp ships ready to use. It discovers tools automatically and falls back to the hosted Satoshi API when no local node is running. You can point it at your own node later for full sovereignty.</p>
+      <h3>That is the default hosted demo path.</h3>
+      <p>bitcoin-mcp ships ready to use. It discovers tools automatically and falls back to the hosted Satoshi API when no local node is running. Start with <code>plan_transaction</code> for the send-or-wait verdict, then add deeper tools later if you need more analysis.</p>
     </div>
   </section>
 
@@ -311,12 +311,14 @@ for confirmation within ~30 minutes.</code></pre>
     <p class="section-desc">49+ tools your AI agent can call. Each returns structured JSON with a consistent <code>{data, meta}</code> envelope.</p>
 
     <h3 style="margin-bottom: 4px; color: var(--green);">Fee Intelligence</h3>
-    <p style="color: var(--muted); font-size: 0.88em; margin-bottom: 12px;">Know when to send and how much to pay.</p>
+    <p style="color: var(--muted); font-size: 0.88em; margin-bottom: 12px;">Lead with the hosted planner, then reach for premium depth only when you need it.</p>
     <div class="tools-grid">
       <div class="tool-item">get_fee_estimates<div class="tool-desc">Multi-target fee rates</div></div>
-      <div class="tool-item">get_fee_recommendation<div class="tool-desc">Send now or wait?</div></div>
+      <div class="tool-item">plan_transaction<div class="tool-desc">Default hosted send-or-wait path</div></div>
+      <div class="tool-item">get_fee_recommendation<div class="tool-desc">Quick fee summary</div></div>
       <div class="tool-item">estimate_transaction_cost<div class="tool-desc">Cost for your tx shape</div></div>
       <div class="tool-item">compare_fee_estimates<div class="tool-desc">Fee trends over time</div></div>
+      <div class="tool-item">get_fee_landscape<div class="tool-desc">Premium x402 deeper analysis</div></div>
     </div>
 
     <h3 style="margin-top: 28px; margin-bottom: 4px; color: var(--blue);">Block Analysis</h3>
@@ -431,7 +433,7 @@ satoshi-api</code></pre>
   -d '{"method": "getblockcount"}'</code></pre>
     </div>
 
-    <p style="color: var(--muted); font-size: 0.9em; margin-top: 16px;">Full interactive API docs at <a href="/docs">/docs</a>. No API key required for GET endpoints.</p>
+      <p style="color: var(--muted); font-size: 0.9em; margin-top: 16px;">Full interactive API docs at <a href="/docs">/docs</a>. Start with the free planner path and use x402 only when you want premium deeper analysis.</p>
   </section>
 
   <hr class="section-divider">

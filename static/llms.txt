@@ -27,7 +27,7 @@ Register a free API key and start querying in seconds.
    Response includes your API key.
 
 2. Query:
-   GET https://bitcoinsapi.com/api/v1/fees/recommended
+   GET https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd
    Header: X-API-Key: <your_key>
 
 3. Every response follows the same envelope:
@@ -78,6 +78,7 @@ Returns API key instantly. No approval wait. Free tier: 500 req/min, 25K/day.
 
 - For "should I send now or wait?": https://bitcoinsapi.com/best-time-to-send-bitcoin
 - For the live verdict and fee tracker UI: https://bitcoinsapi.com/fees
+- For the frozen merchant payout proof payload: https://bitcoinsapi.com/api/v1/fees/scenarios/merchant-payout-batch-march-2026
 - For agent setup: https://bitcoinsapi.com/mcp-setup
 - For full API docs: https://bitcoinsapi.com/docs
 
@@ -106,7 +107,9 @@ https://bitcoinsapi.com
 - /api/v1/fees - Fee estimates and recommendations
 - /api/v1/fees/recommended - Smart fee recommendation
 - /api/v1/fees/history - Historical fee data
-- /api/v1/fees/plan - Optimal send timing
+- /api/v1/fees/plan - Hosted send-now-or-wait planner for your tx shape or preset
+- /api/v1/fees/scenarios - Curated proof scenarios for demos and onboarding
+- /api/v1/fees/scenarios/{slug} - Frozen machine-readable send-or-wait proof case
 - /api/v1/fees/savings - Savings from waiting
 - /api/v1/blocks/latest - Latest block info
 - /api/v1/blocks/{height_or_hash} - Block by height or hash
@@ -138,7 +141,7 @@ https://bitcoinsapi.com
 - /api/v1/broadcast - Transaction broadcast ($0.01)
 - /api/v1/mining/nextblock - Next block prediction ($0.01)
 - /api/v1/fees/observatory/* - Fee observatory analytics ($0.005)
-- /api/v1/fees/landscape - Full fee landscape ($0.005)
+- /api/v1/fees/landscape - Full fee landscape and deeper premium fee analysis ($0.005)
 
 ## Payment (x402 protocol)
 

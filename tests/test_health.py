@@ -222,6 +222,8 @@ def test_llms_docs_explain_keyed_and_premium_access(client):
     assert llms.status_code == 200
     assert "Best starting points" in llms.text
     assert "https://bitcoinsapi.com/best-time-to-send-bitcoin" in llms.text
+    assert "merchant-payout-batch-march-2026" in llms.text
+    assert "merchant_payout_batch" in llms.text
     assert "API-Key Endpoints" in llms.text
     assert "Paid Endpoints (x402 or Pro/Enterprise tier)" in llms.text
     assert "/api/v1/mining/pools - Mining pool distribution" in llms.text
@@ -233,6 +235,7 @@ def test_llms_docs_explain_keyed_and_premium_access(client):
     assert llms_full.status_code == 200
     assert "/mining/pools | Mining pool distribution (API key required)" in llms_full.text
     assert "/stats/utxo-set | UTXO set statistics (API key required)" in llms_full.text
+    assert "/fees/scenarios | Curated frozen send-or-wait proof cases for demos |" in llms_full.text
     assert "Direct access to `/api/v1/rpc` requires an API key." in llms_full.text
     assert "An API key is not required but recommended for higher limits." not in llms_full.text
 
@@ -252,6 +255,28 @@ def test_best_time_to_send_page_is_positioned_as_send_or_wait_wedge(client):
     assert "Should You Send Bitcoin" in resp.text
     assert "See Live Verdict" in resp.text
     assert "5,000 requests/day anonymously" in resp.text
+    assert "March 19, 2026 at 1:54 PM EDT" in resp.text
+    assert "76.3%" in resp.text
+    assert "merchant-payout-batch-march-2026" in resp.text
+
+
+def test_mcp_setup_page_leads_with_plan_transaction_demo(client):
+    resp = client.get("/mcp-setup")
+    assert resp.status_code == 200
+    assert 'plan_transaction(profile="merchant_payout_batch")' in resp.text
+    assert "That is the default hosted demo path." in resp.text
+    assert "[Calling get_fee_landscape...]" not in resp.text
+
+
+def test_homepage_and_fee_page_promote_free_planner_before_premium(client):
+    home = client.get("/")
+    fees = client.get("/fees")
+    assert home.status_code == 200
+    assert fees.status_code == 200
+    assert '/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd' in home.text
+    assert "Premium paths such as <code>/fees/landscape</code> use x402 or a paid tier." in home.text
+    assert "default hosted send-or-wait path is <code>GET /api/v1/fees/plan</code>" in fees.text
+    assert "Both endpoints are free to use" not in fees.text
 
 
 def test_root_supports_head(client):

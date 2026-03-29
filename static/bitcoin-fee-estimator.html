@@ -276,15 +276,14 @@
     </div>
 
     <div class="endpoint-card">
-      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/landscape</span></div>
-      <p class="desc">The "should I send now or wait?" decision engine. Analyzes the current fee environment and returns a send/wait recommendation based on fee spread, urgency premium, and mempool conditions. Includes a congestion level indicator and the optimal fee tier for cost-conscious transactions.</p>
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd</span></div>
+      <p class="desc">The default hosted send-now-or-wait planner. Start here when you want a free verdict for a real transaction shape. The premium <code>/fees/landscape</code> endpoint is still available when you want deeper x402 analysis.</p>
       <div class="sample">{
   <span class="key">"data"</span>: {
-    <span class="key">"recommendation"</span>: <span class="str">"Fees are low. Good time to send."</span>,
-    <span class="key">"congestion"</span>: <span class="str">"low"</span>,
-    <span class="key">"spread"</span>: <span class="num">5.2</span>,
-    <span class="key">"urgency_premium_pct"</span>: <span class="num">42.1</span>,
-    <span class="key">"optimal_tier"</span>: <span class="str">"medium"</span>
+    <span class="key">"profile"</span>: <span class="str">"merchant_payout_batch"</span>,
+    <span class="key">"recommendation"</span>: <span class="str">"wait"</span>,
+    <span class="key">"delay_savings_pct"</span>: <span class="num">76.3</span>,
+    <span class="key">"btc_price_usd"</span>: <span class="num">66519.0</span>
   }
 }</div>
     </div>
@@ -295,7 +294,7 @@
 <section>
   <div class="container prose">
     <h2>Quick Start</h2>
-    <p>Get a fee estimate in seconds. No API key required for GET requests.</p>
+    <p>Get a fee estimate in seconds. The hosted estimator and planner are free to try anonymously.</p>
 
     <h3>cURL</h3>
     <div class="code-block">
@@ -356,7 +355,7 @@ print(resp.json()[<span class="str">"data"</span>][<span class="str">"fee_estima
           </tr>
           <tr>
             <td class="row-label">Send-or-wait verdict</td>
-            <td class="yes">Yes (landscape endpoint)</td>
+            <td class="yes">Yes (planner + premium landscape)</td>
             <td class="no">No</td>
             <td class="no">No</td>
             <td class="no">No</td>
@@ -420,7 +419,7 @@ print(resp.json()[<span class="str">"data"</span>][<span class="str">"fee_estima
     <p>Yes. Satoshi API's <code>/fees/estimate-tx</code> endpoint uses SegWit (P2WPKH) transaction weight calculations by default, which is the most common transaction type today. SegWit transactions use virtual bytes (vBytes) rather than raw bytes, giving them a discount on fees compared to legacy transactions. The estimator accounts for the witness discount when calculating the virtual size of your transaction based on the number of inputs and outputs you specify.</p>
 
     <h3>Is there a free Bitcoin fee estimation API?</h3>
-    <p>Yes. Satoshi API offers a free hosted tier at bitcoinsapi.com with no API key required for GET requests. You can also self-host it on your own Bitcoin Core node for unlimited, private fee estimation at zero cost. Other free options include Mempool.space's public API and Bitcoin Core's built-in <code>estimatesmartfee</code> RPC (though Core returns raw BTC/kVB without analysis). Satoshi API is the only free option that includes congestion scoring, send-or-wait verdicts, and transaction cost estimation in a single API.</p>
+    <p>Yes. Satoshi API offers a free hosted tier at bitcoinsapi.com for core fee estimation and planning paths, and you can also self-host it on your own Bitcoin Core node for unlimited private estimation at zero cost. Other free options include Mempool.space's public API and Bitcoin Core's built-in <code>estimatesmartfee</code> RPC (though Core returns raw BTC/kVB without analysis). Satoshi API is the option that combines transaction cost estimation, send-now-or-wait planning, and MCP-friendly responses in one surface.</p>
   </div>
 </section>
 

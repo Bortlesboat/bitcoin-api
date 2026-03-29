@@ -1,6 +1,6 @@
 """Fee endpoints: /fees, /fees/recommended, /fees/mempool-blocks, /fees/landscape, /fees/estimate-tx, /fees/history, /fees/{target}."""
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.utils import fee_recommendation
@@ -16,6 +16,8 @@ from ..services.fees import (
     analyze_mempool_blocks,
     calculate_fee_landscape,
     estimate_tx_fees,
+    get_demo_fee_scenario,
+    list_demo_fee_scenarios,
     plan_transaction,
     simulate_fee_savings,
     summarize_fee_history,
@@ -211,10 +213,25 @@ def fees_history(
     )
 
 
+@router.get("/scenarios", response_model=ApiResponse[list[dict]])
+def fees_scenarios():
+    """Frozen demo scenarios used across the public proof story, docs, and sales demo assets."""
+    return envelope(list_demo_fee_scenarios())
+
+
+@router.get("/scenarios/{slug}", response_model=ApiResponse[dict])
+def fees_scenario_detail(slug: str):
+    """Single frozen fee scenario by slug."""
+    scenario = get_demo_fee_scenario(slug)
+    if not scenario:
+        raise HTTPException(status_code=404, detail=f"Unknown fee scenario: {slug}")
+    return envelope(scenario)
+
+
 @router.get("/plan", response_model=ApiResponse[dict])
 def fees_plan(
     rpc: BitcoinRPC = Depends(get_rpc),
-    profile: str | None = Query(default=None, description="Preset profile: simple_send, exchange_withdrawal, batch_payout, consolidation"),
+    profile: str | None = Query(default=None, description="Preset profile: simple_send, exchange_withdrawal, batch_payout, merchant_payout_batch, consolidation"),
     inputs: int | None = Query(default=None, ge=1, le=100, description="Number of inputs (overrides profile)"),
     outputs: int | None = Query(default=None, ge=1, le=100, description="Number of outputs (overrides profile)"),
     address_type: str = Query(default="segwit", description="Address type: segwit, taproot, legacy"),

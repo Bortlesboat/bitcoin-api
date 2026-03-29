@@ -25,6 +25,15 @@ def test_guide_quickstart_has_steps(client):
     assert "curl" in qs[0]["examples"]
 
 
+def test_guide_quickstart_promotes_hosted_planner_demo(client):
+    resp = client.get("/api/v1/guide?lang=curl")
+    assert resp.status_code == 200
+    qs = resp.json()["data"]["quickstart"]
+    planner_step = next(step for step in qs if step["step"] == 3)
+    assert planner_step["path"] == "/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd"
+    assert "merchant_payout_batch" in planner_step["examples"]["curl"]
+
+
 def test_guide_use_case_filter(client):
     """Filtering by use_case should return only that category."""
     resp = client.get("/api/v1/guide?use_case=fees")
@@ -149,3 +158,11 @@ def test_guide_marks_keyed_and_premium_routes_correctly(client):
     assert "x402" in endpoints["/api/v1/mining/nextblock"]["description"].lower()
     assert endpoints["/api/v1/x402-info"]["auth_required"] is False
     assert endpoints["/api/v1/x402-demo"]["auth_required"] is False
+
+
+def test_guide_fee_category_includes_demo_scenarios(client):
+    cats = client.get("/api/v1/guide?use_case=fees&lang=curl").json()["data"]["categories"]
+    endpoints = {ep["path"]: ep for ep in cats[0]["endpoints"]}
+    assert "/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd" in endpoints
+    assert "/api/v1/fees/scenarios" in endpoints
+    assert "/api/v1/fees/scenarios/merchant-payout-batch-march-2026" in endpoints

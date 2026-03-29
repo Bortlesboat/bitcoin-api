@@ -285,8 +285,53 @@ PROFILES = {
                             "description": "Single withdrawal (1 input, 1 output, SegWit)"},
     "batch_payout": {"inputs": 1, "outputs": 10, "input_type": "p2wpkh", "output_type": "p2wpkh",
                      "description": "Batch payout (1 input, 10 outputs, SegWit)"},
+    "merchant_payout_batch": {"inputs": 5, "outputs": 100, "input_type": "p2wpkh", "output_type": "p2wpkh",
+                              "description": "Merchant payout batch (5 inputs, 100 outputs, SegWit)"},
     "consolidation": {"inputs": 10, "outputs": 1, "input_type": "p2wpkh", "output_type": "p2wpkh",
                       "description": "UTXO consolidation (10 inputs, 1 output, SegWit)"},
+}
+
+
+_DEMO_SCENARIOS = {
+    "merchant-payout-batch-march-2026": {
+        "slug": "merchant-payout-batch-march-2026",
+        "title": "Merchant payout batch: wait for the morning fee window",
+        "buyer": {
+            "persona": "technical founder or CTO",
+            "operator": "merchant payout operator",
+            "company_type": "wallet, payout, or treasury product",
+        },
+        "use_case": "daily merchant settlement batch",
+        "reference": {
+            "decision_time_utc": "2026-03-19T17:54:11Z",
+            "decision_time_local": "March 19, 2026 at 1:54 PM EDT",
+            "wait_until_utc": "2026-03-20T11:55:00Z",
+            "wait_until_local": "March 20, 2026 at 7:55 AM EDT",
+            "source_note": (
+                "Frozen from the March 29, 2026 fee-history and transaction-size analysis "
+                "used for the hosted sales demo proof story."
+            ),
+        },
+        "transaction": {
+            "profile": "merchant_payout_batch",
+            "inputs": 5,
+            "outputs": 100,
+            "address_type": "segwit",
+            "script_type": "p2wpkh",
+            "estimated_vsize": 3451,
+            "estimated_weight": 13802,
+        },
+        "decision": {
+            "recommendation": "wait",
+            "reasoning": (
+                "At 4.22 sat/vB this payout batch was in a temporary spike. Waiting for the "
+                "next morning window dropped the fee rate to 1.0 sat/vB."
+            ),
+        },
+        "send_now_fee_rate_sat_vb": 4.22,
+        "wait_fee_rate_sat_vb": 1.0,
+        "btc_price_usd": 66519.0,
+    },
 }
 
 # Map developer-friendly names to script types
@@ -311,6 +356,67 @@ def _resolve_address_type(address_type: str) -> str:
 def _sats_to_usd(sats: int | float, btc_price: float) -> float:
     """Convert satoshis to USD, rounded to 4 decimal places."""
     return round(sats / 1e8 * btc_price, 4)
+
+
+def _build_demo_cost(fee_rate_sat_vb: float, vsize: int, btc_price: float | None = None) -> dict:
+    """Build a stable cost payload for a frozen scenario."""
+    total_sats = round(fee_rate_sat_vb * vsize)
+    payload = {
+        "fee_rate_sat_vb": fee_rate_sat_vb,
+        "total_fee_sats": total_sats,
+        "total_fee_btc": round(total_sats / 1e8, 8),
+    }
+    if btc_price:
+        payload["total_fee_usd"] = _sats_to_usd(total_sats, btc_price)
+    return payload
+
+
+def get_demo_fee_scenario(slug: str) -> dict | None:
+    """Return a frozen fee-intelligence scenario for demos and sales assets."""
+    scenario = _DEMO_SCENARIOS.get(slug)
+    if not scenario:
+        return None
+
+    transaction = dict(scenario["transaction"])
+    reference = dict(scenario["reference"])
+    buyer = dict(scenario["buyer"])
+    decision = dict(scenario["decision"])
+    vsize = transaction["estimated_vsize"]
+    btc_price = scenario.get("btc_price_usd")
+
+    send_now = _build_demo_cost(scenario["send_now_fee_rate_sat_vb"], vsize, btc_price)
+    wait = _build_demo_cost(scenario["wait_fee_rate_sat_vb"], vsize, btc_price)
+    savings_sats = send_now["total_fee_sats"] - wait["total_fee_sats"]
+    savings = {
+        "sats": savings_sats,
+        "btc": round(savings_sats / 1e8, 8),
+        "percent": round((1 - wait["total_fee_sats"] / send_now["total_fee_sats"]) * 100, 1),
+    }
+    if btc_price:
+        savings["usd"] = _sats_to_usd(savings_sats, btc_price)
+
+    return {
+        "slug": scenario["slug"],
+        "title": scenario["title"],
+        "buyer": buyer,
+        "use_case": scenario["use_case"],
+        "reference": reference,
+        "transaction": transaction,
+        "decision": {
+            **decision,
+            "wait_until_utc": reference["wait_until_utc"],
+            "wait_until_local": reference["wait_until_local"],
+        },
+        "send_now": send_now,
+        "wait": wait,
+        "savings": savings,
+        "btc_price_usd": btc_price,
+    }
+
+
+def list_demo_fee_scenarios() -> list[dict]:
+    """Return all frozen fee scenarios in a stable order."""
+    return [get_demo_fee_scenario(slug) for slug in _DEMO_SCENARIOS]
 
 
 def _classify_fee_environment(next_block_rate: float) -> dict:

@@ -41,11 +41,13 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 |--------|------|-------------|
 | GET | /fees | All fee estimates (multiple confirmation targets) |
 | GET | /fees/recommended | Smart recommendation: send now or wait? |
-| GET | /fees/landscape | Full fee landscape with percentiles (x402 or Pro/Enterprise tier) |
+| GET | /fees/landscape | Full fee landscape with percentiles and deeper premium analysis (x402 or Pro/Enterprise tier) |
 | GET | /fees/mempool-blocks | Projected mempool blocks with fee ranges |
 | GET | /fees/estimate-tx | Estimate fee for a specific transaction size |
 | GET | /fees/history | Historical fee data |
-| GET | /fees/plan | Fee planning: optimal send timing |
+| GET | /fees/plan | Hosted send-now-or-wait planner for a tx shape or preset such as merchant_payout_batch |
+| GET | /fees/scenarios | Curated frozen send-or-wait proof cases for demos |
+| GET | /fees/scenarios/{slug} | Single frozen proof case with exact savings math |
 | GET | /fees/savings | How much you save by waiting |
 | GET | /fees/{target} | Fee estimate for specific confirmation target |
 
@@ -332,7 +334,7 @@ for per-request micropayments in USDC on Base:
 | /api/v1/broadcast | $0.01 | Transaction relay resources |
 | /api/v1/mining/nextblock | $0.01 | Heavy computation |
 | /api/v1/fees/observatory/* | $0.005 | Multi-source analytics DB |
-| /api/v1/fees/landscape | $0.005 | Rich mempool computation |
+| /api/v1/fees/landscape | $0.005 | Deeper premium fee landscape analysis |
 
 ### How x402 works
 1. Request a paid endpoint without payment -> get HTTP 402 with `paymentRequirements`

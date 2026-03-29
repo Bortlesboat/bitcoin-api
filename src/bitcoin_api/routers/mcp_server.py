@@ -84,9 +84,10 @@ mcp = FastMCP(
     instructions=(
         "Bitcoin fee intelligence API. Provides real-time fee estimates, "
         "mempool analysis, block data, mining stats, and supply info. "
-        "Use get_situation_summary for a quick overview, get_fee_recommendation "
-        "to decide whether to send now or wait, and search to look up any "
-        "Bitcoin identifier (txid, block hash, address, height)."
+        "Use get_situation_summary for a quick overview, plan_transaction as the "
+        "default hosted send-now-or-wait tool, get_fee_landscape for deeper or "
+        "premium fee analysis, and search to look up any Bitcoin identifier "
+        "(txid, block hash, address, height)."
     ),
 )
 
@@ -141,7 +142,8 @@ async def get_situation_summary() -> dict:
 async def get_fee_recommendation() -> dict:
     """Should I send a Bitcoin transaction now or wait? Returns a clear recommendation
     (send/wait/urgent_only) with confidence level, reasoning, fee environment
-    classification, and mempool trend analysis."""
+    classification, and mempool trend analysis. For the default hosted demo path,
+    prefer plan_transaction because it matches the free planner flow shown on the site."""
     result = await _api_get("/fees/landscape")
     return _extract_data(result)
 

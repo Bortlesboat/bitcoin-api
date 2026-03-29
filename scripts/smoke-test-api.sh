@@ -54,6 +54,7 @@ check() {
 
 check "home"         "$BASE_URL/"
 check "fees-page"    "$BASE_URL/fees"                             "Fee Tracker"                             true
+check "best-time"    "$BASE_URL/best-time-to-send-bitcoin"        "Merchant Payout Example"                 true
 check "llms"         "$BASE_URL/llms.txt"                         "Bitcoin fee intelligence for AI agents" true
 check "x402-page"    "$BASE_URL/x402"                             "premium Bitcoin API calls"               true
 check "docs"         "$BASE_URL/docs"                             "swagger"                                 true
@@ -62,6 +63,9 @@ check "openapi"      "$BASE_URL/openapi.json"                     '"openapi"'
 check "server-card"  "$BASE_URL/.well-known/mcp/server-card.json" '"serverInfo"'
 check "health"       "$BASE_URL/api/v1/health"                    '"status":"ok"'
 check "fees"         "$BASE_URL/api/v1/fees/recommended"          '"recommendation"'
+check "fees-plan"    "$BASE_URL/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd" '"profile":"merchant_payout_batch"'
+check "fees-scenario" "$BASE_URL/api/v1/fees/scenarios/merchant-payout-batch-march-2026" '"merchant-payout-batch-march-2026"'
+check "fees-landscape" "$BASE_URL/api/v1/fees/landscape"          '"paymentRequirements"'                   false 402
 check "mempool"      "$BASE_URL/api/v1/mempool"                   '"congestion"'
 check "difficulty"   "$BASE_URL/api/v1/network/difficulty"        '"progress_percent"'
 check "analytics"    "$BASE_URL/api/v1/analytics/public"          '"total_keys"'

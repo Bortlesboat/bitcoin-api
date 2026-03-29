@@ -1,0 +1,51 @@
+{
+  "slug": "merchant-payout-batch-march-2026",
+  "title": "Merchant payout batch: wait for the morning fee window",
+  "buyer": {
+    "persona": "technical founder or CTO",
+    "operator": "merchant payout operator",
+    "company_type": "wallet, payout, or treasury product"
+  },
+  "use_case": "daily merchant settlement batch",
+  "reference": {
+    "decision_time_utc": "2026-03-19T17:54:11Z",
+    "decision_time_local": "March 19, 2026 at 1:54 PM EDT",
+    "wait_until_utc": "2026-03-20T11:55:00Z",
+    "wait_until_local": "March 20, 2026 at 7:55 AM EDT",
+    "source_note": "Frozen from the March 29, 2026 fee-history and transaction-size analysis used for the hosted sales demo proof story."
+  },
+  "transaction": {
+    "profile": "merchant_payout_batch",
+    "inputs": 5,
+    "outputs": 100,
+    "address_type": "segwit",
+    "script_type": "p2wpkh",
+    "estimated_vsize": 3451,
+    "estimated_weight": 13802
+  },
+  "decision": {
+    "recommendation": "wait",
+    "reasoning": "At 4.22 sat/vB this payout batch was in a temporary spike. Waiting for the next morning window dropped the fee rate to 1.0 sat/vB.",
+    "wait_until_utc": "2026-03-20T11:55:00Z",
+    "wait_until_local": "March 20, 2026 at 7:55 AM EDT"
+  },
+  "send_now": {
+    "fee_rate_sat_vb": 4.22,
+    "total_fee_sats": 14563,
+    "total_fee_btc": 0.00014563,
+    "total_fee_usd": 9.6872
+  },
+  "wait": {
+    "fee_rate_sat_vb": 1.0,
+    "total_fee_sats": 3451,
+    "total_fee_btc": 0.00003451,
+    "total_fee_usd": 2.2956
+  },
+  "savings": {
+    "sats": 11112,
+    "btc": 0.00011112,
+    "percent": 76.3,
+    "usd": 7.3916
+  },
+  "btc_price_usd": 66519.0
+}
