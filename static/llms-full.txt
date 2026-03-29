@@ -20,10 +20,10 @@ Tiers: anonymous (no key), free (registered), pro ($19/mo), enterprise (custom).
 
 | Tier       | Req/min | Daily    | Block cap | Notes              |
 |------------|---------|----------|-----------|--------------------|
-| Anonymous  | 30      | 1,000   | 144       | GET only           |
-| Free       | 100     | 10,000  | 144       | All endpoints      |
-| Pro        | 500     | 100,000 | 1,008     | $19/mo via Stripe  |
-| Enterprise | 2,000   | Custom  | 2,016     | Contact us         |
+| Anonymous  | 200     | 5,000   | 144       | GET only           |
+| Free       | 500     | 25,000  | 144       | All endpoints      |
+| Pro        | 2,000   | 250,000 | 1,008     | $19/mo via Stripe  |
+| Enterprise | 5,000   | Custom  | 2,016     | Contact us         |
 
 Response headers for self-throttling:
 - `X-RateLimit-Limit` — max requests per window
@@ -204,7 +204,7 @@ The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to th
 
 Only read-only methods are whitelisted (plus `sendrawtransaction` for broadcasting). Wallet and admin methods are blocked. Allowed methods include: `getblockchaininfo`, `getblockcount`, `getbestblockhash`, `getblockhash`, `getblock`, `getblockheader`, `getblockstats`, `getchaintips`, `getchaintxstats`, `getdifficulty`, `getmempoolinfo`, `getrawmempool`, `getmempoolentry`, `getrawtransaction`, `decoderawtransaction`, `decodescript`, `gettxout`, `estimatesmartfee`, `getmininginfo`, `getnetworkhashps`, `getnetworkinfo`, `getpeerinfo`, `gettxoutsetinfo`, `validateaddress`, `sendrawtransaction`, and others.
 
-Standard rate limits apply per your API tier (anonymous: 30 req/min, free: 100 req/min, pro: 500 req/min, enterprise: 2,000 req/min). An API key is not required but recommended for higher limits.
+Standard rate limits apply per your API tier (anonymous: 200 req/min, free: 500 req/min, pro: 2,000 req/min, enterprise: 5,000 req/min). An API key is not required but recommended for higher limits.
 
 Direct access to `/api/v1/rpc` requires an API key.
 
@@ -287,7 +287,7 @@ Response:
   "data": {
     "api_key": "sat_...",
     "tier": "free",
-    "rate_limit": { "per_minute": 100, "daily": 10000 }
+    "rate_limit": { "per_minute": 500, "daily": 25000 }
   }
 }
 ```
@@ -349,9 +349,9 @@ for per-request micropayments in USDC on Base:
 
 ## Pricing (subscription tiers)
 
-- **Free:** 0/mo — 100 req/min, 10K/day, all endpoints
-- **Pro:** $19/mo — 500 req/min, 100K/day, extended block history
-- **Enterprise:** Custom — 2K req/min, dedicated support
+- **Free:** 0/mo — 500 req/min, 25K/day, all endpoints
+- **Pro:** $19/mo — 2,000 req/min, 250K/day, extended block history
+- **Enterprise:** Custom — 5K req/min, dedicated support
 
 ## MCP Setup (for AI agents)
 

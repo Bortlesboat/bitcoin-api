@@ -2,6 +2,8 @@
 
 from unittest.mock import patch, MagicMock
 
+from bitcoin_api.config import settings
+
 
 def test_fee_for_target(client):
     resp = client.get("/api/v1/fees/6")
@@ -418,7 +420,7 @@ def test_fees_savings_currency_usd(client):
 
 def test_429_has_request_id(client):
     """Rate limit 429 responses should include request_id in error body."""
-    for _ in range(30):
+    for _ in range(settings.rate_limit_anonymous):
         client.get("/api/v1/fees/6")
     resp = client.get("/api/v1/fees/6")
     assert resp.status_code == 429

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query
 
 from ..config import settings
 from ..models import envelope
+from ..rate_limit import DAILY_LIMITS
 
 router = APIRouter(tags=["Guide"])
 
@@ -344,15 +345,15 @@ def _build_auth_info() -> dict:
         "tiers": {
             "anonymous": {
                 "per_minute": settings.rate_limit_anonymous,
-                "daily": 1000,
+                "daily": DAILY_LIMITS["anonymous"],
             },
             "free": {
                 "per_minute": settings.rate_limit_free,
-                "daily": 10000,
+                "daily": DAILY_LIMITS["free"],
             },
             "pro": {
                 "per_minute": settings.rate_limit_pro,
-                "daily": 100000,
+                "daily": DAILY_LIMITS["pro"],
             },
             "enterprise": {
                 "per_minute": settings.rate_limit_enterprise,

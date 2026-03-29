@@ -19,7 +19,7 @@ from .db import log_usage
 from .exceptions import ERROR_TYPES, _GUIDE_URL
 from .models import ErrorResponse, ErrorDetail
 from .metrics import REQUEST_COUNT, REQUEST_LATENCY, normalize_endpoint
-from .rate_limit import check_rate_limit, check_rate_limit_raw, check_daily_limit
+from .rate_limit import DAILY_LIMITS, check_rate_limit, check_rate_limit_raw, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
 log = logging.getLogger("bitcoin_api")
@@ -40,23 +40,23 @@ def _upgrade_info(current_tier: str) -> dict | None:
     upgrades = {
         "anonymous": {
             "current_tier": "anonymous",
-            "current_limit": 1000,
+            "current_limit": DAILY_LIMITS["anonymous"],
             "next_tier": "free",
-            "next_limit": 10000,
+            "next_limit": DAILY_LIMITS["free"],
             "next_price": "Free",
-            "multiplier": "10x",
-            "message": "Register for free: 10x more requests. Takes 10 seconds.",
+            "multiplier": "5x",
+            "message": "Register for free: 5x more daily requests plus POST access. Takes 10 seconds.",
             "action_url": "https://bitcoinsapi.com/#get-api-key",
             "action_api": "POST /api/v1/register",
         },
         "free": {
             "current_tier": "free",
-            "current_limit": 10000,
+            "current_limit": DAILY_LIMITS["free"],
             "next_tier": "pro",
-            "next_limit": 100000,
+            "next_limit": DAILY_LIMITS["pro"],
             "next_price": "$19/mo",
             "multiplier": "10x",
-            "message": "Pro gives you 100,000 req/day for $19/mo. One fee-optimized transaction pays for it.",
+            "message": "Pro gives you 250,000 req/day for $19/mo. One fee-optimized transaction pays for it.",
             "action_url": "https://bitcoinsapi.com/pricing?utm_source=api&utm_medium=429&utm_campaign=upgrade",
         },
     }

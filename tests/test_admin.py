@@ -337,7 +337,7 @@ def test_metrics_is_rate_limited(client):
     settings.admin_api_key = SecretStr("test-admin-secret")
     try:
         got_429 = False
-        for _ in range(35):
+        for _ in range(settings.rate_limit_anonymous + 5):
             resp = client.get("/metrics", headers={"X-Admin-Key": "test-admin-secret"})
             if resp.status_code == 429:
                 got_429 = True

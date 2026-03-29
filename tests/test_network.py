@@ -1,5 +1,7 @@
 """Tests for network-related endpoints."""
 
+from bitcoin_api.config import settings
+
 
 def test_network(client):
     resp = client.get("/api/v1/network")
@@ -18,8 +20,8 @@ def test_rate_limit_headers(client):
 
 
 def test_rate_limit_enforcement(client):
-    """Anonymous tier should be limited to 30 req/min."""
-    for i in range(30):
+    """Anonymous tier should respect the configured per-minute limit."""
+    for i in range(settings.rate_limit_anonymous):
         resp = client.get("/api/v1/network")
         assert resp.status_code == 200, f"Request {i+1} failed"
 
@@ -34,7 +36,7 @@ def test_daily_limit_headers(client):
     resp = client.get("/api/v1/network")
     assert resp.status_code == 200
     assert "X-RateLimit-Daily-Limit" in resp.headers
-    assert resp.headers["X-RateLimit-Daily-Limit"] == "1000"
+    assert resp.headers["X-RateLimit-Daily-Limit"] == "5000"
 
 
 def test_request_id_in_response(client):

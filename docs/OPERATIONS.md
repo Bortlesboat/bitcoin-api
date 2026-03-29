@@ -78,9 +78,10 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 ### Available settings (from `.env.example`)
 - `BITCOIN_RPC_USER` / `BITCOIN_RPC_PASSWORD` -- RPC auth (alternative to cookie auth)
 - `RPC_TIMEOUT=10` -- RPC call timeout in seconds (fails fast into stale cache)
-- `RATE_LIMIT_ANONYMOUS=30` -- requests/min for anonymous users
-- `RATE_LIMIT_FREE=100` -- requests/min for free API key users
-- `RATE_LIMIT_PRO=500` -- requests/min for pro users
+- `RATE_LIMIT_ANONYMOUS=200` -- requests/min for anonymous users
+- `RATE_LIMIT_FREE=500` -- requests/min for free API key users
+- `RATE_LIMIT_PRO=2000` -- requests/min for pro users
+- `RATE_LIMIT_ENTERPRISE=5000` -- requests/min for enterprise users
 - `RATE_LIMIT_EXEMPT_KEYS` -- comma-separated key hashes that bypass all rate limits (e.g. internal bots)
 - `ADMIN_API_KEY` -- key for admin analytics endpoints
 - `ADMIN_NOTIFICATION_EMAIL` -- receives alerts on new API key registrations

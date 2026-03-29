@@ -72,7 +72,7 @@ Every response includes X-Auth-Tier header showing your current tier
 
 POST https://bitcoinsapi.com/api/v1/register
 Body: {"email": "agent@example.com", "agreed_to_terms": true}
-Returns API key instantly. No approval wait. Free tier: 100 req/min, 10K/day.
+Returns API key instantly. No approval wait. Free tier: 500 req/min, 25K/day.
 
 ## Base URL
 
@@ -150,10 +150,10 @@ payment needed for Pro/Enterprise). x402 is for keyless pay-per-call access.
 
 ## Rate limits
 
-- Anonymous: 30 req/min, 1,000/day, GET only, 144-block cap
-- Free (registered): 100 req/min, 10,000/day, all endpoints, 144-block cap
-- Pro ($19/mo): 500 req/min, 100,000/day, 1,008-block cap
-- Enterprise: 2,000 req/min, custom daily, 2,016-block cap
+- Anonymous: 200 req/min, 5,000/day, GET only, 144-block cap
+- Free (registered): 500 req/min, 25,000/day, all endpoints, 144-block cap
+- Pro ($19/mo): 2,000 req/min, 250,000/day, 1,008-block cap
+- Enterprise: 5,000 req/min, custom daily, 2,016-block cap
 
 All responses include X-RateLimit-Limit, X-RateLimit-Remaining,
 X-RateLimit-Reset, X-RateLimit-Daily-Limit, X-RateLimit-Daily-Remaining

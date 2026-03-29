@@ -5,7 +5,7 @@ Zero dependencies (stdlib only). Works with Python 3.10+.
 Usage:
     from satoshi_api import SatoshiAPI
 
-    api = SatoshiAPI()                          # anonymous (30 req/min)
+api = SatoshiAPI()                          # anonymous (200 req/min)
     api = SatoshiAPI(api_key="your-key")        # authenticated
     api = SatoshiAPI(base_url="http://localhost:9332")  # self-hosted
 

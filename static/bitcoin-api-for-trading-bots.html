@@ -51,7 +51,7 @@
       "name": "What rate limits does Satoshi API have for bots?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Satoshi API offers four tiers: Anonymous (144 requests/day, no key needed), Free (10,000 requests/day), Pro (100,000 requests/day at $19/month), and Enterprise (custom limits). The Free tier is sufficient for bots checking fees every 5 minutes. Pro is designed for production bots that need high-frequency polling or multiple concurrent strategies. You can also self-host for unlimited requests."
+        "text": "Satoshi API offers four tiers: Anonymous (5,000 requests/day, no key needed), Free (25,000 requests/day), Pro (250,000 requests/day at $19/month), and Enterprise (custom limits). The Free tier is sufficient for bots checking fees every few seconds. Pro is designed for production bots that need high-frequency polling or multiple concurrent strategies. You can also self-host for unlimited requests."
       }
     },
     {
@@ -392,13 +392,13 @@ HEADERS = {<span class="str">"X-API-Key"</span>: <span class="str">"your-key"</s
           </tr>
           <tr>
             <td class="row-label">Free</td>
-            <td>10,000</td>
+            <td>25,000</td>
             <td class="yes">$0/mo</td>
-            <td>Low-frequency bots (5-min polling)</td>
+            <td>Minute-level bots and active prototyping</td>
           </tr>
           <tr>
             <td class="row-label">Pro</td>
-            <td>100,000</td>
+            <td>250,000</td>
             <td class="partial">$19/mo</td>
             <td>Production bots, multiple strategies</td>
           </tr>
@@ -412,7 +412,7 @@ HEADERS = {<span class="str">"X-API-Key"</span>: <span class="str">"your-key"</s
       </table>
     </div>
 
-    <p class="section-subtitle" style="margin-top: 16px;">A bot polling every 5 minutes uses ~288 requests/day. The Free tier (10,000/day) supports bots polling every 9 seconds. Pro tier handles sub-second polling or multiple concurrent bot instances. Self-hosting removes all rate limits entirely.</p>
+    <p class="section-subtitle" style="margin-top: 16px;">A bot polling every 5 minutes uses ~288 requests/day. The anonymous tier (5,000/day) already supports that comfortably. The Free tier (25,000/day) supports bots polling every 3-4 seconds. Pro tier handles sub-second polling or multiple concurrent bot instances. Self-hosting removes all rate limits entirely.</p>
   </div>
 </section>
 
@@ -446,7 +446,7 @@ HEADERS = {<span class="str">"X-API-Key"</span>: <span class="str">"your-key"</s
     <p>A trading bot minimizes fees by checking the fee landscape before every transaction. When the API reports low congestion and a "send" recommendation, the bot executes pending transactions. When fees are high, it queues them for later. Over hundreds of transactions per month, this timing strategy saves 20-60% on total fee spend. The <code>/fees/estimate-tx</code> endpoint also helps by calculating exact costs for a given transaction shape before broadcasting.</p>
 
     <h3>What rate limits does Satoshi API have for bots?</h3>
-    <p>Satoshi API offers four tiers: Anonymous (144 requests/day, no key needed), Free (10,000 requests/day), Pro (100,000 requests/day at $19/month), and Enterprise (custom limits). The Free tier supports bots polling every 9 seconds. Pro handles sub-second polling or multiple concurrent strategies. You can also self-host for unlimited requests with zero rate limits.</p>
+    <p>Satoshi API offers four tiers: Anonymous (5,000 requests/day, no key needed), Free (25,000 requests/day), Pro (250,000 requests/day at $19/month), and Enterprise (custom limits). The Free tier supports bots polling every 3-4 seconds. Pro handles sub-second polling or multiple concurrent strategies. You can also self-host for unlimited requests with zero rate limits.</p>
 
     <h3>Can I self-host the API for my trading bot?</h3>
     <p>Yes. Satoshi API is open source and installable via <code>pip install satoshi-api</code>. Point it at your own Bitcoin Core node and you get unlimited requests with zero rate limits, full privacy (no third party sees your fee queries), and the lowest possible latency. Self-hosting is ideal for high-frequency trading bots and institutional setups where every millisecond and every data leak matters.</p>
