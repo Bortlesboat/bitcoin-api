@@ -13,6 +13,7 @@ tasks/
 start-api.bat
 
 logs/
+output/
 # Internal docs — exist locally for scripts, never committed
 # Source of truth: github.com/Bortlesboat/bitcoin-api-internal (private)
 docs/LLC_PREP.md

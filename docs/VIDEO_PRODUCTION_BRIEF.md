@@ -113,3 +113,14 @@ Record only after:
 - proof page, planner, guide, and MCP setup all match the same story
 - smoke checks pass
 - the live demo checklist is fully checked
+
+## Render Workflow
+
+- Render command: `python scripts/render_sales_demo_video.py --keep-captures`
+- Default outputs:
+  - `output/sales-demo-video/bitcoinsapi-sales-demo-full.mp4`
+  - `output/sales-demo-video/bitcoinsapi-sales-demo-full.srt`
+  - `output/sales-demo-video/bitcoinsapi-sales-demo-teaser.mp4`
+  - `output/sales-demo-video/bitcoinsapi-sales-demo-teaser.srt`
+- The renderer pulls the live proof page, planner path, guide output, and MCP setup page from production, then falls back to the frozen merchant payout scenario for the dated proof case.
+- Narration is designed to work without external TTS dependencies by defaulting to a local Windows voice, so the demo can be rerendered on the production workstation even if an API key is unavailable.
