@@ -75,8 +75,14 @@ def test_docs_accessible(client):
 
 def test_api_docs_redirects_to_live_docs(client):
     resp = client.get("/api-docs", follow_redirects=False)
-    assert resp.status_code == 307
+    assert resp.status_code == 308
     assert resp.headers["location"] == "/docs"
+
+
+def test_fee_observatory_redirects_to_fees(client):
+    resp = client.get("/fee-observatory", follow_redirects=False)
+    assert resp.status_code == 308
+    assert resp.headers["location"] == "/fees"
 
 
 def test_envelope_format(client):
@@ -123,6 +129,84 @@ def test_root_csp_allows_configured_analytics_scripts(client):
     assert resp.status_code == 200
     csp = resp.headers["content-security-policy"]
     assert "https://us.i.posthog.com" in csp
+    assert "https://static.cloudflareinsights.com" in csp
+    assert "'nonce-" in csp
+    assert 'nonce="' in resp.text
+
+
+def test_core_marketing_pages_load_shared_site_helper(client):
+    for path in ["/", "/guide", "/pricing", "/mcp-setup", "/vs-mempool", "/history"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert '/static/js/site-helpers.js' in resp.text
+
+
+def test_shared_site_helper_asset_is_served(client):
+    resp = client.get("/static/js/site-helpers.js")
+    assert resp.status_code == 200
+    assert "processTree(document);" in resp.text
+
+
+def test_root_and_fee_tracker_drop_google_font_chain(client):
+    for path in ["/", "/fees"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert "fonts.googleapis.com" not in resp.text
+        assert "fonts.gstatic.com" not in resp.text
+
+
+def test_root_register_form_no_longer_relies_on_inline_submit_handler(client):
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert 'onsubmit=' not in resp.text
+
+
+def test_docs_surface_is_noindex(client):
+    resp = client.get("/docs")
+    assert resp.status_code == 200
+    assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_visualizer_page_is_noindex(client):
+    resp = client.get("/visualizer")
+    assert resp.status_code == 200
+    assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_x402_page_is_noindex(client):
+    resp = client.get("/x402")
+    assert resp.status_code == 200
+    assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_history_index_has_canonical(client):
+    resp = client.get("/history")
+    assert resp.status_code == 200
+    assert '<link rel="canonical" href="https://bitcoinsapi.com/history">' in resp.text
+
+
+def test_history_detail_pages_are_noindex(client):
+    for path in ["/history/block", "/history/tx", "/history/address"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_root_supports_head(client):
+    resp = client.head("/")
+    assert resp.status_code == 200
+
+
+def test_api_docs_supports_head_redirect(client):
+    resp = client.head("/api-docs", follow_redirects=False)
+    assert resp.status_code == 308
+    assert resp.headers["location"] == "/docs"
+
+
+def test_mcp_server_card_supports_head(client):
+    resp = client.head("/.well-known/mcp/server-card.json")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("application/json")
 
 
 def test_health_deep(authed_client):

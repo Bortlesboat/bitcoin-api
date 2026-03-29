@@ -17,9 +17,6 @@
 <meta name="twitter:title" content="Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts">
 <meta name="twitter:description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Fee Tracker","item":"https://bitcoinsapi.com/fees"}]},{"@type":"WebApplication","@id":"https://bitcoinsapi.com/fees/#app","name":"Bitcoin Fee Tracker","description":"Real-time Bitcoin fee tracker with send-or-wait verdicts, congestion monitoring, and savings calculator.","url":"https://bitcoinsapi.com/fees","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"}}]}
@@ -78,10 +75,10 @@
     --green: #3fb950;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  code { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
 
   /* Sync Warning Banner */
   .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
@@ -118,7 +115,7 @@
 
   /* Code block */
   .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
-  .code-block pre { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
+  .code-block pre { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
   .code-block .comment { color: var(--muted); }
   .code-block .cmd { color: var(--green); }
 
@@ -257,7 +254,7 @@
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
   }
   .stat-label {
     font-size: 0.8em;
@@ -290,7 +287,7 @@
   .savings-card .fee-amount {
     font-size: 1.4em;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
   }
   .savings-card .fee-usd {
     font-size: 0.9em;
@@ -342,7 +339,7 @@
 
 <nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
   <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
-  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <button class="nav-toggle" data-nav-toggle=".nav-links" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
   <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
     <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
     <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
@@ -801,7 +798,19 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
     setText('refresh-counter', ago);
   }
 
+  function bindNavToggle() {
+    var toggle = document.querySelector('[data-nav-toggle]');
+    if (!toggle) return;
+    var targetSelector = toggle.getAttribute('data-nav-toggle');
+    var target = targetSelector ? document.querySelector(targetSelector) : null;
+    if (!target) return;
+    toggle.addEventListener('click', function() {
+      target.classList.toggle('open');
+    });
+  }
+
   /* ---- Init ---- */
+  bindNavToggle();
   refreshData();
   setInterval(refreshData, 30000);
   setInterval(updateCounter, 1000);
