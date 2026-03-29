@@ -204,9 +204,7 @@ The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to th
 
 Only read-only methods are whitelisted (plus `sendrawtransaction` for broadcasting). Wallet and admin methods are blocked. Allowed methods include: `getblockchaininfo`, `getblockcount`, `getbestblockhash`, `getblockhash`, `getblock`, `getblockheader`, `getblockstats`, `getchaintips`, `getchaintxstats`, `getdifficulty`, `getmempoolinfo`, `getrawmempool`, `getmempoolentry`, `getrawtransaction`, `decoderawtransaction`, `decodescript`, `gettxout`, `estimatesmartfee`, `getmininginfo`, `getnetworkhashps`, `getnetworkinfo`, `getpeerinfo`, `gettxoutsetinfo`, `validateaddress`, `sendrawtransaction`, and others.
 
-Standard rate limits apply per your API tier (anonymous: 200 req/min, free: 500 req/min, pro: 2,000 req/min, enterprise: 5,000 req/min). An API key is not required but recommended for higher limits.
-
-Direct access to `/api/v1/rpc` requires an API key.
+Direct access to `/api/v1/rpc` requires an API key. Standard rate limits then apply per your tier (free: 500 req/min, pro: 2,000 req/min, enterprise: 5,000 req/min).
 
 ## Response Format
 

@@ -40,6 +40,17 @@ satoshi-api
 # Docs: http://localhost:9332/docs
 ```
 
+## Try The Hosted API
+
+The fastest way to feel the product is the live send-or-wait loop on the hosted API:
+
+```bash
+bash scripts/try-public-api.sh
+```
+
+That one command exercises the anonymous fee recommendation, transaction planner,
+savings simulation, and the x402 premium challenge against `https://bitcoinsapi.com`.
+
 ## Example
 
 ```bash

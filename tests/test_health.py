@@ -226,12 +226,15 @@ def test_llms_docs_explain_keyed_and_premium_access(client):
     assert "Paid Endpoints (x402 or Pro/Enterprise tier)" in llms.text
     assert "/api/v1/mining/pools - Mining pool distribution" in llms.text
     assert "/api/v1/rpc - Hosted Bitcoin Core JSON-RPC proxy" in llms.text
+    assert "Direct access requires a free API key." in llms.text
+    assert "No API key required." not in llms.text
 
     llms_full = client.get("/llms-full.txt")
     assert llms_full.status_code == 200
     assert "/mining/pools | Mining pool distribution (API key required)" in llms_full.text
     assert "/stats/utxo-set | UTXO set statistics (API key required)" in llms_full.text
     assert "Direct access to `/api/v1/rpc` requires an API key." in llms_full.text
+    assert "An API key is not required but recommended for higher limits." not in llms_full.text
 
 
 def test_mcp_server_card_description_matches_fee_intelligence_positioning(client):

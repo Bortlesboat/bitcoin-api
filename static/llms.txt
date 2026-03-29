@@ -50,10 +50,10 @@ Claude Desktop config (paste into claude_desktop_config.json):
 
 Claude Code: claude mcp add bitcoin -- bitcoin-mcp
 
-No API key needed. No Bitcoin node needed. bitcoin-mcp auto-falls
-back to the hosted Satoshi API at bitcoinsapi.com. Provides 49 tools,
-6 prompts, and 7 resources that any MCP-compatible agent can
-discover and invoke.
+No Bitcoin node needed to get started. bitcoin-mcp can fall back
+to the hosted Satoshi API at bitcoinsapi.com. Direct `/api/v1/rpc`
+access still requires a free API key. Provides 49 tools, 6 prompts,
+and 7 resources that any MCP-compatible agent can discover and invoke.
 
 MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
 Setup guide: https://bitcoinsapi.com/mcp-setup
@@ -171,7 +171,7 @@ headers for self-throttling.
 POST https://bitcoinsapi.com/api/v1/rpc
 Body: {"method": "getblockchaininfo", "params": []}
 Proxies read-only Bitcoin Core RPC calls. Used by bitcoin-mcp
-for zero-config mode. No API key required.
+for remote API mode. Direct access requires a free API key.
 
 ## Full documentation
 
