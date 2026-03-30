@@ -7,9 +7,17 @@
 - Style: narrated walkthrough with burned-in captions
 - Use: prospect follow-up, homepage proof clip source, short social teaser source
 
+## Current Status
+
+- The generated renderer output is good enough as an internal/prospect demo draft.
+- It is **not** the customer-facing public video yet.
+- The public-facing asset should be a separate shorter proof clip with a different bar for pacing, motion, and polish.
+
 ## Goal
 
 Show one buyer, one problem, one proof story, one live product path, and one pilot ask.
+
+This brief is for the longer sales/demo asset, not the public homepage or social clip.
 
 ## Audience
 
