@@ -264,9 +264,12 @@ def test_best_time_to_send_page_is_positioned_as_send_or_wait_wedge(client):
     resp = client.get("/best-time-to-send-bitcoin")
     assert resp.status_code == 200
     assert "Should You Send Bitcoin" in resp.text
-    assert "See Live Verdict" in resp.text
+    assert "Open Live Merchant Payout Planner" in resp.text
+    assert 'href="/fees?profile=merchant_payout_batch#live-planner"' in resp.text
     assert "5,000 requests/day anonymously" in resp.text
     assert "March 19, 2026 at 1:54 PM EDT" in resp.text
+    assert "14,563 sats" in resp.text
+    assert "3,451 sats" in resp.text
     assert "76.3%" in resp.text
     assert "merchant-payout-batch-march-2026" in resp.text
 
@@ -286,7 +289,13 @@ def test_homepage_and_fee_page_promote_free_planner_before_premium(client):
     assert fees.status_code == 200
     assert '/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd' in home.text
     assert "Premium paths such as <code>/fees/landscape</code> use x402 or a paid tier." in home.text
-    assert "default hosted send-or-wait path is <code>GET /api/v1/fees/plan</code>" in fees.text
+    assert "Bitcoin <span>Send-or-Wait Planner</span>" in fees.text
+    assert "Live profile: merchant_payout_batch" in fees.text
+    assert "Mempool usage and fee environment do not always move together" in fees.text
+    assert 'profile=merchant_payout_batch&amp;currency=usd' in fees.text
+    assert 'curl</span> "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"' in fees.text
+    assert 'requests.get("https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd").json()' in fees.text
+    assert "profile=simple_send" not in fees.text
     assert "Both endpoints are free to use" not in fees.text
 
 

@@ -53,7 +53,7 @@ check() {
 }
 
 check "home"         "$BASE_URL/"
-check "fees-page"    "$BASE_URL/fees"                             "Fee Tracker"                             true
+check "fees-page"    "$BASE_URL/fees"                             "Send-or-Wait Planner"                   true
 check "best-time"    "$BASE_URL/best-time-to-send-bitcoin"        "Merchant Payout Example"                 true
 check "llms"         "$BASE_URL/llms.txt"                         "Bitcoin fee intelligence for AI agents" true
 check "x402-page"    "$BASE_URL/x402"                             "premium Bitcoin API calls"               true

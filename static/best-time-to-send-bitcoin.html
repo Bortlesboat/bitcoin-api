@@ -108,6 +108,42 @@
   .page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
   .page-header h1 span { color: var(--accent); }
   .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .hero-proof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+    text-align: left;
+  }
+  .hero-proof-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .hero-proof-label {
+    color: var(--muted);
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .hero-proof-value {
+    font-size: 1.65em;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .hero-proof-value.send { color: #ff7b72; }
+  .hero-proof-value.wait { color: var(--green); }
+  .hero-proof-value.save { color: var(--accent); }
+  .hero-proof-value.percent { color: var(--blue); }
+  .hero-proof-context {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 0.95em;
+  }
+  .hero-proof-context strong { color: var(--text); }
 
   /* Section headings */
   .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
@@ -217,10 +253,29 @@
   <div class="container">
     <h1>Should You Send Bitcoin <span>Now or Wait?</span></h1>
     <p class="subtitle">Short answer: wait when the urgency premium is high, send when the spread is tight. Satoshi API turns live mempool data into a real send-or-wait verdict for wallets, bots, and AI agents.</p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
-      <a href="/fees" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">See Live Verdict</a>
+    <div class="hero-actions">
+      <a href="/fees?profile=merchant_payout_batch#live-planner" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Open Live Merchant Payout Planner</a>
       <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
     </div>
+    <div class="hero-proof-grid">
+      <div class="hero-proof-card">
+        <div class="hero-proof-label">Send on March 19, 2026</div>
+        <div class="hero-proof-value send">14,563 sats</div>
+      </div>
+      <div class="hero-proof-card">
+        <div class="hero-proof-label">Wait until March 20, 2026</div>
+        <div class="hero-proof-value wait">3,451 sats</div>
+      </div>
+      <div class="hero-proof-card">
+        <div class="hero-proof-label">Savings</div>
+        <div class="hero-proof-value save">11,112 sats</div>
+      </div>
+      <div class="hero-proof-card">
+        <div class="hero-proof-label">Percent saved</div>
+        <div class="hero-proof-value percent">76.3%</div>
+      </div>
+    </div>
+    <p class="hero-proof-context"><strong>Same transaction shape:</strong> merchant payout batch, 5 inputs, 100 outputs, about 3,451 vB. The live planner uses that same shape instead of dropping you into a generic wallet send.</p>
     <p class="micro-proof">Free to test: 5,000 requests/day anonymously or 25,000/day with a free API key.</p>
   </div>
 </div>
@@ -233,7 +288,7 @@
     <p>Rules of thumb like "weekends are cheaper" help a little, but they are not reliable enough for real money. The only dependable answer comes from live mempool conditions right before you broadcast.</p>
     <p>Start in one of three ways:</p>
     <ul>
-      <li><a href="/fees">Check the live fee tracker</a> if you want a quick visual verdict.</li>
+      <li><a href="/fees?profile=merchant_payout_batch#live-planner">Open the live merchant payout planner</a> if you want the same 5-input / 100-output flow as the proof story.</li>
       <li>Call <code>/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd</code> if you want the hosted merchant payout demo path.</li>
       <li>Install <code>bitcoin-mcp</code> if you want Claude or another agent to answer the question for you.</li>
     </ul>
@@ -326,9 +381,9 @@
   <div class="container" style="margin-top:24px;">
     <div class="cta-box">
       <h3>Want the quickest proof?</h3>
-      <p>Open the live tracker to see the verdict update every 30 seconds, then copy the endpoint into your app or agent.</p>
+      <p>Open the live merchant payout planner to see the current verdict for the same transaction shape as the March 19-20 proof story, then copy that same path into your app.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="/fees" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Open Live Tracker</a>
+        <a href="/fees?profile=merchant_payout_batch#live-planner" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Open Live Planner</a>
         <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">View API Docs</a>
       </div>
     </div>
@@ -336,7 +391,7 @@
 </section>
 
 <!-- Real Savings Example -->
-<section>
+<section id="proof-story">
   <div class="container prose">
     <h2>Real Savings Example</h2>
     <p>Use the exact merchant payout example from the live sales story. The transaction shape is a <strong>5 input / 100 output SegWit batch</strong>, which estimates to <strong>3,451 virtual bytes</strong>.</p>
@@ -482,9 +537,9 @@
   <div class="container">
     <div class="cta-box">
       <h3>Make the send-or-wait call with live data.</h3>
-      <p>Use the live tracker for a quick answer, the API for your app, or bitcoin-mcp if you want an agent to do the reasoning for you.</p>
+      <p>Use the live planner for a quick answer, the API for your app, or bitcoin-mcp if you want an agent to do the reasoning for you.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="/fees" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">See Live Verdict</a>
+        <a href="/fees?profile=merchant_payout_batch#live-planner" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Open Live Planner</a>
         <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
         <a href="/mcp-setup" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Set Up MCP</a>
       </div>
@@ -497,7 +552,7 @@
     <p>Satoshi API is open source under the Apache-2.0 License. Built by <a href="https://github.com/Bortlesboat" target="_blank" rel="noopener noreferrer">Bortlesboat</a>.</p>
     <p style="margin-top: 8px;">
       <a href="/">Home</a> &middot;
-      <a href="/fees">Live Fee Tracker</a> &middot;
+      <a href="/fees?profile=merchant_payout_batch#live-planner">Live Send-or-Wait Planner</a> &middot;
       <a href="/bitcoin-fee-api">Bitcoin Fee API</a> &middot;
       <a href="/bitcoin-transaction-fee-calculator">Fee Calculator</a> &middot;
       <a href="/vs-mempool">vs Mempool.space</a> &middot;
