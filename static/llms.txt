@@ -27,7 +27,7 @@ Register a free API key and start querying in seconds.
    Response includes your API key.
 
 2. Query:
-   GET https://bitcoinsapi.com/api/v1/fees/recommended
+   GET https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd
    Header: X-API-Key: <your_key>
 
 3. Every response follows the same envelope:
@@ -50,10 +50,10 @@ Claude Desktop config (paste into claude_desktop_config.json):
 
 Claude Code: claude mcp add bitcoin -- bitcoin-mcp
 
-No API key needed. No Bitcoin node needed. bitcoin-mcp auto-falls
-back to the hosted Satoshi API at bitcoinsapi.com. Provides 49 tools,
-6 prompts, and 7 resources that any MCP-compatible agent can
-discover and invoke.
+No Bitcoin node needed to get started. bitcoin-mcp can fall back
+to the hosted Satoshi API at bitcoinsapi.com. Direct `/api/v1/rpc`
+access still requires a free API key. Provides 49 tools, 6 prompts,
+and 7 resources that any MCP-compatible agent can discover and invoke.
 
 MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
 Setup guide: https://bitcoinsapi.com/mcp-setup
@@ -72,7 +72,15 @@ Every response includes X-Auth-Tier header showing your current tier
 
 POST https://bitcoinsapi.com/api/v1/register
 Body: {"email": "agent@example.com", "agreed_to_terms": true}
-Returns API key instantly. No approval wait. Free tier: 100 req/min, 10K/day.
+Returns API key instantly. No approval wait. Free tier: 500 req/min, 25K/day.
+
+## Best starting points
+
+- For "should I send now or wait?": https://bitcoinsapi.com/best-time-to-send-bitcoin
+- For the live verdict and fee tracker UI: https://bitcoinsapi.com/fees
+- For the frozen merchant payout proof payload: https://bitcoinsapi.com/api/v1/fees/scenarios/merchant-payout-batch-march-2026
+- For agent setup: https://bitcoinsapi.com/mcp-setup
+- For full API docs: https://bitcoinsapi.com/docs
 
 ## Base URL
 
@@ -90,7 +98,7 @@ https://bitcoinsapi.com
 - Best time to send Bitcoin: https://bitcoinsapi.com/best-time-to-send-bitcoin
 - Bitcoin fee estimator: https://bitcoinsapi.com/bitcoin-fee-estimator
 - Bitcoin API for trading bots: https://bitcoinsapi.com/bitcoin-api-for-trading-bots
-- x402 payment dashboard: https://bitcoinsapi.com/x402
+- x402 pay-per-call guide and live activity: https://bitcoinsapi.com/x402
 - How to reduce Bitcoin transaction fees: https://bitcoinsapi.com/how-to-reduce-bitcoin-transaction-fees
 
 ## Free Endpoints (no payment needed)
@@ -99,28 +107,41 @@ https://bitcoinsapi.com
 - /api/v1/fees - Fee estimates and recommendations
 - /api/v1/fees/recommended - Smart fee recommendation
 - /api/v1/fees/history - Historical fee data
-- /api/v1/fees/plan - Optimal send timing
+- /api/v1/fees/plan - Hosted send-now-or-wait planner for your tx shape or preset
+- /api/v1/fees/scenarios - Curated proof scenarios for demos and onboarding
+- /api/v1/fees/scenarios/{slug} - Frozen machine-readable send-or-wait proof case
 - /api/v1/fees/savings - Savings from waiting
 - /api/v1/blocks/latest - Latest block info
 - /api/v1/blocks/{height_or_hash} - Block by height or hash
 - /api/v1/tx/{txid} - Transaction details
 - /api/v1/mempool - Mempool analysis
 - /api/v1/mining - Mining summary
-- /api/v1/mining/pools - Mining pool distribution
 - /api/v1/network - Network info
+- /api/v1/network/difficulty - Difficulty adjustment progress
 - /api/v1/supply - Circulating supply and halving info
 - /api/v1/prices - BTC/USD price
+- /api/v1/x402-info - Premium endpoint pricing and payment metadata
 - /api/v1/stream/blocks - Real-time block notifications (SSE)
 - /api/v1/stream/fees - Real-time fee changes (SSE)
 - ... and 100+ more (see /llms-full.txt for complete list)
 
-## Paid Endpoints (x402 - USDC on Base)
+## API-Key Endpoints (free after registration)
+
+- /api/v1/health/deep - Deep health and dependency checks
+- /api/v1/mining/pools - Mining pool distribution
+- /api/v1/mining/hashrate/history - Historical hashrate data
+- /api/v1/mining/revenue - Mining revenue breakdown
+- /api/v1/address/{address} - Address balance and transaction summary
+- /api/v1/stats/utxo-set - UTXO set statistics
+- /api/v1/rpc - Hosted Bitcoin Core JSON-RPC proxy
+
+## Paid Endpoints (x402 or Pro/Enterprise tier)
 
 - /api/v1/ai/* - AI-powered analysis ($0.01)
 - /api/v1/broadcast - Transaction broadcast ($0.01)
 - /api/v1/mining/nextblock - Next block prediction ($0.01)
 - /api/v1/fees/observatory/* - Fee observatory analytics ($0.005)
-- /api/v1/fees/landscape - Full fee landscape ($0.005)
+- /api/v1/fees/landscape - Full fee landscape and deeper premium fee analysis ($0.005)
 
 ## Payment (x402 protocol)
 
@@ -139,10 +160,10 @@ payment needed for Pro/Enterprise). x402 is for keyless pay-per-call access.
 
 ## Rate limits
 
-- Anonymous: 30 req/min, 1,000/day, GET only, 144-block cap
-- Free (registered): 100 req/min, 10,000/day, all endpoints, 144-block cap
-- Pro ($19/mo): 500 req/min, 100,000/day, 1,008-block cap
-- Enterprise: 2,000 req/min, custom daily, 2,016-block cap
+- Anonymous: 200 req/min, 5,000/day, GET only, 144-block cap
+- Free (registered): 500 req/min, 25,000/day, all endpoints, 144-block cap
+- Pro ($19/mo): 2,000 req/min, 250,000/day, 1,008-block cap
+- Enterprise: 5,000 req/min, custom daily, 2,016-block cap
 
 All responses include X-RateLimit-Limit, X-RateLimit-Remaining,
 X-RateLimit-Reset, X-RateLimit-Daily-Limit, X-RateLimit-Daily-Remaining
@@ -153,7 +174,7 @@ headers for self-throttling.
 POST https://bitcoinsapi.com/api/v1/rpc
 Body: {"method": "getblockchaininfo", "params": []}
 Proxies read-only Bitcoin Core RPC calls. Used by bitcoin-mcp
-for zero-config mode. No API key required.
+for remote API mode. Direct access requires a free API key.
 
 ## Full documentation
 

@@ -20,10 +20,10 @@ Tiers: anonymous (no key), free (registered), pro ($19/mo), enterprise (custom).
 
 | Tier       | Req/min | Daily    | Block cap | Notes              |
 |------------|---------|----------|-----------|--------------------|
-| Anonymous  | 30      | 1,000   | 144       | GET only           |
-| Free       | 100     | 10,000  | 144       | All endpoints      |
-| Pro        | 500     | 100,000 | 1,008     | $19/mo via Stripe  |
-| Enterprise | 2,000   | Custom  | 2,016     | Contact us         |
+| Anonymous  | 200     | 5,000   | 144       | GET only           |
+| Free       | 500     | 25,000  | 144       | Standard free + keyed endpoints |
+| Pro        | 2,000   | 250,000 | 1,008     | Premium endpoints included |
+| Enterprise | 5,000   | Custom  | 2,016     | Contact us         |
 
 Response headers for self-throttling:
 - `X-RateLimit-Limit` — max requests per window
@@ -41,11 +41,13 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 |--------|------|-------------|
 | GET | /fees | All fee estimates (multiple confirmation targets) |
 | GET | /fees/recommended | Smart recommendation: send now or wait? |
-| GET | /fees/landscape | Full fee landscape with percentiles |
+| GET | /fees/landscape | Full fee landscape with percentiles and deeper premium analysis (x402 or Pro/Enterprise tier) |
 | GET | /fees/mempool-blocks | Projected mempool blocks with fee ranges |
 | GET | /fees/estimate-tx | Estimate fee for a specific transaction size |
 | GET | /fees/history | Historical fee data |
-| GET | /fees/plan | Fee planning: optimal send timing |
+| GET | /fees/plan | Hosted send-now-or-wait planner for a tx shape or preset such as merchant_payout_batch |
+| GET | /fees/scenarios | Curated frozen send-or-wait proof cases for demos |
+| GET | /fees/scenarios/{slug} | Single frozen proof case with exact savings math |
 | GET | /fees/savings | How much you save by waiting |
 | GET | /fees/{target} | Fee estimate for specific confirmation target |
 
@@ -88,12 +90,12 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /mining | Mining summary: hashrate, difficulty, pools |
-| GET | /mining/nextblock | Next block prediction |
-| GET | /mining/hashrate/history | Historical hashrate data |
-| GET | /mining/revenue | Current mining revenue |
-| GET | /mining/pools | Mining pool distribution |
+| GET | /mining/nextblock | Next block prediction (x402 or Pro/Enterprise tier) |
+| GET | /mining/hashrate/history | Historical hashrate data (API key required) |
+| GET | /mining/revenue | Current mining revenue (API key required) |
+| GET | /mining/pools | Mining pool distribution (API key required) |
 | GET | /mining/difficulty/history | Historical difficulty adjustments |
-| GET | /mining/revenue/history | Historical mining revenue |
+| GET | /mining/revenue/history | Historical mining revenue (API key required) |
 
 ### Network
 | Method | Path | Description |
@@ -107,9 +109,9 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /supply | Circulating supply, halving info, inflation rate |
-| GET | /stats/utxo-set | UTXO set statistics |
-| GET | /stats/segwit-adoption | SegWit adoption metrics |
-| GET | /stats/op-returns | OP_RETURN usage statistics |
+| GET | /stats/utxo-set | UTXO set statistics (API key required) |
+| GET | /stats/segwit-adoption | SegWit adoption metrics (API key required) |
+| GET | /stats/op-returns | OP_RETURN usage statistics (API key required) |
 
 ### Prices & Tools
 | Method | Path | Description |
@@ -117,11 +119,11 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | GET | /prices | BTC/USD price (multi-provider fallback) |
 | GET | /tools/exchange-compare | Compare exchange prices and fees |
 
-### Address (requires indexer)
+### Address (requires API key + indexer)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /address/{address} | Address balance and transaction history |
-| GET | /address/{address}/utxos | UTXOs for an address |
+| GET | /address/{address} | Address balance and transaction history (API key required) |
+| GET | /address/{address}/utxos | UTXOs for an address (API key required) |
 
 ### Real-Time Streams (SSE)
 | Method | Path | Description |
@@ -158,7 +160,7 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | GET | /guide | API guide with categories and use cases |
 | GET | /guide/categories | All endpoint categories |
 
-### Fee Observatory (x402 paid - $0.005)
+### Fee Observatory (x402 or Pro/Enterprise tier - $0.005)
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /fees/observatory/scoreboard | Per-source accuracy ranking |
@@ -178,6 +180,8 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | /rpc | Proxy JSON-RPC calls to the Bitcoin Core node |
+
+Direct access note: `/api/v1/rpc` requires an API key. `bitcoin-mcp` can still use hosted mode when configured for a remote API.
 
 The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to the underlying Bitcoin Core node. This is used by [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) for zero-config mode — when no local node is available, bitcoin-mcp routes all tool calls through this endpoint automatically.
 
@@ -202,7 +206,7 @@ The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to th
 
 Only read-only methods are whitelisted (plus `sendrawtransaction` for broadcasting). Wallet and admin methods are blocked. Allowed methods include: `getblockchaininfo`, `getblockcount`, `getbestblockhash`, `getblockhash`, `getblock`, `getblockheader`, `getblockstats`, `getchaintips`, `getchaintxstats`, `getdifficulty`, `getmempoolinfo`, `getrawmempool`, `getmempoolentry`, `getrawtransaction`, `decoderawtransaction`, `decodescript`, `gettxout`, `estimatesmartfee`, `getmininginfo`, `getnetworkhashps`, `getnetworkinfo`, `getpeerinfo`, `gettxoutsetinfo`, `validateaddress`, `sendrawtransaction`, and others.
 
-Standard rate limits apply per your API tier (anonymous: 30 req/min, free: 100 req/min, pro: 500 req/min, enterprise: 2,000 req/min). An API key is not required but recommended for higher limits.
+Direct access to `/api/v1/rpc` requires an API key. Standard rate limits then apply per your tier (free: 500 req/min, pro: 2,000 req/min, enterprise: 5,000 req/min).
 
 ## Response Format
 
@@ -283,7 +287,7 @@ Response:
   "data": {
     "api_key": "sat_...",
     "tier": "free",
-    "rate_limit": { "per_minute": 100, "daily": 10000 }
+    "rate_limit": { "per_minute": 500, "daily": 25000 }
   }
 }
 ```
@@ -302,10 +306,11 @@ Response:
 ## Common Agent Workflows
 
 ### 1. Fee optimization: Should I send now or wait?
-1. `GET /fees/recommended` — get current fee tiers and congestion level
-2. `GET /fees/savings` — see how much waiting would save
-3. `GET /fees/plan` — get optimal timing recommendation
-4. Decision: if congestion is "low", send now at the slow rate. If "high", wait.
+1. `GET /fees/plan?profile=merchant_payout_batch&currency=usd` — get the live send-now-or-wait verdict for the canonical merchant payout demo
+2. `GET /fees/scenarios/merchant-payout-batch-march-2026` — show the fixed March 19-20, 2026 proof case that saved 76.3%
+3. `GET /fees/savings` — quantify how much waiting tends to save over recent history
+4. Optional: `GET /fees/landscape` — use x402 or a paid tier for deeper premium context
+5. Decision: if the planner says "send", ship the batch. If it says "wait", queue it for the next fee window.
 
 ### 2. Transaction monitoring
 1. `POST /transactions/broadcast` — broadcast a signed transaction
@@ -330,7 +335,7 @@ for per-request micropayments in USDC on Base:
 | /api/v1/broadcast | $0.01 | Transaction relay resources |
 | /api/v1/mining/nextblock | $0.01 | Heavy computation |
 | /api/v1/fees/observatory/* | $0.005 | Multi-source analytics DB |
-| /api/v1/fees/landscape | $0.005 | Rich mempool computation |
+| /api/v1/fees/landscape | $0.005 | Deeper premium fee landscape analysis |
 
 ### How x402 works
 1. Request a paid endpoint without payment -> get HTTP 402 with `paymentRequirements`
@@ -345,9 +350,9 @@ for per-request micropayments in USDC on Base:
 
 ## Pricing (subscription tiers)
 
-- **Free:** 0/mo — 100 req/min, 10K/day, all endpoints
-- **Pro:** $19/mo — 500 req/min, 100K/day, extended block history
-- **Enterprise:** Custom — 2K req/min, dedicated support
+- **Free:** 0/mo — 500 req/min, 25K/day, standard free and API-key endpoints after registration
+- **Pro:** $19/mo — 2,000 req/min, 250K/day, premium endpoints included without per-call x402 plus extended block history
+- **Enterprise:** Custom — 5K req/min, dedicated support
 
 ## MCP Setup (for AI agents)
 

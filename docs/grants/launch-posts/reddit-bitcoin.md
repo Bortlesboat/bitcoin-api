@@ -26,7 +26,7 @@ satoshi-api
 # API running at http://localhost:9332
 ```
 
-Or use the hosted version free at bitcoinsapi.com (1,000 req/day anonymous, 10,000 with free API key).
+Or use the hosted version free at bitcoinsapi.com (5,000 req/day anonymous, 25,000 with a free API key).
 
 **For AI agents:**
 

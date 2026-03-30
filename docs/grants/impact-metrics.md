@@ -62,6 +62,6 @@
 ## Sustainability Model
 
 - **Free tier:** Self-hosted (forever free, Apache 2.0)
-- **Hosted free:** 1,000 requests/day (anonymous), 10,000/day (registered)
+- **Hosted free:** 5,000 requests/day (anonymous), 25,000/day (registered)
 - **Pro tier:** Higher limits for commercial use
 - **Grant funding:** Enables dedicated development time and infrastructure costs

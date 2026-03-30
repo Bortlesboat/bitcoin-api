@@ -5,7 +5,16 @@ Allow: /
 User-agent: GPTBot
 Allow: /
 
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
 User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
 Allow: /
 
 User-agent: CCBot
@@ -35,7 +44,7 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-User-agent: bingbot
+User-agent: Bingbot
 Allow: /
 
 Sitemap: https://bitcoinsapi.com/sitemap.xml

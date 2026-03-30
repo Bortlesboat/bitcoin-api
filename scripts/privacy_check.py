@@ -41,8 +41,10 @@ APPROVED_EXTERNAL_DOMAINS = {
     "www.coingecko.com",
     "api.coingecko.com",
     "cdn.jsdelivr.net",
+    "cloudflareinsights.com",
     "us.i.posthog.com",
     "us-assets.i.posthog.com",
+    "static.cloudflareinsights.com",
     "fonts.googleapis.com",
     "fonts.gstatic.com",
 }

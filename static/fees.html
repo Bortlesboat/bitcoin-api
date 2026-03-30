@@ -3,26 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts</title>
-<meta name="description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting. Free, updated every 30 seconds.">
-<meta name="keywords" content="bitcoin fee tracker, current bitcoin fees, bitcoin fee chart, bitcoin transaction fees live, bitcoin mempool fees">
+<title>Bitcoin Send-or-Wait Planner - Live Merchant Payout Verdicts</title>
+<meta name="description" content="Live Bitcoin send-or-wait planner for the same merchant payout batch used in the proof story. See the current verdict, cost tiers, and copy the exact API call into your app.">
+<meta name="keywords" content="bitcoin send or wait, bitcoin fee planner, merchant payout batch, bitcoin fee intelligence, bitcoin transaction timing">
 <link rel="canonical" href="https://bitcoinsapi.com/fees">
-<meta property="og:title" content="Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts">
-<meta property="og:description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting. Free, updated every 30 seconds.">
+<meta property="og:title" content="Bitcoin Send-or-Wait Planner - Live Merchant Payout Verdicts">
+<meta property="og:description" content="See the live verdict for the same 5-input / 100-output merchant payout batch used in the 76.3% fee-savings proof story.">
 <meta property="og:url" content="https://bitcoinsapi.com/fees">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://bitcoinsapi.com/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@BTCOrangeCoin">
-<meta name="twitter:title" content="Bitcoin Fee Tracker — Live Rates & Send-or-Wait Verdicts">
-<meta name="twitter:description" content="Real-time Bitcoin fee tracker with send-or-wait verdicts. See current fees, congestion level, and how much you can save by waiting.">
+<meta name="twitter:title" content="Bitcoin Send-or-Wait Planner - Live Merchant Payout Verdicts">
+<meta name="twitter:description" content="Live merchant payout batch verdict, current cost tiers, and one copyable API path for Bitcoin fee timing.">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Fee Tracker","item":"https://bitcoinsapi.com/fees"}]},{"@type":"WebApplication","@id":"https://bitcoinsapi.com/fees/#app","name":"Bitcoin Fee Tracker","description":"Real-time Bitcoin fee tracker with send-or-wait verdicts, congestion monitoring, and savings calculator.","url":"https://bitcoinsapi.com/fees","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"}}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bitcoinsapi.com/"},{"@type":"ListItem","position":2,"name":"Send-or-Wait Planner","item":"https://bitcoinsapi.com/fees"}]},{"@type":"WebApplication","@id":"https://bitcoinsapi.com/fees/#app","name":"Bitcoin Send-or-Wait Planner","description":"Live Bitcoin send-or-wait planner for the merchant payout batch proof story. Shows the current verdict, cost tiers, and copyable planner API path.","url":"https://bitcoinsapi.com/fees","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://bitcoinsapi.com/#organization"}}]}
 </script>
 
 <script type="application/ld+json">
@@ -35,7 +32,7 @@
       "name": "How often is the fee data updated?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The fee tracker refreshes every 30 seconds from a Bitcoin Core node. Data is sourced from estimatesmartfee RPC calls with smart caching to keep estimates fresh without overloading the node."
+        "text": "The live planner refreshes every 30 seconds from a Bitcoin Core node. Data is sourced from estimatesmartfee RPC calls with smart caching to keep estimates fresh without overloading the node."
       }
     },
     {
@@ -43,7 +40,7 @@
       "name": "What does 'send or wait' mean?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Satoshi API analyzes the current fee environment, mempool congestion, and fee trends to recommend whether you should send your transaction now or wait for a cheaper window. A 'send' verdict means fees are reasonable; 'wait' means you could save significantly by delaying."
+        "text": "Satoshi API analyzes fee tiers and recent mempool trend to recommend whether you should send your transaction now or wait for a cheaper window. A 'send' verdict means the urgency premium is tight enough to broadcast now; 'wait' means delaying could save materially."
       }
     },
     {
@@ -51,7 +48,7 @@
       "name": "How is the savings percentage calculated?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The savings percentage compares the current next-block (high priority) fee rate to the economy (low priority) fee rate. For example, if the next-block fee is 20 sat/vB and the economy fee is 5 sat/vB, waiting saves 75%."
+        "text": "On this page, the savings percentage compares the current immediate fee for the merchant payout batch to the patient fee for that same 5-input / 100-output transaction shape. It is not a generic wallet estimate."
       }
     },
     {
@@ -59,7 +56,7 @@
       "name": "Can I get this data via API?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. All fee data shown on this page is available via the free Satoshi API. Use GET /api/v1/fees/landscape for the send-or-wait verdict, GET /api/v1/fees/recommended for fee tiers, and GET /api/v1/mempool/info for mempool status. Full documentation at bitcoinsapi.com/docs."
+        "text": "Yes. The canonical hosted send-or-wait path is GET /api/v1/fees/plan?profile=merchant_payout_batch&currency=usd, which is free to try and returns the current verdict, cost tiers, and delay savings for the merchant payout batch proof flow. GET /api/v1/fees/landscape remains the premium x402 deeper-analysis path."
       }
     }
   ]
@@ -78,10 +75,10 @@
     --green: #3fb950;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  code { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
 
   /* Sync Warning Banner */
   .sync-banner { display: none; background: #D2992233; border-bottom: 1px solid #D29922; padding: 10px 24px; text-align: center; font-size: 0.9em; color: #D29922; position: sticky; top: 53px; z-index: 9; }
@@ -100,6 +97,44 @@
   .page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
   .page-header h1 span { color: var(--accent); }
   .page-header .subtitle { font-size: 1.15em; color: var(--muted); max-width: 640px; margin: 0 auto; }
+  .hero-kicker {
+    color: var(--accent);
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .proof-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+    text-align: left;
+  }
+  .proof-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .proof-label {
+    color: var(--muted);
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .proof-value {
+    font-size: 1.65em;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .proof-value.send { color: #ff7b72; }
+  .proof-value.wait { color: var(--green); }
+  .proof-value.save { color: var(--accent); }
+  .proof-value.percent { color: var(--blue); }
 
   /* Section headings */
   .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 16px; }
@@ -118,7 +153,7 @@
 
   /* Code block */
   .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
-  .code-block pre { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
+  .code-block pre { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-size: 0.85em; color: var(--text); line-height: 1.6; white-space: pre; }
   .code-block .comment { color: var(--muted); }
   .code-block .cmd { color: var(--green); }
 
@@ -145,6 +180,20 @@
   .verdict-send { background: #3fb95015; border-color: #3fb95040; }
   .verdict-wait { background: #f7931a15; border-color: #f7931a40; }
   .verdict-urgent { background: #f8514915; border-color: #f8514940; }
+  .planner-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #1f2632;
+    color: var(--muted);
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 18px;
+  }
   .verdict-label {
     font-size: 2.2em;
     font-weight: 800;
@@ -176,6 +225,45 @@
     font-size: 0.9em;
     color: var(--muted);
   }
+  .planner-context {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .planner-context span {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: rgba(13, 17, 23, 0.5);
+    color: var(--text);
+    font-size: 0.84em;
+  }
+  .planner-inline-code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 16px 0 0;
+  }
+  .planner-code-label {
+    color: var(--muted);
+    font-size: 0.82em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .planner-inline-code code {
+    display: block;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: nowrap;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 8px;
+  }
 
   /* Live dot */
   .live-dot {
@@ -191,16 +279,16 @@
     50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(63, 185, 80, 0); }
   }
 
-  /* Congestion indicator */
-  .congestion-dot {
+  /* Status indicator */
+  .status-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     display: inline-block;
   }
-  .congestion-low { background: var(--green); }
-  .congestion-moderate { background: var(--accent); }
-  .congestion-high { background: #f85149; }
+  .status-low { background: var(--green); }
+  .status-medium { background: var(--accent); }
+  .status-high { background: #f85149; }
 
   /* Congestion bar */
   .congestion-bar-wrapper {
@@ -257,7 +345,7 @@
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
   }
   .stat-label {
     font-size: 0.8em;
@@ -265,6 +353,45 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 4px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .summary-card h3 {
+    color: var(--muted);
+    font-size: 0.82em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .summary-card strong {
+    display: block;
+    font-size: 1.55em;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .summary-card p {
+    color: var(--muted);
+    font-size: 0.92em;
+    line-height: 1.6;
+  }
+  .usage-note {
+    background: #1f2632;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    color: var(--muted);
+    font-size: 0.92em;
+    margin-bottom: 20px;
   }
 
   /* Savings row */
@@ -290,7 +417,7 @@
   .savings-card .fee-amount {
     font-size: 1.4em;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
   }
   .savings-card .fee-usd {
     font-size: 0.9em;
@@ -342,7 +469,7 @@
 
 <nav style="background:#1a1a2e;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;">
   <a href="/" style="color:#f7931a;font-weight:700;font-size:1.2rem;text-decoration:none;">Satoshi API</a>
-  <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
+  <button class="nav-toggle" data-nav-toggle=".nav-links" aria-label="Menu" style="display:none;background:none;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:6px 10px;cursor:pointer;font-size:1.2em;line-height:1;">&#9776;</button>
   <div class="nav-links" style="display:flex;gap:20px;align-items:center;">
     <a href="/" style="color:#ccc;text-decoration:none;">Home</a>
     <a href="/docs" style="color:#ccc;text-decoration:none;">Docs</a>
@@ -359,67 +486,128 @@
 <!-- Header -->
 <div class="page-header">
   <div class="container">
-    <h1>Bitcoin <span>Fee Tracker</span></h1>
-    <p class="subtitle">Live fee rates and send-or-wait verdicts. Updated every 30 seconds.</p>
+    <p class="hero-kicker">Live profile: merchant_payout_batch</p>
+    <h1>Bitcoin <span>Send-or-Wait Planner</span></h1>
+    <p class="subtitle">This is the canonical live merchant payout page. Same 5-input / 100-output batch as the proof story, now using current mempool data.</p>
+    <div class="hero-actions">
+      <a href="/best-time-to-send-bitcoin#proof-story" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">View Proof Story</a>
+      <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Get Free API Key</a>
+    </div>
+    <div class="proof-strip">
+      <div class="proof-card">
+        <div class="proof-label">Send on March 19, 2026</div>
+        <div class="proof-value send">14,563 sats</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-label">Wait until March 20, 2026</div>
+        <div class="proof-value wait">3,451 sats</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-label">Savings</div>
+        <div class="proof-value save">11,112 sats</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-label">Percent saved</div>
+        <div class="proof-value percent">76.3%</div>
+      </div>
+    </div>
+    <p class="section-subtitle" style="margin-top:18px;margin-bottom:0;">The live verdict below uses <code>/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd</code> for that same transaction shape.</p>
   </div>
 </div>
 
 <!-- Verdict Card -->
-<section style="padding-top: 0;">
+<section id="live-planner" style="padding-top: 0;">
   <div class="container">
     <div class="verdict-card" id="verdict-card">
+      <div class="planner-chip">Live merchant payout batch verdict</div>
       <div class="verdict-label" id="verdict-label">CONNECTING...</div>
       <p class="verdict-reasoning" id="verdict-reasoning">Fetching latest fee data from Bitcoin Core node...</p>
       <div class="verdict-meta">
         <div class="verdict-meta-item">
-          <span class="congestion-dot congestion-low" id="congestion-dot"></span>
-          <span id="congestion-text">--</span>
+          <span class="status-dot status-low" id="environment-dot"></span>
+          <span id="environment-text">Fee environment: --</span>
         </div>
-        <div class="verdict-meta-item" id="savings-hint" style="display:none;">
+        <div class="verdict-meta-item">
           <span id="savings-hint-text"></span>
         </div>
         <div class="verdict-meta-item">
-          <span>Suggested fee:</span>
-          <strong id="suggested-fee">-- sat/vB</strong>
+          <span>Trend:</span>
+          <strong id="trend-text">--</strong>
         </div>
+      </div>
+      <div class="planner-context">
+        <span id="profile-text">merchant_payout_batch</span>
+        <span id="shape-text">5 inputs | 100 outputs | 3,451 vB</span>
+        <span id="fee-path-text">/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd</span>
       </div>
       <div class="refresh-timer"><span class="live-dot"></span> Updated <span id="refresh-counter">--</span>s ago</div>
     </div>
+    <div class="planner-inline-code">
+      <div class="planner-code-label">Copy this live API path into your app</div>
+      <code id="curl-command">curl "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"</code>
+    </div>
 
-    <!-- Fee Tiers Table -->
-    <h2 class="section-title">Fee Tiers</h2>
-    <p class="section-subtitle">Current fee rates for different confirmation speeds.</p>
+    <h2 class="section-title" style="margin-top:32px;">Current Cost Tiers For This Batch</h2>
+    <p class="section-subtitle">These totals are for the same 5-input / 100-output merchant payout batch used in the proof story.</p>
     <div style="overflow-x: auto;">
       <table class="compare-table" id="fee-table">
         <thead>
           <tr>
-            <th>Priority</th>
+            <th>Tier</th>
             <th>Fee Rate</th>
-            <th>Est. Cost (2-in/2-out)</th>
+            <th>Estimated Time</th>
+            <th>Total Fee</th>
             <th>Est. USD</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="row-label">High Priority <span style="color:var(--muted);font-weight:400;">(next block)</span></td>
+            <td class="row-label">Immediate <span style="color:var(--muted);font-weight:400;">(next block)</span></td>
             <td id="fee-high">-- sat/vB</td>
+            <td id="eta-high">--</td>
             <td id="cost-high">-- sats</td>
             <td id="usd-high">--</td>
           </tr>
           <tr>
-            <td class="row-label">Medium <span style="color:var(--muted);font-weight:400;">(~6 blocks)</span></td>
+            <td class="row-label">Standard <span style="color:var(--muted);font-weight:400;">(~3 blocks)</span></td>
             <td id="fee-med">-- sat/vB</td>
+            <td id="eta-med">--</td>
             <td id="cost-med">-- sats</td>
             <td id="usd-med">--</td>
           </tr>
           <tr>
-            <td class="row-label">Economy <span style="color:var(--muted);font-weight:400;">(~24 blocks)</span></td>
+            <td class="row-label">Patient <span style="color:var(--muted);font-weight:400;">(~6 blocks)</span></td>
             <td id="fee-low">-- sat/vB</td>
+            <td id="eta-low">--</td>
             <td id="cost-low">-- sats</td>
             <td id="usd-low">--</td>
           </tr>
+          <tr>
+            <td class="row-label">Opportunistic <span style="color:var(--muted);font-weight:400;">(~144 blocks)</span></td>
+            <td id="fee-opportunistic">-- sat/vB</td>
+            <td id="eta-opportunistic">--</td>
+            <td id="cost-opportunistic">-- sats</td>
+            <td id="usd-opportunistic">--</td>
+          </tr>
         </tbody>
       </table>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>Recent Cheapest Window</h3>
+        <strong id="historical-cheapest">--</strong>
+        <p id="historical-cheapest-note">Waiting for the cheapest recent window can materially cut payout costs when the spread is wide.</p>
+      </div>
+      <div class="summary-card">
+        <h3>Current Premium</h3>
+        <strong id="current-premium">--</strong>
+        <p id="current-premium-note">This compares the current immediate cost to the cheapest recent window for the same merchant payout batch.</p>
+      </div>
+      <div class="summary-card">
+        <h3>Best Current Action</h3>
+        <strong id="live-best-action">--</strong>
+        <p id="live-best-action-note">The planner verdict combines fee tiers with recent trend, then turns that into a plain-language send-or-wait answer.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -428,7 +616,8 @@
 <section>
   <div class="container">
     <h2 class="section-title">Mempool Status</h2>
-    <p class="section-subtitle">Current state of the Bitcoin transaction queue.</p>
+    <p class="section-subtitle">Supporting context from the live mempool. This section explains network load, but the verdict above is based on fee tiers and recent trend, not raw occupancy alone.</p>
+    <div class="usage-note">Mempool usage and fee environment do not always move together one-for-one. This page keeps them separate so the verdict card cannot say one thing while the raw usage stats say another.</div>
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value" id="mempool-txcount">--</div>
@@ -450,57 +639,34 @@
   </div>
 </section>
 
-<!-- Savings Calculator -->
-<section>
-  <div class="container">
-    <h2 class="section-title">Savings Calculator</h2>
-    <p class="section-subtitle">Standard transaction (2 inputs, 2 outputs): <strong>141 vBytes</strong></p>
-    <div class="savings-row">
-      <div class="savings-card">
-        <h4>High Priority</h4>
-        <div class="fee-amount" id="save-high-sats">-- sats</div>
-        <div class="fee-usd" id="save-high-usd">$--</div>
-      </div>
-      <div class="savings-card">
-        <h4>Economy</h4>
-        <div class="fee-amount" id="save-low-sats">-- sats</div>
-        <div class="fee-usd" id="save-low-usd">$--</div>
-      </div>
-      <div class="savings-card savings-highlight">
-        <h4>You Save</h4>
-        <div class="fee-amount" id="save-pct">--%</div>
-        <div class="fee-usd" id="save-abs">-- sats</div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- CTA Section -->
 <section>
   <div class="container">
-    <h2 class="section-title">Want this data in your app?</h2>
-    <p class="section-subtitle">All the data on this page is available via the free Satoshi API.</p>
+    <h2 class="section-title">Copy The Live Merchant Payout Path</h2>
+    <p class="section-subtitle">One live call, one frozen proof case, one clear integration path for wallets, payout tools, or agents.</p>
 
     <div class="code-block">
-      <pre><span class="comment"># Get the send-or-wait verdict</span>
-<span class="cmd">curl</span> https://bitcoinsapi.com/api/v1/fees/landscape</pre>
+      <pre><span class="comment"># Free hosted merchant payout planner path</span>
+<span class="cmd">curl</span> "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"</pre>
     </div>
 
     <div class="code-block">
-      <pre><span class="comment"># Python — 3 lines to fee intelligence</span>
+      <pre><span class="comment"># Python - same live merchant payout verdict as this page</span>
 import requests
-data = requests.get("https://bitcoinsapi.com/api/v1/fees/landscape").json()
+data = requests.get("https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd").json()
 print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
     </div>
 
     <div class="code-block">
-      <pre><span class="comment"># For AI agents</span>
-<span class="cmd">pip install</span> bitcoin-mcp</pre>
+      <pre><span class="comment"># Frozen proof case behind the March 19-20, 2026 example</span>
+<span class="cmd">curl</span> "https://bitcoinsapi.com/api/v1/fees/scenarios/merchant-payout-batch-march-2026"</pre>
     </div>
 
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+      <a href="/best-time-to-send-bitcoin#proof-story" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Read Proof Story</a>
       <a href="/#get-api-key" style="display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#000;font-weight:600;text-decoration:none;">Get Free API Key</a>
       <a href="/docs" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">View API Docs</a>
+      <a href="/mcp-setup" style="display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-weight:600;text-decoration:none;">Set Up MCP</a>
     </div>
   </div>
 </section>
@@ -517,17 +683,17 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
 
     <div class="faq-item">
       <h3>What does "send or wait" mean?</h3>
-      <p>Satoshi API analyzes the current fee environment, mempool congestion, and fee trends to recommend whether you should send your transaction now or wait for a cheaper window. A "send" verdict means fees are reasonable; "wait" means you could save significantly by delaying.</p>
+      <p>Satoshi API analyzes fee tiers and recent trend to recommend whether you should send this merchant payout batch now or wait for a cheaper window. A "send" verdict means the urgency premium is tight enough to broadcast now; "wait" means delaying could save materially.</p>
     </div>
 
     <div class="faq-item">
       <h3>How is the savings percentage calculated?</h3>
-      <p>It compares the current next-block (high priority) fee rate to the economy (low priority) fee rate. For example, if the next-block fee is 20 sat/vB and the economy fee is 5 sat/vB, waiting saves 75%.</p>
+      <p>On this page, the savings percentage compares the current immediate fee for the merchant payout batch to the patient fee for that same 5-input / 100-output transaction shape. It is not a generic wallet estimate.</p>
     </div>
 
     <div class="faq-item">
       <h3>Can I get this data via API?</h3>
-      <p>Yes. All fee data shown on this page is available via the free Satoshi API. Use <code>GET /api/v1/fees/landscape</code> for the send-or-wait verdict, <code>GET /api/v1/fees/recommended</code> for fee tiers, and <code>GET /api/v1/mempool/info</code> for mempool status. Full documentation at <a href="/docs">bitcoinsapi.com/docs</a>.</p>
+      <p>Yes. The canonical hosted send-or-wait path is <code>GET /api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd</code>, which is free to try and returns the current verdict, cost tiers, and delay savings for the merchant payout batch proof flow. <code>GET /api/v1/fees/landscape</code> remains the premium x402 deeper-analysis path. Full documentation is at <a href="/docs">bitcoinsapi.com/docs</a>.</p>
     </div>
   </div>
 </section>
@@ -608,15 +774,21 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
     .catch(function() {});
 
   /* ---- State ---- */
-  var VSIZE = 141; // standard 2-in-2-out P2WPKH vBytes
+  var defaultProfile = 'merchant_payout_batch';
+  var requestedProfile = params.get('profile');
+  var activeProfile = requestedProfile === 'merchant_payout_batch' ? requestedProfile : defaultProfile;
   var lastUpdate = null;
   var btcPrice = 0;
-  var refreshInterval = null;
 
   /* ---- Helpers ---- */
   function fmt(n, decimals) {
     if (n == null || isNaN(n)) return '--';
     return Number(n).toFixed(decimals != null ? decimals : 1);
+  }
+  function fmtUsdValue(value) {
+    if (value == null || isNaN(value)) return '--';
+    var num = Number(value);
+    return '$' + num.toFixed(num < 0.01 ? 4 : 2);
   }
   function fmtSats(n) {
     if (n == null || isNaN(n)) return '-- sats';
@@ -640,6 +812,44 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
     var el = document.getElementById(id);
     if (el) el.textContent = text;
   }
+  function titleCase(value) {
+    return String(value || '')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, function(match) { return match.toUpperCase(); });
+  }
+  function formatTrend(trend) {
+    if (!trend || !trend.direction || trend.direction === 'unknown') {
+      return 'Unknown';
+    }
+    if (trend.direction === 'stable') {
+      return 'Stable';
+    }
+    var pct = trend.mempool_change_pct;
+    return titleCase(trend.direction) + ' ' + (pct > 0 ? '+' : '') + fmt(pct, 1) + '%';
+  }
+  function applyEnvironment(level) {
+    var dot = document.getElementById('environment-dot');
+    var label = document.getElementById('environment-text');
+    var normalized = String(level || 'moderate').toLowerCase();
+    if (dot) {
+      dot.className = 'status-dot';
+    }
+    if (normalized === 'rock-bottom' || normalized === 'low' || normalized === 'very_low') {
+      if (dot) dot.classList.add('status-low');
+      if (label) label.textContent = 'Fee environment: ' + titleCase(normalized) + ' fees';
+      return;
+    }
+    if (normalized === 'moderate' || normalized === 'medium') {
+      if (dot) dot.classList.add('status-medium');
+      if (label) label.textContent = 'Fee environment: Moderate fees';
+      return;
+    }
+    if (dot) dot.classList.add('status-high');
+    if (label) label.textContent = 'Fee environment: ' + titleCase(normalized) + ' fees';
+  }
+  function plannerPath(profile) {
+    return '/api/v1/fees/plan?profile=' + encodeURIComponent(profile) + '&currency=usd';
+  }
 
   /* ---- Fetch helpers (graceful failure) ---- */
   function safeFetch(url) {
@@ -651,32 +861,22 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
   /* ---- Main data fetch ---- */
   function refreshData() {
     Promise.all([
-      safeFetch('/api/v1/fees/landscape'),
-      safeFetch('/api/v1/fees/recommended'),
-      safeFetch('/api/v1/mempool/info'),
-      safeFetch('/api/v1/prices/btc')
+      safeFetch(plannerPath(activeProfile)),
+      safeFetch('/api/v1/mempool/info')
     ]).then(function(results) {
-      var landscape = results[0];
-      var recommended = results[1];
-      var mempool = results[2];
-      var price = results[3];
+      var plan = results[0];
+      var mempool = results[1];
 
-      // Price
-      if (price && price.data) {
-        btcPrice = price.data.usd || price.data.USD || 0;
-      }
-
-      // Landscape / Verdict
-      if (landscape && landscape.data) {
-        var d = landscape.data;
+      // Planner / Verdict
+      if (plan && plan.data) {
+        var d = plan.data;
         var card = document.getElementById('verdict-card');
         var label = document.getElementById('verdict-label');
         var reasoning = document.getElementById('verdict-reasoning');
-        var dot = document.getElementById('congestion-dot');
-        var congText = document.getElementById('congestion-text');
-        var savingsHint = document.getElementById('savings-hint');
         var savingsHintText = document.getElementById('savings-hint-text');
-        var suggestedFee = document.getElementById('suggested-fee');
+        var trendText = document.getElementById('trend-text');
+
+        btcPrice = d.btc_price_usd || btcPrice;
 
         // Verdict display
         var rec = d.recommendation || 'send';
@@ -696,73 +896,82 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
         }
 
         reasoning.textContent = d.reasoning || '';
-
-        // Fee environment as congestion proxy
-        var env = (d.fee_environment || 'low').toLowerCase();
-        dot.className = 'congestion-dot';
-        if (env === 'low' || env === 'very_low') {
-          dot.classList.add('congestion-low');
-          congText.textContent = 'LOW congestion';
-        } else if (env === 'moderate' || env === 'medium') {
-          dot.classList.add('congestion-moderate');
-          congText.textContent = 'MODERATE congestion';
-        } else {
-          dot.classList.add('congestion-high');
-          congText.textContent = 'HIGH congestion';
+        applyEnvironment((d.fee_environment || {}).level);
+        if (trendText) {
+          trendText.textContent = formatTrend(d.trend);
         }
 
-        // Savings hint (from scenarios)
-        if (d.scenarios && d.scenarios.wait_low && d.scenarios.wait_low.savings_vs_now_pct) {
-          var pct = d.scenarios.wait_low.savings_vs_now_pct;
-          savingsHintText.textContent = 'Save ~' + Math.round(pct) + '% by waiting';
-          savingsHint.style.display = '';
-        } else {
-          savingsHint.style.display = 'none';
+        var delayPct = Number(d.delay_savings_pct || 0);
+        if (savingsHintText) {
+          if (rec === 'send') {
+            savingsHintText.textContent = 'Waiting only saves about ' + Math.round(delayPct) + '% right now';
+          } else if (rec === 'wait') {
+            savingsHintText.textContent = 'Waiting could save about ' + Math.round(delayPct) + '%';
+          } else {
+            savingsHintText.textContent = 'Delay unless fast confirmation is truly urgent';
+          }
         }
 
-        // Suggested fee = next block from current_fees
-        if (d.current_fees) {
-          var sf = d.current_fees.six_blocks || d.current_fees.next_block || 0;
-          suggestedFee.textContent = fmt(sf) + ' sat/vB';
+        if (d.transaction) {
+          setText('profile-text', d.profile || activeProfile);
+          setText(
+            'shape-text',
+            fmtNumber(d.transaction.inputs) + ' inputs | ' +
+              fmtNumber(d.transaction.outputs) + ' outputs | ' +
+              fmtNumber(d.transaction.estimated_vsize) + ' vB'
+          );
         }
-      }
+        var path = plannerPath(d.profile || activeProfile);
+        setText('fee-path-text', path);
+        setText('curl-command', 'curl "https://bitcoinsapi.com' + path + '"');
 
-      // Fee Tiers (from recommended endpoint)
-      if (recommended && recommended.data) {
-        var est = recommended.data.estimates || {};
-        // The recommended endpoint returns {conf_target: fee_rate}
-        // Keys are integers: 1, 3, 6, 25, 144
-        var highRate = est['1'] || est[1] || 0;
-        var medRate = est['6'] || est[6] || est['3'] || est[3] || 0;
-        var lowRate = est['144'] || est[144] || est['25'] || est[25] || 0;
+        if (d.cost_tiers) {
+          var immediate = d.cost_tiers.immediate || {};
+          var standard = d.cost_tiers.standard || {};
+          var patient = d.cost_tiers.patient || {};
+          var opportunistic = d.cost_tiers.opportunistic || {};
 
-        setText('fee-high', fmt(highRate) + ' sat/vB');
-        setText('fee-med', fmt(medRate) + ' sat/vB');
-        setText('fee-low', fmt(lowRate) + ' sat/vB');
+          setText('fee-high', fmt(immediate.fee_rate_sat_vb) + ' sat/vB');
+          setText('eta-high', immediate.estimated_time || '--');
+          setText('cost-high', fmtSats(immediate.total_fee_sats));
+          setText('usd-high', fmtUsdValue(immediate.total_fee_usd));
 
-        var costHigh = Math.round(highRate * VSIZE);
-        var costMed = Math.round(medRate * VSIZE);
-        var costLow = Math.round(lowRate * VSIZE);
+          setText('fee-med', fmt(standard.fee_rate_sat_vb) + ' sat/vB');
+          setText('eta-med', standard.estimated_time || '--');
+          setText('cost-med', fmtSats(standard.total_fee_sats));
+          setText('usd-med', fmtUsdValue(standard.total_fee_usd));
 
-        setText('cost-high', fmtSats(costHigh));
-        setText('cost-med', fmtSats(costMed));
-        setText('cost-low', fmtSats(costLow));
+          setText('fee-low', fmt(patient.fee_rate_sat_vb) + ' sat/vB');
+          setText('eta-low', patient.estimated_time || '--');
+          setText('cost-low', fmtSats(patient.total_fee_sats));
+          setText('usd-low', fmtUsdValue(patient.total_fee_usd));
 
-        setText('usd-high', fmtUsd(costHigh));
-        setText('usd-med', fmtUsd(costMed));
-        setText('usd-low', fmtUsd(costLow));
+          setText('fee-opportunistic', fmt(opportunistic.fee_rate_sat_vb) + ' sat/vB');
+          setText('eta-opportunistic', opportunistic.estimated_time || '--');
+          setText('cost-opportunistic', fmtSats(opportunistic.total_fee_sats));
+          setText('usd-opportunistic', fmtUsdValue(opportunistic.total_fee_usd));
+        }
 
-        // Savings calculator
-        setText('save-high-sats', fmtSats(costHigh));
-        setText('save-high-usd', fmtUsd(costHigh));
-        setText('save-low-sats', fmtSats(costLow));
-        setText('save-low-usd', fmtUsd(costLow));
+        var bestAction = rec === 'send' ? 'Send now' : rec === 'wait' ? 'Wait' : 'Urgent only';
+        setText('live-best-action', bestAction);
+        setText('live-best-action-note', d.reasoning || 'The planner combines current fee tiers with recent trend for this payout batch.');
 
-        if (costHigh > 0 && costLow > 0) {
-          var savePct = ((1 - costLow / costHigh) * 100);
-          var saveAbs = costHigh - costLow;
-          setText('save-pct', Math.round(savePct) + '%');
-          setText('save-abs', fmtSats(saveAbs) + ' saved');
+        if (d.historical_comparison) {
+          var history = d.historical_comparison;
+          setText(
+            'historical-cheapest',
+            fmt(history.cheapest_fee_rate) + ' sat/vB (' + fmtSats(history.cheapest_cost_sats) + ')'
+          );
+          setText(
+            'historical-cheapest-note',
+            'Cheapest recent window: ' + (history.cheapest_time_utc || 'recent history unavailable')
+          );
+          setText('current-premium', fmt(history.current_premium_pct, 1) + '%');
+          setText(
+            'current-premium-note',
+            'Current cost: ' + fmtSats(history.current_cost_sats || (d.cost_tiers && d.cost_tiers.immediate && d.cost_tiers.immediate.total_fee_sats)) +
+              ' vs cheapest recent cost: ' + fmtSats(history.cheapest_cost_sats)
+          );
         }
       }
 
@@ -782,8 +991,8 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
         if (bar) {
           bar.style.width = Math.max(2, usagePct) + '%';
           bar.className = 'congestion-bar';
-          if (usagePct < 50) bar.classList.add('congestion-bar-low');
-          else if (usagePct < 80) bar.classList.add('congestion-bar-medium');
+          if (usagePct < 20) bar.classList.add('congestion-bar-low');
+          else if (usagePct < 60) bar.classList.add('congestion-bar-medium');
           else bar.classList.add('congestion-bar-high');
         }
         if (barLabel) barLabel.textContent = fmt(usagePct, 1) + '%';
@@ -801,7 +1010,19 @@ print(data["data"]["recommendation"], data["data"]["reasoning"])</pre>
     setText('refresh-counter', ago);
   }
 
+  function bindNavToggle() {
+    var toggle = document.querySelector('[data-nav-toggle]');
+    if (!toggle) return;
+    var targetSelector = toggle.getAttribute('data-nav-toggle');
+    var target = targetSelector ? document.querySelector(targetSelector) : null;
+    if (!target) return;
+    toggle.addEventListener('click', function() {
+      target.classList.toggle('open');
+    });
+  }
+
   /* ---- Init ---- */
+  bindNavToggle();
   refreshData();
   setInterval(refreshData, 30000);
   setInterval(updateCounter, 1000);

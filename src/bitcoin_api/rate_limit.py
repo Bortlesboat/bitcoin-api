@@ -53,9 +53,9 @@ class RateLimitResult:
 TIER_LIMITS: dict[str, int] = {}  # populated at startup
 
 DAILY_LIMITS: dict[str, int] = {
-    "anonymous": 1000,
-    "free": 10000,
-    "pro": 100000,
+    "anonymous": 5000,
+    "free": 25000,
+    "pro": 250000,
     "enterprise": 0,  # 0 = unlimited
 }
 

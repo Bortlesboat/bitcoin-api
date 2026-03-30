@@ -1,13 +1,13 @@
 # Product Marketing Context
 
-*Last updated: 2026-03-17*
+*Last updated: 2026-03-29*
 
 ## Product Overview
 **One-liner:** Bitcoin fee intelligence that saves money on every transaction.
 **What it does:** Satoshi API tells apps and AI agents *when* to send Bitcoin to minimize fees. It adds congestion scoring, send-or-wait verdicts, and historical fee context on top of raw blockchain data — turning "8 sat/vB" into "wait 2 hours, save 46%." Also serves as the first AI-native Bitcoin data layer with 49 MCP tools for Claude/ChatGPT.
 **Product category:** Bitcoin API / Developer tools / AI agent infrastructure
 **Product type:** Developer API (SaaS + self-hostable)
-**Business model:** Freemium. Anonymous access (free, lightweight GET) → Free tier ($0, 10K req/day) → Pro ($19/mo, 100K req/day) → Enterprise (custom). Infrastructure cost ~$3/mo.
+**Business model:** Freemium. Anonymous access (free, lightweight GET, 5K/day) → Free tier ($0, 25K req/day with API key) → Pro ($19/mo, 250K req/day) → Enterprise (custom). Infrastructure cost ~$3/mo.
 
 ## Target Audience
 **Target companies:** Solo developers, AI agent builders, Bitcoin wallet teams, trading bot shops, fintech startups
@@ -29,7 +29,7 @@
 |---------|-------------|-----------|------------------|
 | AI Agent Builder | Easy integration, token efficiency, reliable data | No good Bitcoin data source for LLMs. Current options are raw RPC or expensive APIs. | `pip install bitcoin-mcp` — 49 tools, zero config, real-time Bitcoin data in your agent's context |
 | Bitcoin Wallet Dev | Fee accuracy, UX simplicity, reliability | Users overpay on fees because wallets show raw sat/vB with no context | Send-or-wait verdicts your users actually understand. "Wait 2 hours, save 46%." |
-| Trading Bot Dev | Low latency, high rate limits, cost | Existing APIs charge $49-100/mo for the rate limits they need | $19/mo for 100K req/day. Or self-host for $0. Fee intelligence optimizes every transaction. |
+| Trading Bot Dev | Low latency, high rate limits, cost | Existing APIs charge $49-100/mo for the rate limits they need | $19/mo for 250K req/day. Or self-host for $0. Fee intelligence optimizes every transaction. |
 | Node Operator | Sovereignty, self-hosting, no third-party dependency | Raw RPC is powerful but not production-ready (no rate limiting, auth, caching) | `git clone && docker-compose up` — your node, your API, your rules |
 
 ## Problems & Pain Points
@@ -63,7 +63,7 @@
 |-----------|----------|
 | "Why not just use mempool.space?" | Mempool shows fees. We tell you what to do about them. Plus: MCP interface, self-hostable API, programmatic access designed for apps not browsers. |
 | "This is just a wrapper around Bitcoin Core RPC" | Started there, grew beyond. Fee intelligence (congestion scoring, send-or-wait, historical analysis), MCP tools, WebSocket subscriptions, content pages — none of this exists in RPC. |
-| "Why would I pay when the free tier exists?" | Most people won't need to. Pro is for trading bots and apps hitting 10K+ req/day. At $19/mo, one fee-optimized transaction per month pays for itself. |
+| "Why would I pay when the free tier exists?" | Most people won't need to. Pro is for trading bots and apps hitting 25K+ req/day or needing higher burst limits. At $19/mo, one fee-optimized transaction per month pays for it. |
 | "Single-operator project — what about reliability?" | Simple stack = fewer failure modes. Monitored by UptimeRobot. Self-hosting option means zero dependency on us. |
 | "Why Bitcoin-only?" | Bitcoin's fee auction model creates real savings opportunities through timing. Ethereum's EIP-1559 is more predictable. We're deep on Bitcoin, not shallow on everything. |
 
@@ -71,7 +71,7 @@
 
 ## Switching Dynamics
 **Push:** Overpaying on fees with no visibility. Expensive hosted APIs ($49-100/mo). No good Bitcoin data source for AI agents. Raw RPC is too low-level for production apps.
-**Pull:** Free tier covers most needs. Self-hostable = sovereignty. Fee intelligence = real money saved. MCP = AI agents work out of the box. 103 endpoints = comprehensive.
+**Pull:** Free tier covers most needs. Self-hostable = sovereignty. Fee intelligence = real money saved. MCP = AI agents work out of the box. 109 live API paths = comprehensive.
 **Habit:** "I've always just used mempool.space" or "My wallet picks the fee for me." Developers: "I built my own RPC wrapper and it works fine."
 **Anxiety:** "Is this maintained?" "Will it be around next year?" "Is it actually accurate?" "Single operator = single point of failure."
 
@@ -105,7 +105,7 @@
 ## Proof Points
 **Metrics:**
 - 46.8% average fee savings through timing optimization (from real mempool data analysis)
-- 103 endpoints across core API, history, content, and indexer
+- 109 live API paths across core API, history, content, and indexer surfaces
 - 616 tests (595 unit + 21 e2e)
 - 49 MCP tools (most comprehensive Bitcoin MCP server)
 - ~$3/mo infrastructure cost (self-sustaining)
@@ -117,8 +117,8 @@
 |-------|-------|
 | Saves money | 46.8% average fee savings. Send-or-wait verdicts based on real congestion data. |
 | AI-native | 49 MCP tools. Zero-config fallback to hosted API. Works with Claude out of the box. |
-| Free & sovereign | Self-hostable at $0. Hosted free tier: 10K req/day. No vendor lock-in. |
-| Deep, not broad | Bitcoin-only. Fee intelligence layer that no other API has. 103 endpoints of Bitcoin depth. |
+| Free & sovereign | Self-hostable at $0. Hosted free tier: 5K req/day anonymous or 25K/day with a free key. No vendor lock-in. |
+| Deep, not broad | Bitcoin-only. Fee intelligence layer that no other API has. 109 live API paths of Bitcoin depth. |
 
 ## Goals
 **Business goal:** First paying customer by April 8, 2026 (30-day decision gate). Path to $950/mo recurring revenue by month 12.

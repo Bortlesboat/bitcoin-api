@@ -75,7 +75,8 @@ def test_x402_dashboard_served(client):
     resp = client.get("/x402")
     assert resp.status_code == 200
     assert "x402" in resp.text.lower()
-    assert "Payment Analytics" in resp.text
+    assert "premium Bitcoin API calls" in resp.text
+    assert "Recent x402 Activity" in resp.text
 
 
 def test_payment_logger_injection():

@@ -2,6 +2,8 @@
 
 from unittest.mock import patch, MagicMock
 
+from bitcoin_api.config import settings
+
 
 def test_fee_for_target(client):
     resp = client.get("/api/v1/fees/6")
@@ -253,6 +255,19 @@ def test_fees_plan_with_profile(client):
     assert "profile_description" in data
 
 
+def test_fees_plan_with_merchant_payout_profile(client):
+    """Merchant payout batch should be available as a first-class demo profile."""
+    resp = client.get("/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["profile"] == "merchant_payout_batch"
+    assert data["transaction"]["inputs"] == 5
+    assert data["transaction"]["outputs"] == 100
+    assert data["transaction"]["address_type"] == "segwit"
+    assert data["delay_savings_pct"] >= 0
+    assert "merchant payout" in data["profile_description"].lower()
+
+
 def test_fees_plan_with_custom_params(client):
     """Plan endpoint with explicit inputs/outputs/address_type."""
     resp = client.get("/api/v1/fees/plan?inputs=3&outputs=2&address_type=taproot")
@@ -416,9 +431,47 @@ def test_fees_savings_currency_usd(client):
     assert "total_savings_usd" in data["monthly_projection"]
 
 
+def test_fee_scenarios_list_and_detail(client):
+    """Frozen demo scenarios should be discoverable and fetchable."""
+    list_resp = client.get("/api/v1/fees/scenarios")
+    assert list_resp.status_code == 200
+    scenarios = list_resp.json()["data"]
+    assert any(s["slug"] == "merchant-payout-batch-march-2026" for s in scenarios)
+
+    detail_resp = client.get("/api/v1/fees/scenarios/merchant-payout-batch-march-2026")
+    assert detail_resp.status_code == 200
+    data = detail_resp.json()["data"]
+    assert data["slug"] == "merchant-payout-batch-march-2026"
+    assert data["buyer"]["operator"] == "merchant payout operator"
+    assert data["decision"]["recommendation"] == "wait"
+    assert data["transaction"]["estimated_vsize"] == 3451
+    assert data["send_now"]["fee_rate_sat_vb"] == 4.22
+    assert data["wait"]["fee_rate_sat_vb"] == 1.0
+
+
+def test_fee_scenario_math_is_frozen(client):
+    """The flagship demo scenario should keep stable numbers for sales demos."""
+    resp = client.get("/api/v1/fees/scenarios/merchant-payout-batch-march-2026")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["reference"]["decision_time_local"] == "March 19, 2026 at 1:54 PM EDT"
+    assert data["reference"]["wait_until_local"] == "March 20, 2026 at 7:55 AM EDT"
+    assert data["decision"]["wait_until_local"] == "March 20, 2026 at 7:55 AM EDT"
+    assert data["send_now"]["total_fee_sats"] == 14563
+    assert data["wait"]["total_fee_sats"] == 3451
+    assert data["savings"]["sats"] == 11112
+    assert data["savings"]["percent"] == 76.3
+    assert round(data["savings"]["usd"], 2) == 7.39
+
+
+def test_fee_scenario_unknown_slug_returns_404(client):
+    resp = client.get("/api/v1/fees/scenarios/not-a-real-scenario")
+    assert resp.status_code == 404
+
+
 def test_429_has_request_id(client):
     """Rate limit 429 responses should include request_id in error body."""
-    for _ in range(30):
+    for _ in range(settings.rate_limit_anonymous):
         client.get("/api/v1/fees/6")
     resp = client.get("/api/v1/fees/6")
     assert resp.status_code == 429

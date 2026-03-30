@@ -19,7 +19,7 @@ from .db import log_usage
 from .exceptions import ERROR_TYPES, _GUIDE_URL
 from .models import ErrorResponse, ErrorDetail
 from .metrics import REQUEST_COUNT, REQUEST_LATENCY, normalize_endpoint
-from .rate_limit import check_rate_limit, check_rate_limit_raw, check_daily_limit
+from .rate_limit import DAILY_LIMITS, check_rate_limit, check_rate_limit_raw, check_daily_limit
 
 access_log = logging.getLogger("bitcoin_api.access")
 log = logging.getLogger("bitcoin_api")
@@ -40,23 +40,23 @@ def _upgrade_info(current_tier: str) -> dict | None:
     upgrades = {
         "anonymous": {
             "current_tier": "anonymous",
-            "current_limit": 1000,
+            "current_limit": DAILY_LIMITS["anonymous"],
             "next_tier": "free",
-            "next_limit": 10000,
+            "next_limit": DAILY_LIMITS["free"],
             "next_price": "Free",
-            "multiplier": "10x",
-            "message": "Register for free: 10x more requests. Takes 10 seconds.",
+            "multiplier": "5x",
+            "message": "Register for free: 5x more daily requests plus POST access. Takes 10 seconds.",
             "action_url": "https://bitcoinsapi.com/#get-api-key",
             "action_api": "POST /api/v1/register",
         },
         "free": {
             "current_tier": "free",
-            "current_limit": 10000,
+            "current_limit": DAILY_LIMITS["free"],
             "next_tier": "pro",
-            "next_limit": 100000,
+            "next_limit": DAILY_LIMITS["pro"],
             "next_price": "$19/mo",
             "multiplier": "10x",
-            "message": "Pro gives you 100,000 req/day for $19/mo. One fee-optimized transaction pays for it.",
+            "message": "Pro gives you 250,000 req/day for $19/mo. One fee-optimized transaction pays for it.",
             "action_url": "https://bitcoinsapi.com/pricing?utm_source=api&utm_medium=429&utm_campaign=upgrade",
         },
     }
@@ -132,7 +132,26 @@ def _emit_access_log(client_ip: str, method: str, path: str, status: int,
 # Client classification
 # ---------------------------------------------------------------------------
 
-_AI_AGENT_PATTERNS = ("claude", "openai", "anthropic", "langchain", "autogpt")
+_AI_AGENT_PATTERNS = (
+    "claude",
+    "claudebot",
+    "anthropic",
+    "anthropic-ai",
+    "openai",
+    "chatgpt",
+    "chatgpt-user",
+    "gptbot",
+    "oai-searchbot",
+    "perplexity",
+    "google-extended",
+    "googleother",
+    "gemini",
+    "bingbot",
+    "copilot",
+    "meta-externalagent",
+    "langchain",
+    "autogpt",
+)
 _SDK_PATTERNS = ("python-requests", "httpx", "axios", "node-fetch", "curl")
 _BROWSER_PATTERNS = ("mozilla", "chrome", "safari", "firefox")
 
@@ -151,27 +170,74 @@ def classify_client(user_agent: str) -> str:
     return "unknown"
 
 _DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/admin/founder", "/visualizer"}
+_NOINDEX_PATHS = {"/docs", "/redoc", "/openapi.json", "/visualizer", "/ai"}
+_NOINDEX_PREFIXES = ("/history/block", "/history/tx", "/history/address")
 
-_PAGEVIEW_LOG_PATHS = {
-    "/", "/docs", "/redoc", "/admin/dashboard", "/admin/founder",
-    "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
-    "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
-    "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
-    "/terms", "/privacy", "/disclaimer", "/about", "/pricing", "/mcp-setup", "/guide",
+_PUBLIC_WEB_PATHS = {
+    "/",
+    "/api-docs",
+    "/fee-observatory",
+    "/about",
+    "/ai",
+    "/best-bitcoin-api-for-developers",
+    "/best-time-to-send-bitcoin",
+    "/bitcoin-api-for-ai-agents",
+    "/bitcoin-api-for-trading-bots",
+    "/bitcoin-fee-api",
+    "/bitcoin-fee-estimator",
+    "/bitcoin-mcp-setup-guide",
+    "/bitcoin-mempool-api",
+    "/bitcoin-transaction-fee-calculator",
+    "/disclaimer",
+    "/fees",
+    "/guide",
     "/history",
+    "/how-to-reduce-bitcoin-transaction-fees",
+    "/mcp-setup",
+    "/pricing",
+    "/privacy",
+    "/self-hosted-bitcoin-api",
+    "/terms",
+    "/visualizer",
+    "/vs-blockcypher",
+    "/vs-mempool",
+    "/x402",
 }
 
-_RATE_LIMIT_SKIP = {
-    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
-    "/api/v1/stream/blocks", "/api/v1/stream/fees",
-    "/robots.txt", "/sitemap.xml", "/favicon.ico",
-    "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",
-    "/bitcoin-api-for-ai-agents", "/self-hosted-bitcoin-api",
-    "/bitcoin-fee-api", "/bitcoin-mempool-api", "/bitcoin-mcp-setup-guide",
-    "/terms", "/privacy", "/disclaimer", "/about", "/pricing",
-    "/admin/dashboard", "/admin/founder",
-    "/api/v1/ws",
+_DISCOVERY_PATHS = {
+    "/.well-known/mcp/server-card.json",
+    "/docs",
+    "/docs/oauth2-redirect",
+    "/favicon.ico",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/redoc",
+    "/robots.txt",
+    "/sitemap.xml",
+}
+
+_PAGEVIEW_LOG_PATHS = _PUBLIC_WEB_PATHS | {
+    "/.well-known/mcp/server-card.json",
+    "/admin/dashboard",
+    "/admin/founder",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/robots.txt",
+    "/sitemap.xml",
+}
+
+_RATE_LIMIT_SKIP = _PUBLIC_WEB_PATHS | _DISCOVERY_PATHS | {
+    "/admin/dashboard",
+    "/admin/founder",
     "/api/v1/billing/webhook",
+    "/api/v1/guide",
+    "/api/v1/health",
+    "/api/v1/stream/blocks",
+    "/api/v1/stream/fees",
+    "/api/v1/ws",
+    "/healthz",
 }
 
 
@@ -261,8 +327,11 @@ def register_middleware(app: FastAPI):
         client_ip = get_client_ip(request)
         bucket = key_info.key_hash or client_ip
 
+        # --- Skip rate limiting for exempt internal keys (e.g. Kalshi bot) ---
+        _is_exempt = key_info.key_hash in settings.exempt_key_set
+
         # --- Skip rate limiting for registration (users must always be able to upgrade) ---
-        _skip_rate_limit = request.url.path == "/api/v1/register"
+        _skip_rate_limit = request.url.path == "/api/v1/register" or _is_exempt
 
         # --- Per-minute rate limit ---
         result = check_rate_limit(bucket, key_info.tier)
@@ -473,29 +542,43 @@ def register_middleware(app: FastAPI):
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
         response = await call_next(request)
+        path = request.url.path
+        nonce = response.headers.get("X-CSP-Nonce")
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        if request.url.path not in _DOCS_PATHS:
+        if path not in _DOCS_PATHS:
+            script_src = [
+                "'self'",
+                "'strict-dynamic'",
+                "https://us-assets.i.posthog.com",
+                "https://us.i.posthog.com",
+                "https://static.cloudflareinsights.com",
+            ]
+            if nonce:
+                script_src.append(f"'nonce-{nonce}'")
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'strict-dynamic' https://us-assets.i.posthog.com https://us.i.posthog.com; "
+                f"script-src {' '.join(script_src)}; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "
-                "connect-src 'self' https://bitcoinsapi.com https://us.i.posthog.com; "
+                "connect-src 'self' https://bitcoinsapi.com https://us.i.posthog.com https://cloudflareinsights.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self'"
             )
+        if "X-CSP-Nonce" in response.headers:
+            del response.headers["X-CSP-Nonce"]
+        if path in _NOINDEX_PATHS or any(path.startswith(prefix) for prefix in _NOINDEX_PREFIXES):
+            response.headers["X-Robots-Tag"] = "noindex, follow"
         if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         progress = get_sync_progress()
         if progress is not None and progress < 0.9999:
             response.headers["X-Node-Syncing"] = "true"
 
-        path = request.url.path
         if path.startswith("/api/v1/"):
             response.headers["X-Data-Disclaimer"] = "For informational purposes only. Not financial advice. See /terms"
         if "Cache-Control" not in response.headers:

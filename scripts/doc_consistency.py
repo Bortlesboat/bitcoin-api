@@ -134,6 +134,38 @@ def check_posthog_templating() -> list[dict]:
     return issues
 
 
+def check_llms_rpc_auth_consistency() -> list[dict]:
+    """Ensure llms discovery docs do not contradict the real RPC auth model."""
+    issues = []
+    llms = STATIC / "llms.txt"
+    llms_full = STATIC / "llms-full.txt"
+
+    if llms.exists():
+        text = llms.read_text(encoding="utf-8", errors="ignore")
+        if "No API key required." in text and "/api/v1/rpc" in text:
+            issues.append({
+                "file": "static/llms.txt",
+                "severity": "error",
+                "issue": "llms.txt claims /api/v1/rpc needs no API key, but hosted RPC requires auth",
+            })
+        if "Direct access requires a free API key." not in text:
+            issues.append({
+                "file": "static/llms.txt",
+                "severity": "error",
+                "issue": "llms.txt should state that direct /api/v1/rpc access requires a free API key",
+            })
+
+    if llms_full.exists():
+        text = llms_full.read_text(encoding="utf-8", errors="ignore")
+        if "An API key is not required but recommended for higher limits." in text:
+            issues.append({
+                "file": "static/llms-full.txt",
+                "severity": "error",
+                "issue": "llms-full.txt contradicts the hosted RPC auth requirement",
+            })
+    return issues
+
+
 def main():
     parser = argparse.ArgumentParser(description="Brand & doc consistency checker")
     parser.add_argument("--json", action="store_true", help="JSON output")
@@ -152,6 +184,7 @@ def main():
 
     all_issues.extend(check_version_consistency())
     all_issues.extend(check_posthog_templating())
+    all_issues.extend(check_llms_rpc_auth_consistency())
 
     errors = [i for i in all_issues if i["severity"] == "error"]
     warnings = [i for i in all_issues if i["severity"] == "warning"]

@@ -61,10 +61,10 @@ class Settings(BaseSettings):
     request_timeout: int = 15
 
     # Rate limits (requests per minute)
-    rate_limit_anonymous: int = 30
-    rate_limit_free: int = 100
-    rate_limit_pro: int = 500
-    rate_limit_enterprise: int = 2000
+    rate_limit_anonymous: int = 200
+    rate_limit_free: int = 500
+    rate_limit_pro: int = 2000
+    rate_limit_enterprise: int = 5000
 
     # Rate-limit exempt keys (comma-separated key hashes that bypass all rate limits)
     rate_limit_exempt_keys: str = ""

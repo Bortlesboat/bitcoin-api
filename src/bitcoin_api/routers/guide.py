@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query
 
 from ..config import settings
 from ..models import envelope
+from ..rate_limit import DAILY_LIMITS
 
 router = APIRouter(tags=["Guide"])
 
@@ -87,10 +88,10 @@ def _build_quickstart() -> list[dict]:
         },
         {
             "step": 3,
-            "action": "Get current fee estimates",
+            "action": "Get a live send-now-or-wait plan",
             "method": "GET",
-            "path": "/api/v1/fees/recommended",
-            "examples": _ex("/api/v1/fees/recommended"),
+            "path": "/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd",
+            "examples": _ex("/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd"),
         },
     ]
 
@@ -115,10 +116,13 @@ def _build_categories() -> list[dict]:
             "endpoints": [
                 _ep("GET", "/api/v1/fees", "Fee estimates for 1, 3, 6, 25, 144 block targets"),
                 _ep("GET", "/api/v1/fees/recommended", "Smart fee recommendation with context"),
-                _ep("GET", "/api/v1/fees/plan", "Transaction cost planner — estimate costs across urgency tiers (immediate/standard/patient/opportunistic). Supports profiles (simple_send, batch_payout, consolidation), address types, and USD currency."),
+                _ep("GET", "/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd", "Canonical hosted send-now-or-wait demo for a merchant payout batch. Returns a recommendation, cost tiers, delay savings, and USD values."),
+                _ep("GET", "/api/v1/fees/plan", "Transaction cost planner - estimate costs across urgency tiers (immediate/standard/patient/opportunistic). Supports profiles (simple_send, batch_payout, merchant_payout_batch, consolidation), address types, and USD currency."),
+                _ep("GET", "/api/v1/fees/scenarios", "Frozen demo scenarios used by the hosted proof story and sales demo assets."),
+                _ep("GET", "/api/v1/fees/scenarios/merchant-payout-batch-march-2026", "Frozen March 19-20, 2026 merchant payout scenario showing a 76.3% savings by waiting for the next fee window."),
                 _ep("GET", "/api/v1/fees/savings", "Fee savings simulation — compare always-send-now vs optimal timing over the last 7 days. Shows savings per tx and monthly projection."),
                 _ep("GET", "/api/v1/fees/3", "Fee estimate for a specific block target"),
-                _ep("GET", "/api/v1/fees/landscape", "Full fee landscape across all targets"),
+                _ep("GET", "/api/v1/fees/landscape", "Full fee landscape across all targets (premium on hosted API: x402 or paid tier)"),
                 _ep("GET", "/api/v1/fees/estimate-tx", "Estimate fee for a specific transaction"),
                 _ep("GET", "/api/v1/fees/history", "Historical fee data"),
                 _ep("GET", "/api/v1/fees/mempool-blocks", "Projected mempool blocks with fee ranges"),
@@ -153,7 +157,7 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/utxo/{txid}/{vout}", "UTXO lookup"),
                 _ep("POST", "/api/v1/decode", "Decode a raw transaction hex", auth=True),
                 _ep("GET", "/api/v1/tx/{txid}/merkle-proof", "Merkle proof for confirmed transaction"),
-                _ep("POST", "/api/v1/broadcast", "Broadcast a signed transaction", auth=True),
+                _ep("POST", "/api/v1/broadcast", "Broadcast a signed transaction (API key or x402 on hosted API)", auth=True),
             ],
         },
         {
@@ -174,12 +178,12 @@ def _build_categories() -> list[dict]:
             "description": "Mining stats, difficulty, hashrate history, and revenue analysis",
             "endpoints": [
                 _ep("GET", "/api/v1/mining", "Mining overview: difficulty, hashrate, retarget"),
-                _ep("GET", "/api/v1/mining/nextblock", "Next block fee prediction"),
-                _ep("GET", "/api/v1/mining/hashrate/history", "Hashrate history over recent blocks"),
-                _ep("GET", "/api/v1/mining/revenue", "Mining revenue breakdown"),
-                _ep("GET", "/api/v1/mining/pools", "Pool identification from coinbase tags"),
+                _ep("GET", "/api/v1/mining/nextblock", "Next block fee prediction (premium on hosted API: x402 or paid tier)"),
+                _ep("GET", "/api/v1/mining/hashrate/history", "Hashrate history over recent blocks", auth=True),
+                _ep("GET", "/api/v1/mining/revenue", "Mining revenue breakdown", auth=True),
+                _ep("GET", "/api/v1/mining/pools", "Pool identification from coinbase tags", auth=True),
                 _ep("GET", "/api/v1/mining/difficulty/history", "Difficulty adjustment history"),
-                _ep("GET", "/api/v1/mining/revenue/history", "Per-block revenue history"),
+                _ep("GET", "/api/v1/mining/revenue/history", "Per-block revenue history", auth=True),
             ],
         },
         {
@@ -211,6 +215,8 @@ def _build_categories() -> list[dict]:
                 _ep("GET", "/api/v1/health", "Quick health check"),
                 _ep("GET", "/api/v1/status", "Detailed node and API status"),
                 _ep("GET", "/api/v1/health/deep", "Deep health check with component status", auth=True),
+                _ep("GET", "/api/v1/x402-info", "x402 payment information and premium endpoint pricing"),
+                _ep("GET", "/api/v1/x402-demo", "Sample 402 challenge flow for x402 client testing"),
             ],
         },
         {
@@ -283,8 +289,8 @@ def _build_categories() -> list[dict]:
             "use_case": "address",
             "description": "Address balance and UTXO lookup",
             "endpoints": [
-                _ep("GET", "/api/v1/address/{addr}", "Address summary"),
-                _ep("GET", "/api/v1/address/{addr}/utxos", "Address UTXOs"),
+                _ep("GET", "/api/v1/address/{addr}", "Address summary", auth=True),
+                _ep("GET", "/api/v1/address/{addr}/utxos", "Address UTXOs", auth=True),
             ],
         })
     if flags.get("exchange_compare", False):
@@ -311,9 +317,9 @@ def _build_categories() -> list[dict]:
             "use_case": "statistics",
             "description": "On-chain statistics and adoption metrics",
             "endpoints": [
-                _ep("GET", "/api/v1/stats/utxo-set", "UTXO set statistics"),
-                _ep("GET", "/api/v1/stats/segwit-adoption", "SegWit adoption metrics"),
-                _ep("GET", "/api/v1/stats/op-returns", "OP_RETURN data analysis"),
+                _ep("GET", "/api/v1/stats/utxo-set", "UTXO set statistics", auth=True),
+                _ep("GET", "/api/v1/stats/segwit-adoption", "SegWit adoption metrics", auth=True),
+                _ep("GET", "/api/v1/stats/op-returns", "OP_RETURN data analysis", auth=True),
             ],
         })
 
@@ -342,15 +348,15 @@ def _build_auth_info() -> dict:
         "tiers": {
             "anonymous": {
                 "per_minute": settings.rate_limit_anonymous,
-                "daily": 1000,
+                "daily": DAILY_LIMITS["anonymous"],
             },
             "free": {
                 "per_minute": settings.rate_limit_free,
-                "daily": 10000,
+                "daily": DAILY_LIMITS["free"],
             },
             "pro": {
                 "per_minute": settings.rate_limit_pro,
-                "daily": 100000,
+                "daily": DAILY_LIMITS["pro"],
             },
             "enterprise": {
                 "per_minute": settings.rate_limit_enterprise,
@@ -393,6 +399,7 @@ def guide(
         "links": {
             "docs": "/docs",
             "register": "/api/v1/register",
+            "x402": "/x402",
             "terms": "/terms",
             "privacy": "/privacy",
             "github": "https://github.com/Bortlesboat/bitcoin-api",

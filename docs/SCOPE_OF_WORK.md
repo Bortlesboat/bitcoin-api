@@ -231,9 +231,9 @@ All flags default to `true` so tests pass unchanged and Swagger `/docs` shows ev
 | Tier | Price | Rate Limit | Daily Limit | POST Access |
 |------|-------|-----------|-------------|-------------|
 | **Self-Hosted** | Free forever | Unlimited | Unlimited | Yes |
-| **Hosted (anonymous)** | Free | 30/min | 1,000/day | No |
-| **Hosted (API key)** | Free | 100/min | 10,000/day | Yes |
-| **Pro** | $19/mo | 500/min | 100,000/day | Yes |
+| **Hosted (anonymous)** | Free | 200/min | 5,000/day | No |
+| **Hosted (API key)** | Free | 500/min | 25,000/day | Yes |
+| **Pro** | $19/mo | 2,000/min | 250,000/day | Yes |
 
 Landing page presents 2 tiers (Self-Hosted + Hosted). Pro is preserved but hidden until demand materializes.
 
@@ -672,9 +672,9 @@ A hosted API is a secondary revenue opportunity, not the primary business.
 | Tier | Price | Rate Limit | Daily Limit | POST Access | Target |
 |------|-------|-----------|-------------|-------------|--------|
 | **Self-Hosted** | Free forever | Unlimited | Unlimited | Yes | Node runners |
-| **Anonymous (Hosted)** | Free | 30/min | 1,000/day | No | Try it, no signup |
-| **Developer (Hosted)** | Free (with key) | 100/min | 10,000/day | Yes | Build & ship |
-| **Pro** | $19/mo | 500/min | 100,000/day | Yes | Production apps |
+| **Anonymous (Hosted)** | Free | 200/min | 5,000/day | No | Try it, no signup |
+| **Developer (Hosted)** | Free (with key) | 500/min | 25,000/day | Yes | Build & ship |
+| **Pro** | $19/mo | 2,000/min | 250,000/day | Yes | Production apps |
 
 **Launch strategy:** Free tiers at launch, Pro tier via Stripe when demand materializes. x402 stablecoin micropayments (USDC on Base) and L402 Lightning payments available as optional extensions (features, not primary monetization). API keys are free — request via api@bitcoinsapi.com or self-serve `/api/v1/register` endpoint.
 

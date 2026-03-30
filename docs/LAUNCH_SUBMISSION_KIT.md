@@ -60,8 +60,8 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 | Tier | Price | Details |
 |------|-------|---------|
 | **Self-Hosted** | Free forever | Full API, unlimited requests, your own node. Apache-2.0. |
-| **Hosted Free** | $0/mo | 1,000 requests/day, all GET endpoints, no signup needed. |
-| **Pro** | $19/mo | 100,000 requests/day, 500 req/min, POST access, priority support. |
+| **Hosted Free** | $0/mo | 5,000 anonymous requests/day or 25,000/day with a free API key. |
+| **Pro** | $19/mo | 250,000 requests/day, 2,000 req/min, POST access, priority support. |
 
 ---
 

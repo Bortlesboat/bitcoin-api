@@ -15,7 +15,7 @@ pip install satoshi-api-sdk
 ```python
 from satoshi_api import SatoshiAPI
 
-api = SatoshiAPI()  # anonymous tier (30 req/min)
+api = SatoshiAPI()  # anonymous tier (200 req/min)
 
 # Get current fees
 fees = api.fees()
@@ -38,7 +38,7 @@ print(landscape.data["recommendation"])
 
 ```python
 # Register for a free API key at https://bitcoinsapi.com/docs
-api = SatoshiAPI(api_key="your-api-key")  # 100 req/min
+api = SatoshiAPI(api_key="your-api-key")  # 500 req/min
 
 # Or point at your own node
 api = SatoshiAPI(base_url="http://localhost:9332")

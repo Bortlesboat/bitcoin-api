@@ -11,6 +11,7 @@ def test_root(client):
     resp = client.get("/")
     assert resp.status_code == 200
     assert "Satoshi API" in resp.text
+    assert 'href="/fees"' in resp.text
 
 
 def test_root_returns_404_when_landing_page_is_missing(client, monkeypatch):
@@ -75,8 +76,14 @@ def test_docs_accessible(client):
 
 def test_api_docs_redirects_to_live_docs(client):
     resp = client.get("/api-docs", follow_redirects=False)
-    assert resp.status_code == 307
+    assert resp.status_code == 308
     assert resp.headers["location"] == "/docs"
+
+
+def test_fee_observatory_redirects_to_fees(client):
+    resp = client.get("/fee-observatory", follow_redirects=False)
+    assert resp.status_code == 308
+    assert resp.headers["location"] == "/fees"
 
 
 def test_envelope_format(client):
@@ -123,6 +130,190 @@ def test_root_csp_allows_configured_analytics_scripts(client):
     assert resp.status_code == 200
     csp = resp.headers["content-security-policy"]
     assert "https://us.i.posthog.com" in csp
+    assert "https://static.cloudflareinsights.com" in csp
+    assert "'nonce-" in csp
+    assert 'nonce="' in resp.text
+
+
+def test_core_marketing_pages_load_shared_site_helper(client):
+    for path in ["/", "/guide", "/pricing", "/mcp-setup", "/vs-mempool", "/history"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert '/static/js/site-helpers.js' in resp.text
+
+
+def test_shared_site_helper_asset_is_served(client):
+    resp = client.get("/static/js/site-helpers.js")
+    assert resp.status_code == 200
+    assert "processTree(document);" in resp.text
+
+
+def test_key_agent_pages_drop_google_font_chain(client):
+    for path in ["/", "/fees", "/mcp-setup", "/bitcoin-api-for-ai-agents"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert "fonts.googleapis.com" not in resp.text
+        assert "fonts.gstatic.com" not in resp.text
+
+
+def test_root_register_form_no_longer_relies_on_inline_submit_handler(client):
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert 'onsubmit=' not in resp.text
+
+
+def test_docs_surface_is_noindex(client):
+    resp = client.get("/docs")
+    assert resp.status_code == 200
+    assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_visualizer_page_is_noindex(client):
+    resp = client.get("/visualizer")
+    assert resp.status_code == 200
+    assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_x402_page_is_indexable(client):
+    resp = client.get("/x402")
+    assert resp.status_code == 200
+    assert "X-Robots-Tag" not in resp.headers
+
+
+def test_ai_playground_is_noindex(client):
+    resp = client.get("/ai")
+    assert resp.status_code == 200
+    assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_history_index_has_canonical(client):
+    resp = client.get("/history")
+    assert resp.status_code == 200
+    assert '<link rel="canonical" href="https://bitcoinsapi.com/history">' in resp.text
+
+
+def test_history_detail_pages_are_noindex(client):
+    for path in ["/history/block", "/history/tx", "/history/address"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert resp.headers["X-Robots-Tag"] == "noindex, follow"
+
+
+def test_robots_txt_explicitly_allows_major_ai_crawlers(client):
+    resp = client.get("/robots.txt")
+    assert resp.status_code == 200
+    body = resp.text
+    assert "GPTBot" in body
+    assert "ChatGPT-User" in body
+    assert "OAI-SearchBot" in body
+    assert "ClaudeBot" in body
+    assert "anthropic-ai" in body
+
+
+def test_public_discovery_and_web_paths_do_not_emit_rate_limit_headers(client):
+    for path in ["/fees", "/mcp-setup", "/x402", "/llms.txt", "/llms-full.txt", "/.well-known/mcp/server-card.json"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
+        assert "X-RateLimit-Limit" not in resp.headers
+
+
+def test_llms_docs_explain_keyed_and_premium_access(client):
+    llms = client.get("/llms.txt")
+    assert llms.status_code == 200
+    assert "Best starting points" in llms.text
+    assert "https://bitcoinsapi.com/best-time-to-send-bitcoin" in llms.text
+    assert "merchant-payout-batch-march-2026" in llms.text
+    assert "merchant_payout_batch" in llms.text
+    assert "API-Key Endpoints" in llms.text
+    assert "Paid Endpoints (x402 or Pro/Enterprise tier)" in llms.text
+    assert "/api/v1/mining/pools - Mining pool distribution" in llms.text
+    assert "/api/v1/rpc - Hosted Bitcoin Core JSON-RPC proxy" in llms.text
+    assert "Direct access requires a free API key." in llms.text
+    assert "No API key required." not in llms.text
+
+    llms_full = client.get("/llms-full.txt")
+    assert llms_full.status_code == 200
+    assert "/mining/pools | Mining pool distribution (API key required)" in llms_full.text
+    assert "/stats/utxo-set | UTXO set statistics (API key required)" in llms_full.text
+    assert "/fees/scenarios | Curated frozen send-or-wait proof cases for demos |" in llms_full.text
+    assert "Direct access to `/api/v1/rpc` requires an API key." in llms_full.text
+    assert "An API key is not required but recommended for higher limits." not in llms_full.text
+    assert "/fees/plan?profile=merchant_payout_batch&currency=usd" in llms_full.text
+    assert "saved 76.3%" in llms_full.text
+    assert "**Free:** 0/mo — 500 req/min, 25K/day, all endpoints" not in llms_full.text
+    assert "| Free       | 500     | 25,000  | 144       | All endpoints      |" not in llms_full.text
+
+
+def test_mcp_setup_leads_with_hosted_planner_curl(client):
+    resp = client.get("/mcp-setup")
+    assert resp.status_code == 200
+    assert 'curl "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&currency=usd"' in resp.text
+    assert "curl https://bitcoinsapi.com/api/v1/fees/recommended" not in resp.text
+
+
+def test_mcp_server_card_description_matches_fee_intelligence_positioning(client):
+    resp = client.get("/.well-known/mcp/server-card.json")
+    assert resp.status_code == 200
+    body = resp.json()
+    description = body["serverInfo"]["description"].lower()
+    assert "fee-intelligence" in description
+    assert "x402" in description
+
+
+def test_best_time_to_send_page_is_positioned_as_send_or_wait_wedge(client):
+    resp = client.get("/best-time-to-send-bitcoin")
+    assert resp.status_code == 200
+    assert "Should You Send Bitcoin" in resp.text
+    assert "Open Live Merchant Payout Planner" in resp.text
+    assert 'href="/fees?profile=merchant_payout_batch#live-planner"' in resp.text
+    assert "5,000 requests/day anonymously" in resp.text
+    assert "March 19, 2026 at 1:54 PM EDT" in resp.text
+    assert "14,563 sats" in resp.text
+    assert "3,451 sats" in resp.text
+    assert "76.3%" in resp.text
+    assert "merchant-payout-batch-march-2026" in resp.text
+
+
+def test_mcp_setup_page_leads_with_plan_transaction_demo(client):
+    resp = client.get("/mcp-setup")
+    assert resp.status_code == 200
+    assert 'plan_transaction(profile="merchant_payout_batch")' in resp.text
+    assert "That is the default hosted demo path." in resp.text
+    assert "[Calling get_fee_landscape...]" not in resp.text
+
+
+def test_homepage_and_fee_page_promote_free_planner_before_premium(client):
+    home = client.get("/")
+    fees = client.get("/fees")
+    assert home.status_code == 200
+    assert fees.status_code == 200
+    assert '/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd' in home.text
+    assert "Premium paths such as <code>/fees/landscape</code> use x402 or a paid tier." in home.text
+    assert "Bitcoin <span>Send-or-Wait Planner</span>" in fees.text
+    assert "Live profile: merchant_payout_batch" in fees.text
+    assert "Mempool usage and fee environment do not always move together" in fees.text
+    assert 'profile=merchant_payout_batch&amp;currency=usd' in fees.text
+    assert 'curl</span> "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"' in fees.text
+    assert 'requests.get("https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd").json()' in fees.text
+    assert "profile=simple_send" not in fees.text
+    assert "Both endpoints are free to use" not in fees.text
+
+
+def test_root_supports_head(client):
+    resp = client.head("/")
+    assert resp.status_code == 200
+
+
+def test_api_docs_supports_head_redirect(client):
+    resp = client.head("/api-docs", follow_redirects=False)
+    assert resp.status_code == 308
+    assert resp.headers["location"] == "/docs"
+
+
+def test_mcp_server_card_supports_head(client):
+    resp = client.head("/.well-known/mcp/server-card.json")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("application/json")
 
 
 def test_health_deep(authed_client):

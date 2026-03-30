@@ -261,15 +261,15 @@
     </div>
 
     <div class="endpoint-card">
-      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/landscape</span></div>
-      <p class="desc">The "should I send now or wait?" decision engine. Analyzes the current fee environment and returns a send/wait recommendation based on fee spread, urgency premium, and mempool conditions. Includes a congestion level indicator and the optimal fee tier for cost-conscious transactions.</p>
+      <div class="method-path"><span class="method">GET</span> <span class="path">/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd</span></div>
+      <p class="desc">The default hosted send-now-or-wait planner. It turns a real transaction shape into a recommendation, cost tiers, delay savings, and USD values. Use this as the free live demo path before you reach for premium analysis.</p>
       <div class="sample">{
   <span class="key">"data"</span>: {
-    <span class="key">"recommendation"</span>: <span class="str">"Fees are low. Good time to send."</span>,
-    <span class="key">"congestion"</span>: <span class="str">"low"</span>,
-    <span class="key">"spread"</span>: <span class="num">5.2</span>,
-    <span class="key">"urgency_premium_pct"</span>: <span class="num">42.1</span>,
-    <span class="key">"optimal_tier"</span>: <span class="str">"medium"</span>
+    <span class="key">"profile"</span>: <span class="str">"merchant_payout_batch"</span>,
+    <span class="key">"recommendation"</span>: <span class="str">"wait"</span>,
+    <span class="key">"reasoning"</span>: <span class="str">"Waiting for the next fee window saves significantly."</span>,
+    <span class="key">"delay_savings_pct"</span>: <span class="num">76.3</span>,
+    <span class="key">"btc_price_usd"</span>: <span class="num">66519.0</span>
   }
 }</div>
     </div>
@@ -326,7 +326,7 @@
 <section>
   <div class="container prose">
     <h2>Example Response</h2>
-    <p>Query the fee recommendation endpoint on the live instance. No API key is required for GET requests, so you can check the current send window immediately. The sample below was captured from the live API.</p>
+    <p>Query the fee recommendation endpoint on the live instance. The core hosted fee endpoints are free to try anonymously, so you can check the current send window immediately. The sample below was captured from the live API.</p>
 
     <div class="code-block">
       <pre><span class="comment"># Get recommended fee rates from the live API</span>
@@ -509,8 +509,8 @@
 <span class="comment"># Human-readable recommendations</span>
 <span class="cmd">curl</span> https://bitcoinsapi.com/api/v1/fees/recommended
 
-<span class="comment"># Should I send now or wait?</span>
-<span class="cmd">curl</span> https://bitcoinsapi.com/api/v1/fees/landscape
+<span class="comment"># Hosted send-now-or-wait planner</span>
+<span class="cmd">curl</span> "https://bitcoinsapi.com/api/v1/fees/plan?profile=merchant_payout_batch&amp;currency=usd"
 
 <span class="comment"># How much will my transaction cost?</span>
 <span class="cmd">curl</span> "https://bitcoinsapi.com/api/v1/fees/estimate-tx?inputs=2&outputs=2"</pre>

@@ -13,8 +13,17 @@ class TestClassifyClient:
     def test_ai_agent_openai(self):
         assert classify_client("OpenAI-GPT/4.0") == "ai-agent"
 
+    def test_ai_agent_gptbot(self):
+        assert classify_client("GPTBot/1.0") == "ai-agent"
+
+    def test_ai_agent_chatgpt_user(self):
+        assert classify_client("ChatGPT-User/1.0") == "ai-agent"
+
     def test_ai_agent_anthropic(self):
         assert classify_client("Anthropic-Client/2.0") == "ai-agent"
+
+    def test_ai_agent_perplexity(self):
+        assert classify_client("PerplexityBot/1.0") == "ai-agent"
 
     def test_ai_agent_langchain(self):
         assert classify_client("LangChain/0.1.0") == "ai-agent"
@@ -109,6 +118,18 @@ class TestRateLimitSkipPaths:
 
     def test_robots_txt_is_skipped(self):
         assert "/robots.txt" in _RATE_LIMIT_SKIP
+
+    def test_llms_txt_is_skipped(self):
+        assert "/llms.txt" in _RATE_LIMIT_SKIP
+
+    def test_server_card_is_skipped(self):
+        assert "/.well-known/mcp/server-card.json" in _RATE_LIMIT_SKIP
+
+    def test_fee_tracker_page_is_skipped(self):
+        assert "/fees" in _RATE_LIMIT_SKIP
+
+    def test_x402_page_is_skipped(self):
+        assert "/x402" in _RATE_LIMIT_SKIP
 
 
 class TestCacheControlHeaders:
