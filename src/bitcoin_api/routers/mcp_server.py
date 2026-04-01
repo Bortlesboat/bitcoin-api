@@ -376,6 +376,17 @@ def create_mcp_app() -> Starlette:
         ],
     )
     app = mcp.streamable_http_app()
+
+    # Redirect browser GET /mcp → /mcp-setup (human-readable setup guide)
+    from starlette.responses import RedirectResponse as _StarletteRR
+    from starlette.routing import Route
+
+    async def _redirect_to_setup(request):  # noqa: ARG001
+        return _StarletteRR(url="/mcp-setup", status_code=302)
+
+    # Prepend so it matches before the MCP SDK's catch-all
+    app.routes.insert(0, Route("/", endpoint=_redirect_to_setup, methods=["GET"]))
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[

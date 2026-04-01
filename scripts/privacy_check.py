@@ -45,6 +45,8 @@ APPROVED_EXTERNAL_DOMAINS = {
     "us-assets.i.posthog.com",
     "fonts.googleapis.com",
     "fonts.gstatic.com",
+    "static.cloudflareinsights.com",
+    "cloudflareinsights.com",
 }
 
 SECRET_PATTERNS = [
