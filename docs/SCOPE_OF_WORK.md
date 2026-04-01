@@ -77,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~124 total: 84 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 13 content pages + 4 indexer + 3 x402)
+### 3.1 Endpoints (~127 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 4 indexer + 3 x402)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -112,6 +112,8 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/fees/plan` | GET | No |
 | | `/api/v1/fees/savings` | GET | No |
 | | `/api/v1/fees/{target}` | GET | No |
+| **Fee Research** | `/api/v1/fees/accuracy` | GET | No |
+| | `/api/v1/fees/research/export` | GET | No |
 | **Fee Observatory** | `/api/v1/fees/observatory/scoreboard` | GET | No |
 | | `/api/v1/fees/observatory/block-stats` | GET | No |
 | | `/api/v1/fees/observatory/estimates` | GET | No |
@@ -418,6 +420,13 @@ Errors follow the same structure:
 34. **Registration blocked by own rate limits** -- `/api/v1/register` was subject to per-minute and daily rate limits, blocking upgrade at the exact moment users needed it. Now exempt from both (per-IP abuse limit still enforced).
 35. **429 responses lack upgrade path** -- Added `upgrade` object to all 429 responses with next tier info, pricing, multiplier, and action URL. Error messages reworded to be actionable.
 
+**UX Audit Fixes (Apr 1):**
+36. **GET /mcp 404** -- ASGI middleware redirects browser GET `/mcp` to `/mcp-setup` (MCP Mount swallowed bare path)
+37. **Sync banner wrong field** -- Homepage JS checked `data.syncing` but API puts it in `meta.syncing`
+38. **Hardcoded fee URL** -- Live fee fetch changed from absolute `https://bitcoinsapi.com/...` to relative `/api/v1/...`
+39. **Pro checkout dead end** -- "Upgrade to Pro" button returned 503; changed to "Contact for Pro" mailto link
+40. **Watchdog stale code** -- `API_DIR` resolved relative to script location (broke when Task Scheduler ran old release copy); now uses `releases/bitcoin-api-current` symlink
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
@@ -473,7 +482,8 @@ Errors follow the same structure:
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning. | 6 |
-| **Total** | **~114 endpoints (88 core + 3 x402 + 7 history API + 13 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **589 unit + 21 e2e** |
+| 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
+| **Total** | **~117 endpoints (90 core + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **604 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -483,7 +493,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (Binance/CoinGecko/Coinbase/Kraken fallback, 10s TTL)
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, observatory, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/routers/x402_stats.py` -- x402 payment analytics endpoint
-- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql, 009_add_registration_source.sql, 010_add_signup_attribution.sql, 011_add_x402_payments.sql
+- `src/bitcoin_api/migrations/` -- runner.py, 001_initial_schema.sql, 002_add_migrations_table.sql, 003_add_schema_migrations_index.sql, 004_add_subscriptions.sql, 005_add_client_type.sql, 006_add_referrer.sql, 007_add_client_ip.sql, 008_add_error_type.sql, 009_add_registration_source.sql, 010_add_signup_attribution.sql, 011_add_x402_payments.sql, 012_add_research_tables.sql
 - `src/bitcoin_api/indexer/` -- config, db, parser, worker, reorg, models
 - `src/bitcoin_api/indexer/services/` -- address, transaction
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
@@ -492,7 +502,7 @@ Errors follow the same structure:
 **Tests (23 test files + 2 support files):**
 - `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
-- `tests/test_fees.py` -- 30 tests (fee endpoints)
+- `tests/test_fees.py` -- 45 tests (fee endpoints + fee research infrastructure)
 - `tests/test_transactions.py` -- 27 tests (transaction endpoints)
 - `tests/test_mempool.py` -- 7 tests (mempool endpoints)
 - `tests/test_mining.py` -- 21 tests (mining endpoint + service)
@@ -559,7 +569,7 @@ Errors follow the same structure:
 - `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
-**Website (28 files):**
+**Website (29 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -572,6 +582,7 @@ Errors follow the same structure:
 - `static/best-time-to-send-bitcoin.html` -- SEO decision page: timing recommendations
 - `static/bitcoin-fee-estimator.html` -- SEO tool page: fee estimator endpoint
 - `static/bitcoin-api-for-trading-bots.html` -- SEO feature page: bot trading integration
+- `static/bitcoin-api-for-aml-compliance.html` -- SEO feature page: AML/compliance transaction intelligence
 - `static/how-to-reduce-bitcoin-transaction-fees.html` -- SEO guide: fee optimization strategies
 - `static/bitcoin-mcp-setup-guide.html` -- SEO guide: MCP setup for AI agents (legacy, replaced by /mcp-setup)
 - `static/mcp-setup.html` -- MCP setup guide with zero-config focus, tool catalog, copy buttons

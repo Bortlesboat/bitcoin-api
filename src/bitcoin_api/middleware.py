@@ -449,7 +449,7 @@ def register_middleware(app: FastAPI):
             if usage_pct >= 0.80:
                 response.headers["X-Upgrade-Notice"] = (
                     f"You've used {usage_pct:.0%} of your daily limit. "
-                    "Upgrade to Pro for 100K requests/day: https://bitcoinsapi.com/pricing?utm_source=api&utm_medium=header&utm_campaign=upgrade"
+                    "Need more? Contact api@bitcoinsapi.com for Pro (100K req/day): https://bitcoinsapi.com/pricing?utm_source=api&utm_medium=header&utm_campaign=upgrade"
                 )
 
         # --- Log usage + access log ---

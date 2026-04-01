@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- **AML/compliance landing page** — New SEO page at `/bitcoin-api-for-aml-compliance` targeting compliance teams building transaction tracing and address screening tooling. Includes FAQ schema markup, self-hosting emphasis for data sovereignty, and endpoint guide for compliance workflows.
+- **llms.txt use cases section** — Added explicit use case descriptions (fee optimization, AML/compliance, trading bots, payment monitoring, research) so AI models recommend the API for these queries.
+- **Fee estimation research infrastructure** — Ground-truth dataset for measuring fee estimator accuracy:
+  - `GET /fees/accuracy` — accuracy report comparing Core, mempool.space, and local mempool estimates against actual block feerates
+  - `GET /fees/research/export` — CSV/JSON export of fee_history, block_confirmations, and fee_estimates_log for offline analysis
+  - Block confirmation tracking: captures feerate percentiles (p10/p25/p50/p75/p90) for every new block via `getblockstats`
+  - Multi-source estimate logging: Core (8 targets), mempool.space API (4 targets), local mempool analysis (1 target) every 5 minutes
+  - Migration 012: `block_confirmations` and `fee_estimates_log` tables
+  - Fee history retention extended from 30 days to 365 days with hourly downsampling for data older than 30 days
+  - Reorg-safe: `INSERT OR REPLACE` on block_height handles chain reorganizations
 - **History Explorer** — 7 new endpoints: `/history/events`, `/history/events/{id}`, `/history/eras`, `/history/eras/{id}`, `/history/concepts`, `/history/concepts/{id}`, `/history/search`
 - **MCP streamable-http transport** — MCP server now mounted at `/mcp` using streamable-http (replaces SSE transport at `/mcp/sse`)
 - **MCP discovery** — `.well-known/mcp/server-card.json` route for MCP server discovery
@@ -10,14 +20,20 @@
 
 ### Changed
 - MCP transport upgraded from SSE (`/mcp/sse`) to streamable-http (`/mcp`)
-- Endpoints: 87 → 95 (84 core + 7 history + 4 indexer)
+- Endpoints: 87 → 97 (86 core + 7 history + 4 indexer)
 - Routers: 24 → 25 (22 core + 3 indexer)
-- Unit tests: 407 → 454 (475 total with 21 e2e)
+- Unit tests: 407 → 469 (490 total with 21 e2e)
+- Fee history auto-prune: 30 days → 365 days (with hourly downsampling for >30 days)
 - 429 rate limit responses now include `upgrade` object with next tier info, pricing, and action URL
 - Rate limit error messages reworded to be friendlier ("Register for free: 10x more requests, takes 10 seconds")
 
 ### Fixed
 - **Registration blocked by rate limits** — `/api/v1/register` was subject to per-minute and daily rate limits, so users who hit the anonymous cap couldn't upgrade. Registration endpoint now exempt from both rate limit checks (still has its own per-IP abuse protection).
+- **GET /mcp returned 404** — Browser visitors hitting `/mcp` got a 404 because Starlette's Mount swallowed the path for the MCP protocol (POST-only). Added ASGI middleware to 302-redirect GET `/mcp` to `/mcp-setup` (the human-readable setup guide).
+- **Sync banner read wrong field** — Homepage JS checked `json.data.syncing` but the API returns `syncing` in `json.meta`. Now checks `meta.syncing` with fallback to `data.syncing`.
+- **Hardcoded fee URL** — Homepage live fee fetch used absolute `https://bitcoinsapi.com/...` URL, breaking local dev. Changed to relative path.
+- **Pro tier dead end** — "Upgrade to Pro" button hit a 503 (Stripe not configured). Changed to "Contact for Pro" mailto link for lead capture until Stripe is wired up.
+- **Watchdog restarted stale code** — `watchdog-api.sh` resolved `API_DIR` relative to its own location, so when Task Scheduler ran an old release copy, the API restarted with stale code. Now hardcodes the `releases/bitcoin-api-current` symlink path. Task re-registered to run from main repo.
 
 ## [0.3.3] - 2026-03-08
 

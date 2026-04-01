@@ -175,7 +175,7 @@ def _welcome_html(api_key: str, label: str) -> str:
     </ul>
     <p style="font-size: 14px;">Full documentation: <a href="https://bitcoinsapi.com/docs" style="color: #f7931a;">API Docs</a></p>
     <hr style="border: 1px solid #30363d; margin: 24px 0;">
-    <p style="font-size: 12px; color: #8b949e;">Free tier: 100 requests/min, 10,000/day. Need more? <a href="https://bitcoinsapi.com/#pricing" style="color: #f7931a;">Upgrade to Pro</a></p>
+    <p style="font-size: 12px; color: #8b949e;">Free tier: 100 requests/min, 10,000/day. Need more? <a href="https://bitcoinsapi.com/pricing" style="color: #f7931a;">Contact us for Pro</a></p>
     <p style="font-size: 11px; color: #8b949e;">This is a transactional email confirming your API key registration.</p>
     {_EMAIL_FOOTER}
 </div>

@@ -11,22 +11,33 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **API is running at** | `http://localhost:9332` (local) / `https://bitcoinsapi.com` (public) |
 | **Interactive docs** | `http://localhost:9332/docs` |
 | **Process** | `python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332` |
-| **Config** | `.env` in repo root (loaded automatically by Pydantic Settings) |
-| **Database** | `data/bitcoin_api.db` (SQLite, auto-created) |
-| **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task "SatoshiAPI". Watchdog: "SatoshiAPIWatchdog" (5 min). Backup: "SatoshiAPIBackup" (daily 3 AM) |
+| **Config** | Shared `.env` at `C:/Users/andre/Bortlesboat/bitcoin-api/.env`, linked into the promoted release |
+| **Database** | Shared `data/bitcoin_api.db` at `C:/Users/andre/Bortlesboat/bitcoin-api/data/`, linked into the promoted release |
+| **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task `SatoshiAPI` -> local `start-api.bat` shim -> `ops/bitcoinsapi/start-prod.bat`. Watchdog: `SatoshiAPIWatchdog` (5 min). Backup: `SatoshiAPIBackup` (daily 3 AM) |
 | **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
-| **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min via "SatoshiAPIWatchdog" task, auto-restart), smoke-test-api.sh (cron) |
+| **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min via "SatoshiAPIWatchdog" task, auto-restart — runs from main repo, resolves API_DIR via `releases/bitcoin-api-current` symlink), smoke-test-api.sh (cron) |
 | **Diagnostics** | `bash scripts/diagnose.sh` (node, tunnel, API, cache, DB, version, tests) |
-| **Version mgmt** | `bash scripts/release.sh` (tag, list, diff, revert) |
+| **Version mgmt** | `bash scripts/release.sh` for git tags plus `powershell -File C:/Users/andre/Bortlesboat/ops/bitcoinsapi/promote-release.ps1 -ReleasePath <release>` for prod cutover |
 
 ---
 
 ## 1. Starting / Stopping / Restarting the API
 
+### Current production layout
+```text
+Code releases:   C:/Users/andre/Bortlesboat/releases/bitcoin-api-<timestamp>-<sha>
+Stable pointer:  C:/Users/andre/Bortlesboat/releases/bitcoin-api-current
+Launcher shim:   C:/Users/andre/Bortlesboat/bitcoin-api/start-api.bat
+Prod launcher:   C:/Users/andre/Bortlesboat/ops/bitcoinsapi/start-prod.bat
+```
+
+The promoted release uses links back to the shared local state in `C:/Users/andre/Bortlesboat/bitcoin-api/` for `.env`, `data/`, and `logs/`. Do not point production directly at a dirty working tree again.
+
 ### Start (if not running)
 ```bash
-cd ~/Bortlesboat/bitcoin-api
-python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332 &
+cmd.exe /c C:/Users/andre/Bortlesboat/bitcoin-api/start-api.bat
+# or
+schtasks /Run /TN SatoshiAPI
 ```
 
 ### Check if running
@@ -44,13 +55,11 @@ Look for the line with `--port 9332`. Note the PID number at the end.
 
 ### Restart (kill + start)
 ```bash
-# Replace XXXXX with the actual PID from above
-taskkill.exe //PID XXXXX //F
-sleep 1
-cd ~/Bortlesboat/bitcoin-api
-python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332 &
+cmd.exe /c C:/Users/andre/Bortlesboat/bitcoin-api/start-api.bat
+# or
+schtasks /Run /TN SatoshiAPI
 ```
-Downtime: ~2 seconds. Cloudflare will show a 502 briefly.
+The launcher shim kills anything already listening on `9332`, then starts the promoted release from `releases/bitcoin-api-current`. Downtime is typically a few seconds; Cloudflare may show a brief 502.
 
 ### Why restart?
 You need to restart after changing `.env` (the API reads env vars at startup, not live).
@@ -379,7 +388,11 @@ Replace `YOUR_KEY` with the value from your `.env` `ADMIN_API_KEY`.
 
 The background fee collector thread automatically prunes old data once per 24 hours:
 - Usage logs older than 90 days are deleted
-- Fee history older than 30 days is deleted
+- Fee history older than 30 days is downsampled to hourly averages
+- Fee history older than 365 days is deleted
+- Research data (block_confirmations, fee_estimates_log) older than 365 days is deleted
+
+The fee collector also logs multi-source fee estimates every 5 minutes (Core 8 targets, mempool.space 4 targets, local mempool 1 target) and captures block confirmation feerate percentiles on each new block.
 
 Check API logs for `Auto-prune:` messages to confirm it's running.
 
@@ -409,7 +422,7 @@ Users can POST to `/api/v1/register` with `agreed_to_terms: true` to get a free 
 cd ~/Bortlesboat/bitcoin-api
 python scripts/seo_metrics.py
 ```
-Shows: page accessibility (all 15 pages), GitHub stars, PyPI downloads, PR merge status, Bing indexing, search mentions, API usage stats. Saves data to `data/seo_metrics.db`.
+Shows: page accessibility (all 16 pages), GitHub stars, PyPI downloads, PR merge status, Bing indexing, search mentions, API usage stats. Saves data to `data/seo_metrics.db`.
 
 ### Daily analytics digest
 ```bash
@@ -428,7 +441,7 @@ Reports: requests/growth/latency/errors/client types/retention/referrers/convers
 ```bash
 bash scripts/submit_indexnow.sh
 ```
-Auto-runs after every successful deploy via `deploy-api.sh`. Submits all 10 SEO pages to Bing/Yandex.
+Auto-runs after every successful deploy via `deploy-api.sh`. Submits all 11 SEO pages to Bing/Yandex.
 
 ### Marketing drafts location
 All ready-to-post drafts are in `docs/marketing/drafts/` (gitignored, local-only):
