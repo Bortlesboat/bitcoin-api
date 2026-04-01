@@ -6,13 +6,14 @@
 set -euo pipefail
 
 API_PORT=9332
-API_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+API_DIR="/c/Users/andre/Bortlesboat/releases/bitcoin-api-current"
 LOG_DIR="$API_DIR/logs"
 WATCHDOG_LOG="$LOG_DIR/watchdog.log"
 API_LOG="$LOG_DIR/api.log"
 HEALTH_URL="http://localhost:$API_PORT/api/v1/health"
 HEALTH_TIMEOUT=10
-STARTUP_WAIT=5
+STARTUP_WAIT=30
+MAX_RETRIES=3
 
 # Ensure logs directory exists
 mkdir -p "$LOG_DIR"
@@ -54,29 +55,44 @@ get_pid_on_port() {
     netstat -ano 2>/dev/null | grep -E ":${API_PORT}\s.*LISTEN" | awk '{print $NF}' | head -1
 }
 
-# Start the API
+# Start the API with retry loop
 start_api() {
-    log "Starting Satoshi API..."
-    cd "$API_DIR"
-    PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$API_PORT" --workers 1 >> "$API_LOG" 2>&1 &
-    local new_pid=$!
-    log "Launched uvicorn with PID $new_pid, waiting ${STARTUP_WAIT}s..."
-    sleep "$STARTUP_WAIT"
+    local attempt=1
+    while (( attempt <= MAX_RETRIES )); do
+        log "Starting Satoshi API (attempt $attempt/$MAX_RETRIES)..."
+        cd "$API_DIR"
+        PYTHONPATH=src nohup python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port "$API_PORT" --workers 1 >> "$API_LOG" 2>&1 &
+        local new_pid=$!
+        log "Launched uvicorn with PID $new_pid, waiting ${STARTUP_WAIT}s..."
+        sleep "$STARTUP_WAIT"
 
-    if port_listening; then
-        if health_check; then
+        if port_listening && health_check; then
             log "SUCCESS: API is up and healthy (PID $new_pid)"
             return 0
-        else
-            log "WARNING: Port is listening but health check failed (PID $new_pid)"
-            return 1
         fi
-    else
-        log "FAILURE: API did not start - port $API_PORT not listening after ${STARTUP_WAIT}s"
-        log "Last 10 lines of api.log:"
-        tail -10 "$API_LOG" 2>/dev/null >> "$WATCHDOG_LOG" || true
-        return 1
-    fi
+
+        # Failed â€” kill if partially started, then retry
+        if port_listening; then
+            local stuck_pid
+            stuck_pid=$(get_pid_on_port)
+            log "WARNING: Port listening but unhealthy, killing PID $stuck_pid"
+            taskkill //PID "$stuck_pid" //F > /dev/null 2>&1 || true
+            sleep 2
+        else
+            log "Port $API_PORT not listening after ${STARTUP_WAIT}s"
+        fi
+
+        if (( attempt < MAX_RETRIES )); then
+            log "Retrying in 10s..."
+            sleep 10
+        fi
+        attempt=$((attempt + 1))
+    done
+
+    log "FAILURE: API did not start after $MAX_RETRIES attempts"
+    log "Last 10 lines of api.log:"
+    tail -10 "$API_LOG" 2>/dev/null >> "$WATCHDOG_LOG" || true
+    return 1
 }
 
 # Main logic
