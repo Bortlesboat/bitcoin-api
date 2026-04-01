@@ -23,7 +23,6 @@ TRACKING_PATTERNS = [
     r"mixpanel", r"hotjar", r"heap\.io", r"amplitude",
     r"segment\.io", r"segment\.com", r"rudderstack",
     r"plausible\.io", r"fathom\.io", r"matomo", r"piwik",
-    r"cloudflareinsights", r"cf-beacon",
     # Ad/pixel trackers
     r"facebook.*pixel", r"fbevents", r"doubleclick",
     r"googlesyndication", r"adsbygoogle",

@@ -151,6 +151,8 @@ def classify_client(user_agent: str) -> str:
     return "unknown"
 
 _DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/admin/founder", "/visualizer"}
+_NOINDEX_PATHS = {"/docs", "/redoc", "/openapi.json", "/visualizer", "/x402"}
+_NOINDEX_PREFIXES = ("/history/block", "/history/tx", "/history/address")
 
 _PAGEVIEW_LOG_PATHS = {
     "/", "/docs", "/redoc", "/admin/dashboard", "/admin/founder",
@@ -175,8 +177,30 @@ _RATE_LIMIT_SKIP = {
 }
 
 
+class _McpBrowserRedirect:
+    """Raw ASGI middleware: redirect GET /mcp → /mcp-setup for browsers.
+
+    Must be raw ASGI because Starlette's Mount swallows /mcp at the router
+    level before HTTP middleware runs.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp" and scope["method"] == "GET":
+            from starlette.responses import RedirectResponse as _RR
+            response = _RR(url="/mcp-setup", status_code=302)
+            await response(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
+
+
 def register_middleware(app: FastAPI):
     """Register all middleware in correct order (last registered runs first)."""
+
+    # Redirect GET /mcp → /mcp-setup (must be ASGI-level, before Mount routing)
+    app.add_middleware(_McpBrowserRedirect)
 
     # --- Auth + rate limiting (outermost — runs first) ---
     @app.middleware("http")
@@ -261,8 +285,11 @@ def register_middleware(app: FastAPI):
         client_ip = get_client_ip(request)
         bucket = key_info.key_hash or client_ip
 
+        # --- Skip rate limiting for exempt internal keys (e.g. Kalshi bot) ---
+        _is_exempt = key_info.key_hash in settings.exempt_key_set
+
         # --- Skip rate limiting for registration (users must always be able to upgrade) ---
-        _skip_rate_limit = request.url.path == "/api/v1/register"
+        _skip_rate_limit = request.url.path == "/api/v1/register" or _is_exempt
 
         # --- Per-minute rate limit ---
         result = check_rate_limit(bucket, key_info.tier)
@@ -473,29 +500,43 @@ def register_middleware(app: FastAPI):
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
         response = await call_next(request)
+        path = request.url.path
+        nonce = response.headers.get("X-CSP-Nonce")
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        if request.url.path not in _DOCS_PATHS:
+        if path not in _DOCS_PATHS:
+            script_src = [
+                "'self'",
+                "'strict-dynamic'",
+                "https://us-assets.i.posthog.com",
+                "https://us.i.posthog.com",
+                "https://static.cloudflareinsights.com",
+            ]
+            if nonce:
+                script_src.append(f"'nonce-{nonce}'")
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'strict-dynamic' https://us-assets.i.posthog.com https://us.i.posthog.com; "
+                f"script-src {' '.join(script_src)}; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://raw.githubusercontent.com; "
-                "connect-src 'self' https://bitcoinsapi.com https://us.i.posthog.com; "
+                "connect-src 'self' https://bitcoinsapi.com https://us.i.posthog.com https://cloudflareinsights.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self'"
             )
+        if "X-CSP-Nonce" in response.headers:
+            del response.headers["X-CSP-Nonce"]
+        if path in _NOINDEX_PATHS or any(path.startswith(prefix) for prefix in _NOINDEX_PREFIXES):
+            response.headers["X-Robots-Tag"] = "noindex, follow"
         if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         progress = get_sync_progress()
         if progress is not None and progress < 0.9999:
             response.headers["X-Node-Syncing"] = "true"
 
-        path = request.url.path
         if path.startswith("/api/v1/"):
             response.headers["X-Data-Disclaimer"] = "For informational purposes only. Not financial advice. See /terms"
         if "Cache-Control" not in response.headers:
