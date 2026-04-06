@@ -237,64 +237,21 @@ def well_known_x402():
     """
     try:
         from bitcoin_api_x402.pricing import ENDPOINT_PRICES
-        # Resolve regex pricing patterns against actual OpenAPI routes
-        # so x402scan can probe real endpoints (not regex prefixes).
+        # Resolve regex pricing patterns against actual OpenAPI routes.
+        # Use full URLs per the x402scan discovery spec.
+        origin = "https://bitcoinsapi.com"
         schema = app.openapi()
         resources = []
         seen = set()
         for ep in ENDPOINT_PRICES:
             compiled = re.compile(ep.pattern)
-            for path_key, path_item in schema.get("paths", {}).items():
+            for path_key in schema.get("paths", {}):
                 if compiled.search(path_key) and path_key not in seen:
                     seen.add(path_key)
-                    method = next(
-                        (m.upper() for m in path_item if m in ("get", "post", "put", "delete")),
-                        "GET",
-                    )
-                    resources.append(f"{method} {path_key}")
+                    resources.append(f"{origin}{path_key}")
         return {"version": 1, "resources": resources}
     except ImportError:
         return {"version": 1, "resources": []}
-
-
-# --- Inject x-payment-info into OpenAPI schema for x402scan discovery ---
-def _patch_openapi_x402(app_ref):  # type: ignore[no-untyped-def]
-    """Add x-payment-info extensions to paid endpoints in the OpenAPI schema.
-
-    x402scan prefers OpenAPI-based discovery with x-payment-info on each
-    monetized operation.  See: https://www.x402scan.com/discovery
-    """
-    try:
-        from bitcoin_api_x402.pricing import ENDPOINT_PRICES
-    except ImportError:
-        return  # x402 package not installed — nothing to patch
-
-    original_openapi = app_ref.openapi
-
-    def patched_openapi():  # type: ignore[no-untyped-def]
-        schema = original_openapi()
-        paths = schema.get("paths", {})
-        for ep in ENDPOINT_PRICES:
-            # Match OpenAPI paths against pricing regex patterns
-            compiled = re.compile(ep.pattern)
-            for path_key, path_item in paths.items():
-                if compiled.search(path_key):
-                    for _method, operation in path_item.items():
-                        if isinstance(operation, dict):
-                            operation["x-payment-info"] = {
-                                "protocols": ["x402"],
-                                "price": {
-                                    "mode": "fixed",
-                                    "currency": "USD",
-                                    "amount": ep.price_usd.lstrip("$"),
-                                },
-                            }
-        return schema
-
-    app_ref.openapi = patched_openapi
-
-
-_patch_openapi_x402(app)
 
 
 # --- Redirect aliases for commonly-guessed singular endpoint paths ---
