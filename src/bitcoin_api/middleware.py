@@ -150,8 +150,8 @@ def classify_client(user_agent: str) -> str:
         return "browser"
     return "unknown"
 
-_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json", "/admin/dashboard", "/admin/founder", "/visualizer"}
-_NOINDEX_PATHS = {"/docs", "/redoc", "/openapi.json", "/visualizer", "/x402"}
+_DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/api/openapi.json", "/admin/dashboard", "/admin/founder", "/visualizer"}
+_NOINDEX_PATHS = {"/docs", "/redoc", "/api/openapi.json", "/visualizer", "/x402"}
 _NOINDEX_PREFIXES = ("/history/block", "/history/tx", "/history/address")
 
 _PAGEVIEW_LOG_PATHS = {
@@ -164,7 +164,7 @@ _PAGEVIEW_LOG_PATHS = {
 }
 
 _RATE_LIMIT_SKIP = {
-    "/", "/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
+    "/", "/docs", "/redoc", "/api/openapi.json", "/api/v1/health", "/api/v1/guide", "/healthz",
     "/api/v1/stream/blocks", "/api/v1/stream/fees",
     "/robots.txt", "/sitemap.xml", "/favicon.ico",
     "/vs-mempool", "/vs-blockcypher", "/best-bitcoin-api-for-developers",

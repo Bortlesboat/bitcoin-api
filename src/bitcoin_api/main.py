@@ -121,6 +121,7 @@ app = FastAPI(
     "on every transaction. MCP-native, self-hostable, open source.",
     version=__version__,
     lifespan=lifespan,
+    openapi_url="/api/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
     contact={"name": "Satoshi API Support", "email": "api@bitcoinsapi.com", "url": "https://bitcoinsapi.com"},
