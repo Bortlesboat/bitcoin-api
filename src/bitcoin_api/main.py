@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import re
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -225,6 +226,68 @@ try:
     log.info("MCP server mounted at /mcp (streamable-http)")
 except Exception:
     log.exception("Failed to mount MCP server — continuing without it")
+
+# --- x402 machine-readable discovery (.well-known/x402) ---
+@app.get("/.well-known/x402", include_in_schema=False)
+def well_known_x402():
+    """Machine-readable x402 discovery for AI agents and automated clients.
+
+    Format follows the x402scan Discovery Spec:
+    https://www.x402scan.com/discovery
+    """
+    try:
+        from bitcoin_api_x402.pricing import ENDPOINT_PRICES
+        # Strip regex anchors (^ $) from patterns for clean paths.
+        # broadcast is POST, everything else is GET.
+        resources = []
+        for ep in ENDPOINT_PRICES:
+            clean = re.sub(r"[$^]", "", ep.pattern)
+            method = "POST" if "broadcast" in clean else "GET"
+            resources.append(f"{method} {clean}")
+        return {"version": 1, "resources": resources}
+    except ImportError:
+        return {"version": 1, "resources": []}
+
+
+# --- Inject x-payment-info into OpenAPI schema for x402scan discovery ---
+def _patch_openapi_x402(app_ref):  # type: ignore[no-untyped-def]
+    """Add x-payment-info extensions to paid endpoints in the OpenAPI schema.
+
+    x402scan prefers OpenAPI-based discovery with x-payment-info on each
+    monetized operation.  See: https://www.x402scan.com/discovery
+    """
+    try:
+        from bitcoin_api_x402.pricing import ENDPOINT_PRICES
+    except ImportError:
+        return  # x402 package not installed — nothing to patch
+
+    original_openapi = app_ref.openapi
+
+    def patched_openapi():  # type: ignore[no-untyped-def]
+        schema = original_openapi()
+        paths = schema.get("paths", {})
+        for ep in ENDPOINT_PRICES:
+            # Match OpenAPI paths against pricing regex patterns
+            compiled = re.compile(ep.pattern)
+            for path_key, path_item in paths.items():
+                if compiled.search(path_key):
+                    for _method, operation in path_item.items():
+                        if isinstance(operation, dict):
+                            operation["x-payment-info"] = {
+                                "protocols": ["x402"],
+                                "price": {
+                                    "mode": "fixed",
+                                    "currency": "USD",
+                                    "amount": ep.price_usd.lstrip("$"),
+                                },
+                            }
+        return schema
+
+    app_ref.openapi = patched_openapi
+
+
+_patch_openapi_x402(app)
+
 
 # --- Redirect aliases for commonly-guessed singular endpoint paths ---
 from fastapi.responses import RedirectResponse as _RR  # noqa: E402
