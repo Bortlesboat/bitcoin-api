@@ -237,13 +237,21 @@ def well_known_x402():
     """
     try:
         from bitcoin_api_x402.pricing import ENDPOINT_PRICES
-        # Strip regex anchors (^ $) from patterns for clean paths.
-        # broadcast is POST, everything else is GET.
+        # Resolve regex pricing patterns against actual OpenAPI routes
+        # so x402scan can probe real endpoints (not regex prefixes).
+        schema = app.openapi()
         resources = []
+        seen = set()
         for ep in ENDPOINT_PRICES:
-            clean = re.sub(r"[$^]", "", ep.pattern)
-            method = "POST" if "broadcast" in clean else "GET"
-            resources.append(f"{method} {clean}")
+            compiled = re.compile(ep.pattern)
+            for path_key, path_item in schema.get("paths", {}).items():
+                if compiled.search(path_key) and path_key not in seen:
+                    seen.add(path_key)
+                    method = next(
+                        (m.upper() for m in path_item if m in ("get", "post", "put", "delete")),
+                        "GET",
+                    )
+                    resources.append(f"{method} {path_key}")
         return {"version": 1, "resources": resources}
     except ImportError:
         return {"version": 1, "resources": []}
