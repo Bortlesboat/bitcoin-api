@@ -154,3 +154,9 @@ def test_visualizer_page(client):
     resp = client.get("/visualizer")
     assert resp.status_code == 200
     assert "ECharts" in resp.text or "echarts" in resp.text
+
+
+def test_ibit_page(client):
+    resp = client.get("/ibit")
+    assert resp.status_code == 200
+    assert "What Is IBIT Worth Right Now?" in resp.text

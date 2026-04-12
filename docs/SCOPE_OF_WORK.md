@@ -77,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~127 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 4 indexer + 3 x402)
+### 3.1 Endpoints (~128 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 15 content pages + 4 indexer + 3 x402)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -192,6 +192,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/guide` | GET | No |
 | | `/mcp-setup` | GET | No |
 | | `/api-docs` | GET | No |
+| | `/ibit` | GET | No |
 | **AI** | `/api/v1/ai/explain/transaction/{txid}` | GET | No |
 | | `/api/v1/ai/explain/block/{hash_or_height}` | GET | No |
 | | `/api/v1/ai/fees/advice` | GET | No |
@@ -483,7 +484,8 @@ Errors follow the same structure:
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning. | 6 |
 | 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
-| **Total** | **~117 endpoints (90 core + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **604 unit + 21 e2e** |
+| 36 | IBIT weekend estimator page: `/ibit` static calculator synced from the standalone `ibit-weekend-calculator` repo, plus sitemap/llms discoverability updates and a focused route regression in `tests/test_health.py`. | 1 |
+| **Total** | **~118 endpoints (90 core + 3 x402 + 7 history API + 15 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **605 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -500,7 +502,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
 **Tests (23 test files + 2 support files):**
-- `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
+- `tests/test_health.py` -- 16 tests (health, root, status, healthz, docs, visualizer, static pages)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
 - `tests/test_fees.py` -- 45 tests (fee endpoints + fee research infrastructure)
 - `tests/test_transactions.py` -- 27 tests (transaction endpoints)
@@ -569,7 +571,7 @@ Errors follow the same structure:
 - `static/privacy.html` -- Privacy Policy (data collection, retention, third-party services)
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
-**Website (29 files):**
+**Website (30 files):**
 - `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
@@ -588,6 +590,7 @@ Errors follow the same structure:
 - `static/mcp-setup.html` -- MCP setup guide with zero-config focus, tool catalog, copy buttons
 - `static/api-docs.html` -- Branded API documentation with 14 endpoint categories, auth tiers, error codes, sidebar TOC
 - `static/guide.html` -- Protocol guide with concepts + full API catalog
+- `static/ibit.html` -- IBIT weekend price estimator page synced from the standalone `ibit-weekend-calculator` repo
 - `static/history/index.html` -- History Explorer timeline page
 - `static/history/block.html` -- History: block explorer context
 - `static/history/tx.html` -- History: transaction explorer context
@@ -596,7 +599,7 @@ Errors follow the same structure:
 - `static/robots.txt` -- Search engine crawl directives (welcomes AI crawlers)
 - `static/terms.html` -- Terms of Service page
 - `static/privacy.html` -- Privacy Policy page
-- `static/sitemap.xml` -- XML sitemap for search engines (16+ URLs, includes /history, /guide, /mcp-setup, /api-docs)
+- `static/sitemap.xml` -- XML sitemap for search engines (16+ URLs, includes /history, /guide, /mcp-setup, /api-docs, /ibit)
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 - `static/visualizer.html` -- ECharts live visualization dashboard
 - `static/fee-observatory.html` -- Fee Observatory dashboard (iframe embed of Streamlit at port 8505)

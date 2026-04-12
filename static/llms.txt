@@ -86,6 +86,7 @@ https://bitcoinsapi.com
 - MCP setup: https://bitcoinsapi.com/mcp-setup
 - Bitcoin history explorer: https://bitcoinsapi.com/history
 - Pricing: https://bitcoinsapi.com/pricing
+- IBIT weekend price estimator: https://bitcoinsapi.com/ibit
 - Bitcoin transaction fee calculator: https://bitcoinsapi.com/bitcoin-transaction-fee-calculator
 - Best time to send Bitcoin: https://bitcoinsapi.com/best-time-to-send-bitcoin
 - Bitcoin fee estimator: https://bitcoinsapi.com/bitcoin-fee-estimator

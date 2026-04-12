@@ -17,6 +17,7 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
 | **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min via "SatoshiAPIWatchdog" task, auto-restart — runs from main repo, resolves API_DIR via `releases/bitcoin-api-current` symlink), smoke-test-api.sh (cron) |
 | **Diagnostics** | `bash scripts/diagnose.sh` (node, tunnel, API, cache, DB, version, tests) |
+| **IBIT tool source** | `C:/Users/andre/ibit-weekend-calculator` builds the `/ibit` page and exports `dist/index.html` to `static/ibit.html` |
 | **Version mgmt** | `bash scripts/release.sh` for git tags plus `powershell -File C:/Users/andre/Bortlesboat/ops/bitcoinsapi/promote-release.ps1 -ReleasePath <release>` for prod cutover |
 
 ---
@@ -443,6 +444,23 @@ bash scripts/submit_indexnow.sh
 ```
 Auto-runs after every successful deploy via `deploy-api.sh`. Submits all 11 SEO pages to Bing/Yandex.
 
+### Publishing the `/ibit` tool page
+
+The public `https://bitcoinsapi.com/ibit` page is built in the standalone repo at `C:/Users/andre/ibit-weekend-calculator`.
+
+Refresh and export it with:
+
+```powershell
+cd C:/Users/andre/ibit-weekend-calculator
+npm run refresh:snapshot
+npm run build
+npm run export:bitcoinsapi
+```
+
+Default export target: `C:/Users/andre/bitcoin-api/static/ibit.html`
+
+If you are working from an isolated `bitcoin-api` worktree, also copy `dist/index.html` into that worktree's `static/ibit.html` before running pytest or opening a PR. Then update `static/sitemap.xml` and `static/llms.txt` if the page slug or positioning changes.
+
 ### Marketing drafts location
 All ready-to-post drafts are in `docs/marketing/drafts/` (gitignored, local-only):
 - `reddit-bitcoindev.md` -- r/BitcoinDev (question format, post first)
@@ -689,7 +707,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 |----------|-------------|
 | `src/bitcoin_api/` | All source code (17 modules + 22 router files (21 REST + mcp_server sub-app) + 3 indexer routers + 6 services) |
 | `tests/` | Unit tests, e2e tests, load test, helpers |
-| `static/` | Landing page, SEO pages, legal pages, robots/sitemap |
+| `static/` | Landing page, SEO pages, utility/tool pages, legal pages, robots/sitemap |
 | `docs/` | SOW, self-hosting guide, marketing, legal |
 | `scripts/` | API key creation, SEO metrics, security checks |
 | `data/` | SQLite databases (auto-created, gitignored) |

@@ -236,7 +236,7 @@ def register_static_routes(app: FastAPI):
             "how-to-reduce-bitcoin-transaction-fees",
             "bitcoin-api-for-aml-compliance",
             "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
-            "mcp-setup", "ai", "fees", "x402",
+            "mcp-setup", "ai", "fees", "x402", "ibit",
         }
         if page in allowed:
             p = _STATIC_DIR / f"{page}.html"
