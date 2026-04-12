@@ -116,6 +116,7 @@ All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
 |--------|------|-------------|
 | GET | /prices | BTC/USD price (multi-provider fallback) |
 | GET | /tools/exchange-compare | Compare exchange prices and fees |
+| GET | /tools/ibit-estimate | Translate BTC/USD into estimated IBIT share price, BTC exposure, and position value |
 
 ### Address (requires indexer)
 | Method | Path | Description |

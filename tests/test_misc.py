@@ -1,6 +1,7 @@
 """Tests for misc endpoints: supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations, etc."""
 
 import asyncio
+import pytest
 
 
 # --- Supply ---
@@ -190,6 +191,43 @@ def test_prices(client):
         body = resp.json()
         assert body["data"]["USD"] == 92000.0
         assert "change_24h_pct" in body["data"]
+
+
+# --- IBIT Tool ---
+
+
+def test_ibit_estimate_math():
+    """IBIT estimate math should match the approved weekend calculator formula."""
+    from bitcoin_api.services.ibit import compute_ibit_estimate, IBIT_SNAPSHOT
+
+    result = compute_ibit_estimate(
+        btc_price_usd=73500.75,
+        shares=5200,
+        snapshot=IBIT_SNAPSHOT,
+    )
+
+    assert result["btc_per_ibit"] == pytest.approx(0.000566819218, abs=1e-9)
+    assert result["estimated_ibit_price_now"] == pytest.approx(41.782279, abs=1e-6)
+    assert result["estimated_btc_exposure"] == pytest.approx(2.947460, abs=1e-6)
+
+
+def test_ibit_estimate_endpoint(monkeypatch):
+    """Public IBIT estimate endpoint should return snapshot + estimate fields."""
+    from bitcoin_api.routers.exchanges import ibit_estimate
+
+    monkeypatch.setattr(
+        "bitcoin_api.routers.exchanges.get_cached_price",
+        lambda: 73500.75,
+    )
+
+    body = ibit_estimate(shares=5200, btc_price_usd=None)
+    data = body["data"]
+    assert data["ticker"] == "IBIT"
+    assert data["inputs"]["btc_price_source"] == "live"
+    assert data["snapshot"]["date"] == "2026-04-10"
+    assert data["estimate"]["estimated_ibit_price_now"] == pytest.approx(41.782279, abs=1e-6)
+    assert data["estimate"]["estimated_position_value_usd"] == pytest.approx(217267.85, abs=1e-2)
+    assert data["estimate"]["estimated_btc_exposure"] == pytest.approx(2.947460, abs=1e-6)
 
 
 # --- Exchange Compare ---

@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from ..models import ApiResponse, envelope
 from ..services.exchanges import get_cached_price, rank_exchanges
+from ..services.ibit import compute_ibit_estimate, get_ibit_snapshot
 
 router = APIRouter(prefix="/tools", tags=["Tools"])
 
@@ -125,6 +126,46 @@ _EXCHANGE_COMPARE_EXAMPLE = {
     }
 }
 
+_IBIT_ESTIMATE_EXAMPLE = {
+    200: {
+        "description": "IBIT weekend estimate derived from the latest official IBIT snapshot and a BTC/USD price",
+        "content": {
+            "application/json": {
+                "example": {
+                    "data": {
+                        "ticker": "IBIT",
+                        "inputs": {
+                            "btc_price_usd": 73500.75,
+                            "btc_price_source": "live",
+                            "shares": 5200,
+                        },
+                        "snapshot": {
+                            "ticker": "IBIT",
+                            "date": "2026-04-10",
+                            "nav": 41.44,
+                            "close": 41.56,
+                            "benchmark": 73109.73,
+                            "premium_discount_pct": 0.30,
+                            "sponsor_fee_pct": 0.25,
+                            "source_url": "https://www.ishares.com/us/products/333011/ishares-bitcoin-trust-etf",
+                        },
+                        "estimate": {
+                            "btc_per_ibit": 0.000566819,
+                            "ibit_per_btc": 1764.230936,
+                            "estimated_nav_now": 41.661638,
+                            "estimated_ibit_price_now": 41.782279,
+                            "estimated_position_value_usd": 217267.85,
+                            "estimated_btc_exposure": 2.947460,
+                        },
+                        "caveat": "Informational estimate only. Monday's opening IBIT price can differ because ETF premiums, discounts, and market sentiment can move independently from weekend BTC trading.",
+                    },
+                    "meta": {"source": "satoshi-api"},
+                }
+            }
+        },
+    }
+}
+
 
 @router.get(
     "/exchange-compare",
@@ -156,5 +197,58 @@ def compare_exchanges(
             "btc_price_usd": btc_price,
             "exchanges": results,
             "best_value": best,
+        }
+    )
+
+
+@router.get(
+    "/ibit-estimate",
+    response_model=ApiResponse[dict],
+    responses=_IBIT_ESTIMATE_EXAMPLE,
+)
+def ibit_estimate(
+    shares: float = Query(
+        default=0,
+        ge=0,
+        description="Number of IBIT shares to translate into estimated USD value and BTC exposure",
+    ),
+    btc_price_usd: float | None = Query(
+        default=None,
+        gt=0,
+        description="Optional BTC/USD price anchor. If omitted, Satoshi API will try to fetch the current BTC price.",
+    ),
+):
+    """Estimate IBIT price and BTC exposure from the latest official IBIT snapshot."""
+    resolved_btc_price = btc_price_usd
+    btc_price_source = "query"
+
+    if resolved_btc_price is None:
+        resolved_btc_price = get_cached_price()
+        btc_price_source = "live"
+
+    if resolved_btc_price is None:
+        raise HTTPException(status_code=503, detail="Bitcoin price temporarily unavailable")
+
+    snapshot = get_ibit_snapshot()
+    estimate = compute_ibit_estimate(
+        btc_price_usd=resolved_btc_price,
+        shares=shares,
+        snapshot=snapshot,
+    )
+
+    return envelope(
+        {
+            "ticker": snapshot["ticker"],
+            "inputs": {
+                "btc_price_usd": resolved_btc_price,
+                "btc_price_source": btc_price_source,
+                "shares": shares,
+            },
+            "snapshot": snapshot,
+            "estimate": estimate,
+            "caveat": (
+                "Informational estimate only. Monday's opening IBIT price can differ because ETF premiums, "
+                "discounts, and market sentiment can move independently from weekend BTC trading."
+            ),
         }
     )

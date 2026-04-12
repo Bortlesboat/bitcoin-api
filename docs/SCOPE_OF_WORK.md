@@ -144,6 +144,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/stream/fees` | GET (SSE) | No (1hr max, 50 conn cap) |
 | | `/api/v1/stream/whale-txs` | GET (SSE) | No (1hr max, 20 conn cap) |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
+| | `/api/v1/tools/ibit-estimate` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
 | | `/api/v1/unsubscribe` | POST | Yes (free+) |
 | **Analytics** | `/api/v1/analytics/public` | GET | No |
@@ -484,14 +485,14 @@ Errors follow the same structure:
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning. | 6 |
 | 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
-| 36 | IBIT weekend estimator page: `/ibit` static calculator synced from the standalone `ibit-weekend-calculator` repo, plus sitemap/llms discoverability updates and a focused route regression in `tests/test_health.py`. | 1 |
+| 36 | IBIT estimator surfaces: `/ibit` static calculator synced from the standalone `ibit-weekend-calculator` repo plus reusable `/api/v1/tools/ibit-estimate` JSON output for weekend share-value translation, with llms/docs updates and focused regressions in `tests/test_health.py` and `tests/test_misc.py`. | 3 |
 | **Total** | **~118 endpoints (90 core + 3 x402 + 7 history API + 15 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **605 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
 **Source (52 files):**
 - `src/bitcoin_api/` -- main, auth, cache, circuit_breaker, config, db, dependencies, exceptions, jobs, metrics, middleware, models, notifications, pubsub, rate_limit, static_routes, stripe_client, usage_buffer
-- `src/bitcoin_api/services/` -- fees, transactions, exchanges, serializers, mining, stats, price
+- `src/bitcoin_api/services/` -- fees, transactions, exchanges, ibit, serializers, mining, stats, price
 - `src/bitcoin_api/services/price.py` -- Multi-provider BTC/USD price service (Binance/CoinGecko/Coinbase/Kraken fallback, 10s TTL)
 - `src/bitcoin_api/routers/` -- address, analytics, billing, blocks, exchanges, fees, guide, health_deep, history, keys, mempool, metrics, mining, network, observatory, prices, psbt, rpc_proxy, status, stream, supply, stats, transactions, websocket
 - `src/bitcoin_api/routers/x402_stats.py` -- x402 payment analytics endpoint

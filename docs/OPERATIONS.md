@@ -461,6 +461,8 @@ Default export target: `C:/Users/andre/bitcoin-api/static/ibit.html`
 
 If you are working from an isolated `bitcoin-api` worktree, also copy `dist/index.html` into that worktree's `static/ibit.html` before running pytest or opening a PR. Then update `static/sitemap.xml` and `static/llms.txt` if the page slug or positioning changes.
 
+The reusable JSON companion endpoint lives at `GET /api/v1/tools/ibit-estimate`. Its canonical snapshot and pricing math live in `src/bitcoin_api/services/ibit.py`, so refresh that file's snapshot values whenever you refresh the standalone page snapshot. The page and API should stay aligned on date, NAV, close, benchmark, and premium/discount assumptions.
+
 ### Marketing drafts location
 All ready-to-post drafts are in `docs/marketing/drafts/` (gitignored, local-only):
 - `reddit-bitcoindev.md` -- r/BitcoinDev (question format, post first)

@@ -111,6 +111,7 @@ https://bitcoinsapi.com
 - /api/v1/network - Network info
 - /api/v1/supply - Circulating supply and halving info
 - /api/v1/prices - BTC/USD price
+- /api/v1/tools/ibit-estimate - Translate BTC/USD into estimated IBIT share price, BTC exposure, and position value
 - /api/v1/stream/blocks - Real-time block notifications (SSE)
 - /api/v1/stream/fees - Real-time fee changes (SSE)
 - ... and 100+ more (see /llms-full.txt for complete list)
