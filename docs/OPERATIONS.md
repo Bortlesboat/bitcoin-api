@@ -17,7 +17,7 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
 | **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min via "SatoshiAPIWatchdog" task, auto-restart — runs from main repo, resolves API_DIR via `releases/bitcoin-api-current` symlink), smoke-test-api.sh (cron) |
 | **Diagnostics** | `bash scripts/diagnose.sh` (node, tunnel, API, cache, DB, version, tests) |
-| **IBIT tool source** | `C:/Users/andre/ibit-weekend-calculator` builds the `/ibit` page and exports `dist/index.html` to `static/ibit.html` |
+| **IBIT tool source** | `C:/Users/andre/ibit-btc-ratio-calculator` builds the `/ibit` page and exports `dist/index.html` to `static/ibit.html`; live pages hydrate from `GET /api/v1/tools/ibit-snapshot` when available |
 | **Version mgmt** | `bash scripts/release.sh` for git tags plus `powershell -File C:/Users/andre/Bortlesboat/ops/bitcoinsapi/promote-release.ps1 -ReleasePath <release>` for prod cutover |
 
 ---
@@ -446,22 +446,22 @@ Auto-runs after every successful deploy via `deploy-api.sh`. Submits all 11 SEO 
 
 ### Publishing the `/ibit` tool page
 
-The public `https://bitcoinsapi.com/ibit` page is built in the standalone repo at `C:/Users/andre/ibit-weekend-calculator`.
+The public `https://bitcoinsapi.com/ibit` page is built in the standalone repo at `C:/Users/andre/ibit-btc-ratio-calculator`.
 
 Refresh and export it with:
 
 ```powershell
-cd C:/Users/andre/ibit-weekend-calculator
+cd C:/Users/andre/ibit-btc-ratio-calculator
 npm run refresh:snapshot
 npm run build
-npm run export:bitcoinsapi
+powershell -ExecutionPolicy Bypass -File scripts/export-static.ps1 -Target C:/Users/andre/Bortlesboat/bitcoin-api/static/ibit.html
 ```
 
-Default export target: `C:/Users/andre/bitcoin-api/static/ibit.html`
+Default production export target: `C:/Users/andre/Bortlesboat/bitcoin-api/static/ibit.html`
 
 If you are working from an isolated `bitcoin-api` worktree, also copy `dist/index.html` into that worktree's `static/ibit.html` before running pytest or opening a PR. Then update `static/sitemap.xml` and `static/llms.txt` if the page slug or positioning changes.
 
-The reusable JSON companion endpoint lives at `GET /api/v1/tools/ibit-estimate`. Its canonical snapshot and pricing math live in `src/bitcoin_api/services/ibit.py`, so refresh that file's snapshot values whenever you refresh the standalone page snapshot. The page and API should stay aligned on date, NAV, close, benchmark, and premium/discount assumptions.
+The reusable JSON companion endpoints live at `GET /api/v1/tools/ibit-snapshot` and `GET /api/v1/tools/ibit-estimate`. The public page prefers the live snapshot endpoint and falls back to its bundled JSON only when the API snapshot is unavailable. The canonical API snapshot and pricing math still live in `src/bitcoin_api/services/ibit.py`, so refresh that file's snapshot values whenever you refresh the standalone page snapshot.
 
 ### Marketing drafts location
 All ready-to-post drafts are in `docs/marketing/drafts/` (gitignored, local-only):

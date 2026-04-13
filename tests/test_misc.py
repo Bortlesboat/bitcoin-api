@@ -232,6 +232,18 @@ def test_ibit_estimate_endpoint(monkeypatch):
     assert data["estimate"]["estimated_btc_exposure"] == pytest.approx(2.947460, abs=1e-6)
 
 
+def test_ibit_snapshot_endpoint():
+    """Public IBIT snapshot endpoint should expose the canonical snapshot fields."""
+    from bitcoin_api.routers.exchanges import ibit_snapshot
+
+    body = ibit_snapshot()
+    data = body["data"]
+    assert data["ticker"] == "IBIT"
+    assert data["date"] == "2026-04-10"
+    assert data["shares_outstanding"] == 1391920000
+    assert data["basket_bitcoin_amount"] == pytest.approx(22.67, abs=1e-9)
+
+
 # --- Exchange Compare ---
 
 

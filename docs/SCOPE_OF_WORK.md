@@ -77,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~128 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 15 content pages + 4 indexer + 3 x402)
+### 3.1 Endpoints (~129 total: 87 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 15 content pages + 4 indexer + 3 x402)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -144,6 +144,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/stream/fees` | GET (SSE) | No (1hr max, 50 conn cap) |
 | | `/api/v1/stream/whale-txs` | GET (SSE) | No (1hr max, 20 conn cap) |
 | **Tools** | `/api/v1/tools/exchange-compare` | GET | No |
+| | `/api/v1/tools/ibit-snapshot` | GET | No |
 | | `/api/v1/tools/ibit-estimate` | GET | No |
 | **Keys** | `/api/v1/register` | POST | No |
 | | `/api/v1/unsubscribe` | POST | Yes (free+) |
@@ -397,6 +398,10 @@ Errors follow the same structure:
 **Post-launch (Mar 6):**
 18. **Hardcoded API key in security_check.sh** -- Flagged by GitGuardian. Replaced with `$SATOSHI_API_KEY` env var. Exposed key deactivated, new key generated. Committed key is in git history but was for local use only (no third-party exposure).
 
+**Apr 12 IBIT hardening:**
+19. **Worktree pytest import drift** -- `tests/conftest.py` now prepends the active checkout's `src/` directory so focused tests import the worktree under review instead of a different local clone.
+20. **IBIT page/API snapshot drift risk** -- Added reusable `GET /api/v1/tools/ibit-snapshot` output so the public `/ibit` page can hydrate from the live API snapshot instead of relying only on a bundled static copy.
+
 **v0.3.1 Hardening (Mar 7):**
 19. **No RPC timeout** -- Added configurable `RPC_TIMEOUT` (default 30s) via Settings, wired to BitcoinRPC constructor
 20. **Address scan can hang** -- Wrapped `scantxoutset` in timeout guard, returns 504 on `ReadTimeout`
@@ -485,8 +490,8 @@ Errors follow the same structure:
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning. | 6 |
 | 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
-| 36 | IBIT estimator surfaces: `/ibit` static calculator synced from the standalone `ibit-weekend-calculator` repo plus reusable `/api/v1/tools/ibit-estimate` JSON output for weekend share-value translation, with llms/docs updates and focused regressions in `tests/test_health.py` and `tests/test_misc.py`. | 3 |
-| **Total** | **~118 endpoints (90 core + 3 x402 + 7 history API + 15 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **605 unit + 21 e2e** |
+| 36 | IBIT estimator surfaces: `/ibit` static calculator synced from the standalone `ibit-btc-ratio-calculator` repo plus reusable `/api/v1/tools/ibit-snapshot` and `/api/v1/tools/ibit-estimate` JSON output for weekend share-value translation, with llms/docs updates and focused regressions in `tests/test_health.py` and `tests/test_misc.py`. | 4 |
+| **Total** | **~119 endpoints (91 core + 3 x402 + 7 history API + 15 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **607 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -502,7 +507,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (23 test files + 2 support files):**
+**Tests (24 test files + 2 support files):**
 - `tests/test_health.py` -- 16 tests (health, root, status, healthz, docs, visualizer, static pages)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
 - `tests/test_fees.py` -- 45 tests (fee endpoints + fee research infrastructure)
@@ -514,7 +519,8 @@ Errors follow the same structure:
 - `tests/test_billing.py` -- 12 tests (Stripe billing)
 - `tests/test_guide.py` -- 8 tests (guide endpoints)
 - `tests/test_admin.py` -- 30 tests (admin dashboard, analytics, metrics)
-- `tests/test_misc.py` -- 51 tests (supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations)
+- `tests/test_misc.py` -- 52 tests (supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations, IBIT tools)
+- `tests/test_import_path.py` -- 1 test (guards against importing `bitcoin_api` from a different local checkout)
 - `tests/test_stale_cache.py` -- 19 tests (stale store, _cached_rpc fallback, MAX_STALE_AGE, Prometheus counter)
 - `tests/test_notifications.py` -- 14 tests (Resend email + PostHog analytics)
 - `tests/test_rate_limit_redis.py` -- 6 tests (Redis rate limiting + fallback)
@@ -591,7 +597,7 @@ Errors follow the same structure:
 - `static/mcp-setup.html` -- MCP setup guide with zero-config focus, tool catalog, copy buttons
 - `static/api-docs.html` -- Branded API documentation with 14 endpoint categories, auth tiers, error codes, sidebar TOC
 - `static/guide.html` -- Protocol guide with concepts + full API catalog
-- `static/ibit.html` -- IBIT weekend price estimator page synced from the standalone `ibit-weekend-calculator` repo
+- `static/ibit.html` -- IBIT weekend price estimator page synced from the standalone `ibit-btc-ratio-calculator` repo and hydrated from `/api/v1/tools/ibit-snapshot` when available
 - `static/history/index.html` -- History Explorer timeline page
 - `static/history/block.html` -- History: block explorer context
 - `static/history/tx.html` -- History: transaction explorer context

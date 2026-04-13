@@ -159,4 +159,5 @@ def test_visualizer_page(client):
 def test_ibit_page(client):
     resp = client.get("/ibit")
     assert resp.status_code == 200
-    assert "What Is IBIT Worth Right Now?" in resp.text
+    assert 'data-testid="estimated-ibit-price"' in resp.text
+    assert "/api/v1/tools/ibit-snapshot" in resp.text

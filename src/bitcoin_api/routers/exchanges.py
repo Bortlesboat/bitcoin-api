@@ -168,6 +168,31 @@ _IBIT_ESTIMATE_EXAMPLE = {
     }
 }
 
+_IBIT_SNAPSHOT_EXAMPLE = {
+    200: {
+        "description": "Latest canonical IBIT snapshot used to anchor the weekend calculator",
+        "content": {
+            "application/json": {
+                "example": {
+                    "data": {
+                        "ticker": "IBIT",
+                        "date": "2026-04-10",
+                        "nav": 41.44,
+                        "close": 41.56,
+                        "benchmark": 73109.73,
+                        "premium_discount_pct": 0.30,
+                        "sponsor_fee_pct": 0.25,
+                        "shares_outstanding": 1391920000,
+                        "basket_bitcoin_amount": 22.67,
+                        "source_url": "https://www.ishares.com/us/products/333011/ishares-bitcoin-trust-etf",
+                    },
+                    "meta": {"source": "satoshi-api"},
+                }
+            }
+        },
+    }
+}
+
 
 @router.get(
     "/exchange-compare",
@@ -201,6 +226,16 @@ def compare_exchanges(
             "best_value": best,
         }
     )
+
+
+@router.get(
+    "/ibit-snapshot",
+    response_model=ApiResponse[dict],
+    responses=_IBIT_SNAPSHOT_EXAMPLE,
+)
+def ibit_snapshot():
+    """Return the latest canonical IBIT snapshot used by the public calculator."""
+    return envelope(get_ibit_snapshot())
 
 
 @router.get(
