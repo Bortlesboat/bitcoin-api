@@ -147,6 +147,8 @@ _IBIT_ESTIMATE_EXAMPLE = {
                             "benchmark": 73109.73,
                             "premium_discount_pct": 0.30,
                             "sponsor_fee_pct": 0.25,
+                            "shares_outstanding": 1391920000,
+                            "basket_bitcoin_amount": 22.67,
                             "source_url": "https://www.ishares.com/us/products/333011/ishares-bitcoin-trust-etf",
                         },
                         "estimate": {

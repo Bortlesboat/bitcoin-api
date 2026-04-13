@@ -225,6 +225,8 @@ def test_ibit_estimate_endpoint(monkeypatch):
     assert data["ticker"] == "IBIT"
     assert data["inputs"]["btc_price_source"] == "live"
     assert data["snapshot"]["date"] == "2026-04-10"
+    assert data["snapshot"]["shares_outstanding"] == 1391920000
+    assert data["snapshot"]["basket_bitcoin_amount"] == pytest.approx(22.67, abs=1e-9)
     assert data["estimate"]["estimated_ibit_price_now"] == pytest.approx(41.782279, abs=1e-6)
     assert data["estimate"]["estimated_position_value_usd"] == pytest.approx(217267.85, abs=1e-2)
     assert data["estimate"]["estimated_btc_exposure"] == pytest.approx(2.947460, abs=1e-6)
