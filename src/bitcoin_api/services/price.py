@@ -46,7 +46,7 @@ except ImportError:
     _HTTPX_AVAILABLE = False
     log.info("httpx not installed — async price fetching unavailable, using sync urllib fallback")
 
-_HEADERS = {"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"}
+_HEADERS = {"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0", "Connection": "close"}
 
 # Shared async client (reuses connections). Created lazily on first async call.
 _async_client: "httpx.AsyncClient | None" = None
@@ -60,7 +60,7 @@ _price_usd: float | None = None
 _price_time: float = 0
 _price_source: str | None = None
 _price_lock = threading.Lock()
-_PRICE_TTL = 10  # seconds — reduced for 15-min trading strategy freshness
+_PRICE_TTL = 60
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ _PRICE_TTL = 10  # seconds — reduced for 15-min trading strategy freshness
 def _fetch_from_binance() -> float | None:
     url = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
+        req = urllib.request.Request(url, headers=_HEADERS)
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read(65536).decode())
         return float(data["price"])
@@ -81,7 +81,7 @@ def _fetch_from_binance() -> float | None:
 def _fetch_from_coingecko() -> float | None:
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
+        req = urllib.request.Request(url, headers=_HEADERS)
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read(65536).decode())
         return data["bitcoin"]["usd"]
@@ -92,7 +92,7 @@ def _fetch_from_coingecko() -> float | None:
 def _fetch_from_coinbase() -> float | None:
     url = "https://api.coinbase.com/v2/prices/BTC-USD/spot"
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
+        req = urllib.request.Request(url, headers=_HEADERS)
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read(65536).decode())
         return float(data["data"]["amount"])
@@ -103,7 +103,7 @@ def _fetch_from_coinbase() -> float | None:
 def _fetch_from_kraken() -> float | None:
     url = "https://api.kraken.com/0/public/Ticker?pair=XBTUSD"
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
+        req = urllib.request.Request(url, headers=_HEADERS)
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read(65536).decode())
         # Kraken returns last trade price as first element of "c" array
@@ -193,6 +193,14 @@ def _get_async_client() -> "httpx.AsyncClient":
             if _async_client is None:
                 _async_client = httpx.AsyncClient(headers=_HEADERS, timeout=5.0)
     return _async_client
+
+
+async def close_async_client() -> None:
+    """Close the shared httpx.AsyncClient to release sockets."""
+    global _async_client
+    if _async_client is not None:
+        await _async_client.aclose()
+        _async_client = None
 
 
 async def _async_fetch_binance() -> float | None:

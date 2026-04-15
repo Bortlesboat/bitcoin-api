@@ -16,11 +16,11 @@ router = APIRouter(tags=["Prices"])
 
 log = logging.getLogger("bitcoin_api.prices")
 
-# Simple TTL cache for price data (refresh every 60 seconds)
 _price_cache: dict | None = None
 _price_cache_time: float = 0
 _price_cache_lock = threading.Lock()
-_PRICE_TTL = 10  # seconds — reduced for 15-min trading strategy freshness
+_PRICE_TTL = 60
+_error_backoff_until: float = 0
 
 
 def _fetch_price() -> dict:
@@ -29,7 +29,7 @@ def _fetch_price() -> dict:
     import json
 
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur,gbp,jpy,cad,aud&include_24hr_change=true"
-    req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0"})
+    req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "SatoshiAPI/1.0", "Connection": "close"})
     with urllib.request.urlopen(req, timeout=10) as resp:
         data = json.loads(resp.read(65536).decode())
     btc = data.get("bitcoin", {})
@@ -45,19 +45,26 @@ def _fetch_price() -> dict:
 
 
 def _get_cached_price() -> dict:
-    """Return cached price or fetch fresh data."""
-    global _price_cache, _price_cache_time
+    """Return cached price or fetch fresh data. Backs off on repeated failures."""
+    global _price_cache, _price_cache_time, _error_backoff_until
     with _price_cache_lock:
         if _price_cache is not None and (time.time() - _price_cache_time) < _PRICE_TTL:
             return _price_cache
+    if time.time() < _error_backoff_until:
+        with _price_cache_lock:
+            if _price_cache is not None:
+                return _price_cache
+        raise HTTPException(status_code=503, detail="BTC price service temporarily unavailable")
     try:
         price = _fetch_price()
         with _price_cache_lock:
             _price_cache = price
             _price_cache_time = time.time()
+            _error_backoff_until = 0
         return price
     except Exception as e:
         log.warning("Failed to fetch BTC price: %s", e)
+        _error_backoff_until = time.time() + 120
         with _price_cache_lock:
             if _price_cache is not None:
                 return _price_cache
