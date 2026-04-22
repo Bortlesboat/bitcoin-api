@@ -20,6 +20,7 @@
 <meta name="twitter:image" content="https://bitcoinsapi.com/og-image.png">
 <meta name="twitter:title" content="Satoshi API - Bitcoin Fee Intelligence for Apps and AI Agents">
 <meta name="twitter:description" content="Know when to send Bitcoin and when to wait. Live fee recommendations, mempool context, and transaction cost estimates for apps and AI agents.">
+<meta name="theme-color" content="#0d1117">
 <link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <style>
   :root {
@@ -50,7 +51,7 @@
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   a { color: var(--accent); text-decoration: none; transition: color 0.2s var(--ease-out); }
   a:hover { color: var(--accent-hover); }
   code { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; background: var(--surface); padding: 2px 8px; border-radius: 6px; font-size: 0.875em; }
@@ -70,26 +71,65 @@
   .nav-toggle { display: none; }
 
   /* Hero */
-  .hero { text-align: center; padding: 140px 0 120px; position: relative; overflow: hidden; }
-  .hero::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); width: 800px; height: 800px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; opacity: 0.4; }
-  .hero .label { font-size: 0.8em; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 24px; position: relative; }
-  .hero h1 { font-size: 4.2em; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.04em; line-height: 1.05; position: relative; }
-  .hero h1 span { background: linear-gradient(135deg, #F7931A 0%, #FFD700 50%, #F7931A 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .hero .subtitle { font-size: 1.25em; color: var(--muted); max-width: 580px; margin: 0 auto 48px; line-height: 1.6; position: relative; font-weight: 400; }
-  .hero .cta { display: inline-flex; gap: 16px; flex-wrap: wrap; justify-content: center; position: relative; }
-  .hero .cta a { display: inline-block; padding: 16px 32px; border-radius: var(--radius-pill); font-weight: 600; font-size: 1em; transition: all 0.3s var(--ease-out); }
+  .hero { padding: clamp(84px, 11vw, 138px) 0 clamp(84px, 10vw, 124px); position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 76% 28%, rgba(247,147,26,0.16), transparent 34%), linear-gradient(180deg, rgba(247,147,26,0.04), transparent 48%); pointer-events: none; }
+  .hero .container { max-width: 1180px; }
+  .hero-inner { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(460px, 1.08fr); gap: clamp(48px, 8vw, 96px); align-items: center; min-width: 0; }
+  .hero-copy, .hero-visual { min-width: 0; }
+  .hero-copy { max-width: 560px; text-align: left; }
+  .hero .label { font-size: 0.78em; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 18px; position: relative; text-transform: uppercase; }
+  .hero .eyebrow { color: var(--accent); font-weight: 700; margin-bottom: 14px; }
+  .hero h1 { font-size: clamp(3rem, 5.4vw, 5.35rem); font-weight: 800; margin-bottom: 24px; letter-spacing: 0; line-height: 0.98; position: relative; max-width: 620px; overflow-wrap: normal; }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle { font-size: clamp(1.02rem, 1.4vw, 1.22rem); color: var(--muted); max-width: 510px; margin: 0 0 40px; line-height: 1.55; position: relative; font-weight: 400; }
+  .hero .cta { display: inline-flex; gap: 14px; flex-wrap: wrap; justify-content: flex-start; position: relative; }
+  .hero .cta a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 14px 24px; border-radius: 8px; font-weight: 700; font-size: 0.95em; transition: all 0.3s var(--ease-out); }
   .btn-primary { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-glow), 0 4px 12px rgba(0,0,0,0.4); }
   .btn-primary:hover { background: var(--accent-hover); color: #000; box-shadow: 0 0 30px var(--accent-glow), 0 6px 20px rgba(0,0,0,0.5); transform: translateY(-1px); }
   .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid var(--border-visible); color: var(--text); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: var(--text); transform: translateY(-1px); }
-  .hero-code { margin-top: 64px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; position: relative; }
+  .hero-proof { display: grid; grid-template-columns: repeat(4, minmax(92px, 1fr)); gap: 18px; margin-top: 72px; max-width: 520px; }
+  .hero-proof-item { color: var(--muted); font-size: 0.78em; line-height: 1.35; }
+  .hero-proof-icon { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--border-visible); border-radius: 8px; color: var(--accent); margin-bottom: 10px; background: rgba(255,255,255,0.035); font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-weight: 700; }
+  .hero-visual { position: relative; min-height: 560px; }
+  .hero-visual::before { content: ''; position: absolute; inset: 46px 18px auto auto; width: 74%; height: 82%; border: 1px solid rgba(247,147,26,0.12); border-radius: 28px; transform: rotate(3deg); background: linear-gradient(135deg, rgba(247,147,26,0.08), transparent 52%); }
+  .product-stack { position: relative; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 610px; margin-left: auto; }
+  .product-panel { min-width: 0; background: linear-gradient(180deg, rgba(26,26,26,0.96), rgba(15,15,15,0.96)); border: 1px solid var(--border-visible); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: 0 18px 54px rgba(0,0,0,0.34); }
+  .product-panel:nth-child(2) { margin-left: -46px; }
+  .product-panel:nth-child(3) { margin-left: 32px; }
+  .product-panel:nth-child(4) { margin-left: -28px; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 0.72em; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+  .panel-status { display: inline-flex; align-items: center; gap: 6px; color: var(--green); letter-spacing: 0; text-transform: none; font-size: 0.9em; }
+  .panel-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px rgba(48,209,88,0.45); }
+  .fee-grid { display: grid; grid-template-columns: minmax(135px, 0.8fr) 1fr; gap: 20px; align-items: end; }
+  .fee-number { color: var(--accent); font-size: 4.2em; font-weight: 800; line-height: 0.9; letter-spacing: 0; }
+  .fee-number small { color: var(--text); font-size: 0.18em; margin-left: 8px; font-weight: 700; }
+  .fee-pill { display: inline-flex; margin-top: 12px; padding: 4px 9px; color: var(--accent); background: rgba(247,147,26,0.12); border-radius: 6px; font-size: 0.78em; font-weight: 700; }
+  .priority-list { display: grid; gap: 7px; color: var(--muted); font-size: 0.86em; }
+  .priority-row { display: flex; justify-content: space-between; gap: 16px; }
+  .priority-row strong { color: var(--text); font-weight: 600; }
+  .priority-row .low { color: var(--green); }
+  .pressure-chart { height: 86px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, transparent, rgba(247,147,26,0.06)); position: relative; overflow: hidden; }
+  .pressure-line { position: absolute; left: 0; right: 0; bottom: 18px; height: 44px; background: linear-gradient(180deg, rgba(247,147,26,0.32), rgba(247,147,26,0.04)); clip-path: polygon(0 66%, 8% 50%, 16% 58%, 24% 46%, 33% 54%, 42% 24%, 51% 35%, 61% 30%, 70% 46%, 80% 40%, 89% 26%, 100% 18%, 100% 100%, 0 100%); }
+  .pressure-axis { display: flex; justify-content: space-between; color: var(--dim); font-size: 0.72em; margin-top: 9px; }
+  .forecast-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+  .forecast-time { color: var(--accent); font-size: 1.8em; font-weight: 800; line-height: 1; }
+  .forecast-copy { color: var(--muted); font-size: 0.86em; margin-top: 5px; }
+  .block-dots { display: flex; gap: 5px; }
+  .block-dots span { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border-visible); background: rgba(255,255,255,0.04); }
+  .block-dots span:nth-last-child(-n+3) { background: var(--accent); border-color: rgba(247,147,26,0.8); }
+  .receipt-row { display: grid; grid-template-columns: 78px 1fr auto auto; gap: 16px; align-items: center; color: var(--muted); font-size: 0.86em; }
+  .paid-badge { color: var(--green); background: rgba(48,209,88,0.1); border: 1px solid rgba(48,209,88,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 700; }
+  .hero-code { text-align: left; position: relative; }
+  .hero-code pre { margin: 0; max-height: 178px; }
+  .hero-code .panel-head { margin-bottom: 8px; }
 
   /* Sync Warning Banner */
   .sync-banner { display: none; background: rgba(255,214,10,0.1); border-bottom: 1px solid rgba(255,214,10,0.3); padding: 10px 24px; text-align: center; font-size: 0.9em; color: var(--warning); position: sticky; top: 53px; z-index: 9; backdrop-filter: blur(10px); }
   .sync-banner a { color: #FFB347; text-decoration: underline; }
 
   /* Live Stats Bar */
-  .stats-bar { display: flex; justify-content: center; gap: 48px; padding: 24px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .stats-bar { display: flex; justify-content: center; gap: 48px; padding: 24px 24px; border-block: 1px solid var(--border); background: var(--surface); }
   .stats-bar .stat { text-align: center; }
   .stats-bar .stat-value { font-size: 1.4em; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
   .stats-bar .stat-label { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
@@ -147,6 +187,50 @@
   .stack-layer:hover { border-color: rgba(255,255,255,0.12); }
   .stack-layer.active { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
   .stack-arrow { color: var(--dim); font-size: 1.5em; }
+
+  /* Product showcase */
+  .product-showcase { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr); gap: clamp(28px, 5vw, 56px); align-items: start; margin-top: 56px; }
+  .endpoint-console, .showcase-panel, .proof-panel { background: linear-gradient(180deg, rgba(20,20,20,0.96), rgba(10,10,10,0.96)); border: 1px solid var(--border-visible); border-radius: var(--radius-lg); box-shadow: 0 18px 54px rgba(0,0,0,0.28); }
+  .endpoint-console { overflow: hidden; }
+  .console-header, .proof-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.78em; letter-spacing: 0.08em; text-transform: uppercase; }
+  .console-search { color: var(--dim); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; min-width: 170px; text-transform: none; letter-spacing: 0; }
+  .endpoint-list { display: grid; }
+  .endpoint-row { display: grid; grid-template-columns: 58px 1fr auto; gap: 14px; align-items: center; padding: 15px 18px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.9em; }
+  .endpoint-row:last-child { border-bottom: 0; }
+  .endpoint-path { color: var(--text); font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-size: 0.88em; overflow-wrap: anywhere; }
+  .endpoint-desc { color: var(--dim); font-size: 0.86em; margin-top: 3px; }
+  .latency-pill { color: var(--green); font-size: 0.76em; border: 1px solid rgba(48,209,88,0.18); background: rgba(48,209,88,0.08); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+  .showcase-stack { display: grid; gap: 16px; }
+  .showcase-panel { padding: 18px; }
+  .showcase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .metric-block { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; background: rgba(255,255,255,0.025); }
+  .metric-label { color: var(--muted); font-size: 0.76em; text-transform: uppercase; letter-spacing: 0.06em; }
+  .metric-value { color: var(--text); font-size: 1.5em; font-weight: 800; margin-top: 4px; line-height: 1.1; }
+  .metric-value.accent { color: var(--accent); }
+  .receipt-card { display: grid; grid-template-columns: 74px 1fr; gap: 16px; align-items: center; }
+  .receipt-mark { width: 54px; height: 54px; border: 1px solid rgba(247,147,26,0.3); border-radius: 12px; display: grid; place-items: center; color: var(--accent); background: rgba(247,147,26,0.08); font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-weight: 800; }
+  .receipt-lines { display: grid; gap: 8px; color: var(--muted); font-size: 0.88em; }
+  .receipt-lines div { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border); padding-bottom: 7px; }
+  .receipt-lines div:last-child { border-bottom: 0; padding-bottom: 0; }
+  .tx-explain { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 16px; color: var(--muted); font-size: 0.9em; }
+  .tx-explain code { color: var(--accent); background: rgba(247,147,26,0.08); }
+  .copy-tight { max-width: 680px; }
+
+  /* Self-hosting proof */
+  .self-host-proof { display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(420px, 1.18fr); gap: clamp(32px, 5vw, 64px); align-items: center; margin-top: 56px; }
+  .proof-list { display: grid; gap: 14px; margin-top: 28px; color: var(--muted); }
+  .proof-list li { list-style: none; display: flex; align-items: center; gap: 10px; }
+  .proof-list li::before { content: ''; width: 9px; height: 9px; border: 1px solid var(--accent); border-radius: 50%; box-shadow: 0 0 12px var(--accent-glow); flex: 0 0 auto; }
+  .proof-diagram { display: grid; gap: 14px; }
+  .proof-node { padding: 18px; border: 1px solid var(--border-visible); border-radius: var(--radius-md); background: rgba(255,255,255,0.035); }
+  .proof-node-top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 10px; }
+  .proof-node-title { color: var(--text); font-weight: 800; }
+  .proof-node-copy { color: var(--muted); font-size: 0.9em; }
+  .proof-connector { text-align: center; color: var(--dim); font-size: 0.8em; letter-spacing: 0.08em; text-transform: uppercase; }
+  .proof-panels { display: grid; grid-template-columns: 1fr 0.74fr; gap: 16px; margin-top: 16px; }
+  .proof-panel { padding: 18px; }
+  .proof-panel pre { margin-top: 12px; max-height: 210px; }
+  .privacy-callout { border-color: rgba(247,147,26,0.26); background: linear-gradient(180deg, rgba(247,147,26,0.08), rgba(10,10,10,0.96)); }
 
   /* Trust badges */
   .trust-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 40px 0; }
@@ -214,10 +298,19 @@
     body::after { display: none; }
   }
 
+  @media (max-width: 980px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 56px; }
+    .hero-copy { max-width: 720px; }
+    .hero-visual { min-height: auto; }
+    .product-stack { max-width: 720px; margin-left: 0; }
+    .product-panel:nth-child(n) { margin-left: 0; }
+  }
+
   @media (max-width: 768px) {
-    .hero h1 { font-size: 3em; }
     section { padding: 120px 0; }
     .section-title { font-size: 2em; }
+    .product-showcase, .self-host-proof, .proof-panels { grid-template-columns: 1fr; }
+    .showcase-grid, .tx-explain { grid-template-columns: 1fr; }
     /* Collapse 2-column prompt grid on tablets */
     #try-these [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
     /* See It Work code examples */
@@ -225,10 +318,19 @@
   }
 
   @media (max-width: 600px) {
-    .hero h1 { font-size: 2.4em; letter-spacing: -0.03em; }
-    .hero .subtitle { font-size: 1em; }
-    .hero { padding: 100px 0 80px; }
-    .hero::before { width: 400px; height: 400px; }
+    .hero h1 { font-size: 2.36rem; line-height: 1.04; max-width: 100%; }
+    .hero .subtitle { font-size: 1em; max-width: 100%; }
+    .hero { padding: 80px 0 72px; }
+    .hero-proof { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 42px; }
+    .product-panel { padding: 18px 16px; }
+    .panel-head { flex-wrap: wrap; font-size: 0.68em; }
+    .fee-grid { grid-template-columns: 1fr; gap: 14px; }
+    .fee-number { font-size: 3.2em; }
+    .priority-row { flex-wrap: wrap; }
+    .forecast-row { grid-template-columns: 1fr; }
+    .receipt-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hero-code pre { max-height: 220px; }
+    .stats-bar { flex-wrap: wrap; gap: 22px; }
     section { padding: 100px 0; }
 
     /* Nav: collapsible menu */
@@ -239,8 +341,8 @@
     .container { padding: 0 16px; }
 
     /* CTA buttons stack vertically */
-    .hero .cta { flex-direction: column; align-items: center; gap: 12px; }
-    .hero .cta a { width: 100%; max-width: 300px; text-align: center; padding: 16px 24px; }
+    .hero .cta { flex-direction: column; align-items: stretch; gap: 12px; width: 100%; }
+    .hero .cta a { width: 100%; max-width: none; text-align: center; padding: 16px 24px; }
 
     /* Code blocks */
     pre { font-size: 0.78em; padding: 16px; line-height: 1.6; word-break: break-word; }
@@ -398,7 +500,7 @@
           "name": "What is Satoshi API?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Satoshi API is a Bitcoin fee intelligence API for apps and AI agents. It gives developers real-time fee recommendations, mempool data, and transaction tools. Free to use, open source, and self-hostable."
+            "text": "Satoshi API is a Bitcoin fee intelligence API that helps apps and AI agents decide when to send Bitcoin and how much to pay in fees. It provides 100+ endpoints covering real-time fee estimates, mempool congestion, block data, mining stats, and price feeds. Free tier includes 10,000 requests/day. Open source under Apache-2.0 and fully self-hostable against your own Bitcoin Core node."
           }
         },
         {
@@ -414,7 +516,7 @@
           "name": "Is Satoshi API free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Self-hosted Satoshi API is free forever under the Apache-2.0 license. The hosted API at bitcoinsapi.com offers a free tier with 1,000 requests/day, and a free API key increases that to 10,000 requests/day."
+            "text": "Yes. Self-hosted Satoshi API is completely free forever under the Apache-2.0 license with unlimited requests. The hosted API at bitcoinsapi.com offers anonymous access at 1,000 requests/day, and registering a free API key (no credit card needed, just an email) increases that to 10,000 requests/day at 100 requests/minute. Pro and Enterprise tiers are available for higher volume."
           }
         },
         {
@@ -422,7 +524,7 @@
           "name": "Does Satoshi API work with AI agents?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Satoshi API pairs with bitcoin-mcp to provide MCP (Model Context Protocol) integration, allowing AI assistants like Claude and ChatGPT to query your Bitcoin node directly via tool calls."
+            "text": "Yes. Install bitcoin-mcp with 'npx bitcoin-mcp@latest' to give any MCP-compatible AI agent access to live Bitcoin data. It provides 49 tools, 6 prompts, and 7 resources. Works with Claude, ChatGPT, Goose, and other MCP clients. No API key required for basic queries — connects to the free hosted tier at bitcoinsapi.com by default, or to your own Bitcoin Core node."
           }
         },
         {
@@ -430,7 +532,7 @@
           "name": "How is Satoshi API different from mempool.space?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Satoshi API is a fee intelligence service that tells you when to send Bitcoin and saves money on every transaction. It provides AI agent support via MCP and is self-hostable. Mempool.space is a block explorer for manual browsing. Satoshi API is for developers and agents who need programmatic fee decisions; mempool.space is for looking at blocks visually."
+            "text": "Satoshi API is a fee intelligence API for developers and AI agents — it returns structured JSON with a recommended action field ('send', 'wait', or 'urgent-only') so your app can decide automatically when to send Bitcoin. It also offers MCP integration for AI agents and is fully self-hostable. Mempool.space is a block explorer designed for humans to visually browse blocks and transactions. Use Satoshi API for programmatic fee decisions; use mempool.space for manual lookups."
           }
         }
       ]
@@ -466,49 +568,103 @@
     <a href="/docs">Docs</a>
     <a href="#pricing">Pricing</a>
     <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a>
-    <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="uptime-badge" style="text-decoration:none;"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>Live</a>
+    <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="uptime-badge" style="text-decoration:none;"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;"></span>All systems operational</a>
   </div>
 </nav>
-
-<!-- Sync Warning Banner (shown when node is syncing) -->
-<div class="sync-banner" id="sync-banner">
-  Node is syncing (<span id="sync-pct">--</span>% complete). Fee and mempool data may be inaccurate. <a href="/api/v1/status">View status</a>
-</div>
 
 <!-- Hero -->
 <section class="hero">
   <div class="container">
-    <p class="label" style="font-size: 1.1em; color: var(--accent); font-weight: 600; margin-bottom: 8px;">Free and open source. Hosted or self-hosted.</p>
-    <p class="label">Bitcoin fee intelligence for apps and AI agents. No signup for basic testing.</p>
-    <h1>Know the cheapest time to <span>send Bitcoin.</span></h1>
-    <p class="subtitle">Satoshi API gives apps and AI agents live fee recommendations, mempool context, and transaction cost estimates so they can answer the only question that matters: send now or wait and save money.</p>
-    <div class="cta">
-      <a href="/bitcoin-fee-api" class="btn-primary" data-track-event="cta_click" data-track-location="hero" data-track-target="fee_api">Check Live Fees</a>
-      <a href="#get-api-key" class="btn-secondary" data-track-event="cta_click" data-track-location="hero" data-track-target="get_api_key">Get Free API Key</a>
-    </div>
-    <div class="hero-code">
-<pre><code><span style="color: var(--muted)">$ </span>pip install bitcoin-mcp</code></pre>
-      <div style="margin-top: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; text-align: left;">
-        <div style="margin-bottom: 12px;">
-          <span style="color: var(--green); font-weight: 600;">You:</span> <span style="color: var(--text);">"Should I send Bitcoin right now?"</span>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="label eyebrow">Bitcoin infrastructure for agents</p>
+        <h1>Bitcoin<br>intelligence<br>for <span>agents.</span></h1>
+        <p class="subtitle">Live fee decisions, transaction context, and x402-payable Bitcoin data your agents can discover, buy, and use.</p>
+        <div class="cta">
+          <a href="/bitcoin-fee-api" class="btn-primary" data-track-event="cta_click" data-track-location="hero" data-track-target="fee_api">Check Live Fees</a>
+          <a href="/docs" class="btn-secondary" data-track-event="cta_click" data-track-location="hero" data-track-target="docs">Read the Docs</a>
         </div>
-        <div>
-          <span style="color: var(--accent); font-weight: 600;">Claude:</span> <span style="color: var(--muted);">"Fees are low right now. I would either send now if it is urgent or wait for the cheaper 1-hour window if it is not. Here are the exact sat/vB options and the cost difference."</span>
+        <div class="hero-proof" aria-label="Satoshi API product signals">
+          <div class="hero-proof-item"><div class="hero-proof-icon">API</div>Simple REST API</div>
+          <div class="hero-proof-item"><div class="hero-proof-icon">{}</div>Clean JSON</div>
+          <div class="hero-proof-item"><div class="hero-proof-icon">$</div>x402 payable</div>
+          <div class="hero-proof-item"><div class="hero-proof-icon">OK</div>Self-hostable</div>
         </div>
       </div>
-      <div class="live-badge" style="margin-top: 12px;"><span class="pulse"></span> Live from bitcoinsapi.com</div>
+
+      <div class="hero-visual" aria-label="Satoshi API product preview">
+        <div class="product-stack">
+          <div class="product-panel">
+            <div class="panel-head">
+              <span>Fee recommendation</span>
+              <span>Live</span>
+            </div>
+            <div class="fee-grid">
+              <div>
+                <div class="fee-number">18<small>sat/vB</small></div>
+                <span class="fee-pill">Recommended -10 min</span>
+              </div>
+              <div class="priority-list">
+                <div class="priority-row"><span>High priority</span><strong>28 sat/vB</strong></div>
+                <div class="priority-row"><span>Medium priority</span><strong>18 sat/vB</strong></div>
+                <div class="priority-row"><span>Low priority</span><strong class="low">9 sat/vB</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-panel">
+            <div class="panel-head">
+              <span>Mempool pressure</span>
+              <span class="panel-status">Live</span>
+            </div>
+            <div class="pressure-chart" aria-hidden="true"><div class="pressure-line"></div></div>
+            <div class="pressure-axis"><span>-60m</span><span>-45m</span><span>-30m</span><span>-15m</span><span>Now</span></div>
+          </div>
+
+          <div class="product-panel">
+            <div class="panel-head">
+              <span>Next block forecast</span>
+              <span>Confidence 87%</span>
+            </div>
+            <div class="forecast-row">
+              <div>
+                <div class="forecast-time">~9 minutes</div>
+                <div class="forecast-copy">Projected next-block inclusion window.</div>
+              </div>
+              <div class="block-dots" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-panel">
+            <div class="receipt-row">
+              <span class="paid-badge">Paid</span>
+              <span>x402 payment</span>
+              <span>1,824 sats</span>
+              <span>12s ago</span>
+            </div>
+          </div>
+
+          <div class="product-panel hero-code">
+            <div class="panel-head">
+              <span>GET /api/v1/fees/recommended</span>
+              <span><span style="color: var(--green);">200 OK</span> 172ms</span>
+            </div>
 <pre id="live-response"><code id="live-json" style="color: var(--muted);">Loading live fee data...</code></pre>
-      <p style="color: var(--muted); margin-top: 12px; font-size: 0.95em;">Want the same answers inside Claude or your own agent? Pair the API with <a href="/mcp-setup">bitcoin-mcp</a>.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Live Stats -->
 <div class="stats-bar" id="stats-bar">
-  <div class="stat"><div class="stat-value">49</div><div class="stat-label">MCP Tools</div></div>
-  <div class="stat"><div class="stat-value">115+</div><div class="stat-label">API Endpoints</div></div>
-  <div class="stat"><div class="stat-value">7</div><div class="stat-label">Fee Endpoints</div></div>
-  <div class="stat"><div class="stat-value">116</div><div class="stat-label">Tests Passing</div></div>
+  <div class="stat"><div class="stat-value">MCP</div><div class="stat-label">Agent-ready</div></div>
+  <div class="stat"><div class="stat-value">x402</div><div class="stat-label">Pay per call</div></div>
+  <div class="stat"><div class="stat-value">JSON</div><div class="stat-label">Decision outputs</div></div>
+  <div class="stat"><div class="stat-value">Node</div><div class="stat-label">Self-hostable</div></div>
 </div>
 
 <!-- Trust Badges -->
@@ -516,6 +672,9 @@
   <span class="trust-badge">MCP-native for AI agents</span>
   <span class="trust-badge">Fee intelligence, not just fee rates</span>
   <span class="trust-badge">Free &amp; open source</span>
+  <a href="/llms.txt" class="trust-badge">LLMs.txt</a>
+  <a href="/.well-known/mcp/server-card.json" class="trust-badge">MCP server card</a>
+  <a href="/api/v1/x402-info" class="trust-badge">x402 payment info</a>
   <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer" class="trust-badge" style="text-decoration:none;color:inherit;"><span class="dot"></span> Monitored by UptimeRobot</a>
 </div>
 
@@ -643,34 +802,119 @@
 
 <hr class="section-divider">
 
-<!-- See It Work -->
-<section class="reveal">
+<!-- Product Showcase -->
+<section id="product-showcase" class="reveal">
   <div class="container">
-    <p class="section-label">See It Work</p>
-    <h2 class="section-title">Clean JSON. Real Bitcoin data. Instant answers.</h2>
-    <p class="section-subtitle">Ask "should I send now?" and get a real answer, not a raw number.</p>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px;">
-      <div>
-        <p style="color: var(--muted); font-size: 0.85em; margin-bottom: 8px;">Request</p>
-<pre><code><span style="color: var(--green)">GET</span> /api/v1/blocks/latest</code></pre>
+    <p class="section-label">Product Surface</p>
+    <h2 class="section-title">Discover the endpoint. Pay for the call. Use the answer.</h2>
+    <p class="section-subtitle copy-tight">The useful surface is not another block explorer. It is a small set of agent-readable Bitcoin decisions with receipts, status, and predictable JSON.</p>
+
+    <div class="product-showcase">
+      <div class="endpoint-console">
+        <div class="console-header">
+          <span>Endpoint pack</span>
+          <span class="console-search">Search fees, tx, x402</span>
+        </div>
+        <div class="endpoint-list">
+          <div class="endpoint-row">
+            <span class="method method-get">GET</span>
+            <div>
+              <div class="endpoint-path">/api/v1/fees/landscape</div>
+              <div class="endpoint-desc">Fee landscape across confirmation targets</div>
+            </div>
+            <span class="latency-pill">82ms</span>
+          </div>
+          <div class="endpoint-row">
+            <span class="method method-get">GET</span>
+            <div>
+              <div class="endpoint-path">/api/v1/ai/fees/advice</div>
+              <div class="endpoint-desc">Send, wait, or urgent-only recommendation</div>
+            </div>
+            <span class="latency-pill">95ms</span>
+          </div>
+          <div class="endpoint-row">
+            <span class="method method-get">GET</span>
+            <div>
+              <div class="endpoint-path">/api/v1/mining/nextblock</div>
+              <div class="endpoint-desc">Next-block forecast and miner signals</div>
+            </div>
+            <span class="latency-pill">88ms</span>
+          </div>
+          <div class="endpoint-row">
+            <span class="method method-get">GET</span>
+            <div>
+              <div class="endpoint-path">/api/v1/ai/explain/transaction/{txid}</div>
+              <div class="endpoint-desc">Explain a transaction in plain English</div>
+            </div>
+            <span class="latency-pill">112ms</span>
+          </div>
+          <div class="endpoint-row">
+            <span class="method method-get">GET</span>
+            <div>
+              <div class="endpoint-path">/api/v1/fees/observatory/scoreboard</div>
+              <div class="endpoint-desc">Fee-estimator accuracy scoreboard</div>
+            </div>
+            <span class="latency-pill">78ms</span>
+          </div>
+        </div>
       </div>
-      <div>
-        <p style="color: var(--muted); font-size: 0.85em; margin-bottom: 8px;">Response</p>
-<pre><code>{
-  "<span style="color: var(--code-string)">data</span>": {
-    "<span style="color: var(--code-string)">hash</span>": "<span style="color: var(--dim)">00000000000...</span>",
-    "<span style="color: var(--code-string)">height</span>": <span style="color: var(--accent)">885421</span>,
-    "<span style="color: var(--code-string)">tx_count</span>": <span style="color: var(--accent)">3847</span>,
-    "<span style="color: var(--code-string)">size</span>": <span style="color: var(--accent)">1648231</span>
-  },
-  "<span style="color: var(--code-string)">meta</span>": {
-    "<span style="color: var(--code-string)">cached</span>": <span style="color: var(--code-keyword)">false</span>,
-    "<span style="color: var(--code-string)">node</span>": "<span style="color: var(--dim)">local</span>"
-  }
-}</code></pre>
+
+      <div class="showcase-stack">
+        <div class="showcase-panel">
+          <div class="panel-head">
+            <span>Next-block forecast</span>
+            <span class="panel-status">Live</span>
+          </div>
+          <div class="showcase-grid">
+            <div class="metric-block">
+              <div class="metric-label">Est. block</div>
+              <div class="metric-value accent">~9m</div>
+            </div>
+            <div class="metric-block">
+              <div class="metric-label">Probability</div>
+              <div class="metric-value">78%</div>
+            </div>
+            <div class="metric-block">
+              <div class="metric-label">Fee range</div>
+              <div class="metric-value">16-21</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-panel">
+          <div class="panel-head">
+            <span>x402 receipt</span>
+            <span><span style="color: var(--green);">Settled</span></span>
+          </div>
+          <div class="receipt-card">
+            <div class="receipt-mark">x402</div>
+            <div class="receipt-lines">
+              <div><span>Amount</span><strong style="color: var(--text);">0.0015 USDC</strong></div>
+              <div><span>Endpoint</span><code>/fees/landscape</code></div>
+              <div><span>Status</span><strong style="color: var(--green);">settled</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-panel">
+          <div class="panel-head">
+            <span>Transaction explanation</span>
+            <span><span style="color: var(--green);">200 OK</span></span>
+          </div>
+          <div class="tx-explain">
+            <div>
+              <p><strong style="color: var(--text);">txid</strong></p>
+              <p><code>3fc8...b2a7</code></p>
+              <p style="margin-top: 12px;"><strong style="color: var(--text);">Fee rate</strong></p>
+              <p>25.3 sat/vB</p>
+            </div>
+            <p>A standard P2WPKH transaction spending 1 input and creating 2 outputs. The fee rate is sufficient for inclusion in the next few blocks under current mempool pressure.</p>
+          </div>
+        </div>
       </div>
     </div>
-    <p style="text-align: center; margin-top: 32px;"><a href="/docs" style="font-weight: 600;" data-track-event="docs_click" data-track-location="see_it_work">Explore all endpoints &rarr;</a></p>
+
+    <p style="text-align: center; margin-top: 32px;"><a href="/docs" style="font-weight: 600;" data-track-event="docs_click" data-track-location="product_showcase">Explore all endpoints &rarr;</a></p>
   </div>
 </section>
 
@@ -832,6 +1076,80 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
   </div>
 </section>
 
+<!-- Self Hosting Proof -->
+<section id="self-hosting-proof" class="bg-surface reveal">
+  <div class="container">
+    <p class="section-label">Self-Hosting</p>
+    <h2 class="section-title">Self-hostable Bitcoin intelligence.</h2>
+    <p class="section-subtitle copy-tight">Run against your own node, keep query logs off vendor infrastructure, and give agents the same fee decisions through a local API.</p>
+
+    <div class="self-host-proof">
+      <div>
+        <ul class="proof-list">
+          <li>Run against your own Bitcoin node</li>
+          <li>No vendor query logs</li>
+          <li>MCP-ready for local agents</li>
+          <li>Works on low-cost hardware</li>
+          <li>Open source and auditable</li>
+        </ul>
+        <p style="margin-top: 32px;">
+          <a href="/self-hosted-bitcoin-api" class="btn-secondary" style="display:inline-flex;padding:14px 22px;border-radius:8px;font-weight:700;">Read the self-hosting guide</a>
+        </p>
+      </div>
+
+      <div>
+        <div class="proof-diagram">
+          <div class="proof-node">
+            <div class="proof-node-top">
+              <div class="proof-node-title">1. Raspberry Pi / Pruned Bitcoin Node</div>
+              <span class="panel-status">Healthy</span>
+            </div>
+            <div class="proof-node-copy">Pruned mode, local RPC, compact disk usage.</div>
+          </div>
+          <div class="proof-connector">RPC local host</div>
+          <div class="proof-node">
+            <div class="proof-node-top">
+              <div class="proof-node-title">2. Satoshi API</div>
+              <span class="panel-status">Healthy</span>
+            </div>
+            <div class="proof-node-copy">REST API, fee intelligence, typed responses, local cache.</div>
+          </div>
+          <div class="proof-connector">HTTP / JSON</div>
+          <div class="proof-node">
+            <div class="proof-node-top">
+              <div class="proof-node-title">3. bitcoin-mcp / AI Agent</div>
+              <span class="panel-status">Connected</span>
+            </div>
+            <div class="proof-node-copy">MCP tools for fee checks, payment monitoring, and transaction context.</div>
+          </div>
+        </div>
+
+        <div class="proof-panels">
+          <div class="proof-panel">
+            <div class="proof-header">
+              <span>API response</span>
+              <span><span style="color: var(--green);">success</span></span>
+            </div>
+<pre><code>{
+  "chain": "main",
+  "height": 841734,
+  "tx_count": 215,
+  "status": "success"
+}</code></pre>
+          </div>
+          <div class="proof-panel privacy-callout">
+            <div class="proof-header">
+              <span>Privacy model</span>
+              <span>Local</span>
+            </div>
+            <p style="color: var(--muted); font-size: 0.92em;">All requests stay on your infrastructure. We do not log, store, or see your data when you self-host.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Pricing -->
 <section id="pricing" class="bg-surface reveal">
   <div class="container">
@@ -882,20 +1200,20 @@ curl https://bitcoinsapi.com/api/v1/mining</code></pre>
     <!-- x402 explainer -->
     <div style="margin-top: 48px; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; background: rgba(0,0,0,0.3);">
       <h3 style="margin-bottom: 16px;">How x402 pay-per-call works</h3>
-      <p style="color: var(--muted); margin-bottom: 20px;"><a href="https://x402.org" target="_blank" rel="noopener noreferrer">x402</a> is an open payment standard built on HTTP 402 by Coinbase and Cloudflare. It lets any client &mdash; human or AI agent &mdash; pay for an API call with stablecoins, no account required.</p>
+      <p style="color: var(--muted); margin-bottom: 20px;"><a href="https://x402.org" target="_blank" rel="noopener noreferrer">x402</a> is an open payment standard built on HTTP 402. It lets any client &mdash; human or AI agent &mdash; pay for an API call with stablecoins, no account required.</p>
       <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px 16px; align-items: start; font-size: 0.95em;">
         <span style="color: var(--accent); font-weight: 600;">1.</span>
         <span>Request a premium endpoint &mdash; you get back <code>402 Payment Required</code> with the price and wallet address</span>
         <span style="color: var(--accent); font-weight: 600;">2.</span>
-        <span>Your client signs a USDC payment on Base and resends the request with an <code>X-PAYMENT</code> header</span>
+        <span>Your client signs a USDC payment on Base and resends the request with a <code>PAYMENT-SIGNATURE</code> header</span>
         <span style="color: var(--accent); font-weight: 600;">3.</span>
-        <span>The payment is verified by a <a href="https://docs.cdp.coinbase.com/x402/welcome" target="_blank" rel="noopener noreferrer">facilitator</a> and you get the data</span>
+        <span>The payment is verified by a <a href="https://docs.x402.org" target="_blank" rel="noopener noreferrer">facilitator</a> and you get the data</span>
       </div>
       <pre style="margin-top: 20px; font-size: 0.85em; overflow-x: auto;"><code># Step 1: See the 402 challenge
 curl https://bitcoinsapi.com/api/v1/x402-demo
 # Step 2: Complete the flow
-curl -H 'X-PAYMENT: demo' https://bitcoinsapi.com/api/v1/x402-demo</code></pre>
-      <p style="color: var(--muted); margin-top: 12px; font-size: 0.85em;">Payments settle on <a href="https://base.org" target="_blank" rel="noopener noreferrer">Base</a> (Coinbase L2). Compatible with any x402 client including <a href="https://github.com/coinbase/x402" target="_blank" rel="noopener noreferrer">the official SDK</a>.</p>
+curl -H 'PAYMENT-SIGNATURE: demo' https://bitcoinsapi.com/api/v1/x402-demo</code></pre>
+      <p style="color: var(--muted); margin-top: 12px; font-size: 0.85em;">Payments settle on <a href="https://base.org" target="_blank" rel="noopener noreferrer">Base</a>. Compatible with the official x402 SDK and the broader V2 client ecosystem. Legacy <code>X-PAYMENT</code> remains accepted while older clients migrate.</p>
     </div>
   </div>
 </section>
@@ -951,6 +1269,10 @@ curl -H 'X-PAYMENT: demo' https://bitcoinsapi.com/api/v1/x402-demo</code></pre>
       <a href="https://github.com/Bortlesboat/bitcoin-api" target="_blank" rel="noopener noreferrer">GitHub</a> &middot;
       <a href="https://pypi.org/project/satoshi-api/" target="_blank" rel="noopener noreferrer">PyPI</a> &middot;
       <a href="/docs">API Docs</a> &middot;
+      <a href="/llms.txt">LLMs.txt</a> &middot;
+      <a href="/llms-full.txt">Full LLM Docs</a> &middot;
+      <a href="/.well-known/mcp/server-card.json">Server Card</a> &middot;
+      <a href="/api/v1/x402-info">x402 Info</a> &middot;
       <a href="https://stats.uptimerobot.com/satoshi-api" target="_blank" rel="noopener noreferrer">Status</a> &middot;
       <a href="https://github.com/Bortlesboat/bitcoin-mcp" target="_blank" rel="noopener noreferrer">MCP Server</a> &middot;
       <a href="https://discord.gg/EB6Jd66EsF" target="_blank" rel="noopener noreferrer">Discord Community</a> &middot;
@@ -1165,6 +1487,53 @@ function handleRegister(e) {
       hint.style.cssText = 'color: var(--muted); font-size: 0.85em; margin-top: 10px;';
       hint.textContent = 'Save this key. Use it with: curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/mempool';
       wrapper.appendChild(hint);
+
+      // "What to try next" section — subtle, helpful, not aggressive
+      var next = document.createElement('div');
+      next.style.cssText = 'margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;';
+      next.innerHTML = '<div style="color: var(--muted); font-size: 0.85em; font-weight: 600; margin-bottom: 12px;">Try these — copy and paste into your terminal:</div>';
+
+      var examples = [
+        { label: 'Check current fees', cmd: 'curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/fees/recommended', event: 'fees' },
+        { label: 'View mempool status', cmd: 'curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/mempool', event: 'mempool' },
+        { label: 'Get latest block', cmd: 'curl -H "X-API-Key: ' + key + '" https://bitcoinsapi.com/api/v1/blocks/latest', event: 'blocks' }
+      ];
+
+      examples.forEach(function(ex) {
+        var item = document.createElement('div');
+        item.style.cssText = 'margin-bottom: 10px;';
+        var lbl = document.createElement('div');
+        lbl.style.cssText = 'color: var(--muted); font-size: 0.8em; margin-bottom: 4px;';
+        lbl.textContent = ex.label;
+        item.appendChild(lbl);
+        var cmdRow = document.createElement('div');
+        cmdRow.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+        var cmdCode = document.createElement('code');
+        cmdCode.style.cssText = 'flex: 1; font-size: 0.75em; background: var(--bg); padding: 6px 10px; border-radius: 4px; word-break: break-all; color: var(--muted); cursor: pointer;';
+        cmdCode.textContent = ex.cmd;
+        cmdCode.title = 'Click to copy';
+        cmdCode.onclick = function() {
+          navigator.clipboard.writeText(ex.cmd);
+          this.style.color = 'var(--green)';
+          this.textContent = 'Copied!';
+          track('onboarding_cmd_copied', { command: ex.event });
+          var self = this; var orig = ex.cmd;
+          setTimeout(function() { self.textContent = orig; self.style.color = 'var(--muted)'; }, 1500);
+        };
+        cmdRow.appendChild(cmdCode);
+        item.appendChild(cmdRow);
+        next.appendChild(item);
+      });
+
+      // AI agent quick-start
+      var aiDiv = document.createElement('div');
+      aiDiv.style.cssText = 'margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);';
+      aiDiv.innerHTML = '<div style="color: var(--muted); font-size: 0.8em; margin-bottom: 4px;">Or connect an AI agent to Bitcoin in 60 seconds:</div>' +
+        '<code style="display: block; font-size: 0.75em; background: var(--bg); padding: 6px 10px; border-radius: 4px; color: var(--muted); cursor: pointer;" onclick="navigator.clipboard.writeText(\'npx bitcoin-mcp@latest\'); this.style.color=\'var(--green)\'; this.textContent=\'Copied!\'; track(\'onboarding_cmd_copied\', {command: \'mcp\'}); var s=this; setTimeout(function(){s.textContent=\'npx bitcoin-mcp@latest\'; s.style.color=\'var(--muted)\';}, 1500);">npx bitcoin-mcp@latest</code>' +
+        '<div style="color: var(--muted); font-size: 0.75em; margin-top: 6px;">Full setup guide: <a href="/mcp-setup" style="color: var(--accent);">/mcp-setup</a> · API docs: <a href="/docs" style="color: var(--accent);">/docs</a></div>';
+      next.appendChild(aiDiv);
+
+      wrapper.appendChild(next);
       result.appendChild(wrapper);
     } else {
       var msg = (res.data.error && res.data.error.detail) || res.data.detail || 'Registration failed. Try again.';
@@ -1192,17 +1561,38 @@ function handleRegister(e) {
 
 /* Sync Warning Banner */
 (function() {
+  function ensureSyncBanner() {
+    var banner = document.getElementById('sync-banner-runtime');
+    if (banner) return banner;
+
+    banner = document.createElement('div');
+    banner.className = 'sync-banner';
+    banner.id = 'sync-banner-runtime';
+    banner.innerHTML = 'Hosted node is finishing sync (<span data-sync-pct>--</span>% complete). Live fee and mempool data may lag briefly. <a href="/api/v1/status">View status</a>';
+
+    var nav = document.querySelector('nav');
+    if (nav && nav.parentNode) {
+      nav.parentNode.insertBefore(banner, nav.nextSibling);
+    } else {
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+    return banner;
+  }
+
   fetch('/api/v1/status')
     .then(function(r) { return r.json(); })
     .then(function(json) {
       var d = json.data || json;
       var meta = json.meta || {};
-      if (meta.syncing || d.syncing) {
+      var verificationProgress = typeof d.verification_progress === 'number' ? d.verification_progress : null;
+      var headerLag = (typeof d.headers === 'number' && typeof d.blocks === 'number') ? (d.headers - d.blocks) : 0;
+      var materiallyBehind = verificationProgress !== null ? verificationProgress < 0.9999 : false;
+      if (meta.syncing || d.syncing || materiallyBehind || headerLag >= 3) {
         var pct = d.verification_progress != null ? (d.verification_progress * 100).toFixed(1) : '--';
-        var el = document.getElementById('sync-pct');
+        var banner = ensureSyncBanner();
+        var el = banner.querySelector('[data-sync-pct]');
         if (el) el.textContent = pct;
-        var banner = document.getElementById('sync-banner');
-        if (banner) banner.style.display = 'block';
+        banner.style.display = 'block';
       }
     })
     .catch(function() { /* silently ignore */ });

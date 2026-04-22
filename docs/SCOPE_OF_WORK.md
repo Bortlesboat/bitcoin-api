@@ -427,6 +427,12 @@ Errors follow the same structure:
 39. **Pro checkout dead end** -- "Upgrade to Pro" button returned 503; changed to "Contact for Pro" mailto link
 40. **Watchdog stale code** -- `API_DIR` resolved relative to script location (broke when Task Scheduler ran old release copy); now uses `releases/bitcoin-api-current` symlink
 
+**Homepage Deploy Pass (Apr 21):**
+41. **Homepage hero was too generic for the current x402/agent positioning** -- the homepage hero now uses an asymmetric product-stack preview with fee recommendation, mempool pressure, next-block forecast, x402 receipt, and live JSON response panels. The first signal strip now emphasizes MCP, x402, decision JSON, and self-hosting instead of endpoint-count selling.
+42. **Homepage middle sections were mostly generic code/card content** -- the homepage now includes a product showcase that connects endpoint discovery, x402 receipts, next-block forecasts, and transaction explanation. A new self-hosting proof section shows the pruned-node -> Satoshi API -> bitcoin-mcp stack and privacy model.
+43. **Health test expected the wrong `/api-docs` redirect code** -- `tests/test_health.py` now matches the app's permanent `/api-docs` -> `/docs` redirect behavior so deploy verification reflects the current route implementation.
+44. **MCP server dependency was missing from install metadata** -- `pyproject.toml` now includes the `mcp` runtime package required by `src/bitcoin_api/routers/mcp_server.py` and the MCP server test module.
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
@@ -500,7 +506,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
 **Tests (23 test files + 2 support files):**
-- `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
+- `tests/test_health.py` -- 15 tests (health, root, status, healthz, docs, visualizer)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
 - `tests/test_fees.py` -- 45 tests (fee endpoints + fee research infrastructure)
 - `tests/test_transactions.py` -- 27 tests (transaction endpoints)
@@ -570,7 +576,7 @@ Errors follow the same structure:
 - `docs/LLC_PREP.md` -- LLC formation checklist (deferred until paying customers)
 
 **Website (29 files):**
-- `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags
+- `static/index.html` -- Landing page with JSON-LD structured data, security headers, SEO meta tags, runtime-only sync banner, an asymmetric product-stack hero, product showcase, self-hosting proof section, and direct links to machine-readable discovery surfaces (`/llms.txt`, `/llms-full.txt`, MCP server card, x402 info)
 - `static/vs-mempool.html` -- SEO comparison page: Satoshi API vs mempool.space
 - `static/vs-blockcypher.html` -- SEO comparison page: Satoshi API vs BlockCypher
 - `static/best-bitcoin-api-for-developers.html` -- SEO decision page: developer guide

@@ -75,7 +75,7 @@ def test_docs_accessible(client):
 
 def test_api_docs_redirects_to_live_docs(client):
     resp = client.get("/api-docs", follow_redirects=False)
-    assert resp.status_code == 307
+    assert resp.status_code == 308
     assert resp.headers["location"] == "/docs"
 
 
