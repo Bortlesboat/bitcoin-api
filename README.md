@@ -102,6 +102,17 @@ cloudflared tunnel --url http://localhost:9332
 
 See [self-hosting guide](docs/self-hosting.md) for full production setup.
 
+## Research Export
+
+For offline fee-forecasting work, the repo now includes a local JSONL export path that emits the same merged row shape used by the companion benchmark importer.
+
+```powershell
+$env:PYTHONPATH='src'
+python scripts/export_fee_forecast_benchmark.py data/fee-forecast-benchmark.jsonl --hours 168 --interval-minutes 10
+```
+
+The export joins local `fee_history` observations to the next `1-6` confirmed blocks from the research tables in `data/bitcoin_api.db`. Very recent observations without six future block outcomes are skipped automatically.
+
 ## Contributing
 
 Issues and PRs welcome. Run the test suite before submitting:

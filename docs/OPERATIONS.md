@@ -148,6 +148,21 @@ Requires the Fee Observatory to be collecting data (`bitcoin-fee-observatory` re
 
 **Dashboard:** `GET /fee-observatory` — branded page with iframe to Streamlit dashboard (port 8505).
 
+### Export fee forecast benchmark rows
+
+Use the local benchmark export when you want importer-compatible JSONL for offline forecasting work or the companion `bitcoin-fee-forecast-bench` repo.
+
+```powershell
+$env:PYTHONPATH='src'
+python scripts/export_fee_forecast_benchmark.py data/fee-forecast-benchmark.jsonl --hours 168 --interval-minutes 10
+```
+
+Notes:
+- Reads `fee_history` observations from the main API DB and joins them to the next `1-6` `block_confirmations`
+- Emits one JSONL row per usable observation with `observation_id`, `observed_at`, `features`, and `clearing_fee_bin_by_horizon`
+- Skips observations that do not yet have six future confirmed blocks
+- The research tables come from migration `012_add_research_tables.sql`
+
 ### x402 Stablecoin Micropayments (optional)
 
 Enables pay-per-call via the x402 protocol (USDC on Base). Requires the `bitcoin-api-x402` package.
