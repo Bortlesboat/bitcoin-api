@@ -162,6 +162,7 @@ Notes:
 - Emits one JSONL row per usable observation with `observation_id`, `observed_at`, `features`, and `clearing_fee_bin_by_horizon`
 - Skips observations that do not yet have six future confirmed blocks
 - The research tables come from migration `012_add_research_tables.sql`
+- On a normal local API run, the background fee collector fills those research tables automatically as new blocks arrive
 
 ### x402 Stablecoin Micropayments (optional)
 
@@ -403,11 +404,9 @@ Replace `YOUR_KEY` with the value from your `.env` `ADMIN_API_KEY`.
 
 The background fee collector thread automatically prunes old data once per 24 hours:
 - Usage logs older than 90 days are deleted
-- Fee history older than 30 days is downsampled to hourly averages
-- Fee history older than 365 days is deleted
-- Research data (block_confirmations, fee_estimates_log) older than 365 days is deleted
+- Fee history older than 30 days is deleted
 
-The fee collector also logs multi-source fee estimates every 5 minutes (Core 8 targets, mempool.space 4 targets, local mempool 1 target) and captures block confirmation feerate percentiles on each new block.
+The fee collector also logs Core fee estimates for targets `1`, `6`, and `144` every 5 minutes, adds mempool.space estimates for `1`, `3`, `6`, and `144` when that public API is reachable, and captures block confirmation feerate percentiles on each detected new block after the collector has seen a prior tip.
 
 Check API logs for `Auto-prune:` messages to confirm it's running.
 

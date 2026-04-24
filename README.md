@@ -111,7 +111,7 @@ $env:PYTHONPATH='src'
 python scripts/export_fee_forecast_benchmark.py data/fee-forecast-benchmark.jsonl --hours 168 --interval-minutes 10
 ```
 
-The export joins local `fee_history` observations to the next `1-6` confirmed blocks from the research tables in `data/bitcoin_api.db`. Very recent observations without six future block outcomes are skipped automatically.
+The export joins local `fee_history` observations to the next `1-6` confirmed blocks from the research tables in `data/bitcoin_api.db`. After migration `012_add_research_tables.sql`, the background fee collector also fills `block_confirmations` on each detected new block and logs fee estimates every cycle, so a normal local API run can build this export without extra manual seeding. Very recent observations without six future block outcomes are skipped automatically.
 
 ## Contributing
 

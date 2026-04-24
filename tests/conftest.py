@@ -315,6 +315,22 @@ def use_temp_db(tmp_path):
     db._local = __import__("threading").local()
 
 
+@pytest.fixture(autouse=True)
+def reset_background_jobs(use_temp_db):
+    """Stop background threads cleanly between tests so temp DBs stay isolated."""
+    from bitcoin_api.jobs import _fee_collector, stop_background_jobs
+
+    stop_background_jobs()
+    if hasattr(_fee_collector, "_last_block"):
+        delattr(_fee_collector, "_last_block")
+
+    yield
+
+    stop_background_jobs()
+    if hasattr(_fee_collector, "_last_block"):
+        delattr(_fee_collector, "_last_block")
+
+
 @pytest.fixture
 def client(mock_rpc):
     app.dependency_overrides[get_rpc] = lambda: mock_rpc

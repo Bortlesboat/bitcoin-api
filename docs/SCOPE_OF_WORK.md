@@ -50,7 +50,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `main.py` | App creation, lifespan, router registration (~177 lines) | Composition root |
 | `middleware.py` | Security headers, CORS, auth + rate limiting middleware, gzip compression | Middleware chain |
 | `exceptions.py` | RPC, validation, HTTP, and generic exception handlers; RFC 7807 `type` URIs | Exception handler registry |
-| `jobs.py` | Background fee collector thread lifecycle | Background worker |
+| `jobs.py` | Background fee collector thread lifecycle, fee estimate logging, and block confirmation capture for research tables | Background worker |
 | `static_routes.py` | Landing page, robots.txt, sitemap, decision pages | Static file serving |
 | `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
 | `migrations/` | SQL migration files + runner, tracked in `schema_migrations` | Sequential migrations |
@@ -58,7 +58,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `rate_limit.py` | Per-minute sliding window (in-memory or Upstash Redis) + daily limits | Token bucket / sliding window |
 | `notifications.py` | Transactional email (Resend) + analytics events (PostHog) | Fire-and-forget side effects |
 | `cache.py` | TTL caching with reorg-safe depth awareness, stale fallback for graceful degradation, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache + stale-while-error |
-| `db.py` | SQLite (WAL mode), fee history, fee research tables, usage logging, key storage | Repository pattern |
+| `db.py` | SQLite (WAL mode), fee history, self-populating fee research tables, usage logging, key storage | Repository pattern |
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
@@ -427,6 +427,9 @@ Errors follow the same structure:
 39. **Pro checkout dead end** -- "Upgrade to Pro" button returned 503; changed to "Contact for Pro" mailto link
 40. **Watchdog stale code** -- `API_DIR` resolved relative to script location (broke when Task Scheduler ran old release copy); now uses `releases/bitcoin-api-current` symlink
 
+**Benchmark Export Self-Sufficiency (Apr 24):**
+41. **Clean exporter branch could not bootstrap its own research data** -- The background fee collector now writes `block_confirmations` on detected new blocks and logs fee estimates into `fee_estimates_log`, so fresh installs can produce real benchmark export rows after migration `012_add_research_tables.sql`.
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
@@ -500,7 +503,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (23 test files + 2 support files):**
+**Tests (current repo test files + support files):**
 - `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
 - `tests/test_blocks.py` -- 18 tests (block-related endpoints)
 - `tests/test_fees.py` -- 45 tests (fee endpoints + fee research infrastructure)
@@ -527,6 +530,7 @@ Errors follow the same structure:
 - `tests/test_price_service.py` -- 13 tests (price service provider fallback, caching, error handling)
 - `tests/test_observatory.py` -- 13 tests (Fee Observatory endpoints: scoreboard, block-stats, estimates, 503 fallback, static page)
 - `tests/test_fee_benchmark_export.py` -- 2 tests (benchmark export row builder + CLI writer)
+- `tests/test_jobs.py` -- 2 tests (single-iteration fee collector coverage for research table population)
 - `tests/test_x402_stats.py` -- 6 tests (x402 payment analytics)
 - `tests/test_e2e.py` -- 21 e2e tests (against live node)
 - `tests/locustfile.py` -- Load test (8 weighted endpoints)
@@ -567,10 +571,11 @@ Errors follow the same structure:
 - `scripts/smoke-test-api.sh` (5-point health check for cron monitoring; supports --quiet)
 - `scripts/doc_consistency.py` (CI-enforced doc consistency checks)
 
-**Research export surfaces (3 files):**
+**Research export surfaces (5 files):**
 - `src/bitcoin_api/services/benchmark_export.py` (joins fee history to future block outcomes for offline benchmark export)
 - `src/bitcoin_api/benchmark_export_cli.py` (CLI entrypoint for benchmark-ready JSONL export)
 - `src/bitcoin_api/migrations/012_add_research_tables.sql` (fee research tables for block confirmations and estimate logs)
+- `src/bitcoin_api/jobs.py` + `src/bitcoin_api/db.py` (background collector now populates those research tables during normal API operation)
 
 **Legal (3 files):**
 - `static/terms.html` -- Terms of Service (FL governing law, liability limitation, acceptable use)
