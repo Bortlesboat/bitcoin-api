@@ -8,7 +8,7 @@ os.environ["ENABLE_INDEXER"] = "false"  # Indexer tries asyncpg (~4s timeout per
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from bitcoin_api.main import app
 from bitcoin_api.dependencies import get_rpc
@@ -334,8 +334,9 @@ def reset_background_jobs(use_temp_db):
 @pytest.fixture
 def client(mock_rpc):
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    with TestClient(app) as c:
-        yield c
+    with patch("bitcoin_api.main.start_background_jobs"), patch("bitcoin_api.main.stop_background_jobs"):
+        with TestClient(app) as c:
+            yield c
     app.dependency_overrides.clear()
 
 
@@ -355,6 +356,7 @@ def authed_client(mock_rpc, use_temp_db):
     db.commit()
 
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    with TestClient(app, headers={"X-API-Key": key}) as c:
-        yield c
+    with patch("bitcoin_api.main.start_background_jobs"), patch("bitcoin_api.main.stop_background_jobs"):
+        with TestClient(app, headers={"X-API-Key": key}) as c:
+            yield c
     app.dependency_overrides.clear()
