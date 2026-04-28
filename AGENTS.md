@@ -1,7 +1,7 @@
 # Satoshi API — Bitcoin REST API (bitcoinsapi.com)
 
 ## What this is
-Production FastAPI application serving ~103 Bitcoin API endpoints. Live at https://bitcoinsapi.com. v0.3.4. 568 unit + 21 e2e = 589 tests. Revenue-generating product — treat production changes carefully.
+Production FastAPI application for Bitcoin fee intelligence, MCP-powered agents, and x402 pay-per-call Bitcoin data. Live at https://bitcoinsapi.com. Revenue-generating product — treat production changes carefully and verify before promoting.
 
 ## Architecture
 - `src/bitcoin_api/routers/` — HTTP endpoint definitions, one file per category (27 routers)
@@ -12,6 +12,8 @@ Production FastAPI application serving ~103 Bitcoin API endpoints. Live at https
 - `src/bitcoin_api/config.py` — Settings via pydantic-settings / env vars
 - `src/bitcoin_api/auth.py` — API key authentication
 - `src/bitcoin_api/rate_limit.py` — Free tier rate limiting
+- `.github/copilot-instructions.md` — GitHub Copilot/Coding Agent instructions for this repo
+- `docs/AGENT_INTEGRATION.md` — Copy-paste kit for adding Satoshi API to other agent-aware repos
 
 ## Active workflows (run these, don't skip)
 - `./diagnose.sh` — silo checks; run before any significant structural change
@@ -30,8 +32,14 @@ Production FastAPI application serving ~103 Bitcoin API endpoints. Live at https
 - `/history` — Bitcoin History Explorer
 - `/guide` — Bitcoin Protocol Guide
 - `/mcp-setup` — MCP setup instructions
-- `/api-docs` — OpenAPI docs
+- `/bitcoin-mcp` — Bitcoin MCP guide
+- `/bitcoin-fee-intelligence` — fee intelligence guide
+- `/quickstart` — full x402 quickstart
+- `/x402/start` — shortest first-paid-call x402 buyer path
+- `/docs` — OpenAPI docs (`/api-docs` redirects here for legacy links)
 
 ## Discoverability priority
 - Glama and AI search rank by documentation completeness — keep OpenAPI descriptions current
 - bitcoin-mcp points here as its fallback API; keep fee/mempool endpoints fast and reliable
+- GitHub/Copilot agents read `.github/copilot-instructions.md`; keep it aligned with `AGENTS.md`, `CLAUDE.md`, `static/llms.txt`, and `docs/AGENT_INTEGRATION.md`
+- For paid x402 onboarding, `/api/v1` stays canonical; versionless aliases are only hidden buyer shortcuts for the five hero endpoints

@@ -140,6 +140,9 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_observatory.py` | Fee Observatory tests (13 tests) |
 | | Total: 608 unit + 21 e2e = 629 tests |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
+| `.github/copilot-instructions.md` | GitHub Copilot/Coding Agent repo instructions for Satoshi API, bitcoin-mcp, and x402 |
+| `docs/AGENT_INTEGRATION.md` | Copy-paste kit for adding Satoshi API to agent-aware repos |
+| `docs/GITHUB_AGENT_INTEGRATION_TARGETS.md` | GitHub/Copilot/x402 ecosystem submission tracker |
 | `scripts/diagnose.sh` | Silo-by-silo diagnostic (node, tunnel, API, cache, DB, version, tests) |
 | `scripts/release.sh` | Version tagging, listing, diffing, and safe rollback with backup branches |
 | `scripts/deploy-api.sh` | Pull, test, kill, restart, health check, auto-tag on success |

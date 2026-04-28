@@ -169,6 +169,8 @@ X402_PAY_TO_ADDRESS=0xYourEVMWallet...    # EVM wallet address for USDC receipts
 - `GET /api/v1/x402-stats` -- aggregated payment analytics (JSON)
 - `GET /x402` -- visual analytics dashboard
 
+**GitHub/coding-agent integration (Apr 28, 2026):** keep the first-party agent kit aligned whenever onboarding or x402 guidance changes. The repo-native surfaces are `.github/copilot-instructions.md`, `AGENTS.md`, `CLAUDE.md`, `docs/AGENT_INTEGRATION.md`, `static/llms.txt`, and `static/llms-full.txt`. The external submission tracker is `docs/GITHUB_AGENT_INTEGRATION_TARGETS.md`. The canonical first paid-call link for these integrations is `https://bitcoinsapi.com/x402/start`; `/quickstart` remains the broader walkthrough.
+
 **Data retention:** x402 payment records auto-pruned after 180 days at startup.
 
 ### Stripe Billing (optional)
@@ -697,3 +699,7 @@ Verified via HTML meta tag (`06E6BDEDE1F4866F7945A8918FBBFACA`). Sitemap submitt
 | `.env.example` | Template showing all available settings |
 | `CHANGELOG.md` | Version history |
 | `CLAUDE.md` | Instructions for AI-assisted development |
+| `AGENTS.md` | Repo instructions for Codex and other agent runners |
+| `.github/copilot-instructions.md` | GitHub Copilot/Coding Agent repo instructions |
+| `docs/AGENT_INTEGRATION.md` | Copy-paste integration kit for external agent-aware repos |
+| `docs/GITHUB_AGENT_INTEGRATION_TARGETS.md` | GitHub/x402 submission tracker for agent ecosystem distribution |

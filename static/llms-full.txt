@@ -1,12 +1,45 @@
-# Satoshi API — Full Reference
+# Satoshi API - Full Reference
 
 > Bitcoin fee intelligence that saves money on every transaction.
 
 ## Overview
 
-Satoshi API is a REST API for Bitcoin blockchain data, built for AI agents and developers. It wraps a Bitcoin Core full node with analyzed, structured data — fee recommendations, mempool analysis, block statistics, mining data, and real-time streams. Native MCP integration lets Claude, GPT, and other LLM agents call Bitcoin endpoints as tools.
+Satoshi API is a REST API for Bitcoin blockchain data, built for AI agents and developers. It wraps a Bitcoin Core full node with actionable, structured data: fee recommendations, mempool analysis, block statistics, mining data, and real-time streams. Native MCP integration lets Claude, GPT, and other LLM agents call Bitcoin endpoints as tools.
 
 **Who it's for:** AI agents that need Bitcoin data, developers building Bitcoin apps, wallets optimizing fee spend, bots monitoring the mempool.
+
+## First Paid x402 Call
+
+Start here for the shortest keyless paid onboarding path: https://bitcoinsapi.com/x402/start
+
+Use the broader x402 quickstart for the full discover -> challenge -> pay -> use walkthrough: https://bitcoinsapi.com/quickstart
+
+Golden path:
+1. Discover: `GET https://bitcoinsapi.com/.well-known/x402`
+2. Challenge: `GET https://bitcoinsapi.com/api/v1/fees/landscape`
+3. Pay: resend with `PAYMENT-SIGNATURE`
+4. Use the JSON envelope returned by the canonical `/api/v1` endpoint
+
+`/api/v1` is the canonical stable API path. Short versionless aliases exist
+only for the paid hero set (`/fees/landscape`, `/mining/nextblock`,
+`/fees/observatory/scoreboard`, `/ai/fees/advice`, and
+`/ai/explain/transaction/{txid}`); generated clients should continue to use
+the versioned paths shown in this reference.
+
+## Discovery Surfaces
+
+- Root LLM guide: https://bitcoinsapi.com/llms.txt
+- x402 first paid call: https://bitcoinsapi.com/x402/start
+- x402 quickstart: https://bitcoinsapi.com/quickstart
+- Full OpenAPI spec: https://bitcoinsapi.com/api/openapi.json
+- x402-paid OpenAPI spec: https://bitcoinsapi.com/openapi.json
+- x402 discovery: https://bitcoinsapi.com/.well-known/x402
+- x402 payment info: https://bitcoinsapi.com/api/v1/x402-info
+- MCP setup guide: https://bitcoinsapi.com/mcp-setup
+- MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
+- MCP registry ID: io.github.Bortlesboat/bitcoin-mcp
+- Bitcoin MCP guide: https://bitcoinsapi.com/bitcoin-mcp
+- Bitcoin fee intelligence guide: https://bitcoinsapi.com/bitcoin-fee-intelligence
 
 ## Authentication
 
@@ -34,150 +67,151 @@ Response headers for self-throttling:
 
 ## Endpoints
 
-All paths prefixed with `/api/v1`. Base URL: `https://bitcoinsapi.com`
+Base URL: `https://bitcoinsapi.com`. Paths below are shown as complete versioned API paths.
 
 ### Fees (save money on every transaction)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /fees | All fee estimates (multiple confirmation targets) |
-| GET | /fees/recommended | Smart recommendation: send now or wait? |
-| GET | /fees/landscape | Full fee landscape with percentiles |
-| GET | /fees/mempool-blocks | Projected mempool blocks with fee ranges |
-| GET | /fees/estimate-tx | Estimate fee for a specific transaction size |
-| GET | /fees/history | Historical fee data |
-| GET | /fees/plan | Fee planning: optimal send timing |
-| GET | /fees/savings | How much you save by waiting |
-| GET | /fees/{target} | Fee estimate for specific confirmation target |
+| GET | /api/v1/fees | All fee estimates (multiple confirmation targets) |
+| GET | /api/v1/fees/recommended | Smart recommendation: send now or wait? |
+| GET | /api/v1/fees/landscape | Full fee landscape with percentiles |
+| GET | /api/v1/fees/mempool-blocks | Projected mempool blocks with fee ranges |
+| GET | /api/v1/fees/estimate-tx | Estimate fee for a specific transaction size |
+| GET | /api/v1/fees/history | Historical fee data |
+| GET | /api/v1/fees/plan | Fee planning: optimal send timing |
+| GET | /api/v1/fees/savings | How much you save by waiting |
+| GET | /api/v1/fees/{target} | Fee estimate for specific confirmation target |
 
 ### Mempool
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /mempool | Full mempool analysis: fee buckets, congestion |
-| GET | /mempool/info | Raw mempool info from Bitcoin Core |
-| GET | /mempool/tx/{txid} | Specific unconfirmed transaction details |
-| GET | /mempool/txids | List of all mempool transaction IDs |
-| GET | /mempool/recent | Recently added mempool transactions |
+| GET | /api/v1/mempool | Full mempool analysis: fee buckets, congestion |
+| GET | /api/v1/mempool/info | Raw mempool info from Bitcoin Core |
+| GET | /api/v1/mempool/tx/{txid} | Specific unconfirmed transaction details |
+| GET | /api/v1/mempool/txids | List of all mempool transaction IDs |
+| GET | /api/v1/mempool/recent | Recently added mempool transactions |
 
 ### Blocks
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /blocks/latest | Latest block with full analysis |
-| GET | /blocks/tip/height | Current chain tip height |
-| GET | /blocks/tip/hash | Current chain tip hash |
-| GET | /blocks/{height_or_hash} | Block by height or hash |
-| GET | /blocks/{height}/stats | Block statistics |
-| GET | /blocks/{hash}/header | Raw block header |
-| GET | /blocks/{hash}/txids | Transaction IDs in a block |
-| GET | /blocks/{hash}/txs | Transactions in a block (paginated) |
-| GET | /blocks/{hash}/raw | Raw block hex |
+| GET | /api/v1/blocks/latest | Latest block with full analysis |
+| GET | /api/v1/blocks/tip/height | Current chain tip height |
+| GET | /api/v1/blocks/tip/hash | Current chain tip hash |
+| GET | /api/v1/blocks/{height_or_hash} | Block by height or hash |
+| GET | /api/v1/blocks/{height}/stats | Block statistics |
+| GET | /api/v1/blocks/{hash}/header | Raw block header |
+| GET | /api/v1/blocks/{hash}/txids | Transaction IDs in a block |
+| GET | /api/v1/blocks/{hash}/txs | Transactions in a block (paginated) |
+| GET | /api/v1/blocks/{hash}/raw | Raw block hex |
 
 ### Transactions
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /tx/{txid} | Full transaction analysis |
-| GET | /tx/{txid}/raw | Raw transaction data |
-| GET | /tx/{txid}/status | Confirmation status |
-| GET | /tx/{txid}/hex | Transaction hex |
-| GET | /tx/{txid}/outspends | Which outputs are spent |
-| GET | /tx/{txid}/merkle-proof | Merkle proof for a transaction |
-| GET | /utxo/{txid}/{vout} | UTXO lookup |
-| POST | /transactions/decode | Decode a raw transaction hex |
-| POST | /transactions/broadcast | Broadcast a signed transaction |
+| GET | /api/v1/tx/{txid} | Full transaction analysis |
+| GET | /api/v1/tx/{txid}/raw | Raw transaction data |
+| GET | /api/v1/tx/{txid}/status | Confirmation status |
+| GET | /api/v1/tx/{txid}/hex | Transaction hex |
+| GET | /api/v1/tx/{txid}/outspends | Which outputs are spent |
+| GET | /api/v1/tx/{txid}/merkle-proof | Merkle proof for a transaction |
+| GET | /api/v1/utxo/{txid}/{vout} | UTXO lookup |
+| POST | /api/v1/decode | Decode a raw transaction hex |
+| POST | /api/v1/broadcast | Broadcast a signed transaction |
 
 ### Mining
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /mining | Mining summary: hashrate, difficulty, pools |
-| GET | /mining/nextblock | Next block prediction |
-| GET | /mining/hashrate/history | Historical hashrate data |
-| GET | /mining/revenue | Current mining revenue |
-| GET | /mining/pools | Mining pool distribution |
-| GET | /mining/difficulty/history | Historical difficulty adjustments |
-| GET | /mining/revenue/history | Historical mining revenue |
+| GET | /api/v1/mining | Mining summary: hashrate, difficulty, pools |
+| GET | /api/v1/mining/nextblock | Next block prediction |
+| GET | /api/v1/mining/hashrate/history | Historical hashrate data |
+| GET | /api/v1/mining/revenue | Current mining revenue |
+| GET | /api/v1/mining/pools | Mining pool distribution |
+| GET | /api/v1/mining/difficulty/history | Historical difficulty adjustments |
+| GET | /api/v1/mining/revenue/history | Historical mining revenue |
 
 ### Network
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /network | Network info: version, connections, relay fee |
-| GET | /network/forks | Chain tips and forks |
-| GET | /network/difficulty | Difficulty adjustment progress and estimate |
-| GET | /network/validate-address/{address} | Validate a Bitcoin address |
+| GET | /api/v1/network | Network info: version, connections, relay fee |
+| GET | /api/v1/network/forks | Chain tips and forks |
+| GET | /api/v1/network/difficulty | Difficulty adjustment progress and estimate |
+| GET | /api/v1/network/validate-address/{address} | Validate a Bitcoin address |
 
 ### Supply & Statistics
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /supply | Circulating supply, halving info, inflation rate |
-| GET | /stats/utxo-set | UTXO set statistics |
-| GET | /stats/segwit-adoption | SegWit adoption metrics |
-| GET | /stats/op-returns | OP_RETURN usage statistics |
+| GET | /api/v1/supply | Circulating supply, halving info, inflation rate |
+| GET | /api/v1/stats/utxo-set | UTXO set statistics |
+| GET | /api/v1/stats/segwit-adoption | SegWit adoption metrics |
+| GET | /api/v1/stats/op-returns | OP_RETURN usage statistics |
 
 ### Prices & Tools
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /prices | BTC/USD price (multi-provider fallback) |
-| GET | /tools/exchange-compare | Compare exchange prices and fees |
+| GET | /api/v1/prices | BTC/USD price (multi-provider fallback) |
+| GET | /api/v1/tools/exchange-compare | Compare exchange prices and fees |
 
 ### Address (requires indexer)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /address/{address} | Address balance and transaction history |
-| GET | /address/{address}/utxos | UTXOs for an address |
+| GET | /api/v1/address/{address} | UTXO-set address balance summary |
+| GET | /api/v1/address/{address}/utxos | UTXOs for an address |
+| GET | /api/v1/indexed/address/{address}/balance | Indexed address balance |
+| GET | /api/v1/indexed/address/{address}/txs | Indexed address transaction history |
 
 ### Real-Time Streams (SSE)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /stream/blocks | New block notifications |
-| GET | /stream/fees | Fee rate changes |
-| GET | /stream/whale-txs | Large transaction alerts |
+| GET | /api/v1/stream/blocks | New block notifications |
+| GET | /api/v1/stream/fees | Fee rate changes |
+| GET | /api/v1/stream/whale-txs | Large transaction alerts |
 
 ### WebSocket
-| WS | /ws | Real-time subscriptions (blocks, fees, mempool) |
+| WS | /api/v1/ws | Real-time subscriptions (blocks, fees, mempool) |
 
 ### Registration & Billing
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | /register | Self-serve API key registration |
-| POST | /unsubscribe | Unsubscribe from emails |
-| POST | /billing/checkout | Create Stripe checkout session |
-| GET | /billing/status | Subscription status |
+| POST | /api/v1/register | Self-serve API key registration |
+| POST | /api/v1/unsubscribe | Unsubscribe from emails |
+| POST | /api/v1/billing/checkout | Create Stripe checkout session |
+| GET | /api/v1/billing/status | Subscription status |
 
 ### History Explorer
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /history/events | All curated Bitcoin history events |
-| GET | /history/events/{id} | Single event detail |
-| GET | /history/eras | All Bitcoin eras (Genesis → Ordinals) |
-| GET | /history/eras/{id} | Single era detail |
-| GET | /history/concepts | Protocol concepts (UTXO, SegWit, etc.) |
-| GET | /history/concepts/{id} | Single concept detail |
-| GET | /history/search?q={query} | Search events, eras, concepts |
+| GET | /api/v1/history/events | All curated Bitcoin history events |
+| GET | /api/v1/history/events/{id} | Single event detail |
+| GET | /api/v1/history/eras | All Bitcoin eras (Genesis → Ordinals) |
+| GET | /api/v1/history/eras/{id} | Single era detail |
+| GET | /api/v1/history/concepts | Protocol concepts (UTXO, SegWit, etc.) |
+| GET | /api/v1/history/concepts/{id} | Single concept detail |
+| GET | /api/v1/history/search?q={query} | Search events, eras, concepts |
 
 ### Guide
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /guide | API guide with categories and use cases |
-| GET | /guide/categories | All endpoint categories |
+| GET | /api/v1/guide | API guide with categories and use cases |
 
 ### Fee Observatory (x402 paid - $0.005)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /fees/observatory/scoreboard | Per-source accuracy ranking |
-| GET | /fees/observatory/block-stats | Per-block fee statistics |
-| GET | /fees/observatory/estimates | Multi-source fee estimate time series |
+| GET | /api/v1/fees/observatory/scoreboard | Per-source accuracy ranking |
+| GET | /api/v1/fees/observatory/block-stats | Per-block fee statistics |
+| GET | /api/v1/fees/observatory/estimates | Multi-source fee estimate time series |
 
 ### Status
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /health | API health check |
-| GET | /health/deep | Deep health check (node + DB) |
-| GET | /status | Service status and version |
-| GET | /x402-info | x402 payment information and pricing |
-| GET | /x402-demo | x402 demo (returns sample 402 format) |
+| GET | /api/v1/health | API health check |
+| GET | /api/v1/health/deep | Deep health check (node + DB) |
+| GET | /api/v1/status | Service status and version |
+| GET | /api/v1/x402-info | x402 payment information and pricing |
+| GET | /api/v1/x402-demo | x402 demo (returns sample 402 format) |
 
 ### JSON-RPC Proxy
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | /rpc | Proxy JSON-RPC calls to the Bitcoin Core node |
+| POST | /api/v1/rpc | Proxy JSON-RPC calls to the Bitcoin Core node |
 
 The `/api/v1/rpc` endpoint proxies standard JSON-RPC 2.0 requests directly to the underlying Bitcoin Core node. This is used by [bitcoin-mcp](https://github.com/Bortlesboat/bitcoin-mcp) for zero-config mode — when no local node is available, bitcoin-mcp routes all tool calls through this endpoint automatically.
 
@@ -302,22 +336,22 @@ Response:
 ## Common Agent Workflows
 
 ### 1. Fee optimization: Should I send now or wait?
-1. `GET /fees/recommended` — get current fee tiers and congestion level
-2. `GET /fees/savings` — see how much waiting would save
-3. `GET /fees/plan` — get optimal timing recommendation
+1. `GET /api/v1/fees/recommended` — get current fee tiers and congestion level
+2. `GET /api/v1/fees/savings` — see how much waiting would save
+3. `GET /api/v1/fees/plan` — get optimal timing recommendation
 4. Decision: if congestion is "low", send now at the slow rate. If "high", wait.
 
 ### 2. Transaction monitoring
-1. `POST /transactions/broadcast` — broadcast a signed transaction
-2. `GET /tx/{txid}/status` — poll for confirmation status
-3. `GET /blocks/latest` — check if tx is in the latest block
+1. `POST /api/v1/broadcast` — broadcast a signed transaction
+2. `GET /api/v1/tx/{txid}/status` — poll for confirmation status
+3. `GET /api/v1/blocks/latest` — check if tx is in the latest block
 4. Report: confirmed in block X after Y minutes.
 
 ### 3. Mempool congestion alerting
-1. `GET /mempool` — baseline congestion level
-2. `GET /stream/fees` (SSE) — subscribe to fee rate changes
+1. `GET /api/v1/mempool` — baseline congestion level
+2. `GET /api/v1/stream/fees` (SSE) — subscribe to fee rate changes
 3. When congestion drops from "high" to "moderate", alert the user
-4. `GET /fees/recommended` — provide updated fee recommendation
+4. `GET /api/v1/fees/recommended` — provide updated fee recommendation
 
 ## Paid Endpoints (x402 micropayments)
 
@@ -333,15 +367,15 @@ for per-request micropayments in USDC on Base:
 | /api/v1/fees/landscape | $0.005 | Rich mempool computation |
 
 ### How x402 works
-1. Request a paid endpoint without payment -> get HTTP 402 with `paymentRequirements`
+1. Request a paid endpoint without payment -> get HTTP 402 with `PAYMENT-REQUIRED`
 2. Sign a USDC payment on Base using the details in the 402 response
-3. Resend the request with the `X-PAYMENT` header containing the signed payment
+3. Resend the request with the `PAYMENT-SIGNATURE` header containing the signed payment
 4. Payment is verified by the x402 facilitator and you get the response
 
 **Payment info endpoint:** GET /api/v1/x402-info
 **Demo/sandbox:** GET /api/v1/x402-demo (free — returns a sample 402 so you can test your client)
 **Protocol spec:** https://x402.org
-**SDK:** https://github.com/coinbase/x402
+**SDK:** https://github.com/x402-foundation/x402
 
 ## Pricing (subscription tiers)
 
@@ -369,11 +403,32 @@ Claude Code: claude mcp add bitcoin -- bitcoin-mcp
 Zero-config: auto-falls back to hosted Satoshi API when no local node.
 MCP server card: https://bitcoinsapi.com/.well-known/mcp/server-card.json
 
+## GitHub and coding-agent integration
+
+For repositories that use coding agents, add Satoshi API to the repo's
+native instruction surfaces:
+
+- `AGENTS.md`
+- `CLAUDE.md`
+- `.github/copilot-instructions.md`
+- `.cursor/rules/satoshi-api.mdc` or equivalent
+- MCP config using `bitcoin-mcp`
+
+Canonical integration guide:
+https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/AGENT_INTEGRATION.md
+
+Core instruction for generated code: use `/api/v1` paths. If a paid
+endpoint returns `402`, parse `PAYMENT-REQUIRED` and retry with
+`PAYMENT-SIGNATURE`. Use https://bitcoinsapi.com/x402/start for the
+first paid call.
+
 ## Links
 
-- API docs (branded): https://bitcoinsapi.com/api-docs
+
 - API docs (OpenAPI/Swagger): https://bitcoinsapi.com/docs
 - MCP setup guide: https://bitcoinsapi.com/mcp-setup
+- Bitcoin MCP guide: https://bitcoinsapi.com/bitcoin-mcp
+- Bitcoin fee intelligence guide: https://bitcoinsapi.com/bitcoin-fee-intelligence
 - Protocol guide: https://bitcoinsapi.com/guide
 - History explorer: https://bitcoinsapi.com/history
 - Pricing: https://bitcoinsapi.com/pricing

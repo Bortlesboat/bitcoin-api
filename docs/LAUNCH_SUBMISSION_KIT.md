@@ -18,7 +18,7 @@ Satoshi API is the first Bitcoin MCP server on the Anthropic Registry. It gives 
 
 ## Long Description (1 paragraph)
 
-Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines multiple fee estimation targets with real-time mempool state to tell you exactly when to send and what to pay. Instead of calling `estimatesmartfee` five times and doing math, you get a single endpoint that says "Fees are low. Good time to send." — saving money on every transaction. It's the first Bitcoin API on the Anthropic MCP Registry, meaning AI agents like Claude and ChatGPT can check fees, verify payments, and monitor addresses without human intervention. Install with `pip install satoshi-api`, point it at your Bitcoin Core node, and you're running in 60 seconds. Self-hostable at $0/month, or use the free hosted tier at bitcoinsapi.com with no signup required. Apache-2.0 licensed, 616 tests, built by a Bitcoin Core contributor.
+Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines multiple fee estimation targets with real-time mempool state to tell you exactly when to send and what to pay. Instead of calling `estimatesmartfee` five times and doing math, you get a single endpoint that says "Fees are low. Good time to send." — saving money on every transaction. It's the first Bitcoin API on the Anthropic MCP Registry, meaning AI agents like Claude and ChatGPT can check fees, verify payments, and monitor addresses without human intervention. Install with `pip install satoshi-api`, point it at your Bitcoin Core node, and you're running in 60 seconds. Self-hostable at $0/month, or use the free hosted tier at bitcoinsapi.com with no signup required. Apache-2.0 licensed and built by a Bitcoin Core contributor.
 
 ---
 
@@ -49,6 +49,8 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 | Interactive Docs (Swagger) | https://bitcoinsapi.com/docs |
 | PyPI | https://pypi.org/project/satoshi-api/ |
 | MCP Server (companion) | https://github.com/Bortlesboat/bitcoin-mcp |
+| Agent Integration Guide | https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/AGENT_INTEGRATION.md |
+| x402 First Paid Call | https://bitcoinsapi.com/x402/start |
 | Discord Bot | https://github.com/Bortlesboat/satoshi-discord-bot |
 | Status Page | https://stats.uptimerobot.com/satoshi-api |
 | Discord Community | https://discord.gg/EB6Jd66EsF |
@@ -93,7 +95,11 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 
 **SaaSHub:** Compare against: mempool.space, BlockCypher, Blockchain.com API, Bitcore. Category: Cryptocurrency API.
 
-**awesome-lists:** Target `awesome-bitcoin`, `awesome-mcp-servers`, `awesome-fastapi`, `awesome-selfhosted`. Keep description to one line.
+**awesome-lists:** Target `awesome-bitcoin`, `awesome-mcp-servers`, `awesome-fastapi`, `awesome-selfhosted`, `awesome-x402`, and high-fit GitHub Copilot/agent-instruction lists. Keep description to one line and link to a live proof surface.
+
+**GitHub agent/Copilot lists:** Lead with the repo-native integration kit: `.github/copilot-instructions.md`, `docs/AGENT_INTEGRATION.md`, `bitcoin-mcp`, and `/x402/start`. Use `docs/GITHUB_AGENT_INTEGRATION_TARGETS.md` as the submission tracker.
+
+**x402 agent repos:** Good-fit examples include `google-agentic-commerce/a2a-x402`, `dabit3/a2a-x402-typescript`, `qntx/x402-openai-python`, `ethanniser/x402-mcp`, and `microchipgnu/MCPay`. Submit concrete paid-call snippets around `/api/v1/fees/landscape`; do not ask for generic promotion without a working integration example.
 
 ---
 
@@ -102,4 +108,4 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 - Current version: v0.3.4
 - Python: 3.10+
 - License: Apache-2.0
-- Tests: 616 (595 unit + 21 e2e)
+- Tests: use `python -m pytest --collect-only -q` for the current local inventory before submitting exact counts

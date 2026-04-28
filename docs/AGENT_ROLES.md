@@ -8,14 +8,14 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 
 | Fact | Value | Updated |
 |------|-------|---------|
-| **Version** | 0.3.4 | 2026-03-09 |
-| **Endpoints** | ~103 total (85 core + 7 history + 7 content + 4 indexer) | 2026-03-17 |
-| **Tests** | 595 unit + 21 e2e = 616 total | 2026-03-17 |
-| **Routers** | 29 (26 core + 3 indexer) | 2026-03-17 |
+| **Version** | Verify from `pyproject.toml` or the promoted release before quoting | 2026-04-28 |
+| **Endpoints** | Verify from route inventory and OpenAPI before quoting exact counts | 2026-04-28 |
+| **Tests** | Use `python -m pytest --collect-only -q` before quoting exact counts | 2026-04-28 |
+| **Routers** | Verify from `src/bitcoin_api/main.py` before quoting exact counts | 2026-04-28 |
 | **Live URL** | https://bitcoinsapi.com | — |
 | **Infra cost** | ~$3/mo | 2026-03-08 |
-| **Revenue** | Pre-revenue (Stripe wired, Pro tier hidden) | 2026-03-08 |
-| **Latest release** | v0.3.4 — RPC proxy endpoint for bitcoin-mcp zero-config, 616 tests, ~103 endpoints (85 core + 7 history + 7 content + 4 indexer), 29 routers (26 core + 3 indexer) | 2026-03-17 |
+| **Revenue** | x402 live; use the x402 ledger and real-paid notifier for current paid-usage status | 2026-04-23 |
+| **Latest release** | Verify the `bitcoin-api-current` promoted release and live health checks before quoting release facts | 2026-04-28 |
 | **MCP tools** | 49 tools, 6 prompts, 7 resources (bitcoin-mcp) | 2026-03-17 |
 | **Launch status** | **LAUNCH SPRINT ACTIVE** — content pipeline loaded, T-0 = Show HN Tuesday | 2026-03-09 |
 | **Open issues** | None critical — legal audit PASS w/ 3 false-positive warnings (static links, not data processors) | 2026-03-09 |
@@ -77,7 +77,7 @@ Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
 | **UX** | Monitor first-user experience. Flag any onboarding friction from HN/Reddit feedback. | T+1 through T+7 |
 | **Finance** | Baseline pre-launch metrics. Track CAC by channel after launch. | T-1, T+7 |
 | **Agent Advocate** | Verify SDK client works against live API. Monitor MCP directory acceptance. | Before T-0, ongoing |
-| **Admin Assistant** | Stamp all content with correct counts (49 MCP tools, ~103 endpoints, 616 tests). Verify cross-doc consistency. | Before T-0 |
+| **Admin Assistant** | Verify volatile counts from route inventory, OpenAPI, and `pytest --collect-only`; do not stamp stale hardcoded totals. | Before T-0 |
 | **QA** | Run full test suite pre-launch. Verify examples/ code runs. | Before T-0 |
 | **Security** | Monitor for abuse after HN traffic spike. | T+0 through T+3 |
 | **Analytics** | Set up PostHog funnel: visit → register → first call → 3+ calls. | Before T-0 |
@@ -198,6 +198,7 @@ When a change of the given type occurs, the listed agents should be triggered fo
 | Config/env var change | Architect, Security, Admin Assistant (env doc sync), **update OPERATIONS.md** |
 | Deployment/process change | Architect, **update OPERATIONS.md** |
 | Customer journey change | PM, UX, Marketing, **Agent Advocate** |
+| Agent instruction or MCP/x402 integration docs change | **Agent Advocate**, Marketing, QA Lead, Admin Assistant |
 | Infrastructure cost change | Finance, Architect |
 | Competitive landscape shift | PM, Marketing |
 | Revenue/usage milestone | Finance, PM |
@@ -253,11 +254,11 @@ Track the last run of each agent for staleness detection.
 | Marketing | 2026-03-09 | **PASS WITH WARNINGS (7)**: 0 errors, 7 advisory warnings (all false positives: cross-product version refs + technical section endpoint counts). Fixed: 5 errors (82→83 endpoints in 2 drafts, 40→43 MCP tools in 2 files, stale versions in 5 files), plus 8 stale test counts, 4 stale version refs. All content pipeline assets verified accurate. | Marketing Sync | Admin, QA |
 | Security | 2026-03-09 | WARN (8): CSP unsafe-inline, no pip audit — no critical issues | All-Hands | Architect, QA |
 | Architect | 2026-03-09 | WARN (3): AGENT_ROLES numbers stale, MCP endpoint count hardcoded wrong, 3 core modules missing from CLAUDE.md Key Files. 8/10 quality. workers=1 confirmed (rate limit bypass resolved). | Architecture Review | QA, Admin |
-| QA | 2026-03-09 | PASS: 616/616 tests (595 unit + 21 e2e). SOW missing test_rpc_proxy.py — FIXED. No MCP server unit tests (coverage gap). | QA Review | Admin |
+| QA | 2026-03-09 | Historical PASS at then-current launch count. Current test inventory is volatile; quick reference now records the latest collected count and command. SOW missing test_rpc_proxy.py — FIXED. No MCP server unit tests (coverage gap). | QA Review | Admin |
 | Analytics | 2026-03-09 | WARN (4): MCP path not usage-logged, /rpc proxy RPC method not tracked, registration_ip column unused, activation funnel endpoint EXISTS but PostHog funnel not defined. 14 checks passed. | Analytics Review | PM, Architect, Ops |
 | Ops | 2026-03-09 | WARN (7): no DB backup schedule, unbounded api.log. **ACTION: Fix log rotation + DB backup before launch traffic.** | All-Hands | Admin, Architect |
 | Agent Advocate | 2026-03-09 | **UPDATED**: Python SDK client created (`examples/satoshi_client.py`, 46 methods). Fee dashboard tutorial created + verified. DX audit framework adopted from agency-agents Developer Advocate consult. | Agency Consult + CEO | Architecture, PM, QA |
-| Admin Assistant | 2026-03-17 | **DONE: Stamped 49 MCP tools, ~103 endpoints, 616 tests across all docs.** `LAUNCH_SUBMISSION_KIT.md` counts updated to match live state. | Agency Consult | Marketing, Architect |
+| Admin Assistant | 2026-03-17 | **SUPERSEDED:** Mar 17 hardcoded counts were replaced by the Apr 23 verified inventory and collection command. `LAUNCH_SUBMISSION_KIT.md` should use dated counts only. | Agency Consult | Marketing, Architect |
 
 ## Performance Tracking
 
@@ -308,10 +309,10 @@ When two agents disagree, apply this priority order (highest wins):
 | Role | Signal to Hire | Current State |
 |------|---------------|---------------|
 | DevOps/SRE | Deploy fails 2+/month OR multi-server OR uptime <99% | Single server, manual deploy works |
-| Customer Success | First Pro user OR 3+ support emails/week | Zero paying users |
+| Customer Success | First recurring Pro user OR 3+ support emails/week | x402 live; recurring Pro users unverified |
 | Data Engineer | 3+ schema changes/month OR usage_log >1M rows | Single SQLite table |
-| Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | Pre-revenue |
-| Technical Writer | 3+ doc complaints OR >100 endpoints AND >10 paying users | ~103 endpoints, self-documented |
+| Growth/Sales | MRR >$500 OR 5+ enterprise inquiries | x402 live; recurring MRR not established |
+| Technical Writer | 3+ doc complaints OR >100 routes AND >10 paying users | Verify current route count before quoting |
 | Compliance Officer | Regulated jurisdiction OR user funds OR PII >10K records | Minimal PII |
 
 ---

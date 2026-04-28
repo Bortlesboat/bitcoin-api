@@ -22,7 +22,7 @@
 
 <div align="center">
 
-**725 tests** · **~115 endpoints** · **28 routers** · **Live at [bitcoinsapi.com](https://bitcoinsapi.com)** · **Apache 2.0**
+**Live at [bitcoinsapi.com](https://bitcoinsapi.com)** &middot; **MCP-ready** &middot; **x402 pay-per-call** &middot; **Apache 2.0**
 
 </div>
 
@@ -58,15 +58,15 @@ curl http://localhost:9332/api/v1/fees/recommended | jq
 
 ## Core Endpoints
 
-| Category | Endpoints | Highlights |
-|----------|-----------|------------|
-| **Blocks** | 8 | Latest block, by height/hash, stats, txids, header |
-| **Transactions** | 7 | Decoded analysis, status, outspends, UTXO lookup, broadcast |
-| **Fees** | 7 | Recommendations, landscape ("send now or wait?"), history, mempool-blocks |
-| **Mempool** | 5 | Congestion score, fee buckets, recent entries |
-| **Mining** | 2 | Hashrate, difficulty, next block template |
-| **Network** | 4 | Peers, forks, difficulty, address validation |
-| **Streams** | 2 | Real-time blocks & fees via SSE |
+| Category | Example paths | Highlights |
+|----------|---------------|------------|
+| **Fees** | `/api/v1/fees/recommended`, `/api/v1/fees/plan` | Recommendations, landscape ("send now or wait?"), history, mempool-blocks |
+| **Transactions** | `/api/v1/tx/{txid}`, `/api/v1/broadcast` | Decoded analysis, status, outspends, UTXO lookup, broadcast |
+| **Mempool** | `/api/v1/mempool`, `/api/v1/mempool/recent` | Congestion score, fee buckets, recent entries |
+| **Blocks** | `/api/v1/blocks/latest`, `/api/v1/blocks/{height_or_hash}` | Latest block, by height/hash, stats, txids, header |
+| **Mining** | `/api/v1/mining`, `/api/v1/mining/nextblock` | Hashrate, difficulty, next block template |
+| **Network** | `/api/v1/network`, `/api/v1/network/difficulty` | Peers, forks, difficulty, address validation |
+| **Streams** | `/api/v1/stream/blocks`, `/api/v1/stream/fees` | Real-time blocks & fees via SSE |
 
 ...and more (prices, address lookups, exchange comparison). [Full interactive docs at `/docs`](https://bitcoinsapi.com/docs).
 
@@ -89,6 +89,10 @@ Or connect to a local node directly:
   }
 }
 ```
+
+For repo-native agent instructions, use [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md). It includes copy-paste snippets for `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, Cursor/Windsurf rules, MCP config, and x402 paid calls.
+
+For keyless premium calls, start at [bitcoinsapi.com/x402/start](https://bitcoinsapi.com/x402/start). The paid flow is: discover `/.well-known/x402`, request a paid `/api/v1` endpoint, read `PAYMENT-REQUIRED`, then retry with `PAYMENT-SIGNATURE`.
 
 ## Self-Hosting
 
@@ -135,6 +139,6 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 **[Live API](https://bitcoinsapi.com/docs)** &middot; **[Website](https://bitcoinsapi.com)** &middot; **[PyPI](https://pypi.org/project/satoshi-api/)** &middot; **[MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)** &middot; **[Roadmap](docs/ROADMAP.md)**
 
-Built by a [Bitcoin Core contributor](https://github.com/Bortlesboat). **902 tests** across the ecosystem.
+Built by a [Bitcoin Core contributor](https://github.com/Bortlesboat). Run `python -m pytest --collect-only -q` for the current test inventory.
 
 </div>

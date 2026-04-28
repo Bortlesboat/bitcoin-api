@@ -236,6 +236,7 @@ def register_static_routes(app: FastAPI):
             "how-to-reduce-bitcoin-transaction-fees",
             "bitcoin-api-for-aml-compliance",
             "terms", "privacy", "disclaimer", "visualizer", "pricing", "about", "guide",
+            "api-docs",
             "mcp-setup", "ai", "fees", "x402",
         }
         if page in allowed:

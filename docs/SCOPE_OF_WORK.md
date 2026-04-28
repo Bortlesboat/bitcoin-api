@@ -536,18 +536,23 @@ Errors follow the same structure:
 - `.env.example`, `.env.production.example`
 - `cloudflared-config.yml.example`
 
-**Documentation (6 files):**
+**Documentation (agent-ready files included):**
 - `README.md`, `CHANGELOG.md`, `blog-post.md`
 - `docs/self-hosting.md`, `docs/bitcoin-conf-example.conf`
 - `docs/OPERATIONS.md` -- How to run, restart, configure, use analytics, run agents
+- `docs/AGENT_INTEGRATION.md` -- Copy-paste kit for adding Satoshi API to `AGENTS.md`, `CLAUDE.md`, GitHub Copilot instructions, MCP config, and x402 paid-call docs in other repos
+- `docs/GITHUB_AGENT_INTEGRATION_TARGETS.md` -- Submission tracker for GitHub/Copilot, MCP, and x402 agent ecosystem targets
 
-**CI/CD (2 active files):**
+**CI/CD and GitHub agent surfaces:**
 - `.github/workflows/ci.yml` -- Tests + lint on push
 - `.github/workflows/publish.yml` -- PyPI publish on release
+- `.github/copilot-instructions.md` -- Repo-native GitHub Copilot/Coding Agent instructions for Satoshi API, bitcoin-mcp, and x402 first paid calls
+- `.github/ISSUE_TEMPLATE/agent-integration.md` -- Intake template for agent, MCP, and x402 integration requests
 - ~~`.github/workflows/pages.yml`~~ -- Removed (static pages served by FastAPI, not GitHub Pages)
 
-**Project config (1 file):**
+**Project config:**
 - `CLAUDE.md` -- Project instructions for AI-assisted development
+- `AGENTS.md` -- Repo instructions for Codex and other agent runners
 
 **Scripts (14 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
@@ -837,6 +842,7 @@ twine upload dist/*
 - Layers on via `enable_x402(app, ...)` — no code in core API
 - Uses Coinbase x402 SDK for USDC payment verification on Base
 - 5 gated endpoints: ai/*, broadcast, mining/nextblock, fees/observatory/*, fees/landscape
+- Agent integration: `.github/copilot-instructions.md` and `docs/AGENT_INTEGRATION.md` give Copilot, Codex, Claude, Cursor/Windsurf-style rule files, and MCP clients a copy-paste Satoshi API setup path with `/api/v1` canonical paths, `bitcoin-mcp`, and `/x402/start`
 - Dashboard at `/x402`, analytics at `/api/v1/x402-stats`
 - Repository: github.com/Bortlesboat/bitcoin-api-x402
 
