@@ -94,6 +94,39 @@ class TestRequestId:
         assert "X-Request-ID" in resp.headers
 
 
+class TestX402TierPreservation:
+    def test_paid_x402_tier_survives_anonymous_auth(self):
+        from fastapi import Depends, FastAPI
+        from fastapi.testclient import TestClient
+
+        from bitcoin_api.auth import require_api_key
+        from bitcoin_api.middleware import register_middleware
+
+        test_app = FastAPI()
+        register_middleware(test_app)
+
+        @test_app.get("/paid")
+        def paid_endpoint(tier: str = Depends(require_api_key)):
+            return {"tier": tier}
+
+        class PrepaidScopeWrapper:
+            def __init__(self, app):
+                self.app = app
+
+            async def __call__(self, scope, receive, send):
+                if scope["type"] == "http":
+                    scope.setdefault("state", {})
+                    scope["state"]["tier"] = "pro"
+                    scope["state"]["key_hash"] = "x402-paid"
+                await self.app(scope, receive, send)
+
+        with TestClient(PrepaidScopeWrapper(test_app)) as test_client:
+            resp = test_client.get("/paid")
+
+        assert resp.status_code == 200
+        assert resp.json() == {"tier": "pro"}
+
+
 class TestRateLimitSkipPaths:
     def test_health_is_skipped(self):
         assert "/api/v1/health" in _RATE_LIMIT_SKIP
@@ -104,8 +137,8 @@ class TestRateLimitSkipPaths:
     def test_guide_is_skipped(self):
         assert "/api/v1/guide" in _RATE_LIMIT_SKIP
 
-    def test_openapi_json_is_skipped(self):
-        assert "/openapi.json" in _RATE_LIMIT_SKIP
+    def test_api_openapi_json_is_skipped(self):
+        assert "/api/openapi.json" in _RATE_LIMIT_SKIP
 
     def test_robots_txt_is_skipped(self):
         assert "/robots.txt" in _RATE_LIMIT_SKIP

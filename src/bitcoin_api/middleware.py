@@ -270,8 +270,13 @@ def register_middleware(app: FastAPI):
 
         # --- Authentication ---
         key_info = authenticate(request)
-        request.state.tier = key_info.tier
-        request.state.key_hash = key_info.key_hash
+        # x402 payment middleware runs before this one and may have authenticated
+        # an anonymous caller via on-chain payment (tier="pro"). Don't clobber it —
+        # otherwise paid /ai/* and other gated endpoints reject valid x402 callers
+        # with 403 because require_api_key() sees tier="anonymous".
+        if getattr(request.state, "tier", None) != "pro":
+            request.state.tier = key_info.tier
+            request.state.key_hash = key_info.key_hash
 
         if key_info.tier == "invalid":
             resp = _error_response(401, "Unauthorized",

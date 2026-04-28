@@ -426,6 +426,7 @@ Errors follow the same structure:
 38. **Hardcoded fee URL** -- Live fee fetch changed from absolute `https://bitcoinsapi.com/...` to relative `/api/v1/...`
 39. **Pro checkout dead end** -- "Upgrade to Pro" button returned 503; changed to "Contact for Pro" mailto link
 40. **Watchdog stale code** -- `API_DIR` resolved relative to script location (broke when Task Scheduler ran old release copy); now uses `releases/bitcoin-api-current` symlink
+41. **x402 paid tier overwritten** -- Auth middleware now preserves a `pro` tier set upstream by paid x402 middleware so valid paid callers can reach API-key-gated endpoints.
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
@@ -481,9 +482,9 @@ Errors follow the same structure:
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
-| 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning. | 6 |
+| 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning, paid-tier preservation in auth middleware. | 7 |
 | 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
-| **Total** | **~117 endpoints (90 core + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **604 unit + 21 e2e** |
+| **Total** | **~117 endpoints (90 core + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **605 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
