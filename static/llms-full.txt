@@ -415,7 +415,7 @@ native instruction surfaces:
 - MCP config using `bitcoin-mcp`
 
 Canonical integration guide:
-https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/AGENT_INTEGRATION.md
+https://github.com/Bortlesboat/bitcoin-api/blob/master/docs/AGENT_INTEGRATION.md
 
 Core instruction for generated code: use `/api/v1` paths. If a paid
 endpoint returns `402`, parse `PAYMENT-REQUIRED` and retry with

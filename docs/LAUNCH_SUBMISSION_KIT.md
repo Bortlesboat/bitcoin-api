@@ -49,7 +49,7 @@ Bad fee timing burns sats on every Bitcoin transaction. Satoshi API combines mul
 | Interactive Docs (Swagger) | https://bitcoinsapi.com/docs |
 | PyPI | https://pypi.org/project/satoshi-api/ |
 | MCP Server (companion) | https://github.com/Bortlesboat/bitcoin-mcp |
-| Agent Integration Guide | https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/AGENT_INTEGRATION.md |
+| Agent Integration Guide | https://github.com/Bortlesboat/bitcoin-api/blob/master/docs/AGENT_INTEGRATION.md |
 | x402 First Paid Call | https://bitcoinsapi.com/x402/start |
 | Discord Bot | https://github.com/Bortlesboat/satoshi-discord-bot |
 | Status Page | https://stats.uptimerobot.com/satoshi-api |

@@ -19,7 +19,7 @@ I've been building two complementary tools and would appreciate feedback from ot
 - 725 tests, CI/CD, Apache 2.0
 - Self-hostable: `pip install satoshi-api && satoshi-api`
 
-Architecture details: https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/ARCHITECTURE.md
+Architecture details: https://github.com/Bortlesboat/bitcoin-api/blob/master/docs/ARCHITECTURE.md
 
 **2. bitcoin-mcp** — MCP server giving AI agents Bitcoin access
 

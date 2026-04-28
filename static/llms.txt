@@ -97,7 +97,7 @@ Recommended repo files:
 - .cursor/rules/satoshi-api.mdc or equivalent
 
 Canonical integration guide:
-https://github.com/Bortlesboat/bitcoin-api/blob/main/docs/AGENT_INTEGRATION.md
+https://github.com/Bortlesboat/bitcoin-api/blob/master/docs/AGENT_INTEGRATION.md
 
 ## Agent discovery surfaces
 
