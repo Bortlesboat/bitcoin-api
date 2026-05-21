@@ -77,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~127 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 4 indexer + 3 x402)
+### 3.1 Endpoints (~128 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 4 indexer + 3 x402 + 1 x402 demand analytics)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -150,6 +150,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/analytics/overview` | GET | Admin key |
 | | `/api/v1/analytics/requests` | GET | Admin key |
 | | `/api/v1/analytics/endpoints` | GET | Admin key |
+| | `/api/v1/analytics/endpoint-backlog` | GET | Admin key |
 | | `/api/v1/analytics/errors` | GET | Admin key |
 | | `/api/v1/analytics/user-agents` | GET | Admin key |
 | | `/api/v1/analytics/latency` | GET | Admin key |
@@ -224,7 +225,7 @@ Endpoints are grouped into Core (always on) and Extended (toggleable via feature
 | **Alerts** | alerts (fee alerts, tx watches) | Always enabled (requires API key) |
 | **Indexer** | indexed address, indexed tx, indexer status | `ENABLE_INDEXER` (default: false) |
 | **Content** | history | `enable_history_explorer` (default: true) |
-| **x402** | x402_stats, x402-info, x402-demo | `ENABLE_X402` (default: false) |
+| **x402** | x402_stats, x402-info, x402-demo, analytics endpoint-backlog | `ENABLE_X402` (default: false); endpoint-backlog remains admin-key protected |
 
 All flags default to `true` so tests pass unchanged and Swagger `/docs` shows everything. Production `.env` controls what's actually exposed.
 
@@ -427,6 +428,8 @@ Errors follow the same structure:
 39. **Pro checkout dead end** -- "Upgrade to Pro" button returned 503; changed to "Contact for Pro" mailto link
 40. **Watchdog stale code** -- `API_DIR` resolved relative to script location (broke when Task Scheduler ran old release copy); now uses `releases/bitcoin-api-current` symlink
 41. **x402 paid tier overwritten** -- Auth middleware now preserves a `pro` tier set upstream by paid x402 middleware so valid paid callers can reach API-key-gated endpoints.
+42. **x402 endpoint demand intelligence** -- Admin-only `/api/v1/analytics/endpoint-backlog` aggregates usage and x402 payment rows into normalized endpoint patterns, conversion/failure/repeat-use signals, leverage and priority scores, and safe next-action evidence. It strips query strings and buckets wallet/tx/address/id-like path segments so responses do not expose raw IPs, User-Agents, referrers, API key hashes, payment IDs, pay-to addresses, or payment proofs.
+43. **x402 onboarding copy measurement** -- `/api/v1/x402-info` and `/api/v1/x402-demo` now steer first-time agents toward low-risk fee-savings calls such as `/api/v1/fees/landscape`, label discovery/challenge/payment/repeat funnel stages, and explicitly warn demo callers not to attach real wallet or payment material.
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
@@ -484,7 +487,8 @@ Errors follow the same structure:
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning, paid-tier preservation in auth middleware. | 7 |
 | 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
-| **Total** | **~117 endpoints (90 core + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **605 unit + 21 e2e** |
+| 36 | x402 demand intelligence: admin-only `/api/v1/analytics/endpoint-backlog`, privacy-safe endpoint normalization, aggregate conversion/failure/repeat-use scoring, and first-call x402 info/demo copy that labels safe funnel metrics without prompting real payment material on demo calls. | 6 |
+| **Total** | **~118 endpoints (90 core + 1 x402 demand analytics + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **611 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 

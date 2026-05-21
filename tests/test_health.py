@@ -106,6 +106,76 @@ def test_healthz_no_rpc(client):
     assert resp.json()["status"] == "ok"
 
 
+def test_x402_info_guides_low_risk_first_call_without_payment_material(client):
+    """x402 info should guide agents toward safe first-call evaluation, not blind spending."""
+    resp = client.get("/api/v1/x402-info")
+    assert resp.status_code == 200
+    data = resp.json()
+    serialized = resp.text
+
+    if data.get("x402") is False:
+        assert data["message"] == "x402 payments are not enabled on this instance."
+        return
+
+    assert data["positioning"] == "Bitcoin fee intelligence that saves you money on every transaction."
+    assert data["firstCall"]["endpoint"] == "/api/v1/fees/landscape"
+    assert "save money" in data["firstCall"]["buyer_value"].lower()
+    assert data["measurement"]["onboarding_variant"] == "fee-savings-first-call"
+    assert data["measurement"]["safe_to_log"] == [
+        "endpoint_pattern",
+        "status_bucket",
+        "client_type_bucket",
+        "onboarding_variant",
+    ]
+    assert "do_not_log" in data["measurement"]
+
+    payment_header = "X-" + "PAYMENT"
+    forbidden_phrases = [
+        "Sign a USDC payment on Base",
+        f"resend with {payment_header} header",
+        "Try a real paid endpoint",
+        "payment accepted",
+    ]
+    for phrase in forbidden_phrases:
+        assert phrase not in serialized
+
+    forbidden_fields = ["payment_id", "client_ip", "user_agent", "private_key", "signature"]
+    for field in forbidden_fields:
+        assert field not in serialized
+
+
+def test_x402_demo_copy_is_measureable_and_avoids_real_payment_prompt(client):
+    """Demo 402 copy should teach the flow while discouraging real payment headers."""
+    resp = client.get("/api/v1/x402-demo")
+    assert resp.status_code == 402
+    data = resp.json()
+    serialized = resp.text
+
+    assert data["x402_demo"] is True
+    assert data["onboarding_variant"] == "demo-no-payment-safe"
+    assert data["recommended_first_paid_endpoint"] == "/api/v1/fees/landscape"
+    assert "do not attach a real payment" in data["agent_guidance"].lower()
+    assert data["safe_measurement"] == {
+        "stage": "challenge",
+        "variant": "demo-no-payment-safe",
+        "endpoint_pattern": "/api/v1/x402-demo",
+    }
+
+    payment_header = "X-" + "PAYMENT"
+    forbidden_phrases = [
+        "Sign a USDC payment on Base",
+        f"Resend the original request with the {payment_header} header containing the signed payment",
+        f"curl -H '{payment_header}: demo-token'",
+        "Try a real paid endpoint",
+    ]
+    for phrase in forbidden_phrases:
+        assert phrase not in serialized
+
+    assert data["paymentRequirements"]["maxAmountRequired"] == "0"
+    demo_pay_to = "0x" + "0" * 40
+    assert data["paymentRequirements"]["payTo"] == demo_pay_to
+
+
 def test_history_nav_hidden_when_history_explorer_disabled(client):
     original = settings.enable_history_explorer
     try:
