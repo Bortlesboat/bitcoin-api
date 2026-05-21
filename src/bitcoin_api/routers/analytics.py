@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from ..services.analytics import (
+    build_endpoint_backlog,
     interval_secs,
     period_sql,
     query_column,
@@ -851,6 +852,15 @@ def analytics_referrers(
             for r in rows
         ]
     }
+
+
+@router.get("/endpoint-backlog", dependencies=[Depends(_require_admin)])
+def analytics_endpoint_backlog(
+    period: str = Query("7d", pattern="^(1h|6h|24h|7d|30d)$"),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """Aggregate, privacy-safe endpoint demand backlog for admins."""
+    return {"data": build_endpoint_backlog(period=period, limit=limit)}
 
 
 @router.get("/funnel", dependencies=[Depends(_require_admin)])

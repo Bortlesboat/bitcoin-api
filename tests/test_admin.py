@@ -230,6 +230,206 @@ def test_analytics_founder_requires_admin(client):
     assert resp.status_code == 403
 
 
+def test_analytics_endpoint_backlog_requires_admin(client):
+    """Endpoint backlog analytics should be admin-only."""
+    resp = client.get("/api/v1/analytics/endpoint-backlog")
+    assert resp.status_code == 403
+
+
+def test_analytics_endpoint_backlog_rejects_wrong_key(client):
+    """Endpoint backlog analytics should reject invalid admin keys."""
+    resp = client.get("/api/v1/analytics/endpoint-backlog", headers={"X-Admin-Key": "wrong"})
+    assert resp.status_code == 403
+
+
+def test_analytics_endpoint_backlog_returns_aggregate_safe_candidates(admin_client):
+    """Endpoint backlog should rank aggregate demand without exposing raw actors."""
+    from bitcoin_api.db import get_db
+
+    db = get_db()
+    raw_address = "bc1q" + "a" * 38
+    raw_endpoint = f"/api/v1/address/{raw_address}/balance?debug=true"
+    key_hash = "".join(["sensitive-key", "-hash-should-not-leak"])
+    raw_ip = "redacted-client-ip"
+    raw_user_agent = "redacted-sensitive-user-agent"
+    raw_referrer = "redacted-referrer-session"
+    raw_payment_id = "payment-id-should-not-leak"
+    raw_pay_to = "0x" + "b" * 40
+
+    db.executemany(
+        "INSERT INTO usage_log "
+        "(key_hash, endpoint, status, method, response_time_ms, user_agent, client_type, referrer, client_ip, error_type, ts) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-1 hour'))",
+        [
+            (key_hash, raw_endpoint, 404, "GET", 121.5, raw_user_agent, "ai-agent", raw_referrer, raw_ip, "not_found"),
+            (None, raw_endpoint, 402, "GET", 98.0, raw_user_agent, "bitcoin-mcp", raw_referrer, raw_ip, "payment_required"),
+        ],
+    )
+    db.executemany(
+        "INSERT INTO x402_payments "
+        "(endpoint, price_usd, payment_status, pay_to, client_ip_hash, payment_id, user_agent, timestamp) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', '-1 hour'))",
+        [
+            (raw_endpoint, "$0.05", "challenged", raw_pay_to, "hashed-client-ip", raw_payment_id, raw_user_agent),
+            (raw_endpoint, "$0.05", "paid", raw_pay_to, "hashed-client-ip", raw_payment_id, raw_user_agent),
+            (raw_endpoint, "$0.05", "failed", raw_pay_to, "hashed-client-ip", raw_payment_id, raw_user_agent),
+        ],
+    )
+    db.commit()
+
+    resp = admin_client.get("/api/v1/analytics/endpoint-backlog?period=7d&limit=5")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+
+    assert data["period"] == "7d"
+    assert "summary" in data
+    assert "candidates" in data
+    assert data["summary"]["total_candidates"] >= 1
+
+    candidate = data["candidates"][0]
+    assert candidate["endpoint_pattern"] == "/api/v1/address/{address}/balance"
+    assert candidate["request_count"] == 2
+    assert candidate["x402_challenges"] == 1
+    assert candidate["x402_paid"] == 1
+    assert candidate["x402_failed"] == 1
+    assert candidate["estimated_revenue_usd"] == 0.05
+    assert candidate["agent_request_count"] == 2
+    assert candidate["anonymous_request_count"] == 1
+    assert isinstance(candidate["leverage_score"], (int, float))
+    assert candidate["leverage_score"] > 0
+
+    serialized = resp.text
+    forbidden_values = [
+        raw_address,
+        key_hash,
+        raw_ip,
+        raw_user_agent,
+        raw_referrer,
+        raw_payment_id,
+        raw_pay_to,
+        "hashed-client-ip",
+    ]
+    for value in forbidden_values:
+        assert value not in serialized
+
+    forbidden_fields = [
+        "client_ip",
+        "client_ip_hash",
+        "user_agent",
+        "referrer",
+        "payment_id",
+        "pay_to",
+        "key_hash",
+        "raw_rows",
+    ]
+    for field in forbidden_fields:
+        assert field not in serialized
+
+
+def test_analytics_endpoint_backlog_ranks_conversion_and_exposes_safe_funnel(admin_client):
+    """Endpoint backlog should prioritize proven paid demand and expose aggregate funnel hooks."""
+    from bitcoin_api.db import get_db
+
+    db = get_db()
+    fee_endpoint = "/api/v1/fees/landscape"
+    high_challenge_endpoint = "/api/v1/ai/explain/transaction/" + "c" * 64
+    sensitive_user_agent = "redacted-sensitive-user-agent"
+    sensitive_referrer = "redacted-private-referrer-session"
+    sensitive_ip = "redacted-sensitive-client-ip"
+    sensitive_payment_id = "payment-proof-should-not-leak"
+    sensitive_pay_to = "0x" + "d" * 40
+    repeat_actor_hash = "repeat-client-ip-hash-should-not-leak"
+
+    usage_rows = []
+    usage_rows.extend(
+        (None, "/api/v1/x402-info", 200, "GET", 20.0, sensitive_user_agent, "ai-agent", sensitive_referrer, sensitive_ip, None)
+        for _ in range(12)
+    )
+    usage_rows.extend(
+        (None, fee_endpoint, 402, "GET", 45.0, sensitive_user_agent, "ai-agent", sensitive_referrer, sensitive_ip, "payment_required")
+        for _ in range(4)
+    )
+    usage_rows.extend(
+        (None, high_challenge_endpoint, 402, "GET", 55.0, sensitive_user_agent, "ai-agent", sensitive_referrer, sensitive_ip, "payment_required")
+        for _ in range(40)
+    )
+    db.executemany(
+        "INSERT INTO usage_log "
+        "(key_hash, endpoint, status, method, response_time_ms, user_agent, client_type, referrer, client_ip, error_type, ts) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-10 minutes'))",
+        usage_rows,
+    )
+
+    payment_rows = []
+    payment_rows.extend(
+        (fee_endpoint, "$0.005", "challenged", sensitive_pay_to, repeat_actor_hash, sensitive_payment_id, sensitive_user_agent)
+        for _ in range(3)
+    )
+    payment_rows.extend(
+        (fee_endpoint, "$0.005", "paid", sensitive_pay_to, repeat_actor_hash, sensitive_payment_id, sensitive_user_agent)
+        for _ in range(2)
+    )
+    payment_rows.append((fee_endpoint, "$0.005", "failed", sensitive_pay_to, repeat_actor_hash, sensitive_payment_id, sensitive_user_agent))
+    payment_rows.extend(
+        (high_challenge_endpoint, "$0.01", "challenged", sensitive_pay_to, "other-hash-should-not-leak", sensitive_payment_id, sensitive_user_agent)
+        for _ in range(40)
+    )
+    payment_rows.extend(
+        (high_challenge_endpoint, "$0.01", "failed", sensitive_pay_to, "other-hash-should-not-leak", sensitive_payment_id, sensitive_user_agent)
+        for _ in range(8)
+    )
+    db.executemany(
+        "INSERT INTO x402_payments "
+        "(endpoint, price_usd, payment_status, pay_to, client_ip_hash, payment_id, user_agent, timestamp) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', '-10 minutes'))",
+        payment_rows,
+    )
+    db.commit()
+
+    resp = admin_client.get("/api/v1/analytics/endpoint-backlog?period=24h&limit=10")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+
+    candidates = {candidate["endpoint_pattern"]: candidate for candidate in data["candidates"]}
+    fee = candidates["/api/v1/fees/landscape"]
+    high_challenge = candidates["/api/v1/ai/explain/transaction/{txid}"]
+
+    assert fee["priority_score"] > high_challenge["priority_score"]
+    assert [candidate["endpoint_pattern"] for candidate in data["candidates"]].index("/api/v1/fees/landscape") < [
+        candidate["endpoint_pattern"] for candidate in data["candidates"]
+    ].index("/api/v1/ai/explain/transaction/{txid}")
+    assert fee["stage_counts"] == {
+        "discovery": 0,
+        "challenge": 3,
+        "failure": 1,
+        "paid": 2,
+        "repeat": 1,
+    }
+    assert fee["conversion_rate_pct"] == 66.67
+    assert fee["failure_rate_pct"] == 25.0
+    assert "paid_x402_calls" in fee["evidence"]
+    assert "repeat_paid_use" in fee["evidence"]
+
+    funnel = data["summary"]["funnel"]
+    assert funnel["discovery_requests"] == 12
+    assert funnel["challenge_requests"] == 43
+    assert funnel["payment_failures"] == 9
+    assert funnel["paid_calls"] == 2
+    assert funnel["repeat_paid_actors"] == 1
+
+    serialized = resp.text
+    for sensitive in [
+        sensitive_user_agent,
+        sensitive_referrer,
+        sensitive_ip,
+        sensitive_payment_id,
+        sensitive_pay_to,
+        repeat_actor_hash,
+        "other-hash-should-not-leak",
+    ]:
+        assert sensitive not in serialized
+
+
 # --- Admin Dashboard ---
 
 
