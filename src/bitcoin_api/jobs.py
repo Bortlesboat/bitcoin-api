@@ -1,11 +1,20 @@
 """Background jobs: fee collector thread + fast market data ticker with health monitoring."""
 
+import json
 import logging
 import threading
 import time
+import urllib.request
+from datetime import datetime, timezone
 
-from .db import record_fee_snapshot, prune_fee_history, prune_old_logs
-from .cache import record_mempool_snapshot, feerate_to_sat_vb, set_market_data
+from .cache import feerate_to_sat_vb, record_mempool_snapshot, set_market_data
+from .db import (
+    prune_fee_history,
+    prune_old_logs,
+    record_block_confirmation,
+    record_fee_estimates_batch,
+    record_fee_snapshot,
+)
 from .metrics import BLOCK_HEIGHT, JOB_ERRORS
 from .pubsub import hub
 
@@ -15,7 +24,7 @@ _bg_stop = threading.Event()
 _bg_thread: threading.Thread | None = None
 _ticker_thread: threading.Thread | None = None
 
-# Health monitoring — exposed to /health/deep
+# Health monitoring - exposed to /health/deep
 _last_run_time: float | None = None
 _last_success_time: float | None = None
 _run_count: int = 0
@@ -51,6 +60,177 @@ def get_job_health(tier: str = "free") -> dict:
 _last_prune: float = 0.0
 
 
+def _fetch_mempool_space_fees() -> dict | None:
+    """Fetch public mempool.space fee recommendations for observability."""
+    try:
+        request = urllib.request.Request(
+            "https://mempool.space/api/v1/fees/recommended",
+            headers={"User-Agent": "SatoshiAPI/1.0", "Connection": "close"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return json.loads(response.read())
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        log.debug("mempool.space fee fetch failed: %s", exc)
+        return None
+
+
+def _capture_block_confirmation(
+    rpc,
+    height: int,
+    *,
+    core_est_1: float | None = None,
+    core_est_6: float | None = None,
+    core_est_144: float | None = None,
+    mempool_space_est: float | None = None,
+) -> None:
+    """Persist confirmation stats for a mined block."""
+    block_hash = rpc.call("getblockhash", height)
+    stats = rpc.call("getblockstats", height)
+    percentiles = stats.get("feerate_percentiles", [0, 0, 0, 0, 0])
+    block_time = datetime.fromtimestamp(
+        stats.get("time", stats.get("mediantime", 0)),
+        tz=timezone.utc,
+    ).strftime("%Y-%m-%d %H:%M:%S")
+
+    record_block_confirmation(
+        block_height=height,
+        block_hash=block_hash,
+        block_time=block_time,
+        tx_count=stats.get("txs", 0),
+        total_fees_sat=stats.get("totalfee", stats.get("total_fee", 0)),
+        min_feerate=stats.get("minfeerate", 0),
+        max_feerate=stats.get("maxfeerate", 0),
+        p10_feerate=percentiles[0] if len(percentiles) > 0 else 0,
+        p25_feerate=percentiles[1] if len(percentiles) > 1 else 0,
+        p50_feerate=percentiles[2] if len(percentiles) > 2 else 0,
+        p75_feerate=percentiles[3] if len(percentiles) > 3 else 0,
+        p90_feerate=percentiles[4] if len(percentiles) > 4 else 0,
+        core_est_1=core_est_1,
+        core_est_6=core_est_6,
+        core_est_144=core_est_144,
+        mempool_space_est=mempool_space_est,
+    )
+
+
+def _build_fee_estimate_entries(
+    next_block_fee: float,
+    median_fee: float,
+    low_fee: float,
+    *,
+    mempool_space_fees: dict | None = None,
+) -> list[tuple[str, int, float]]:
+    entries: list[tuple[str, int, float]] = [
+        ("core", 1, round(next_block_fee, 2)),
+        ("core", 6, round(median_fee, 2)),
+        ("core", 144, round(low_fee, 2)),
+    ]
+
+    if mempool_space_fees:
+        mapping = {
+            1: "fastestFee",
+            3: "halfHourFee",
+            6: "hourFee",
+            144: "economyFee",
+        }
+        for target, key in mapping.items():
+            value = mempool_space_fees.get(key)
+            if value is not None:
+                entries.append(("mempool_space", target, float(value)))
+
+    return entries
+
+
+def _run_fee_collector_iteration(rpc, *, previous_block_height: int | None = None) -> int:
+    """Run one fee collector pass and return the current tip height."""
+    info = rpc.call("getmempoolinfo")
+    next_block_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 1))
+    median_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 6))
+    low_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 144))
+    mempool_size = info.get("size", 0)
+    mempool_vsize = info.get("bytes", 0)
+
+    record_mempool_snapshot(
+        rpc,
+        mempool_info=info,
+        next_block_fee=next_block_fee,
+        low_fee=low_fee,
+    )
+
+    if mempool_vsize < 1_000_000:
+        congestion = "low"
+    elif mempool_vsize < 10_000_000:
+        congestion = "normal"
+    elif mempool_vsize < 50_000_000:
+        congestion = "elevated"
+    else:
+        congestion = "high"
+
+    record_fee_snapshot(
+        next_block_fee=round(next_block_fee, 2),
+        median_fee=round(median_fee, 2),
+        low_fee=round(low_fee, 2),
+        mempool_size=mempool_size,
+        mempool_vsize=mempool_vsize,
+        congestion=congestion,
+    )
+
+    block_count = rpc.call("getblockcount")
+    BLOCK_HEIGHT.set(block_count)
+
+    hub.publish(
+        "new_fees",
+        {
+            "next_block_fee": round(next_block_fee, 2),
+            "median_fee": round(median_fee, 2),
+            "low_fee": round(low_fee, 2),
+            "congestion": congestion,
+            "timestamp": int(time.time()),
+        },
+    )
+    hub.publish(
+        "mempool_update",
+        {
+            "size": mempool_size,
+            "vsize": mempool_vsize,
+            "congestion": congestion,
+            "timestamp": int(time.time()),
+        },
+    )
+
+    mempool_space_fees = _fetch_mempool_space_fees()
+    record_fee_estimates_batch(
+        _build_fee_estimate_entries(
+            next_block_fee,
+            median_fee,
+            low_fee,
+            mempool_space_fees=mempool_space_fees,
+        )
+    )
+
+    if previous_block_height is not None and previous_block_height != block_count:
+        hub.publish(
+            "new_block",
+            {
+                "height": block_count,
+                "timestamp": int(time.time()),
+            },
+        )
+        _capture_block_confirmation(
+            rpc,
+            block_count,
+            core_est_1=round(next_block_fee, 2),
+            core_est_6=round(median_fee, 2),
+            core_est_144=round(low_fee, 2),
+            mempool_space_est=(
+                float(mempool_space_fees["fastestFee"])
+                if mempool_space_fees and mempool_space_fees.get("fastestFee") is not None
+                else None
+            ),
+        )
+
+    return block_count
+
+
 def _fee_collector():
     """Background thread: snapshot mempool every 5 min for trend analysis + fee history.
 
@@ -68,61 +248,12 @@ def _fee_collector():
                 _run_count += 1
                 try:
                     rpc = _get_rpc_dep()
-
-                    # Fetch RPC data once, share with snapshot recorder
-                    info = rpc.call("getmempoolinfo")
-                    next_block_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 1))
-                    median_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 6))
-                    low_fee = feerate_to_sat_vb(rpc.call("estimatesmartfee", 144))
-                    mempool_size = info.get("size", 0)
-                    mempool_vsize = info.get("bytes", 0)
-
-                    # Reuse fetched data — avoids duplicate RPC calls
-                    record_mempool_snapshot(rpc, mempool_info=info,
-                                           next_block_fee=next_block_fee, low_fee=low_fee)
-
-                    if mempool_vsize < 1_000_000:
-                        congestion = "low"
-                    elif mempool_vsize < 10_000_000:
-                        congestion = "normal"
-                    elif mempool_vsize < 50_000_000:
-                        congestion = "elevated"
-                    else:
-                        congestion = "high"
-
-                    record_fee_snapshot(
-                        next_block_fee=round(next_block_fee, 2),
-                        median_fee=round(median_fee, 2),
-                        low_fee=round(low_fee, 2),
-                        mempool_size=mempool_size,
-                        mempool_vsize=mempool_vsize,
-                        congestion=congestion,
+                    previous_block_height = getattr(_fee_collector, "_last_block", None)
+                    block_count = _run_fee_collector_iteration(
+                        rpc,
+                        previous_block_height=previous_block_height,
                     )
                     _last_success_time = time.time()
-
-                    # Update Prometheus gauge
-                    block_count = rpc.call("getblockcount")
-                    BLOCK_HEIGHT.set(block_count)
-
-                    # Publish events to WebSocket subscribers
-                    hub.publish("new_fees", {
-                        "next_block_fee": round(next_block_fee, 2),
-                        "median_fee": round(median_fee, 2),
-                        "low_fee": round(low_fee, 2),
-                        "congestion": congestion,
-                        "timestamp": int(time.time()),
-                    })
-                    hub.publish("mempool_update", {
-                        "size": mempool_size,
-                        "vsize": mempool_vsize,
-                        "congestion": congestion,
-                        "timestamp": int(time.time()),
-                    })
-                    if hasattr(_fee_collector, "_last_block") and _fee_collector._last_block != block_count:
-                        hub.publish("new_block", {
-                            "height": block_count,
-                            "timestamp": int(time.time()),
-                        })
                     _fee_collector._last_block = block_count
 
                     # Auto-prune old data once per 24h
@@ -131,8 +262,11 @@ def _fee_collector():
                             pruned_logs = prune_old_logs(90)
                             pruned_fees = prune_fee_history(30)
                             _last_prune = time.time()
-                            log.info("Auto-prune: removed %d usage logs (>90d) and %d fee rows (>30d)",
-                                     pruned_logs, pruned_fees)
+                            log.info(
+                                "Auto-prune: removed %d usage logs (>90d) and %d fee rows (>30d)",
+                                pruned_logs,
+                                pruned_fees,
+                            )
                         except Exception as prune_exc:
                             log.warning("Auto-prune failed: %s", prune_exc)
 
@@ -142,8 +276,12 @@ def _fee_collector():
                     _error_count += 1
                     _last_error = str(exc)
                     JOB_ERRORS.inc()
-                    log.warning("Background fee collector failed (attempt %d, errors %d): %s",
-                                _run_count, _error_count, exc)
+                    log.warning(
+                        "Background fee collector failed (attempt %d, errors %d): %s",
+                        _run_count,
+                        _error_count,
+                        exc,
+                    )
 
                 _bg_stop.wait(300)
 
@@ -154,8 +292,13 @@ def _fee_collector():
             _error_count += 1
             _last_error = f"FATAL restart #{_restart_count}: {fatal}"
             JOB_ERRORS.inc()
-            log.error("Fee collector crashed (restart #%d, backoff %ds): %s",
-                      _restart_count, backoff, fatal, exc_info=True)
+            log.error(
+                "Fee collector crashed (restart #%d, backoff %ds): %s",
+                _restart_count,
+                backoff,
+                fatal,
+                exc_info=True,
+            )
             _bg_stop.wait(backoff)
             backoff = min(backoff * 2, 300)
 
@@ -179,15 +322,16 @@ def _market_data_ticker():
             # Mempool info (fast RPC, ~5ms)
             mempool = rpc.call("getmempoolinfo")
 
-            # Fee estimates — reuse cached values when available (30s TTL)
+            # Fee estimates - reuse cached values when available (30s TTL)
             from .cache import cached_fee_estimates
+
             try:
                 estimates = cached_fee_estimates(rpc)
                 fee_dict = {e.conf_target: e.fee_rate_sat_vb for e in estimates}
             except Exception:
                 fee_dict = {}
 
-            # Price (60s cache, external API — never blocks on network here)
+            # Price (60s cache, external API - never blocks on network here)
             price_data = {}
             try:
                 price_data = _get_cached_price()

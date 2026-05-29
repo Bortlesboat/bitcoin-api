@@ -110,6 +110,68 @@ def record_fee_snapshot(
     conn.commit()
 
 
+def record_block_confirmation(
+    block_height: int,
+    block_hash: str,
+    block_time: str,
+    tx_count: int,
+    total_fees_sat: int,
+    min_feerate: float,
+    max_feerate: float,
+    p10_feerate: float,
+    p25_feerate: float,
+    p50_feerate: float,
+    p75_feerate: float,
+    p90_feerate: float,
+    core_est_1: float | None = None,
+    core_est_6: float | None = None,
+    core_est_144: float | None = None,
+    mempool_local_est: float | None = None,
+    mempool_space_est: float | None = None,
+) -> None:
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO block_confirmations "
+        "(block_height, block_hash, block_time, tx_count, total_fees_sat, "
+        "min_feerate, max_feerate, p10_feerate, p25_feerate, p50_feerate, "
+        "p75_feerate, p90_feerate, core_est_1, core_est_6, core_est_144, "
+        "mempool_local_est, mempool_space_est) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            block_height,
+            block_hash,
+            block_time,
+            tx_count,
+            total_fees_sat,
+            min_feerate,
+            max_feerate,
+            p10_feerate,
+            p25_feerate,
+            p50_feerate,
+            p75_feerate,
+            p90_feerate,
+            core_est_1,
+            core_est_6,
+            core_est_144,
+            mempool_local_est,
+            mempool_space_est,
+        ),
+    )
+    conn.commit()
+
+
+def record_fee_estimates_batch(entries: list[tuple[str, int, float]]) -> None:
+    if not entries:
+        return
+
+    conn = get_db()
+    conn.executemany(
+        "INSERT INTO fee_estimates_log (source, target, feerate) VALUES (?, ?, ?)",
+        entries,
+    )
+    conn.commit()
+
+
 def get_fee_history(hours: int = 24, interval_minutes: int = 10) -> list[dict]:
     conn = get_db()
     rows = conn.execute(
