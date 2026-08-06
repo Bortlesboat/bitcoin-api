@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from bitcoinlib_rpc import BitcoinRPC
 
 from ..cache import cached_blockchain_info, cached_status
+from ..config import settings
 from ..dependencies import get_rpc
 from ..models import ApiResponse, HealthData, envelope, rpc_envelope
 
@@ -58,7 +59,10 @@ _STATUS_EXAMPLE = {
     }
 }
 
-@router.get("/health", response_model=ApiResponse[HealthData], responses=_HEALTH_EXAMPLE)
+
+@router.get(
+    "/health", response_model=ApiResponse[HealthData], responses=_HEALTH_EXAMPLE
+)
 def health(rpc: BitcoinRPC = Depends(get_rpc)):
     """Ping the node. No auth required."""
     info = cached_blockchain_info(rpc)
@@ -79,9 +83,15 @@ def status(rpc: BitcoinRPC = Depends(get_rpc)):
 @router.get("/x402-info")
 def x402_info():
     """x402 payment information. Shows which endpoints accept micropayments and how to pay."""
+    if not settings.enable_x402:
+        return {
+            "x402": False,
+            "message": "x402 payments are not enabled on this instance.",
+        }
+
     try:
         from bitcoin_api_x402.pricing import ENDPOINT_PRICES
-        from ..config import settings as _settings
+
         endpoints = [
             {
                 "pattern": ep.pattern,
@@ -91,12 +101,12 @@ def x402_info():
             for ep in ENDPOINT_PRICES
         ]
         return {
-            "x402": _settings.enable_x402,
+            "x402": True,
             "protocol": "https://x402.org",
             "version": 1,
             "scheme": "exact",
             "network": "eip155:8453",
-            "payTo": _settings.x402_pay_to_address,
+            "payTo": settings.x402_pay_to_address,
             "facilitatorUrl": "https://x402.org/facilitator",
             "positioning": "Bitcoin fee intelligence that saves you money on every transaction.",
             "firstCall": {
