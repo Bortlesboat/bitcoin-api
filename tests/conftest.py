@@ -1,6 +1,7 @@
 """Test fixtures for bitcoin-api."""
 
 import os
+from contextlib import asynccontextmanager
 
 os.environ.setdefault("RATE_LIMIT_BACKEND", "memory")
 os.environ.setdefault("RESEND_ENABLED", "false")
@@ -13,6 +14,30 @@ from unittest.mock import MagicMock, patch
 
 from bitcoin_api.main import app
 from bitcoin_api.dependencies import get_rpc
+
+
+@asynccontextmanager
+async def _noop_mcp_session_manager():
+    """Stand in for the one-shot MCP manager during reusable app tests."""
+    yield
+
+
+@pytest.fixture(autouse=True)
+def isolate_app_lifespan():
+    """Keep repeated TestClient lifespans from starting global background services."""
+    from bitcoin_api.routers.mcp_server import mcp
+
+    assert mcp._session_manager is not None
+    with (
+        patch("bitcoin_api.main.start_background_jobs"),
+        patch("bitcoin_api.main.stop_background_jobs"),
+        patch.object(
+            mcp._session_manager,
+            "run",
+            side_effect=_noop_mcp_session_manager,
+        ),
+    ):
+        yield
 
 
 def make_mock_rpc():
@@ -365,12 +390,8 @@ def reset_background_jobs(use_temp_db):
 @pytest.fixture
 def client(mock_rpc):
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    with (
-        patch("bitcoin_api.main.start_background_jobs"),
-        patch("bitcoin_api.main.stop_background_jobs"),
-    ):
-        with TestClient(app) as c:
-            yield c
+    with TestClient(app) as c:
+        yield c
     app.dependency_overrides.clear()
 
 
@@ -390,10 +411,6 @@ def authed_client(mock_rpc, use_temp_db):
     db.commit()
 
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    with (
-        patch("bitcoin_api.main.start_background_jobs"),
-        patch("bitcoin_api.main.stop_background_jobs"),
-    ):
-        with TestClient(app, headers={"X-API-Key": key}) as c:
-            yield c
+    with TestClient(app, headers={"X-API-Key": key}) as c:
+        yield c
     app.dependency_overrides.clear()
