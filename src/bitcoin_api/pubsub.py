@@ -20,8 +20,11 @@ class PubSubHub:
     def __init__(self, maxsize: int = 50):
         self._maxsize = maxsize
         self._lock = threading.Lock()
-        # channel -> set of asyncio.Queue (only touched from event loop thread)
+        # Queues are guarded by the lock; each queue keeps its owning event loop.
         self._subscribers: dict[str, set[asyncio.Queue]] = {ch: set() for ch in CHANNELS}
+        self._subscriber_loops: dict[
+            asyncio.Queue, asyncio.AbstractEventLoop | None
+        ] = {}
         # Thread-safe buffer for cross-thread publishes
         self._pending: queue.SimpleQueue = queue.SimpleQueue()
 
@@ -29,13 +32,19 @@ class PubSubHub:
         if channel not in CHANNELS:
             raise ValueError(f"Unknown channel: {channel}")
         q: asyncio.Queue = asyncio.Queue(maxsize=self._maxsize)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
         with self._lock:
             self._subscribers[channel].add(q)
+            self._subscriber_loops[q] = loop
         return q
 
     def unsubscribe(self, channel: str, q: asyncio.Queue) -> None:
         with self._lock:
             self._subscribers.get(channel, set()).discard(q)
+            self._subscriber_loops.pop(q, None)
 
     def publish(self, channel: str, data: dict[str, Any]) -> None:
         """Thread-safe publish. Buffers the event, then drains into asyncio queues.
@@ -59,13 +68,30 @@ class PubSubHub:
             except queue.Empty:
                 break
             with self._lock:
-                subscribers = list(self._subscribers.get(channel, set()))
-            for q in subscribers:
+                subscribers = [
+                    (q, self._subscriber_loops.get(q))
+                    for q in self._subscribers.get(channel, set())
+                ]
+            for q, loop in subscribers:
+                if loop is None:
+                    self._deliver(channel, q, data)
+                    continue
+                if loop.is_closed():
+                    continue
                 try:
-                    q.put_nowait(data)
-                except asyncio.QueueFull:
-                    WS_MESSAGES_DROPPED.labels(channel=channel).inc()
-                    log.debug("Dropped message on full queue for channel %s", channel)
+                    loop.call_soon_threadsafe(self._deliver, channel, q, data)
+                except RuntimeError:
+                    # The subscriber loop closed after the is_closed() check.
+                    log.debug("Subscriber loop closed while publishing %s", channel)
+
+    @staticmethod
+    def _deliver(channel: str, q: asyncio.Queue, data: dict[str, Any]) -> None:
+        """Put an event on a queue from the queue owner's event loop."""
+        try:
+            q.put_nowait(data)
+        except asyncio.QueueFull:
+            WS_MESSAGES_DROPPED.labels(channel=channel).inc()
+            log.debug("Dropped message on full queue for channel %s", channel)
 
     @property
     def subscriber_count(self) -> int:
