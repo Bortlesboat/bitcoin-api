@@ -1,10 +1,10 @@
 # Satoshi API — Bitcoin REST API (bitcoinsapi.com)
 
 ## What this is
-Production FastAPI application for Bitcoin fee intelligence, MCP-powered agents, and x402 pay-per-call Bitcoin data. Live at https://bitcoinsapi.com. Revenue-generating product — treat production changes carefully and verify before promoting.
+FastAPI application for Bitcoin fee intelligence, MCP-powered agents, and x402 pay-per-call Bitcoin data. The project-operated hosted deployment is intentionally paused for infrastructure review. Treat any restart or deployment as a production change and verify current operator authorization before promoting.
 
 ## Architecture
-- `src/bitcoin_api/routers/` — HTTP endpoint definitions, one file per category (27 routers)
+- `src/bitcoin_api/routers/` — HTTP endpoint definitions, one file per category (28 routers)
 - `src/bitcoin_api/services/` — Business logic layer (HTTP-agnostic, testable in isolation)
 - `src/bitcoin_api/indexer/` — Address + transaction indexer (separate worker process)
 - `src/bitcoin_api/main.py` — App entrypoint, middleware, router registration, startup events
@@ -25,7 +25,7 @@ Production FastAPI application for Bitcoin fee intelligence, MCP-powered agents,
 - **Run diagnose after structural changes**: catches silo leaks and import errors
 - All new endpoints need unit tests in `tests/`
 - New routers MUST be registered in `main.py` — this is the #1 missed step
-- Live API with real users — no debugging in production. Test locally first.
+- The hosted service is paused — do not assume hosted URLs are available or restart production from routine repo work. Test locally first.
 - `/api/v1/rpc` endpoint is used by bitcoin-mcp zero-config — don't break it
 
 ## Content pages (not just API)

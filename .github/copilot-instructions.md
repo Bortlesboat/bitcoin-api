@@ -11,6 +11,8 @@ Satoshi API is Bitcoin fee intelligence for agents and developers. Lead with out
 
 ## x402 Buyer Path
 
+The project-operated hosted deployment is intentionally paused for infrastructure review. Treat the URLs below as deployment contracts, not live smoke-test targets, until the repository status notice is removed.
+
 - First paid-call page: `https://bitcoinsapi.com/x402/start`.
 - General quickstart: `https://bitcoinsapi.com/quickstart`.
 - Discovery: `https://bitcoinsapi.com/.well-known/x402` and `https://bitcoinsapi.com/openapi.json`.
@@ -32,7 +34,7 @@ Use `docs/AGENT_INTEGRATION.md` when adding Satoshi API to another repository's 
 }
 ```
 
-Set `SATOSHI_API_URL=https://bitcoinsapi.com` only when a client needs an explicit hosted fallback URL.
+Set `SATOSHI_API_URL=https://bitcoinsapi.com` only after the hosted-service status has been verified active. Use a self-hosted base URL while the pause is in effect.
 
 ## Required Maintenance
 
