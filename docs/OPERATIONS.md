@@ -146,7 +146,7 @@ Requires the Fee Observatory to be collecting data (`bitcoin-fee-observatory` re
 - `GET /api/v1/fees/observatory/block-stats` — per-block fee percentiles
 - `GET /api/v1/fees/observatory/estimates` — multi-source fee estimate time series
 
-**Dashboard:** `GET /fee-observatory` — branded page with iframe to Streamlit dashboard (port 8505).
+**Dashboard:** `GET /fees` — canonical live fee dashboard. The legacy `/fee-observatory` URL permanently redirects there.
 
 ### Export fee forecast benchmark rows
 

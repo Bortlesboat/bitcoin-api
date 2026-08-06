@@ -493,7 +493,7 @@ Errors follow the same structure:
 | 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks and a `/.well-known/llms.txt` redirect. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 46 |
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
-| 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
+| 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), legacy `/fee-observatory` redirect to the canonical `/fees` dashboard, read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning, paid-tier preservation in auth middleware. | 7 |
 | 35 | Fee forecast benchmark export: benchmark-ready JSONL CLI, 2 research tables (`block_confirmations`, `fee_estimates_log`), migration 012, Core targets 1/6/144 plus optional mempool.space targets 1/3/6/144, and gap-safe/reorg-aware block confirmation capture with feerate percentiles (p10-p90). | 16 |
 | 36 | x402 demand intelligence: admin-only `/api/v1/analytics/endpoint-backlog`, privacy-safe endpoint normalization, aggregate conversion/failure/repeat-use scoring, and first-call x402 info/demo copy that labels safe funnel metrics without prompting real payment material on demo calls. | 6 |
@@ -601,7 +601,6 @@ Errors follow the same structure:
 - `static/sitemap.xml` -- XML sitemap for search engines (16+ URLs, includes /history, /guide, /mcp-setup, /api-docs)
 - `static/admin-dashboard.html` -- Admin analytics dashboard (Chart.js, dark theme, auto-refresh)
 - `static/visualizer.html` -- ECharts live visualization dashboard
-- `static/fee-observatory.html` -- Fee Observatory dashboard (iframe embed of Streamlit at port 8505)
 - `static/x402.html` -- x402 payment analytics dashboard
 
 ---
