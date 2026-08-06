@@ -79,6 +79,13 @@ def test_api_docs_redirects_to_live_docs(client):
     assert resp.headers["location"] == "/docs"
 
 
+def test_well_known_llms_txt_redirects_to_canonical_path(client):
+    for method in ("get", "head"):
+        resp = getattr(client, method)("/.well-known/llms.txt", follow_redirects=False)
+        assert resp.status_code == 301
+        assert resp.headers["location"] == "/llms.txt"
+
+
 def test_envelope_format(client):
     with patch("bitcoin_api.routers.status.cached_status") as mock_cached:
         mock_status = MagicMock()
