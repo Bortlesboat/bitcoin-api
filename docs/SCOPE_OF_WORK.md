@@ -51,7 +51,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `middleware.py` | Security headers, CORS, auth + rate limiting middleware, gzip compression | Middleware chain |
 | `exceptions.py` | RPC, validation, HTTP, and generic exception handlers; RFC 7807 `type` URIs | Exception handler registry |
 | `jobs.py` | Background fee collector thread lifecycle | Background worker |
-| `static_routes.py` | Landing page, robots.txt, sitemap, decision pages | Static file serving |
+| `static_routes.py` | Landing page, robots.txt, sitemap, LLM discovery redirects, decision pages | Static file serving |
 | `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
 | `migrations/` | SQL migration files + runner, tracked in `schema_migrations` | Sequential migrations |
 | `auth.py` | API key validation, tier resolution | Strategy (tier-based) |
@@ -77,7 +77,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~128 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 4 indexer + 3 x402 + 1 x402 demand analytics)
+### 3.1 Endpoints (~129 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 1 discovery redirect + 4 indexer + 3 x402 + 1 x402 demand analytics)
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -193,6 +193,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/guide` | GET | No |
 | | `/mcp-setup` | GET | No |
 | | `/api-docs` | GET | No |
+| **Discovery Redirects** | `/.well-known/llms.txt` | GET/HEAD | No; 301 to `/llms.txt` |
 | **AI** | `/api/v1/ai/explain/transaction/{txid}` | GET | No |
 | | `/api/v1/ai/explain/block/{hash_or_height}` | GET | No |
 | | `/api/v1/ai/fees/advice` | GET | No |
@@ -481,14 +482,14 @@ Errors follow the same structure:
 | 27 | Blockchain indexer Phase 1: PostgreSQL-backed address history, tx lookup, sync worker with ZMQ/polling, reorg handling, address_summary denormalization. Siloed under `indexer/` with `ENABLE_INDEXER=true` in production. Optional deps: asyncpg, pyzmq. | 50 |
 | 28 | Analytics automation: referrer tracking endpoint, conversion funnel endpoint, UTM param capture on registration (migration 009), IndexNow auto-submit on deploy, daily analytics digest script, static route fix for IndexNow key file | 5 |
 | 29 | RPC proxy endpoint: `/api/v1/rpc` JSON-RPC proxy for bitcoin-mcp zero-config fallback. 30+ whitelisted read-only methods, wallet/admin methods blocked. Enables bitcoin-mcp to work without a local node. | 7 |
-| 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 45 |
+| 30 | History Explorer + content pages: `/history` (timeline/block/tx/address pages), 7 history API endpoints (events, eras, concepts, search), `/guide` (Protocol Guide + API catalog), `/mcp-setup` (MCP setup guide), `/api-docs` (branded API docs). Feature flag: `enable_history_explorer`. Updated llms.txt/llms-full.txt with MCP config blocks and a `/.well-known/llms.txt` redirect. MCP server card → v0.5.0. Nav links `/docs` → `/api-docs`. Updated sitemap.xml. | 46 |
 | 31 | PSBT security analysis: `POST /api/v1/psbt/analyze` — pure-Python BIP 174 PSBT parser detecting ordinals inscription listing mempool sniping vulnerability. Classifies each input's sighash type, detects 2-of-2 multisig protection, returns overall risk level (vulnerable/protected/not_inscription_listing/unknown) + remediation guidance. Feature-flagged off by default (`enable_psbt_router`). No node required. | 24 |
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning, paid-tier preservation in auth middleware. | 7 |
 | 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
 | 36 | x402 demand intelligence: admin-only `/api/v1/analytics/endpoint-backlog`, privacy-safe endpoint normalization, aggregate conversion/failure/repeat-use scoring, and first-call x402 info/demo copy that labels safe funnel metrics without prompting real payment material on demo calls. | 6 |
-| **Total** | **~118 endpoints (90 core + 1 x402 demand analytics + 3 x402 + 7 history API + 14 content pages + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **611 unit + 21 e2e** |
+| **Total** | **~119 endpoints (90 core + 1 x402 demand analytics + 3 x402 + 7 history API + 14 content pages + 1 discovery redirect + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **612 unit + 21 e2e** |
 
 ### 6.2 Files Delivered
 
