@@ -11,13 +11,13 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 | **API is running at** | `http://localhost:9332` (local) / `https://bitcoinsapi.com` (public) |
 | **Interactive docs** | `http://localhost:9332/docs` |
 | **Process** | `python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332` |
-| **Config** | Shared `.env` at `C:/Users/andre/Bortlesboat/bitcoin-api/.env`, linked into the promoted release |
-| **Database** | Shared `data/bitcoin_api.db` at `C:/Users/andre/Bortlesboat/bitcoin-api/data/`, linked into the promoted release |
+| **Config** | Shared `.env` under the private ops root, linked into the promoted release |
+| **Database** | Shared `data/bitcoin_api.db` under the private ops root, linked into the promoted release |
 | **Auto-start** | Bitcoin Knots: Registry Run key. Cloudflared: Registry Run key. API: Scheduled Task `SatoshiAPI` -> local `start-api.bat` shim -> `ops/bitcoinsapi/start-prod.bat`. Watchdog: `SatoshiAPIWatchdog` (5 min). Backup: `SatoshiAPIBackup` (daily 3 AM) |
 | **HTTPS** | Cloudflare Tunnel (`cloudflared` Registry Run key) routes bitcoinsapi.com -> localhost:9332 |
 | **Monitoring** | UptimeRobot (5 min), watchdog-api.sh (5 min via "SatoshiAPIWatchdog" task, auto-restart — runs from main repo, resolves API_DIR via `releases/bitcoin-api-current` symlink), smoke-test-api.sh (cron) |
 | **Diagnostics** | `bash scripts/diagnose.sh` (node, tunnel, API, cache, DB, version, tests) |
-| **Version mgmt** | `bash scripts/release.sh` for git tags plus `powershell -File C:/Users/andre/Bortlesboat/ops/bitcoinsapi/promote-release.ps1 -ReleasePath <release>` for prod cutover |
+| **Version mgmt** | `bash scripts/release.sh` for git tags plus `powershell -File <ops-root>/bitcoinsapi/promote-release.ps1 -ReleasePath <release>` for prod cutover |
 
 ---
 
@@ -25,17 +25,17 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 
 ### Current production layout
 ```text
-Code releases:   C:/Users/andre/Bortlesboat/releases/bitcoin-api-<timestamp>-<sha>
-Stable pointer:  C:/Users/andre/Bortlesboat/releases/bitcoin-api-current
-Launcher shim:   C:/Users/andre/Bortlesboat/bitcoin-api/start-api.bat
-Prod launcher:   C:/Users/andre/Bortlesboat/ops/bitcoinsapi/start-prod.bat
+Code releases:   <ops-root>/releases/bitcoin-api-<timestamp>-<sha>
+Stable pointer:  <ops-root>/releases/bitcoin-api-current
+Launcher shim:   <ops-root>/bitcoin-api/start-api.bat
+Prod launcher:   <ops-root>/bitcoinsapi/start-prod.bat
 ```
 
-The promoted release uses links back to the shared local state in `C:/Users/andre/Bortlesboat/bitcoin-api/` for `.env`, `data/`, and `logs/`. Do not point production directly at a dirty working tree again.
+The promoted release uses links back to shared local state under the private ops root for `.env`, `data/`, and `logs/`. Do not point production directly at a dirty working tree again.
 
 ### Start (if not running)
 ```bash
-cmd.exe /c C:/Users/andre/Bortlesboat/bitcoin-api/start-api.bat
+cmd.exe /c <ops-root>/bitcoin-api/start-api.bat
 # or
 schtasks /Run /TN SatoshiAPI
 ```
@@ -55,7 +55,7 @@ Look for the line with `--port 9332`. Note the PID number at the end.
 
 ### Restart (kill + start)
 ```bash
-cmd.exe /c C:/Users/andre/Bortlesboat/bitcoin-api/start-api.bat
+cmd.exe /c <ops-root>/bitcoin-api/start-api.bat
 # or
 schtasks /Run /TN SatoshiAPI
 ```
@@ -68,7 +68,7 @@ You need to restart after changing `.env` (the API reads env vars at startup, no
 
 ## 2. Configuration (.env)
 
-The API reads its config from `~/Bortlesboat/bitcoin-api/.env`. Current settings:
+The API reads its config from `<ops-root>/bitcoin-api/.env`. Current settings:
 
 ```ini
 BITCOIN_RPC_HOST=127.0.0.1        # Your Bitcoin Core node
@@ -81,7 +81,7 @@ ADMIN_API_KEY=<your-key>           # Required for /api/v1/analytics/* endpoints
 ```
 
 ### Adding/changing a setting
-1. Edit `~/Bortlesboat/bitcoin-api/.env`
+1. Edit `<ops-root>/bitcoin-api/.env`
 2. Restart the API (see Section 1)
 
 ### Available settings (from `.env.example`)

@@ -431,6 +431,7 @@ Errors follow the same structure:
 41. **x402 paid tier overwritten** -- Auth middleware now preserves a `pro` tier set upstream by paid x402 middleware so valid paid callers can reach API-key-gated endpoints.
 42. **x402 endpoint demand intelligence** -- Admin-only `/api/v1/analytics/endpoint-backlog` aggregates usage and x402 payment rows into normalized endpoint patterns, conversion/failure/repeat-use signals, leverage and priority scores, and safe next-action evidence. It strips query strings and buckets wallet/tx/address/id-like path segments so responses do not expose raw IPs, User-Agents, referrers, API key hashes, payment IDs, pay-to addresses, or payment proofs.
 43. **x402 onboarding copy measurement** -- `/api/v1/x402-info` and `/api/v1/x402-demo` now steer first-time agents toward low-risk fee-savings calls such as `/api/v1/fees/landscape`, label discovery/challenge/payment/repeat funnel stages, and explicitly warn demo callers not to attach real wallet or payment material.
+44. **Public operations guide exposed workstation paths** -- Replaced user-specific local paths with portable `<ops-root>` placeholders while preserving the production layout and commands.
 
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
