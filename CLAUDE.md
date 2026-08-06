@@ -138,7 +138,7 @@ Business plans, competitive analysis, marketing drafts, launch playbooks, pricin
 | `tests/test_alerts.py` | Alert webhook endpoint tests (12 tests) |
 | `src/bitcoin_api/routers/observatory.py` | Fee Observatory endpoints (3 endpoints: scoreboard, block-stats, estimates) |
 | `tests/test_observatory.py` | Fee Observatory tests (13 tests) |
-| | Total: 608 unit + 21 e2e = 629 tests |
+| | Current collected total: 751 non-e2e + 21 e2e = 772 tests (run `python scripts/count_facts.py`) |
 | `docs/AGENT_ROLES.md` | Agent employee coordination & trigger matrix |
 | `.github/copilot-instructions.md` | GitHub Copilot/Coding Agent repo instructions for Satoshi API, bitcoin-mcp, and x402 |
 | `docs/AGENT_INTEGRATION.md` | Copy-paste kit for adding Satoshi API to agent-aware repos |

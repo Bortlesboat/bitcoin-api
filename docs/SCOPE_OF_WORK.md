@@ -79,7 +79,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ### 3.1 Endpoints
 
-**Current code-derived inventory:** 108 router-declared API endpoints across 28 router modules; 747 non-e2e tests + 21 e2e tests; 12 migrations.
+**Current code-derived inventory:** 108 router-declared API endpoints across 28 router modules; 751 non-e2e tests + 21 e2e tests; 12 migrations.
 
 Static content routes and the optional indexer package are separate from the router-declared API count.
 
@@ -367,7 +367,7 @@ Errors follow the same structure:
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
 | Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics across the API and a visual dashboard, auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 747 non-e2e tests + 21 e2e tests + load test + security script. |
+| Testing | A- | 751 non-e2e tests + 21 e2e tests + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Supports cachetools 5.3 through 7.x on Python 3.10+. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -514,7 +514,7 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
 **Tests (current repo test files + support files):**
-- `tests/test_*.py` -- 747 collected non-e2e cases and 21 live-node e2e cases
+- `tests/test_*.py` -- 751 collected non-e2e cases and 21 live-node e2e cases
 - `tests/test_fee_benchmark_export.py` -- benchmark row construction and JSONL CLI coverage
 - `tests/test_jobs.py` -- collector persistence, missed-height, and same-height reorg coverage
 - `tests/locustfile.py` -- weighted endpoint load scenarios
