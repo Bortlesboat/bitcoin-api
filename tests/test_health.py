@@ -231,3 +231,23 @@ def test_visualizer_page(client):
     resp = client.get("/visualizer")
     assert resp.status_code == 200
     assert "ECharts" in resp.text or "echarts" in resp.text
+
+
+def test_app_lifespan_can_be_entered_repeatedly_without_mcp_reentry_errors(caplog):
+    """Repeated test clients must not try to reuse a one-shot MCP manager."""
+    import logging
+    from unittest.mock import patch
+
+    from fastapi.testclient import TestClient
+    from bitcoin_api.main import app
+
+    caplog.set_level(logging.ERROR, logger="bitcoin_api")
+    with patch("bitcoin_api.main.start_background_jobs"), patch(
+        "bitcoin_api.main.stop_background_jobs"
+    ):
+        with TestClient(app):
+            pass
+        with TestClient(app):
+            pass
+
+    assert "Failed to start MCP session manager" not in caplog.text
