@@ -366,7 +366,7 @@ Errors follow the same structure:
 | Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (~103 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
 | Testing | A- | 570 unit tests + 21 e2e + load test + security script. |
-| Dependencies | A- | Minimal, intentional. Could pin tighter. |
+| Dependencies | A- | Minimal, intentional. Supports cachetools 5.3 through 7.x on Python 3.10+. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
 | Deployment | A- | Non-root Docker, health checks, graceful shutdown, stale-while-error fallback, auto-start on reboot. |
