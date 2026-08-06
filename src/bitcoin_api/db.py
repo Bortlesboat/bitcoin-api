@@ -33,6 +33,7 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
                 conn = _make_conn(_db_path)
                 # Run migrations (creates tables + indexes)
                 from .migrations.runner import run_pending
+
                 run_pending(conn)
                 conn.close()
                 _initialized = True
@@ -70,8 +71,19 @@ def log_usage(
 ) -> None:
     """Buffer a usage log entry for batch insertion."""
     from .usage_buffer import usage_buffer
-    usage_buffer.log(key_hash, endpoint, status_code, method, response_time_ms, user_agent, client_type, referrer,
-                     client_ip=client_ip, error_type=error_type)
+
+    usage_buffer.log(
+        key_hash,
+        endpoint,
+        status_code,
+        method,
+        response_time_ms,
+        user_agent,
+        client_type,
+        referrer,
+        client_ip=client_ip,
+        error_type=error_type,
+    )
 
 
 def count_daily_usage(key_hash: str) -> int:
@@ -110,6 +122,104 @@ def record_fee_snapshot(
     conn.commit()
 
 
+def record_block_confirmation(
+    block_height: int,
+    block_hash: str,
+    block_time: str,
+    tx_count: int,
+    total_fees_sat: int,
+    min_feerate: float,
+    max_feerate: float,
+    p10_feerate: float,
+    p25_feerate: float,
+    p50_feerate: float,
+    p75_feerate: float,
+    p90_feerate: float,
+    core_est_1: float | None = None,
+    core_est_6: float | None = None,
+    core_est_144: float | None = None,
+    mempool_local_est: float | None = None,
+    mempool_space_est: float | None = None,
+) -> None:
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO block_confirmations "
+        "(block_height, block_hash, block_time, tx_count, total_fees_sat, "
+        "min_feerate, max_feerate, p10_feerate, p25_feerate, p50_feerate, "
+        "p75_feerate, p90_feerate, core_est_1, core_est_6, core_est_144, "
+        "mempool_local_est, mempool_space_est) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            block_height,
+            block_hash,
+            block_time,
+            tx_count,
+            total_fees_sat,
+            min_feerate,
+            max_feerate,
+            p10_feerate,
+            p25_feerate,
+            p50_feerate,
+            p75_feerate,
+            p90_feerate,
+            core_est_1,
+            core_est_6,
+            core_est_144,
+            mempool_local_est,
+            mempool_space_est,
+        ),
+    )
+    conn.commit()
+
+
+def record_fee_estimates_batch(entries: list[tuple[str, int, float]]) -> None:
+    if not entries:
+        return
+
+    conn = get_db()
+    conn.executemany(
+        "INSERT INTO fee_estimates_log (source, target, feerate) VALUES (?, ?, ?)",
+        entries,
+    )
+    conn.commit()
+
+
+def delete_block_confirmations_above(block_height: int) -> int:
+    """Remove outcomes that are no longer on the active chain after a reorg."""
+    conn = get_db()
+    cursor = conn.execute(
+        "DELETE FROM block_confirmations WHERE block_height > ?",
+        (block_height,),
+    )
+    conn.commit()
+    return cursor.rowcount
+
+
+def delete_block_confirmations_from(block_height: int) -> int:
+    """Remove a stale chain suffix starting at the first replaced height."""
+    conn = get_db()
+    cursor = conn.execute(
+        "DELETE FROM block_confirmations WHERE block_height >= ?",
+        (block_height,),
+    )
+    conn.commit()
+    return cursor.rowcount
+
+
+def get_block_confirmation_hashes(max_height: int) -> list[tuple[int, str]]:
+    """Return recorded active-chain candidates newest-first through a height."""
+    rows = (
+        get_db()
+        .execute(
+            "SELECT block_height, block_hash FROM block_confirmations "
+            "WHERE block_height <= ? ORDER BY block_height DESC",
+            (max_height,),
+        )
+        .fetchall()
+    )
+    return [(int(row["block_height"]), str(row["block_hash"])) for row in rows]
+
+
 def get_fee_history(hours: int = 24, interval_minutes: int = 10) -> list[dict]:
     conn = get_db()
     rows = conn.execute(
@@ -133,6 +243,7 @@ def get_fee_history(hours: int = 24, interval_minutes: int = 10) -> list[dict]:
 
 def _ts_diff_minutes(ts1: str, ts2: str) -> float:
     from datetime import datetime
+
     fmt = "%Y-%m-%d %H:%M:%S"
     t1 = datetime.strptime(ts1, fmt)
     t2 = datetime.strptime(ts2, fmt)
@@ -191,7 +302,14 @@ def log_x402_payment(
     conn.execute(
         "INSERT INTO x402_payments (endpoint, price_usd, payment_status, client_ip_hash, payment_id, user_agent) "
         "VALUES (?, ?, ?, ?, ?, ?)",
-        (endpoint, price_usd, status, _hash_ip(client_ip), payment_id, (user_agent or "")[:256]),
+        (
+            endpoint,
+            price_usd,
+            status,
+            _hash_ip(client_ip),
+            payment_id,
+            (user_agent or "")[:256],
+        ),
     )
     conn.commit()
 
@@ -244,7 +362,9 @@ def get_x402_stats() -> dict:
     # Conversion rate (paid / challenged, handle div by zero)
     total_challenges = totals.get("challenged", 0)
     total_paid = totals.get("paid", 0)
-    conversion_rate = (total_paid / total_challenges * 100) if total_challenges > 0 else 0.0
+    conversion_rate = (
+        (total_paid / total_challenges * 100) if total_challenges > 0 else 0.0
+    )
 
     # Daily revenue breakdown
     daily_revenue_rows = conn.execute(
@@ -273,7 +393,11 @@ def get_x402_stats() -> dict:
             for r in daily_revenue_rows
         ],
         "top_endpoints": [
-            {"endpoint": r["endpoint"], "challenges": r["challenges"], "paid": r["paid"]}
+            {
+                "endpoint": r["endpoint"],
+                "challenges": r["challenges"],
+                "paid": r["paid"],
+            }
             for r in top_endpoints
         ],
         "recent_payments": [
@@ -296,5 +420,3 @@ def get_x402_stats() -> dict:
             for r in hourly
         ],
     }
-
-

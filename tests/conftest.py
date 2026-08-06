@@ -1,6 +1,7 @@
 """Test fixtures for bitcoin-api."""
 
 import os
+
 os.environ.setdefault("RATE_LIMIT_BACKEND", "memory")
 os.environ.setdefault("RESEND_ENABLED", "false")
 os.environ.setdefault("POSTHOG_ENABLED", "false")
@@ -8,7 +9,7 @@ os.environ["ENABLE_INDEXER"] = "false"  # Indexer tries asyncpg (~4s timeout per
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from bitcoin_api.main import app
 from bitcoin_api.dependencies import get_rpc
@@ -145,19 +146,41 @@ def make_mock_rpc():
                     [
                         {
                             "txid": "tx1" + "0" * 61,
-                            "size": 200, "vsize": 150,
-                            "vin": [{"coinbase": "03a0d60d2f466f756e6472792f", "sequence": 4294967295}],
+                            "size": 200,
+                            "vsize": 150,
+                            "vin": [
+                                {
+                                    "coinbase": "03a0d60d2f466f756e6472792f",
+                                    "sequence": 4294967295,
+                                }
+                            ],
                             "vout": [
-                                {"value": 50.0, "n": 0, "scriptPubKey": {"type": "witness_v0_keyhash"}},
+                                {
+                                    "value": 50.0,
+                                    "n": 0,
+                                    "scriptPubKey": {"type": "witness_v0_keyhash"},
+                                },
                             ],
                         },
                         {
                             "txid": "tx2" + "0" * 61,
-                            "size": 300, "vsize": 250,
+                            "size": 300,
+                            "vsize": 250,
                             "vin": [{"txid": "prev" + "0" * 60, "vout": 0}],
                             "vout": [
-                                {"value": 0.5, "n": 0, "scriptPubKey": {"type": "witness_v1_taproot"}},
-                                {"value": 0.3, "n": 1, "scriptPubKey": {"type": "nulldata", "hex": "6a0b68656c6c6f20776f726c64"}},
+                                {
+                                    "value": 0.5,
+                                    "n": 0,
+                                    "scriptPubKey": {"type": "witness_v1_taproot"},
+                                },
+                                {
+                                    "value": 0.3,
+                                    "n": 1,
+                                    "scriptPubKey": {
+                                        "type": "nulldata",
+                                        "hex": "6a0b68656c6c6f20776f726c64",
+                                    },
+                                },
                             ],
                         },
                     ]
@@ -274,6 +297,7 @@ def reset_rate_limits():
     """Clear rate limit state between tests."""
     from bitcoin_api.rate_limit import _windows
     import bitcoin_api.rate_limit as rl
+
     _windows.clear()
     rl.TIER_LIMITS.clear()
     original_client = rl._redis_client
@@ -286,6 +310,7 @@ def reset_rate_limits():
 def clear_caches():
     """Clear all TTL caches between tests."""
     from bitcoin_api.cache import clear_all_caches
+
     clear_all_caches()
     yield
     clear_all_caches()
@@ -295,6 +320,7 @@ def clear_caches():
 def flush_usage_buffer():
     """Make usage buffer flush immediately in tests so DB assertions work."""
     from bitcoin_api.usage_buffer import usage_buffer
+
     original = usage_buffer.FLUSH_SIZE
     usage_buffer.FLUSH_SIZE = 1  # Flush after every log call
     yield
@@ -306,6 +332,7 @@ def flush_usage_buffer():
 def use_temp_db(tmp_path):
     """Use a temporary database for each test."""
     from bitcoin_api import db
+
     # Reset thread-local state and initialization flag
     db._initialized = False
     db._local = __import__("threading").local()
@@ -315,11 +342,35 @@ def use_temp_db(tmp_path):
     db._local = __import__("threading").local()
 
 
+@pytest.fixture(autouse=True)
+def reset_background_jobs(use_temp_db):
+    """Stop background threads cleanly between tests so temp DBs stay isolated."""
+    from bitcoin_api.jobs import _fee_collector, stop_background_jobs
+
+    stop_background_jobs()
+    if hasattr(_fee_collector, "_last_block"):
+        delattr(_fee_collector, "_last_block")
+    if hasattr(_fee_collector, "_last_block_hash"):
+        delattr(_fee_collector, "_last_block_hash")
+
+    yield
+
+    stop_background_jobs()
+    if hasattr(_fee_collector, "_last_block"):
+        delattr(_fee_collector, "_last_block")
+    if hasattr(_fee_collector, "_last_block_hash"):
+        delattr(_fee_collector, "_last_block_hash")
+
+
 @pytest.fixture
 def client(mock_rpc):
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    with TestClient(app) as c:
-        yield c
+    with (
+        patch("bitcoin_api.main.start_background_jobs"),
+        patch("bitcoin_api.main.stop_background_jobs"),
+    ):
+        with TestClient(app) as c:
+            yield c
     app.dependency_overrides.clear()
 
 
@@ -339,6 +390,10 @@ def authed_client(mock_rpc, use_temp_db):
     db.commit()
 
     app.dependency_overrides[get_rpc] = lambda: mock_rpc
-    with TestClient(app, headers={"X-API-Key": key}) as c:
-        yield c
+    with (
+        patch("bitcoin_api.main.start_background_jobs"),
+        patch("bitcoin_api.main.stop_background_jobs"),
+    ):
+        with TestClient(app, headers={"X-API-Key": key}) as c:
+            yield c
     app.dependency_overrides.clear()

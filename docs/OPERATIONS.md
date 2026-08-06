@@ -148,6 +148,23 @@ Requires the Fee Observatory to be collecting data (`bitcoin-fee-observatory` re
 
 **Dashboard:** `GET /fee-observatory` — branded page with iframe to Streamlit dashboard (port 8505).
 
+### Export fee forecast benchmark rows
+
+Use the local benchmark export when you want documented JSONL rows for offline forecasting or model-evaluation work.
+
+```powershell
+$env:PYTHONPATH='src'
+python scripts/export_fee_forecast_benchmark.py data/fee-forecast-benchmark.jsonl --hours 168 --interval-minutes 10
+```
+
+Notes:
+- Reads `fee_history` observations from the main API DB and joins them to the next `1-6` `block_confirmations`
+- Emits one JSONL row per usable observation with `observation_id`, `observed_at`, `features`, and `clearing_fee_bin_by_horizon`
+- Uses fee-bin lower bounds `1, 2, 3, 5, 8, 13, 21, 34, 55` sat/vB; values at or above `55` use bin index `8`
+- Skips observations that do not yet have six future confirmed blocks
+- The research tables come from migration `012_add_research_tables.sql`
+- On a normal local API run, the background fee collector fills those research tables automatically as new blocks arrive
+
 ### x402 Stablecoin Micropayments (optional)
 
 Enables pay-per-call via the x402 protocol (USDC on Base). Requires the `bitcoin-api-x402` package.
@@ -390,11 +407,9 @@ Replace `YOUR_KEY` with the value from your `.env` `ADMIN_API_KEY`.
 
 The background fee collector thread automatically prunes old data once per 24 hours:
 - Usage logs older than 90 days are deleted
-- Fee history older than 30 days is downsampled to hourly averages
-- Fee history older than 365 days is deleted
-- Research data (block_confirmations, fee_estimates_log) older than 365 days is deleted
+- Fee history older than 30 days is deleted
 
-The fee collector also logs multi-source fee estimates every 5 minutes (Core 8 targets, mempool.space 4 targets, local mempool 1 target) and captures block confirmation feerate percentiles on each new block.
+The fee collector also logs Core fee estimates for targets `1`, `6`, and `144` every 5 minutes and adds mempool.space estimates for `1`, `3`, `6`, and `144` when that public API is reachable. It seeds the current tip on startup, captures every missed height when the tip advances, and replaces the current-height row after either a backward or same-height reorg.
 
 Check API logs for `Auto-prune:` messages to confirm it's running.
 
@@ -668,6 +683,7 @@ bash scripts/backup-db.sh
 |------|-----------|-----------|
 | Usage logs | 90 days | Auto-pruned by background job |
 | Fee history | 30 days | Auto-pruned by background job |
+| Fee research tables | Until manually pruned | No automatic retention policy yet |
 | x402 payment records | 180 days | Auto-pruned at startup |
 | DB backups | Last 7 | Auto-pruned by backup script |
 | Watchdog log | ~5,000 lines | Auto-trimmed by watchdog |
