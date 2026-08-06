@@ -523,6 +523,29 @@ def test_pubsub_hub_subscriber_count():
     assert h.subscriber_count == 0
 
 
+def test_pubsub_publish_marshals_delivery_to_subscriber_event_loop():
+    """A background publisher must schedule delivery on the queue's event loop."""
+    from unittest.mock import MagicMock, patch
+
+    from bitcoin_api.pubsub import PubSubHub
+
+    test_hub = PubSubHub()
+    subscriber_loop = MagicMock()
+    subscriber_loop.is_closed.return_value = False
+    with patch(
+        "bitcoin_api.pubsub.asyncio.get_running_loop",
+        return_value=subscriber_loop,
+    ):
+        subscriber = test_hub.subscribe("new_block")
+
+    test_hub.publish("new_block", {"height": 900_000})
+
+    subscriber_loop.call_soon_threadsafe.assert_called_once()
+    callback, *args = subscriber_loop.call_soon_threadsafe.call_args.args
+    callback(*args)
+    assert subscriber.get_nowait() == {"height": 900_000}
+
+
 # --- classify_client ---
 
 
