@@ -2,10 +2,16 @@
 
 > Bitcoin fee intelligence for AI agents. Know when to send and what to pay.
 
+HOSTED SERVICE STATUS: The project-operated bitcoinsapi.com deployment is
+intentionally paused for infrastructure review. Do not call the hosted URLs
+below until this notice is removed. For self-hosting, use
+http://127.0.0.1:9332 as the base URL.
+
 Satoshi API saves agents money and time when interacting with Bitcoin.
 Fee intelligence tells you whether to send now or wait. Payment
-monitoring tells you when a transaction confirms. No node required.
-Register a free API key and start querying in seconds.
+monitoring tells you when a transaction confirms. Self-hosted deployments
+connect to the operator's Bitcoin Core node. Hosted registration applies
+only when the project-operated service is active.
 
 For keyless paid calls, start with the first-paid-call page:
 https://bitcoinsapi.com/x402/start

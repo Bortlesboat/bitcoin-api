@@ -2,6 +2,9 @@
 
 Use this guide to add Satoshi API to a repository so coding agents, MCP clients, and x402 buyers can discover the Bitcoin fee intelligence path without custom glue.
 
+> [!IMPORTANT]
+> The project-operated hosted deployment is intentionally paused for infrastructure review. Use a self-hosted base URL for active integrations; the `bitcoinsapi.com` examples below document the hosted contract for when service resumes.
+
 ## What To Add
 
 1. Add Satoshi API to the repo's agent instructions (`AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md`).

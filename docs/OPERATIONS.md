@@ -4,11 +4,17 @@ Everything you need to run, maintain, and market Satoshi API. This is the "how d
 
 ---
 
+## Hosted Deployment Status
+
+The project-operated `bitcoinsapi.com` deployment is intentionally paused during an infrastructure review. Cloudflare 530/1033 responses are expected while the pause is active. Do not apply the start, restart, or tunnel instructions below to the project-operated host without explicit operator authorization. Self-hosted deployments are unaffected.
+
+---
+
 ## Quick Reference
 
 | What | How |
 |------|-----|
-| **API is running at** | `http://localhost:9332` (local) / `https://bitcoinsapi.com` (public) |
+| **API base URL** | `http://localhost:9332` (self-hosted); project-operated public instance currently paused |
 | **Interactive docs** | `http://localhost:9332/docs` |
 | **Process** | `python -m uvicorn bitcoin_api.main:app --host 0.0.0.0 --port 9332` |
 | **Config** | Shared `.env` under the private ops root, linked into the promoted release |

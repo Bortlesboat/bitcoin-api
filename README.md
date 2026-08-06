@@ -11,10 +11,10 @@
 [![Downloads](https://img.shields.io/pypi/dm/satoshi-api)](https://pypi.org/project/satoshi-api/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Live API](https://img.shields.io/badge/live-bitcoinsapi.com-f7931a)](https://bitcoinsapi.com)
+![Hosted demo paused](https://img.shields.io/badge/hosted_demo-paused-lightgrey)
 [![OpenSats](https://img.shields.io/badge/Support-OpenSats-f7931a)](https://opensats.org)
 
-[Live Playground](https://bitcoinsapi.com/docs) &middot; [Landing Page](https://bitcoinsapi.com) &middot; [PyPI](https://pypi.org/project/satoshi-api/) &middot; [MCP Server](https://github.com/Bortlesboat/bitcoin-mcp) &middot; [Discord Bot](https://github.com/Bortlesboat/satoshi-discord-bot)
+[Self-Hosting](#self-hosting) &middot; [PyPI](https://pypi.org/project/satoshi-api/) &middot; [MCP Server](https://github.com/Bortlesboat/bitcoin-mcp) &middot; [Discord Bot](https://github.com/Bortlesboat/satoshi-discord-bot)
 
 </div>
 
@@ -22,13 +22,16 @@
 
 <div align="center">
 
-**Live at [bitcoinsapi.com](https://bitcoinsapi.com)** &middot; **MCP-ready** &middot; **x402 pay-per-call** &middot; **Apache 2.0**
+**Self-hostable** &middot; **MCP-ready** &middot; **x402-capable** &middot; **Apache 2.0**
 
 </div>
 
 ---
 
 Bad fee timing burns sats on every Bitcoin transaction. Satoshi API tells you when to send, what to pay, and whether to wait — combining multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." One `pip install`, self-hostable, open source.
+
+> [!IMPORTANT]
+> The project-operated `bitcoinsapi.com` demo and x402 facilitator are intentionally paused during an infrastructure review. The open-source package remains available for self-hosting; do not rely on the hosted URLs until this notice is removed.
 
 ## Install & Run
 
@@ -68,7 +71,7 @@ curl http://localhost:9332/api/v1/fees/recommended | jq
 | **Network** | `/api/v1/network`, `/api/v1/network/difficulty` | Peers, forks, difficulty, address validation |
 | **Streams** | `/api/v1/stream/blocks`, `/api/v1/stream/fees` | Real-time blocks & fees via SSE |
 
-...and more (prices, address lookups, exchange comparison). [Full interactive docs at `/docs`](https://bitcoinsapi.com/docs).
+...and more (prices, address lookups, exchange comparison). A self-hosted instance serves its interactive docs at `/docs`.
 
 ## For AI Agents
 
@@ -77,7 +80,7 @@ curl http://localhost:9332/api/v1/fees/recommended | jq
 ```bash
 # Install and point at your Satoshi API instance
 pip install bitcoin-mcp
-SATOSHI_API_URL=https://bitcoinsapi.com bitcoin-mcp
+SATOSHI_API_URL=http://127.0.0.1:9332 bitcoin-mcp
 ```
 
 Or connect to a local node directly:
@@ -92,7 +95,7 @@ Or connect to a local node directly:
 
 For repo-native agent instructions, use [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md). It includes copy-paste snippets for `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, Cursor/Windsurf rules, MCP config, and x402 paid calls.
 
-For keyless premium calls, start at [bitcoinsapi.com/x402/start](https://bitcoinsapi.com/x402/start). The paid flow is: discover `/.well-known/x402`, request a paid `/api/v1` endpoint, read `PAYMENT-REQUIRED`, then retry with `PAYMENT-SIGNATURE`.
+When the hosted service resumes, keyless premium calls start at `https://bitcoinsapi.com/x402/start`. The paid flow is: discover `/.well-known/x402`, request a paid `/api/v1` endpoint, read `PAYMENT-REQUIRED`, then retry with `PAYMENT-SIGNATURE`.
 
 ## Self-Hosting
 
@@ -148,7 +151,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 <div align="center">
 
-**[Live API](https://bitcoinsapi.com/docs)** &middot; **[Website](https://bitcoinsapi.com)** &middot; **[PyPI](https://pypi.org/project/satoshi-api/)** &middot; **[MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)** &middot; **[Roadmap](docs/ROADMAP.md)**
+**[Self-Hosting](docs/self-hosting.md)** &middot; **[PyPI](https://pypi.org/project/satoshi-api/)** &middot; **[MCP Server](https://github.com/Bortlesboat/bitcoin-mcp)** &middot; **[Roadmap](docs/ROADMAP.md)**
 
 Built by a [Bitcoin Core contributor](https://github.com/Bortlesboat). Run `python -m pytest --collect-only -q` for the current test inventory.
 

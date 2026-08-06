@@ -2,6 +2,11 @@
 
 > Bitcoin fee intelligence that saves money on every transaction.
 
+HOSTED SERVICE STATUS: The project-operated bitcoinsapi.com deployment is
+intentionally paused for infrastructure review. Do not call the hosted URLs
+below until this notice is removed. For self-hosting, use
+http://127.0.0.1:9332 as the base URL.
+
 ## Overview
 
 Satoshi API is a REST API for Bitcoin blockchain data, built for AI agents and developers. It wraps a Bitcoin Core full node with actionable, structured data: fee recommendations, mempool analysis, block statistics, mining data, and real-time streams. Native MCP integration lets Claude, GPT, and other LLM agents call Bitcoin endpoints as tools.
