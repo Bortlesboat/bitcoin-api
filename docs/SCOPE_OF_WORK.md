@@ -1,7 +1,7 @@
 # Satoshi API -- Scope of Work
 
 **Version:** 0.3.4
-**Date:** 2026-03-08
+**Date:** 2026-08-06
 **Author:** Bortlesboat
 **Status:** Live -- https://bitcoinsapi.com
 
@@ -50,7 +50,7 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `main.py` | App creation, lifespan, router registration (~177 lines) | Composition root |
 | `middleware.py` | Security headers, CORS, auth + rate limiting middleware, gzip compression | Middleware chain |
 | `exceptions.py` | RPC, validation, HTTP, and generic exception handlers; RFC 7807 `type` URIs | Exception handler registry |
-| `jobs.py` | Background fee collector thread lifecycle | Background worker |
+| `jobs.py` | Background fee collector thread lifecycle, fee estimate logging, and block confirmation capture for research tables | Background worker |
 | `static_routes.py` | Landing page, robots.txt, sitemap, LLM discovery redirects, decision pages | Static file serving |
 | `usage_buffer.py` | Batch usage logging (flush at 50 rows or 30s) | Write-behind buffer |
 | `migrations/` | SQL migration files + runner, tracked in `schema_migrations` | Sequential migrations |
@@ -58,11 +58,11 @@ Bitcoin Core RPC (port 8332, localhost only)
 | `rate_limit.py` | Per-minute sliding window (in-memory or Upstash Redis) + daily limits | Token bucket / sliding window |
 | `notifications.py` | Transactional email (Resend) + analytics events (PostHog) | Fire-and-forget side effects |
 | `cache.py` | TTL caching with reorg-safe depth awareness, stale fallback for graceful degradation, `get_cached_node_info()` helper for non-RPC contexts | Cache-aside with lock-per-cache + stale-while-error |
-| `db.py` | SQLite (WAL mode), usage logging, key storage | Repository pattern |
+| `db.py` | SQLite (WAL mode), fee history, self-populating fee research tables, usage logging, key storage | Repository pattern |
 | `config.py` | 12-factor env var config via Pydantic | Settings singleton |
 | `dependencies.py` | Lazy singleton RPC connection | Dependency injection |
 | `models.py` | Response envelope, typed data models | DTO / envelope pattern |
-| `services/` | Business logic: fee analysis, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
+| `services/` | Business logic: fee analysis, benchmark export, tx broadcast, exchange comparison, serializers | Service layer (pure functions) |
 | `routers/` | 28 thin HTTP routers (25 core + 3 indexer) — parameter validation, auth, response envelope | RESTful resource routing |
 
 ### 2.3 Design Principles Applied
@@ -77,7 +77,11 @@ Bitcoin Core RPC (port 8332, localhost only)
 
 ## 3. API Surface
 
-### 3.1 Endpoints (~129 total: 86 core + 3 observatory + 4 AI + 6 alerts + 7 history API + 14 content pages + 1 discovery redirect + 4 indexer + 3 x402 + 1 x402 demand analytics)
+### 3.1 Endpoints
+
+**Current code-derived inventory:** 108 router-declared API endpoints across 28 router modules; 747 non-e2e tests + 21 e2e tests; 12 migrations.
+
+Static content routes and the optional indexer package are separate from the router-declared API count.
 
 | Category | Endpoint | Method | Auth Required |
 |----------|----------|--------|---------------|
@@ -112,8 +116,6 @@ Bitcoin Core RPC (port 8332, localhost only)
 | | `/api/v1/fees/plan` | GET | No |
 | | `/api/v1/fees/savings` | GET | No |
 | | `/api/v1/fees/{target}` | GET | No |
-| **Fee Research** | `/api/v1/fees/accuracy` | GET | No |
-| | `/api/v1/fees/research/export` | GET | No |
 | **Fee Observatory** | `/api/v1/fees/observatory/scoreboard` | GET | No |
 | | `/api/v1/fees/observatory/block-stats` | GET | No |
 | | `/api/v1/fees/observatory/estimates` | GET | No |
@@ -363,9 +365,9 @@ Errors follow the same structure:
 | Error Handling | B+ | Comprehensive handlers. Fixed: now logs exceptions server-side. |
 | Security | A- | Defense in depth. Security headers (CSP, HSTS, X-Frame-Options). SecretStr for passwords. |
 | Scalability | B | Thread-safe caching + rate limiting. SQLite is bottleneck at >1K req/s. |
-| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics (~103 endpoints + visual dashboard), auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
+| Observability | A | Structured JSON logging (opt-in), access logs + request IDs + admin analytics across the API and a visual dashboard, auto-pruning, Prometheus `/metrics` endpoint, WebSocket pub/sub. |
 | Configuration | A- | 12-factor compliant. Sensible defaults. |
-| Testing | A- | 570 unit tests + 21 e2e + load test + security script. |
+| Testing | A- | 747 non-e2e tests + 21 e2e tests + load test + security script. |
 | Dependencies | A- | Minimal, intentional. Supports cachetools 5.3 through 7.x on Python 3.10+. |
 | API Design | A- | Versioned, enveloped, deprecation headers. No idempotency keys yet. |
 | Data Integrity | A- | WAL mode, parameterized queries, sync detection, stale data indicators, broadcast pre-validation. Enhanced migration runner with rollback + validation. |
@@ -433,6 +435,9 @@ Errors follow the same structure:
 43. **x402 onboarding copy measurement** -- `/api/v1/x402-info` and `/api/v1/x402-demo` now steer first-time agents toward low-risk fee-savings calls such as `/api/v1/fees/landscape`, label discovery/challenge/payment/repeat funnel stages, and explicitly warn demo callers not to attach real wallet or payment material.
 44. **Public operations guide exposed workstation paths** -- Replaced user-specific local paths with portable `<ops-root>` placeholders while preserving the production layout and commands.
 
+**Benchmark Export Self-Sufficiency (Apr 24):**
+45. **Clean exporter branch could not bootstrap its own research data** -- The background fee collector now writes `block_confirmations` on detected new blocks and logs fee estimates into `fee_estimates_log`, so fresh installs can produce real benchmark export rows after migration `012_add_research_tables.sql`.
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
@@ -445,6 +450,8 @@ Errors follow the same structure:
 | ~~No webhook support~~ | ~~Clients must poll~~ | **RESOLVED** -- WebSocket `/api/v1/ws` with pub/sub |
 | No address transaction history | Cannot provide `/address/{addr}/txs` | Deliberate -- Bitcoin Core RPC has no `getaddresshistory`. Requires external indexer (Electrs, Fulcrum). We offer `scantxoutset` via POST `/address/utxos` for UTXO lookup by address. Adding Electrs increases deployment complexity significantly. |
 | Email delivery depends on Resend | Welcome email fails silently if Resend is down | Graceful degradation -- registration succeeds regardless, key always returned in response |
+| Fee benchmark export needs six future confirmed blocks per observation | Very recent fee-history rows are skipped until enough blocks confirm | Acceptable for offline research export; full `1-6` block outcomes matter more than max recency |
+| Fee research tables have no automatic retention policy | Long-running nodes must prune the two research tables manually if disk use becomes material | Add a configurable policy after real retention needs are measured |
 
 ---
 
@@ -488,9 +495,9 @@ Errors follow the same structure:
 | 32 | Founder analytics dashboard: `GET /api/v1/analytics/founder` (noise-filtered real-user metrics), `GET /admin/founder` (static HTML dashboard), `static/founder-dashboard.html`. Migration 010 (`010_add_signup_attribution.sql`): 9 new columns on `api_keys` for first-touch UTM attribution (`utm_term`, `utm_content`, `first_landing_path`, `first_referrer`, `first_utm_*`). | 4 |
 | 33 | Fee Observatory integration: 3 new endpoints (`/fees/observatory/scoreboard`, `/block-stats`, `/estimates`), `fee-observatory` static page (iframe embed), read-only observatory.db access, feature flag `enable_observatory`. | 13 |
 | 34 | x402 stablecoin micropayments: `bitcoin-api-x402` extension package, x402 middleware (USDC on Base via Coinbase x402 SDK), 3 new endpoints (`/x402-info`, `/x402-demo`, `/x402-stats`), 5 gated paid endpoints, `/x402` analytics dashboard, migration 011 (`011_add_x402_payments.sql`), 180-day auto-pruning, paid-tier preservation in auth middleware. | 7 |
-| 35 | Fee estimation research infrastructure: 2 new endpoints (`/fees/accuracy`, `/fees/research/export`), 2 new tables (`block_confirmations`, `fee_estimates_log`), migration 012, multi-source estimate logging (Core 8 targets + mempool.space + local mempool every 5 min), block confirmation capture with feerate percentiles (p10-p90) on new blocks, fee_history retention extended 30d → 365d with hourly downsampling for >30d, accuracy calculation engine comparing estimators vs actual block feerates, CSV/JSON research data export. | 15 |
+| 35 | Fee forecast benchmark export: benchmark-ready JSONL CLI, 2 research tables (`block_confirmations`, `fee_estimates_log`), migration 012, Core targets 1/6/144 plus optional mempool.space targets 1/3/6/144, and gap-safe/reorg-aware block confirmation capture with feerate percentiles (p10-p90). | 16 |
 | 36 | x402 demand intelligence: admin-only `/api/v1/analytics/endpoint-backlog`, privacy-safe endpoint normalization, aggregate conversion/failure/repeat-use scoring, and first-call x402 info/demo copy that labels safe funnel metrics without prompting real payment material on demo calls. | 6 |
-| **Total** | **~119 endpoints (90 core + 1 x402 demand analytics + 3 x402 + 7 history API + 14 content pages + 1 discovery redirect + 4 indexer), 25 core routers (+ 3 indexer + x402_stats = 29 when enabled)** | **612 unit + 21 e2e** |
+| **Total** | **108 router-declared API endpoints across 28 router modules; static content and optional indexer routes counted separately** | **747 non-e2e + 21 e2e** |
 
 ### 6.2 Files Delivered
 
@@ -506,36 +513,12 @@ Errors follow the same structure:
 - `src/bitcoin_api/indexer/routers/` -- indexed_address, indexed_tx, indexer_status
 - `src/bitcoin_api/indexer/migrations/` -- 001_initial_schema.sql
 
-**Tests (23 test files + 2 support files):**
-- `tests/test_health.py` -- 11 tests (health, root, status, healthz, docs, visualizer)
-- `tests/test_blocks.py` -- 18 tests (block-related endpoints)
-- `tests/test_fees.py` -- 45 tests (fee endpoints + fee research infrastructure)
-- `tests/test_transactions.py` -- 27 tests (transaction endpoints)
-- `tests/test_mempool.py` -- 7 tests (mempool endpoints)
-- `tests/test_mining.py` -- 21 tests (mining endpoint + service)
-- `tests/test_network.py` -- 26 tests (network, rate limit, error handling)
-- `tests/test_keys.py` -- 16 tests (API key registration & auth)
-- `tests/test_billing.py` -- 12 tests (Stripe billing)
-- `tests/test_guide.py` -- 8 tests (guide endpoints)
-- `tests/test_admin.py` -- 30 tests (admin dashboard, analytics, metrics)
-- `tests/test_misc.py` -- 51 tests (supply, stats, prices, exchanges, address, streams, websocket, classify_client, migrations)
-- `tests/test_stale_cache.py` -- 19 tests (stale store, _cached_rpc fallback, MAX_STALE_AGE, Prometheus counter)
-- `tests/test_notifications.py` -- 14 tests (Resend email + PostHog analytics)
-- `tests/test_rate_limit_redis.py` -- 6 tests (Redis rate limiting + fallback)
-- `tests/test_failover.py` -- 6 tests (RPC failover/circuit breaker)
-- `tests/test_rpc_proxy.py` -- 7 tests (JSON-RPC proxy whitelist, error handling, envelope format)
-- `tests/test_history.py` -- 45 tests (History Explorer API: events, eras, concepts, search, detail endpoints)
-- `tests/test_indexer_parser.py` -- 25 tests (block parser, satoshi conversion, hex helpers)
-- `tests/test_indexer_reorg.py` -- 15 tests (reorg detection, fork point with RPC, rollback logic)
-- `tests/test_indexer_routers.py` -- 14 tests (indexed endpoints, auth, validation)
-- `tests/test_indexer_worker.py` -- 19 tests (RPC retry, sync_blocks, _index_block, version check)
-- `tests/test_indexer_services.py` -- 12 tests (address balance/history, transaction detail)
-- `tests/test_price_service.py` -- 13 tests (price service provider fallback, caching, error handling)
-- `tests/test_observatory.py` -- 13 tests (Fee Observatory endpoints: scoreboard, block-stats, estimates, 503 fallback, static page)
-- `tests/test_x402_stats.py` -- 6 tests (x402 payment analytics)
-- `tests/test_e2e.py` -- 21 e2e tests (against live node)
-- `tests/locustfile.py` -- Load test (8 weighted endpoints)
-- `tests/helpers.py` -- Isolated router test client factory
+**Tests (current repo test files + support files):**
+- `tests/test_*.py` -- 747 collected non-e2e cases and 21 live-node e2e cases
+- `tests/test_fee_benchmark_export.py` -- benchmark row construction and JSONL CLI coverage
+- `tests/test_jobs.py` -- collector persistence, missed-height, and same-height reorg coverage
+- `tests/locustfile.py` -- weighted endpoint load scenarios
+- `tests/helpers.py` and `tests/conftest.py` -- isolated clients, DBs, RPCs, and background-job lifecycle
 
 **Deployment (6 files):**
 - `Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml`
@@ -560,8 +543,9 @@ Errors follow the same structure:
 - `CLAUDE.md` -- Project instructions for AI-assisted development
 - `AGENTS.md` -- Repo instructions for Codex and other agent runners
 
-**Scripts (14 files):**
+**Scripts (15 files):**
 - `scripts/create_api_key.py`, `scripts/seed_db.py`
+- `scripts/export_fee_forecast_benchmark.py` (writes benchmark-ready JSONL from local fee research data)
 - `scripts/security_check.sh` (requires `SATOSHI_API_KEY` env var for POST tests)
 - `scripts/security_audit.py` (10 automated security checks)
 - `scripts/staging-check.sh` (pre-deploy validation: starts staging server, checks CSP/headers/docs/endpoints)
@@ -575,6 +559,12 @@ Errors follow the same structure:
 - `scripts/watchdog-api.sh` (auto-restart zombie API; runs every 5 min via Task Scheduler)
 - `scripts/smoke-test-api.sh` (5-point health check for cron monitoring; supports --quiet)
 - `scripts/doc_consistency.py` (CI-enforced doc consistency checks)
+
+**Research export surfaces (5 files):**
+- `src/bitcoin_api/services/benchmark_export.py` (joins fee history to future block outcomes for offline benchmark export)
+- `src/bitcoin_api/benchmark_export_cli.py` (CLI entrypoint for benchmark-ready JSONL export)
+- `src/bitcoin_api/migrations/012_add_research_tables.sql` (fee research tables for block confirmations and estimate logs)
+- `src/bitcoin_api/jobs.py` + `src/bitcoin_api/db.py` (background collector now populates those research tables during normal API operation)
 
 **Legal (3 files):**
 - `static/terms.html` -- Terms of Service (FL governing law, liability limitation, acceptable use)
