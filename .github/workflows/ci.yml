@@ -39,3 +39,14 @@ jobs:
         if: matrix.python-version == '3.12'
         continue-on-error: true
         run: docker build -t bitcoin-api-test .
+
+  gate:
+    name: test
+    if: ${{ always() }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every Python matrix job to succeed
+        env:
+          MATRIX_RESULT: ${{ needs.test.result }}
+        run: test "$MATRIX_RESULT" = "success"
