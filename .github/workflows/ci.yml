@@ -35,7 +35,7 @@ jobs:
           pip-audit
 
       - name: Run tests with coverage
-        run: pytest tests/ -v --ignore=tests/test_e2e.py --ignore=tests/locustfile.py --cov=bitcoin_api --cov-report=term-missing --cov-fail-under=70
+        run: python -m pytest tests/ -v --ignore=tests/test_e2e.py --ignore=tests/locustfile.py --cov=bitcoin_api --cov-report=term-missing --cov-fail-under=70
 
       - name: Docker build (smoke test)
         if: matrix.python-version == '3.12'
