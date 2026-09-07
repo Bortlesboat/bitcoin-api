@@ -7,7 +7,6 @@ from pathlib import Path
 from fastapi import Cookie, FastAPI, Header, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from . import __version__
 
 _STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 _LANDING_PAGE = _STATIC_DIR / "index.html"
@@ -74,7 +73,6 @@ def register_static_routes(app: FastAPI):
         """MCP server card for Smithery discovery."""
         p = _STATIC_DIR / ".well-known" / "mcp" / "server-card.json"
         if p.exists():
-            import json
             return Response(
                 p.read_text(encoding="utf-8"),
                 media_type="application/json",

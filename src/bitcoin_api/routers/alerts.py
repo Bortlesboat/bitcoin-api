@@ -6,7 +6,7 @@ import socket
 from typing import Literal
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field, HttpUrl
 
 from ..auth import require_api_key_hash

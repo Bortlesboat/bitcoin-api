@@ -13,7 +13,6 @@ No Bitcoin node required — analysis is pure PSBT parsing.
 from __future__ import annotations
 
 import binascii
-import struct
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request

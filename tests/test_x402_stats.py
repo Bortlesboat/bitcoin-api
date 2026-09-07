@@ -1,5 +1,7 @@
 """Tests for x402 payment analytics."""
 
+import pytest
+
 
 def test_x402_stats_empty(client):
     """x402-stats returns zeros when no payments exist."""
@@ -80,7 +82,10 @@ def test_x402_dashboard_served(client):
 
 def test_payment_logger_injection():
     """set_payment_logger properly injects the callback."""
-    from bitcoin_api_x402.middleware import set_payment_logger, _log_payment
+    middleware = pytest.importorskip(
+        "bitcoin_api_x402.middleware", reason="requires the separate bitcoin-api-x402 extension"
+    )
+    set_payment_logger, _log_payment = middleware.set_payment_logger, middleware._log_payment
     calls = []
 
     def my_logger(*args):
@@ -97,7 +102,10 @@ def test_payment_logger_injection():
 
 def test_payment_logger_exception_safety():
     """Logger exceptions don't propagate."""
-    from bitcoin_api_x402.middleware import set_payment_logger, _log_payment
+    middleware = pytest.importorskip(
+        "bitcoin_api_x402.middleware", reason="requires the separate bitcoin-api-x402 extension"
+    )
+    set_payment_logger, _log_payment = middleware.set_payment_logger, middleware._log_payment
 
     def bad_logger(*args):
         raise RuntimeError("boom")

@@ -1,6 +1,5 @@
 """Tests for indexer router endpoints."""
 
-import os
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 

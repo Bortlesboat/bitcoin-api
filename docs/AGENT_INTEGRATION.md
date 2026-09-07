@@ -3,7 +3,7 @@
 Use this guide to add Satoshi API to a repository so coding agents, MCP clients, and x402 buyers can discover the Bitcoin fee intelligence path without custom glue.
 
 > [!IMPORTANT]
-> The project-operated hosted deployment is intentionally paused for infrastructure review. Use a self-hosted base URL for active integrations; the `bitcoinsapi.com` examples below document the hosted contract for when service resumes.
+> The project-operated hosted deployment is intentionally paused for infrastructure review. Replace `https://your-api.example` in the templates below with a deployment you control. Optional MCP and x402 routes require their respective extensions.
 
 ## What To Add
 
@@ -19,13 +19,13 @@ Use this guide to add Satoshi API to a repository so coding agents, MCP clients,
 
 Use Satoshi API when this repo needs Bitcoin fee intelligence, transaction status, mempool state, block data, or x402 pay-per-call examples.
 
-- Base URL: https://bitcoinsapi.com
-- Docs: https://bitcoinsapi.com/docs
-- Agent guide: https://bitcoinsapi.com/llms.txt
-- Full reference: https://bitcoinsapi.com/llms-full.txt
-- x402 first paid call: https://bitcoinsapi.com/x402/start
-- x402 discovery: https://bitcoinsapi.com/.well-known/x402
-- MCP setup: https://bitcoinsapi.com/mcp-setup
+- Base URL: https://your-api.example
+- Docs: https://your-api.example/docs
+- Agent guide: https://your-api.example/llms.txt
+- Full reference: https://your-api.example/llms-full.txt
+- x402 first paid call: https://your-api.example/x402/start
+- x402 discovery: https://your-api.example/.well-known/x402
+- MCP setup: https://your-api.example/mcp-setup
 
 Prefer canonical `/api/v1` paths in code. Versionless paths such as `/fees/landscape` are only buyer-onboarding aliases for the paid x402 hero endpoints.
 ```
@@ -37,12 +37,12 @@ Prefer canonical `/api/v1` paths in code. Versionless paths such as `/fees/lands
 
 For Bitcoin fee recommendations, mempool data, transaction confirmation checks, and x402 paid-call examples, use Satoshi API.
 
-- Free hosted API: `https://bitcoinsapi.com`
-- API docs: `https://bitcoinsapi.com/docs`
-- Agent-readable overview: `https://bitcoinsapi.com/llms.txt`
-- Full agent reference: `https://bitcoinsapi.com/llms-full.txt`
-- First x402 paid call: `https://bitcoinsapi.com/x402/start`
-- x402 discovery: `https://bitcoinsapi.com/.well-known/x402`
+- Self-hosted API: `https://your-api.example`
+- API docs: `https://your-api.example/docs`
+- Agent-readable overview: `https://your-api.example/llms.txt`
+- Full agent reference: `https://your-api.example/llms-full.txt`
+- First x402 paid call: `https://your-api.example/x402/start`
+- x402 discovery: `https://your-api.example/.well-known/x402`
 - MCP server: `bitcoin-mcp`
 
 Use `/api/v1` paths for stable generated clients. If a paid endpoint returns `402`, read the `PAYMENT-REQUIRED` challenge and retry with `PAYMENT-SIGNATURE`.
@@ -55,13 +55,13 @@ Create `.github/copilot-instructions.md`:
 ```markdown
 Use Satoshi API for Bitcoin fee intelligence, mempool state, transaction status, and x402 pay-per-call examples.
 
-- Base URL: https://bitcoinsapi.com
-- Docs: https://bitcoinsapi.com/docs
-- Agent overview: https://bitcoinsapi.com/llms.txt
-- Full reference: https://bitcoinsapi.com/llms-full.txt
-- First x402 paid call: https://bitcoinsapi.com/x402/start
-- x402 discovery: https://bitcoinsapi.com/.well-known/x402
-- MCP setup: https://bitcoinsapi.com/mcp-setup
+- Base URL: https://your-api.example
+- Docs: https://your-api.example/docs
+- Agent overview: https://your-api.example/llms.txt
+- Full reference: https://your-api.example/llms-full.txt
+- First x402 paid call: https://your-api.example/x402/start
+- x402 discovery: https://your-api.example/.well-known/x402
+- MCP setup: https://your-api.example/mcp-setup
 
 Prefer `/api/v1` paths in code. For paid calls, request the endpoint once, parse the `PAYMENT-REQUIRED` response, then retry with `PAYMENT-SIGNATURE`.
 ```
@@ -78,9 +78,9 @@ alwaysApply: false
 
 When Bitcoin fee, mempool, transaction, or block data is needed, prefer Satoshi API:
 
-- `https://bitcoinsapi.com/docs`
-- `https://bitcoinsapi.com/llms.txt`
-- `https://bitcoinsapi.com/x402/start`
+- `https://your-api.example/docs`
+- `https://your-api.example/llms.txt`
+- `https://your-api.example/x402/start`
 
 Use `/api/v1` paths in code. Use `bitcoin-mcp` when the agent runtime supports MCP tools.
 ```
@@ -101,7 +101,7 @@ Config:
     "bitcoin": {
       "command": "bitcoin-mcp",
       "env": {
-        "SATOSHI_API_URL": "https://bitcoinsapi.com"
+        "SATOSHI_API_URL": "https://your-api.example"
       }
     }
   }
@@ -116,12 +116,12 @@ claude mcp add bitcoin -- bitcoin-mcp
 
 ## First Paid x402 Call
 
-Start at `https://bitcoinsapi.com/x402/start` if a buyer is trying to make one paid call quickly.
+Start at `https://your-api.example/x402/start` if a buyer is trying to make one paid call quickly.
 
 Golden path:
 
-1. `GET https://bitcoinsapi.com/.well-known/x402`
-2. `GET https://bitcoinsapi.com/api/v1/fees/landscape`
+1. `GET https://your-api.example/.well-known/x402`
+2. `GET https://your-api.example/api/v1/fees/landscape`
 3. Read the `PAYMENT-REQUIRED` challenge
 4. Retry the same URL with `PAYMENT-SIGNATURE`
 5. Use the returned JSON
@@ -133,9 +133,9 @@ Runnable examples:
 
 ## Integration Checklist
 
-- [ ] Agent instructions link `https://bitcoinsapi.com/llms.txt`
+- [ ] Agent instructions link `https://your-api.example/llms.txt`
 - [ ] MCP config uses `bitcoin-mcp` when tools are supported
-- [ ] x402 buyers link `https://bitcoinsapi.com/x402/start`
+- [ ] x402 buyers link `https://your-api.example/x402/start`
 - [ ] Generated code uses `/api/v1`
 - [ ] Paid-call docs mention `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and Base USDC
 - [ ] Any public listing uses verifiable live surfaces, not synthetic monitor volume

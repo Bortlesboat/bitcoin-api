@@ -2,7 +2,6 @@
 
 from unittest.mock import patch
 
-import pytest
 
 from bitcoin_api.circuit_breaker import CircuitBreaker, CircuitState
 from bitcoin_api.dependencies import (

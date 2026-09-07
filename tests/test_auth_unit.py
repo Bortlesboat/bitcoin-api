@@ -6,16 +6,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from bitcoin_api.auth import (
-    ApiKeyInfo,
     authenticate,
     cap_blocks_param,
-    clear_auth_cache,
     extract_api_key,
     hash_key,
     require_api_key,
     require_api_key_hash,
-    _cached_lookup,
-    BLOCKS_CAP,
 )
 from fastapi import HTTPException
 

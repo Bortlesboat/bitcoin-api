@@ -1,9 +1,8 @@
 """JSON-RPC proxy: lets bitcoin-mcp route tool calls through the hosted API."""
 
-import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from bitcoinlib_rpc import BitcoinRPC

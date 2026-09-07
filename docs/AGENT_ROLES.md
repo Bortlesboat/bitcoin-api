@@ -12,12 +12,12 @@ This document defines the 12 agent "employees" that maintain Satoshi API, their 
 | **Endpoints** | Verify from route inventory and OpenAPI before quoting exact counts | 2026-04-28 |
 | **Tests** | Use `python -m pytest --collect-only -q` before quoting exact counts | 2026-04-28 |
 | **Routers** | Verify from `src/bitcoin_api/main.py` before quoting exact counts | 2026-04-28 |
-| **Live URL** | https://bitcoinsapi.com | — |
-| **Infra cost** | ~$3/mo | 2026-03-08 |
-| **Revenue** | x402 live; use the x402 ledger and real-paid notifier for current paid-usage status | 2026-04-23 |
-| **Latest release** | Verify the `bitcoin-api-current` promoted release and live health checks before quoting release facts | 2026-04-28 |
-| **MCP tools** | 49 tools, 6 prompts, 7 resources (bitcoin-mcp) | 2026-03-17 |
-| **Launch status** | **LAUNCH SPRINT ACTIVE** — content pipeline loaded, T-0 = Show HN Tuesday | 2026-03-09 |
+| **Hosted service** | Paused; use the source and self-hosting guide. Do not restart as part of repository maintenance. | 2026-09-07 |
+| **Infra cost** | Historical deployment estimate; no current service-cost claim | 2026-09-07 |
+| **Revenue** | No current live-service or revenue claim; historical demos are not proof of current paid usage | 2026-09-07 |
+| **Latest release** | Verify source tags and package metadata; source maintenance does not imply a hosted deployment | 2026-09-07 |
+| **MCP tools** | 50 standard tools, 6 prompts, 8 resources in current bitcoin-mcp source | 2026-09-07 |
+| **Launch status** | Source maintenance; March launch campaign below is historical | 2026-09-07 |
 | **Open issues** | None critical — legal audit PASS w/ 3 false-positive warnings (static links, not data processors) | 2026-03-09 |
 | **Awesome-list PRs** | 6 open (awesome-bitcoin, crypto-api, lopp.net, public-apis, awesome-mcp-servers, awesome-fastapi) | 2026-03-09 |
 
@@ -49,7 +49,9 @@ If the answer is "not really" — it's infrastructure, not product. Don't lead w
 
 Source: Reddit feedback from u/Any-Limit-7282, adopted as company strategy.
 
-### Current Sprint: Launch Campaign (Mar 9-22)
+### Historical Launch Campaign (March 9-22, 2026)
+
+This section preserves the original campaign record. Its ready/live labels are historical and do not authorize new outreach or imply current availability.
 
 **Context:** External agency-agents consult (61 specialized AI agents) reviewed Satoshi API on Mar 9. Unanimous finding: **distribution problem, not product problem.** Full report: `memory/satoshi-api/agency-consult.md`.
 

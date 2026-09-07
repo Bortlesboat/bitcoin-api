@@ -384,7 +384,6 @@ def guide(
         for step in quickstart:
             step["examples"] = _filter_examples(step["examples"], lang_val)
 
-    total = sum(len(c["endpoints"]) for c in categories)
     data = {
         "welcome": "Satoshi API — Bitcoin fee intelligence for developers and AI agents. Zero vendor lock-in.",
         "quickstart": quickstart,

@@ -27,7 +27,7 @@ You'll need a Bitcoin Core node running with `server=1` for e2e tests. Unit test
 
 ```bash
 # Unit tests (no node required)
-python -m pytest tests/test_api.py -q
+python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.py
 
 # E2E tests (requires running node + API)
 python -m pytest tests/test_e2e.py -m e2e
@@ -40,7 +40,7 @@ locust -f tests/locustfile.py --host http://localhost:9332
 
 1. Fork the repo and create a branch from `master`
 2. Add tests for any new endpoints or behavior changes
-3. Run `python -m pytest tests/test_api.py` and ensure all tests pass
+3. Run the unit-test command above and ensure all tests pass
 4. Keep PRs focused — one feature or fix per PR
 5. Update `docs/SCOPE_OF_WORK.md` if you add/change endpoints
 
@@ -56,7 +56,7 @@ locust -f tests/locustfile.py --host http://localhost:9332
 
 1. Create or extend a router in `src/bitcoin_api/routers/`
 2. Follow the existing response envelope pattern
-3. Add unit tests in `tests/test_api.py`
+3. Add unit tests in the matching domain file under `tests/` (for example, `tests/test_fees.py`)
 4. Update the endpoint table in `README.md`
 5. Update `docs/SCOPE_OF_WORK.md` Section 3
 
@@ -91,6 +91,10 @@ By signing off, you certify (per [developercertificate.org](https://developercer
 1. You created the contribution, or have the right to submit it.
 2. You understand it will be public and a record of the contribution is maintained.
 3. You license the contribution under the project's Apache 2.0 license.
+
+## Optional Extension Tests
+
+The development extra includes the MCP SDK and Stripe SDK used by the base suite. Two payment-logger tests require the separate [bitcoin-api-x402](https://github.com/Bortlesboat/bitcoin-api-x402) extension and skip explicitly when it is absent. Three PSBT endpoint tests skip while that feature is disabled. Install the extension in the same test environment when changing that integration. The default unit suite does not validate a running Bitcoin node, payment settlement, or the paused hosted service.
 
 ## License
 
