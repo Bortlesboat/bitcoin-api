@@ -346,7 +346,7 @@ class TestPlanTransaction:
         mock_client.get = AsyncMock(return_value=_mock_response({
             "data": {"cost_tiers": {}, "recommendation": "wait"}
         }))
-        result = await mcp._tool_manager._tools["plan_transaction"].fn(
+        await mcp._tool_manager._tools["plan_transaction"].fn(
             profile="batch_payout", inputs=5, outputs=10,
             address_type="taproot", currency="usd"
         )

@@ -1,7 +1,6 @@
 """Tests for the circuit breaker module."""
 
 import time
-from unittest.mock import patch
 
 import pytest
 

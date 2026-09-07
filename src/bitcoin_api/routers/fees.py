@@ -12,7 +12,6 @@ from ..models import ApiResponse, FeeEstimateData, FeeRecommendationData, envelo
 from ..rpc_async import async_rpc_call
 from ..services.price import get_cached_price
 from ..services.fees import (
-    PROFILES,
     analyze_mempool_blocks,
     calculate_fee_landscape,
     estimate_tx_fees,

@@ -6,14 +6,13 @@ All endpoints require ENABLE_AI_FEATURES=true and a configured AI provider
 
 import json
 import logging
-import time
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from bitcoinlib_rpc import BitcoinRPC
 from bitcoinlib_rpc.transactions import analyze_transaction
 
 from ..auth import require_api_key
-from ..cache import cached_blockchain_info, cached_fee_estimates, cached_raw_mempool, get_mempool_snapshots
+from ..cache import cached_blockchain_info, cached_fee_estimates, get_mempool_snapshots
 from ..dependencies import get_rpc
 from ..models import envelope, rpc_envelope
 from ..services.ai import (

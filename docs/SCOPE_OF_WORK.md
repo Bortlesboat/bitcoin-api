@@ -1,9 +1,20 @@
 # Satoshi API -- Scope of Work
 
 **Version:** 0.3.4
-**Date:** 2026-08-06
+**Date:** 2026-09-07
 **Author:** Bortlesboat
-**Status:** Live -- https://bitcoinsapi.com
+**Status:** Self-hostable source; project-operated hosted demo and facilitator paused
+
+### Maintenance update — September 7, 2026
+
+- Declared the optional HTTP MCP endpoint's SDK dependency in the `mcp` extra and included it in `dev`. A fresh development install previously failed test collection with `ModuleNotFoundError: mcp`.
+- Included Stripe in development dependencies and made the separate x402 extension test requirement explicit.
+- Fixed unused imports/variables from the existing CI lint failures and explicitly retained the pre-0.16 Ruff rule set; newer default rules can be adopted in focused changes.
+- Kept the SDK on the compatible 1.x API and aligned package links with the self-hosting documentation.
+- CI installs the declared dependencies instead of an unpinned RPC-library Git checkout, and runs the documented non-e2e suite.
+- Corrected contributor test commands, the separate bitcoin-mcp tool count, and funding links. Hosted-service availability and grant awards are not inferred from repository activity.
+- Local Python 3.12 baseline: 710 passed, 5 optional tests skipped, 80.03% coverage. This does not validate a live deployment or payment settlement.
+- Current validation commands: `python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.py` and `ruff check src/ tests/`. Results belong in the maintenance PR; historical test totals below are dated records.
 
 ---
 

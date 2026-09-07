@@ -2,12 +2,12 @@
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from bitcoin_api.routers.history import router, _load_data, _history_data
+from bitcoin_api.routers.history import router
 import bitcoin_api.routers.history as history_module
 from bitcoin_api.main import app
 from bitcoin_api.dependencies import get_rpc

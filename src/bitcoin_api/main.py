@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import os
 import re
 from contextlib import asynccontextmanager
 
@@ -191,7 +190,7 @@ for flag, router in _FEATURE_ROUTERS.items():
         app.include_router(router, prefix=PREFIX)
 
 # Fee/tx alert webhooks (always registered — requires API key)
-from .routers.alerts import router as _alerts_router
+from .routers.alerts import router as _alerts_router  # noqa: E402 -- grouped with route registration
 app.include_router(_alerts_router, prefix=PREFIX)
 
 # AI endpoints (conditional — requires ENABLE_AI_FEATURES=true + provider config)

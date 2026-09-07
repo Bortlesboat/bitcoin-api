@@ -284,7 +284,7 @@ def test_explain_transaction_invalid_txid(ai_client):
 
 def test_ai_503_when_no_provider(ai_client):
     """AI endpoints return 503 when no provider is configured."""
-    from bitcoin_api.services.ai import reset_ai_provider, NoopProvider
+    from bitcoin_api.services.ai import reset_ai_provider
     from bitcoin_api.config import settings
 
     mock_fee = MagicMock()
