@@ -12,6 +12,7 @@
 - Fixed unused imports/variables from the existing CI lint failures and explicitly retained the pre-0.16 Ruff rule set; newer default rules can be adopted in focused changes.
 - Kept the SDK on the compatible 1.x API and aligned package links with the self-hosting documentation.
 - CI installs the declared dependencies instead of an unpinned RPC-library Git checkout, and runs the documented non-e2e suite. The aggregate `test` job reports success only after every Python matrix job passes, matching the existing protected-branch check name.
+- CI upgrades its bootstrap packaging tools before auditing; the hosted runner's preinstalled setuptools 79.0.1 was reported vulnerable, with 83.0.0 as the fixed minimum.
 - Corrected contributor test commands, the separate bitcoin-mcp tool count, and funding links. Hosted-service availability and grant awards are not inferred from repository activity.
 - Local Python 3.12 baseline: 710 passed, 5 optional tests skipped, 80.03% coverage. This does not validate a live deployment or payment settlement.
 - Current validation commands: `python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.py` and `ruff check src/ tests/`. Results belong in the maintenance PR; historical test totals below are dated records.
