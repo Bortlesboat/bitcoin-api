@@ -27,12 +27,11 @@ def isolate_app_lifespan():
     """Keep repeated TestClient lifespans from starting global background services."""
     from bitcoin_api.routers.mcp_server import mcp
 
-    assert mcp._session_manager is not None
     with (
         patch("bitcoin_api.main.start_background_jobs"),
         patch("bitcoin_api.main.stop_background_jobs"),
         patch.object(
-            mcp._session_manager,
+            mcp.session_manager,
             "run",
             side_effect=_noop_mcp_session_manager,
         ),

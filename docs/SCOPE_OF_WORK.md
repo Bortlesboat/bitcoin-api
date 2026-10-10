@@ -451,6 +451,9 @@ Errors follow the same structure:
 **Benchmark Export Self-Sufficiency (Apr 24):**
 45. **Clean exporter branch could not bootstrap its own research data** -- The background fee collector now writes `block_confirmations` on detected new blocks and logs fee estimates into `fee_estimates_log`, so fresh installs can produce real benchmark export rows after migration `012_add_research_tables.sql`.
 
+**MCP SDK 2.x (Oct 10):**
+46. **mcp 2.x upgrade** -- Moved to `MCPServer` (`mcp>=2.3,<3`). Transport path and DNS-rebinding settings now go to `streamable_http_app()`, the lifespan starts the public `session_manager` (the old private `_session_manager` lookup would have failed silently on 2.x and left MCP unstarted), and `serverInfo.version` reports the package version.
+
 ### 5.3 Known Limitations (Acceptable for v0.1)
 
 | Limitation | Impact | When to Address |
