@@ -6,7 +6,7 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     ignore:
-      # mcp 2.x renames FastMCP; migrate deliberately instead of via a range bump
+      # MCP SDK majors break server APIs; upgrade deliberately, not via a range bump
       - dependency-name: mcp
         update-types: ["version-update:semver-major"]
 
