@@ -15,7 +15,7 @@ import logging
 import re
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 
@@ -76,11 +76,12 @@ def _extract_data(result: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# FastMCP instance
+# MCP server instance
 # ---------------------------------------------------------------------------
 
-mcp = FastMCP(
+mcp = MCPServer(
     "Satoshi API",
+    version=__version__,
     instructions=(
         "Bitcoin fee intelligence API. Provides real-time fee estimates, "
         "mempool analysis, block data, mining stats, and supply info. "
@@ -359,10 +360,9 @@ def create_mcp_app() -> Starlette:
     Cloudflare and Smithery. Mount at root so /mcp path works.
     """
     log.info("Creating MCP server with %d tools", len(mcp._tool_manager._tools))
-    mcp.settings.streamable_http_path = "/"
     # Allow public access through Cloudflare Tunnel
     from mcp.server.transport_security import TransportSecuritySettings
-    mcp.settings.transport_security = TransportSecuritySettings(
+    transport_security = TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
         allowed_hosts=[
             "127.0.0.1:*", "localhost:*", "[::1]:*",
@@ -375,7 +375,10 @@ def create_mcp_app() -> Starlette:
             "https://smithery.ai", "https://*.smithery.ai",
         ],
     )
-    app = mcp.streamable_http_app()
+    app = mcp.streamable_http_app(
+        streamable_http_path="/",
+        transport_security=transport_security,
+    )
 
     # Redirect browser GET /mcp → /mcp-setup (human-readable setup guide)
     from starlette.responses import RedirectResponse as _StarletteRR

@@ -66,10 +66,9 @@ async def lifespan(app: FastAPI):
     _mcp_cm = None
     try:
         from .routers.mcp_server import mcp as _mcp_server
-        if _mcp_server._session_manager is not None:
-            _mcp_cm = _mcp_server._session_manager.run()
-            await _mcp_cm.__aenter__()
-            log.info("MCP session manager started")
+        _mcp_cm = _mcp_server.session_manager.run()
+        await _mcp_cm.__aenter__()
+        log.info("MCP session manager started")
     except Exception:
         log.exception("Failed to start MCP session manager")
         _mcp_cm = None
