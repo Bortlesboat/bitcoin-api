@@ -31,7 +31,7 @@
 Bad fee timing burns sats on every Bitcoin transaction. Satoshi API tells you when to send, what to pay, and whether to wait — combining multiple `estimatesmartfee` targets with real-time mempool state. Instead of just "4 sat/vB", you get "Fees are low. Good time to send." One `pip install`, self-hostable, open source.
 
 > [!IMPORTANT]
-> The project-operated `bitcoinsapi.com` demo and x402 facilitator are intentionally paused during an infrastructure review. The open-source package remains available for self-hosting; do not rely on the hosted URLs until this notice is removed.
+> The former hosted Satoshi API demo and x402 facilitator are paused. `bitcoinsapi.com` now runs a separate edge project, so this repo's endpoints are self-host only.
 
 ## Install & Run
 
@@ -95,9 +95,9 @@ Or connect to a local node directly:
 
 For repo-native agent instructions, use [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md). It includes copy-paste snippets for `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, Cursor/Windsurf rules, MCP config, and x402 paid calls.
 
-The API's separate, optional HTTP MCP endpoint at `/mcp` requires `pip install -e '.[mcp]'` from this checkout. This uses the MCP SDK 1.x API; the development extra also installs it so the MCP tests run in a fresh environment.
+The API's separate, optional HTTP MCP endpoint at `/mcp` requires `pip install -e '.[mcp]'` from this checkout. This uses the MCP SDK 2.x API (`mcp>=2.3,<3`); the development extra also installs it so the MCP tests run in a fresh environment.
 
-When the hosted service resumes, keyless premium calls start at `https://bitcoinsapi.com/x402/start`. The paid flow is: discover `/.well-known/x402`, request a paid `/api/v1` endpoint, read `PAYMENT-REQUIRED`, then retry with `PAYMENT-SIGNATURE`.
+With the [bitcoin-api-x402](https://github.com/Bortlesboat/bitcoin-api-x402) extension installed, a self-hosted instance lists its paid endpoints at `/.well-known/x402`. The paid flow is: discover them, request a paid `/api/v1` endpoint, read `PAYMENT-REQUIRED`, then retry with `PAYMENT-SIGNATURE`.
 
 ## Self-Hosting
 

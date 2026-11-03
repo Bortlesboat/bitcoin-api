@@ -1,5 +1,7 @@
 # Satoshi API — 12-Month Roadmap
 
+> **Status:** The hosted service is paused. These items are ideas, not scheduled work.
+
 **Mission:** Make Bitcoin programmatically accessible to every developer and AI agent — with fee intelligence that saves real money on every transaction.
 
 ---
