@@ -133,7 +133,7 @@ python -m pytest tests/ -q --ignore=tests/test_e2e.py --ignore=tests/locustfile.
 
 ## Roadmap
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the 12-month development plan — indexer expansion, multi-network support, fee prediction, SDKs, and more.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for ideas under consideration (not scheduled while the hosted service is paused): indexer expansion, multi-network support, fee prediction, SDKs, and more.
 
 ## Support This Project
 
