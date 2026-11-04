@@ -276,6 +276,12 @@ def test_chat_min_length(ai_client):
     assert resp.status_code == 422
 
 
+def test_fee_advice_invalid_urgency(ai_client):
+    """Fee advice accepts only the documented urgency values."""
+    resp = ai_client.get("/api/v1/ai/fees/advice?urgency=asap")
+    assert resp.status_code == 422
+
+
 def test_explain_transaction_invalid_txid(ai_client):
     """Invalid txid returns 422."""
     resp = ai_client.get("/api/v1/ai/explain/transaction/not-a-txid")

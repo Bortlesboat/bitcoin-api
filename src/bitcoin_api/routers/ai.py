@@ -6,6 +6,7 @@ All endpoints require ENABLE_AI_FEATURES=true and a configured AI provider
 
 import json
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from bitcoinlib_rpc import BitcoinRPC
@@ -201,7 +202,7 @@ async def explain_block(
     },
 )
 async def fee_advice(
-    urgency: str = Query("medium", description="Transaction urgency", enum=["low", "medium", "high"]),
+    urgency: Literal["low", "medium", "high"] = Query("medium", description="Transaction urgency"),
     amount_btc: float | None = Query(None, description="Transaction amount in BTC (optional context)"),
     context: str | None = Query(None, description="Transaction context: DCA, consolidation, payment, etc."),
     rpc: BitcoinRPC = Depends(get_rpc),
